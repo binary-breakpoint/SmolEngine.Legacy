@@ -39,6 +39,9 @@ bld/
 # Visual Studio 2017 auto generated files
 Generated\ Files/
 
+vendor/vulkan/libs/
+vendor/assimp/libs/
+
 # MSTest test Results
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*
