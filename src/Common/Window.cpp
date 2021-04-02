@@ -98,7 +98,7 @@ namespace Frostium
 		glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int height)
 		{
 				DataPtr->Height = height;
-				DataPtr->Width = height;
+				DataPtr->Width = width;
 
 				WindowResizeEvent resizeEvent(*DataPtr);
 				EventSender->SendEvent(resizeEvent, EventType::S_WINDOW_RESIZE, EventCategory::S_EVENT_APP);

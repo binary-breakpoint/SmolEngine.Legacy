@@ -99,7 +99,7 @@ namespace Frostium
 #else
 			s_Instance->m_VulkanContext.OnResize(width, height);
 #endif
-			s_Instance->m_Framebuffer.OnResize(height, width);
+			s_Instance->m_Framebuffer.OnResize(width, height);
 		}
 
 		m_EventCallback(std::forward<Event&>(event));
