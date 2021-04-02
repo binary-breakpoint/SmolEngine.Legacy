@@ -35,8 +35,9 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 
+#include "stdafx.h"
 #include <time.h>
-#include "imgui_internal.h"
+#include <imgui/imgui_internal.h>
 
 #ifndef IMPLOT_VERSION
 #error Must include implot.h before implot_internal.h

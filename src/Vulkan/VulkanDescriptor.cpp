@@ -3,12 +3,14 @@
 
 #include "Common/Texture.h"
 #include "Common/CubeTexture.h"
+#include "GraphicsContext.h"
 
 #include "Vulkan/VulkanShader.h"
 #include "Vulkan/VulkanContext.h"
 #include "Vulkan/VulkanBufferPool.h"
 #include "Vulkan/VulkanPBR.h"
 #include "Vulkan/VulkanTexture.h"
+
 
 namespace Frostium
 {
@@ -128,7 +130,7 @@ namespace Frostium
 	void VulkanDescriptor::GenSamplersDescriptors(VulkanShader* shader)
 	{
 #ifndef FROSTIUM_OPENGL_IMPL
-		m_ImageInfo = Texture::CreateWhiteTexture()->GetVulkanTexture()->m_DescriptorImageInfo;
+		m_ImageInfo = GraphicsContext::s_Instance->m_DummyTexure->GetVulkanTexture()->m_DescriptorImageInfo;
 #endif
 		for (auto& [bindingPoint, res] : shader->m_UniformResources)
 		{

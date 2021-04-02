@@ -15,7 +15,6 @@
 namespace Frostium
 {
 	EditorCamera::EditorCamera(EditorCameraCreateInfo* createInfo)
-
 	{
 		if (createInfo)
 		{

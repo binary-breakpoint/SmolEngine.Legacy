@@ -11,18 +11,16 @@
 namespace Frostium 
 {
 	static WindowData* DataPtr = nullptr;
+	static EventHandler* EventSender = nullptr;
 
-	void Window::Init(const WindowCreateInfo* info)
+	void Window::Init(const WindowCreateInfo* info, EventHandler* event_hadler)
 	{
-		if (!info->EventHandler)
-			std::runtime_error("EventHandler is nullptr!");
-
 		DataPtr = &m_Data;
+		EventSender = event_hadler;
+
 		m_Data.Title = info->Title;
 		m_Data.Height = info->Height;
 		m_Data.Width = info->Width;
-		m_Data.EventHandler = info->EventHandler;
-
 		Create(info);
 	}
 
@@ -38,14 +36,14 @@ namespace Frostium
 	{
 		m_Data.Width = value;
 		WindowResizeEvent resizeEvent(m_Data);
-		DataPtr->EventHandler->SendEvent(resizeEvent, EventType::S_WINDOW_RESIZE, EventCategory::S_EVENT_APP);
+		EventSender->SendEvent(resizeEvent, EventType::S_WINDOW_RESIZE, EventCategory::S_EVENT_APP);
 	}
 
 	void Window::SetHeight(uint32_t value)
 	{
 		m_Data.Height = value;
 		WindowResizeEvent resizeEvent(m_Data);
-		DataPtr->EventHandler->SendEvent(resizeEvent, EventType::S_WINDOW_RESIZE, EventCategory::S_EVENT_APP);
+		EventSender->SendEvent(resizeEvent, EventType::S_WINDOW_RESIZE, EventCategory::S_EVENT_APP);
 	}
 
 	GLFWwindow* Window::GetNativeWindow() const
@@ -103,13 +101,13 @@ namespace Frostium
 				DataPtr->Width = height;
 
 				WindowResizeEvent resizeEvent(*DataPtr);
-				DataPtr->EventHandler->SendEvent(resizeEvent, EventType::S_WINDOW_RESIZE, EventCategory::S_EVENT_APP);
+				EventSender->SendEvent(resizeEvent, EventType::S_WINDOW_RESIZE, EventCategory::S_EVENT_APP);
 		});
 
 		glfwSetWindowCloseCallback(m_Window, [](GLFWwindow* window) 
 		{
 				WindowCloseEvent closeEvent;
-				DataPtr->EventHandler->SendEvent(closeEvent, EventType::S_WINDOW_CLOSE, EventCategory::S_EVENT_APP);
+				EventSender->SendEvent(closeEvent, EventType::S_WINDOW_CLOSE, EventCategory::S_EVENT_APP);
 		});
 
 		glfwSetKeyCallback(m_Window, [](GLFWwindow * window, int key, int scancode, int action, int mods)
@@ -120,17 +118,17 @@ namespace Frostium
 				{
 				case GLFW_PRESS:
 				{
-					DataPtr->EventHandler->SendEvent(keyEvent, EventType::S_KEY_PRESS, EventCategory::S_EVENT_KEYBOARD, action, key);
+					EventSender->SendEvent(keyEvent, EventType::S_KEY_PRESS, EventCategory::S_EVENT_KEYBOARD, action, key);
 					break;
 				}
 				case GLFW_RELEASE:
 				{
-					DataPtr->EventHandler->SendEvent(keyEvent, EventType::S_KEY_RELEASE, EventCategory::S_EVENT_KEYBOARD, action, key);
+					EventSender->SendEvent(keyEvent, EventType::S_KEY_RELEASE, EventCategory::S_EVENT_KEYBOARD, action, key);
 					break;
 				}
 				case GLFW_REPEAT:
 				{
-					DataPtr->EventHandler->SendEvent(keyEvent, EventType::S_KEY_REPEAT, EventCategory::S_EVENT_KEYBOARD, action, key);
+					EventSender->SendEvent(keyEvent, EventType::S_KEY_REPEAT, EventCategory::S_EVENT_KEYBOARD, action, key);
 					break;
 				}
 				default:
@@ -146,12 +144,12 @@ namespace Frostium
 				{
 				case GLFW_PRESS:
 				{
-					DataPtr->EventHandler->SendEvent(mouseButton, EventType::S_MOUSE_PRESS, EventCategory::S_EVENT_MOUSE, action, button);
+					EventSender->SendEvent(mouseButton, EventType::S_MOUSE_PRESS, EventCategory::S_EVENT_MOUSE, action, button);
 					break;
 				}
 				case GLFW_RELEASE:
 				{
-					DataPtr->EventHandler->SendEvent(mouseButton, EventType::S_MOUSE_RELEASE, EventCategory::S_EVENT_MOUSE, action, button);
+					EventSender->SendEvent(mouseButton, EventType::S_MOUSE_RELEASE, EventCategory::S_EVENT_MOUSE, action, button);
 					break;
 				}
 				}
@@ -161,14 +159,14 @@ namespace Frostium
 		glfwSetScrollCallback(m_Window, [](GLFWwindow* window, double xOffset, double yOffset)
 		{
 				MouseScrollEvent scrollEvent(static_cast<float>(xOffset), static_cast<float>(yOffset));
-				DataPtr->EventHandler->SendEvent(scrollEvent, EventType::S_MOUSE_SCROLL, EventCategory::S_EVENT_MOUSE);
+				EventSender->SendEvent(scrollEvent, EventType::S_MOUSE_SCROLL, EventCategory::S_EVENT_MOUSE);
 		});
 	
 
 		glfwSetCursorPosCallback(m_Window, [](GLFWwindow* window, double xPos, double yPos) 
 		{
 				MouseMoveEvent mouseEvent(xPos, yPos);
-				DataPtr->EventHandler->SendEvent(mouseEvent, EventType::S_MOUSE_MOVE, EventCategory::S_EVENT_MOUSE);
+				EventSender->SendEvent(mouseEvent, EventType::S_MOUSE_MOVE, EventCategory::S_EVENT_MOUSE);
 		});
 
 	}

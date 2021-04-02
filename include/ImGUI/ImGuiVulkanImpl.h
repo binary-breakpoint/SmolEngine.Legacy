@@ -8,7 +8,6 @@ struct GLFWwindow;
 namespace Frostium
 {
 	class VulkanCommandBuffer;
-
 	class ImGuiVulkanImpl
 	{
 	public:
@@ -19,12 +18,9 @@ namespace Frostium
 
 		void InitResources();
 
-	private:
 
 		VkDevice         g_Device;
 		VkPipelineCache  g_PipelineCache = VK_NULL_HANDLE;
 		VkDescriptorPool g_DescriptorPool = VK_NULL_HANDLE;
-
-		friend class ImGuiLayer;
 	};
 }

@@ -1,10 +1,11 @@
 #include "stdafx.h"
 #include "GraphicsContext.h"
-
 #include "Renderer.h"
 #include "Renderer2D.h"
-#include "Common/Framebuffer.h"
-#include "Common/Window.h"
+
+#include "Common/SLog.h"
+#include "Common/Input.h"
+#include "Common/ApplicationEvent.h"
 
 #include <GLFW/glfw3.h>
 
@@ -17,7 +18,10 @@ namespace Frostium
 		if (s_Instance->m_Initialized || !info->WindowInfo)
 			return false;
 
-		s_Instance->m_Window.Init(info->WindowInfo);
+		SLog::InitLog();
+		s_Instance->m_ResourcesFolderPath = info->ResourcesFolderPath;
+		s_Instance->m_EventHandler.OnEventFn = std::bind(&GraphicsContext::OnEvent, s_Instance, std::placeholders::_1);
+		s_Instance->m_Window.Init(info->WindowInfo, &s_Instance->m_EventHandler);
 		GLFWwindow* window = s_Instance->m_Window.GetNativeWindow();
 #ifdef  FROSTIUM_OPENGL_IMPL
 		s_Instance->m_OpenglContext.Setup(window);
@@ -25,11 +29,11 @@ namespace Frostium
 		s_Instance->m_VulkanContext.Setup(window,
 			&s_Instance->m_Window.GetWindowData()->Width, &s_Instance->m_Window.GetWindowData()->Height);
 #endif
-
+		s_Instance->m_DummyTexure = Texture::CreateWhiteTexture();
 		FramebufferSpecification framebufferCI = {};
 		{
-			framebufferCI.Width = info->Width;
-			framebufferCI.Height = info->Height;
+			framebufferCI.Width = info->WindowInfo->Width;
+			framebufferCI.Height = info->WindowInfo->Height;
 			framebufferCI.bUseMSAA = info->bMSAA;
 			framebufferCI.bTargetsSwapchain = info->bTargetsSwapchain;
 			framebufferCI.bUsedByImGui = true;
@@ -38,6 +42,7 @@ namespace Frostium
 			Framebuffer::Create(framebufferCI, &s_Instance->m_Framebuffer);
 		}
 
+		s_Instance->m_ImGuiContext.Init();
 		Renderer::Init();
 		Renderer2D::Init();
 #ifdef  FROSTIUM_OPENGL_IMPL
@@ -55,6 +60,11 @@ namespace Frostium
 		s_Instance->m_VulkanContext.OnResize(height, width);
 #endif
 		s_Instance->m_Framebuffer.OnResize(width, height);
+	}
+
+	void GraphicsContext::SetEventCallback(std::function<void(Event&)> callback)
+	{
+		s_Instance->m_EventCallback = callback;
 	}
 
 	Framebuffer* GraphicsContext::GetFramebuffer()
@@ -77,8 +87,27 @@ namespace Frostium
 		return s_Instance->m_Window.GetWindowData();
 	}
 
+	void GraphicsContext::OnEvent(Event& event)
+	{
+		m_ImGuiContext.OnEvent(event);
+		if (Input::IsEventReceived(EventType::S_WINDOW_RESIZE, event))
+		{
+			auto& resize_event = static_cast<WindowResizeEvent&>(event);
+			uint32_t width = resize_event.GetWidth();
+			uint32_t height = resize_event.GetHeight();
+#ifdef  FROSTIUM_OPENGL_IMPL
+#else
+			s_Instance->m_VulkanContext.OnResize(width, height);
+#endif
+			s_Instance->m_Framebuffer.OnResize(height, width);
+		}
+
+		m_EventCallback(std::forward<Event&>(event));
+	}
+
 	void GraphicsContext::SwapBuffers()
 	{
+		s_Instance->m_ImGuiContext.OnEnd();
 #ifdef  FROSTIUM_OPENGL_IMPL
 		s_Instance->m_OpenglContext.SwapBuffers();
 #else
@@ -88,14 +117,17 @@ namespace Frostium
 
 	void GraphicsContext::BeginFrame()
 	{
+		s_Instance->m_Window.ProcessEvents();
 #ifdef  FROSTIUM_OPENGL_IMPL
 #else
 		s_Instance->m_VulkanContext.BeginFrame();
 #endif
+		s_Instance->m_ImGuiContext.OnBegin();
 	}
 
 	void GraphicsContext::ShutDown()
 	{
+		s_Instance->m_ImGuiContext.ShutDown();
 		s_Instance->m_Window.ShutDown();
 #ifdef FROSTIUM_OPENGL_IMPL
 #else

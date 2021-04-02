@@ -7,6 +7,7 @@
 #include "Vulkan/VulkanShader.h"
 #include "Vulkan/VulkanCommandBuffer.h"
 
+#include "GraphicsContext.h"
 #include "Common/BufferLayout.h"
 #include "Common/VertexArray.h"
 #include "Common/VertexBuffer.h"
@@ -163,8 +164,8 @@ namespace Frostium
 			VulkanShader shader = {};
 			{
 				GraphicsPipelineShaderCreateInfo shaderCI;
-				shaderCI.FilePaths[ShaderType::Fragment] = "../Resources/Shaders/Vulkan/GenBRDflut.frag";
-				shaderCI.FilePaths[ShaderType::Vertex] = "../Resources/Shaders/Vulkan/GenBRDflut.vert";
+				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/GenBRDflut.frag";
+				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/GenBRDflut.vert";
 
 				assert(shader.Init(&shaderCI) == true);
 			}
@@ -640,8 +641,8 @@ namespace Frostium
 			VulkanShader shader = {};
 			{
 				GraphicsPipelineShaderCreateInfo shaderCI;
-				shaderCI.FilePaths[ShaderType::Fragment] = "../Resources/Shaders/Vulkan/IrradianceCube.frag";
-				shaderCI.FilePaths[ShaderType::Vertex] = "../Resources/Shaders/Vulkan/FilterCube.vert";
+				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/IrradianceCube.frag";
+				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/FilterCube.vert";
 
 				assert(shader.Init(&shaderCI) == true);
 			}
@@ -1265,8 +1266,8 @@ namespace Frostium
 			VulkanShader shader = {};
 			{
 				GraphicsPipelineShaderCreateInfo shaderCI;
-				shaderCI.FilePaths[ShaderType::Fragment] = "../Resources/Shaders/Vulkan/PreFilterenvMap.frag";
-				shaderCI.FilePaths[ShaderType::Vertex] = "../Resources/Shaders/Vulkan/FilterCube.vert";
+				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/PreFilterenvMap.frag";
+				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/FilterCube.vert";
 
 				assert(shader.Init(&shaderCI) == true);
 			}

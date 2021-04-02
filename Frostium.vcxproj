@@ -96,7 +96,7 @@
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;PLATFORM_WIN;BUILD_DLL;GLFW_INCLUDE_NONE;FROSTIUM_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;vendor\icon_font_cpp_headers;vendor\assimp\include;include;include\Libraries;include\Libraries\spdlog\include;include\Libraries\cereal\include;src;vendor\glfw\include;vendor\glad\include;include\Libraries\imgui;include\Libraries\glm;vendor\stb_image;vendor\vulkan\include;include\Libraries\imgizmo\src;vendor\ktx\include;vendor\gli;vendor\tinygltf;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;vendor\icon_font_cpp_headers;vendor\assimp\include;include;include\Libraries;include\Libraries\implot;include\Libraries\spdlog\include;include\Libraries\cereal\include;src;vendor\glfw\include;vendor\glad\include;include\Libraries\imgui;include\Libraries\glm;vendor\stb_image;vendor\vulkan\include;include\Libraries\imgizmo\src;vendor\ktx\include;vendor\gli;vendor\tinygltf;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -117,7 +117,7 @@
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;PLATFORM_WIN;BUILD_DLL;GLFW_INCLUDE_NONE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;vendor\icon_font_cpp_headers;vendor\assimp\include;include;include\Libraries;include\Libraries\spdlog\include;include\Libraries\cereal\include;src;vendor\glfw\include;vendor\glad\include;include\Libraries\imgui;include\Libraries\glm;vendor\stb_image;vendor\vulkan\include;include\Libraries\imgizmo\src;vendor\ktx\include;vendor\gli;vendor\tinygltf;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;vendor\icon_font_cpp_headers;vendor\assimp\include;include;include\Libraries;include\Libraries\implot;include\Libraries\spdlog\include;include\Libraries\cereal\include;src;vendor\glfw\include;vendor\glad\include;include\Libraries\imgui;include\Libraries\glm;vendor\stb_image;vendor\vulkan\include;include\Libraries\imgizmo\src;vendor\ktx\include;vendor\gli;vendor\tinygltf;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -142,7 +142,7 @@
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;PLATFORM_WIN;BUILD_DLL;GLFW_INCLUDE_NONE;FROSTIUM_OPENGL_IMPL;FROSTIUM_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;vendor\icon_font_cpp_headers;vendor\assimp\include;include;include\Libraries;include\Libraries\spdlog\include;include\Libraries\cereal\include;src;vendor\glfw\include;vendor\glad\include;include\Libraries\imgui;include\Libraries\glm;vendor\stb_image;vendor\vulkan\include;include\Libraries\imgizmo\src;vendor\ktx\include;vendor\gli;vendor\tinygltf;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;vendor\icon_font_cpp_headers;vendor\assimp\include;include;include\Libraries;include\Libraries\implot;include\Libraries\spdlog\include;include\Libraries\cereal\include;src;vendor\glfw\include;vendor\glad\include;include\Libraries\imgui;include\Libraries\glm;vendor\stb_image;vendor\vulkan\include;include\Libraries\imgizmo\src;vendor\ktx\include;vendor\gli;vendor\tinygltf;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -163,7 +163,7 @@
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;PLATFORM_WIN;BUILD_DLL;GLFW_INCLUDE_NONE;FROSTIUM_OPENGL_IMPL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;vendor\icon_font_cpp_headers;vendor\assimp\include;include;include\Libraries;include\Libraries\spdlog\include;include\Libraries\cereal\include;src;vendor\glfw\include;vendor\glad\include;include\Libraries\imgui;include\Libraries\glm;vendor\stb_image;vendor\vulkan\include;include\Libraries\imgizmo\src;vendor\ktx\include;vendor\gli;vendor\tinygltf;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;vendor\icon_font_cpp_headers;vendor\assimp\include;include;include\Libraries;include\Libraries\implot;include\Libraries\spdlog\include;include\Libraries\cereal\include;src;vendor\glfw\include;vendor\glad\include;include\Libraries\imgui;include\Libraries\glm;vendor\stb_image;vendor\vulkan\include;include\Libraries\imgizmo\src;vendor\ktx\include;vendor\gli;vendor\tinygltf;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -214,7 +214,9 @@
     <ClInclude Include="include\EditorCamera.h" />
     <ClInclude Include="include\GraphicsContext.h" />
     <ClInclude Include="include\GraphicsPipeline.h" />
+    <ClInclude Include="include\ImGUI\ImGuiContext.h" />
     <ClInclude Include="include\ImGUI\ImGuiExtension.h" />
+    <ClInclude Include="include\ImGUI\ImGuiVulkanImpl.h" />
     <ClInclude Include="include\Libraries\cereal\include\cereal\external\rapidjson\allocators.h" />
     <ClInclude Include="include\Libraries\cereal\include\cereal\external\rapidjson\cursorstreamwrapper.h" />
     <ClInclude Include="include\Libraries\cereal\include\cereal\external\rapidjson\document.h" />
@@ -716,6 +718,8 @@
     <ClInclude Include="include\Libraries\imgui\misc\cpp\imgui_stdlib.h" />
     <ClInclude Include="include\Libraries\imgui\misc\freetype\imgui_freetype.h" />
     <ClInclude Include="include\Libraries\imgui\misc\single_file\imgui_single_file.h" />
+    <ClInclude Include="include\Libraries\implot\implot.h" />
+    <ClInclude Include="include\Libraries\implot\implot_internal.h" />
     <ClInclude Include="include\Libraries\spdlog\bench\utils.h" />
     <ClInclude Include="include\Libraries\spdlog\include\spdlog\async.h" />
     <ClInclude Include="include\Libraries\spdlog\include\spdlog\async_logger-inl.h" />
@@ -842,8 +846,6 @@
     <ClInclude Include="include\Vulkan\VulkanUtils.h" />
     <ClInclude Include="include\Vulkan\VulkanVertexBuffer.h" />
     <ClInclude Include="src\Common\InputCodes.h" />
-    <ClInclude Include="src\ImGUI\ImGuiLayer.h" />
-    <ClInclude Include="src\ImGUI\ImGuiVulkanImpl.h" />
     <ClInclude Include="src\stdafx.h" />
     <ClInclude Include="vendor\stb_image\stb_image.h" />
     <ClInclude Include="vendor\stb_image\stb_image_write.h" />
@@ -870,8 +872,8 @@
     <ClCompile Include="src\GraphicsContext.cpp" />
     <ClCompile Include="src\GraphicsPipeline.cpp" />
     <ClCompile Include="src\ImGUI\ImGuiBuid.cpp" />
+    <ClCompile Include="src\ImGUI\ImGuiContext.cpp" />
     <ClCompile Include="src\ImGUI\ImGuiExtension.cpp" />
-    <ClCompile Include="src\ImGUI\ImGuiLayer.cpp" />
     <ClCompile Include="src\ImGUI\ImGuiVulkanImpl.cpp" />
     <ClCompile Include="src\MaterialLibrary.cpp" />
     <ClCompile Include="src\OpenGL\OpenglBuffer.cpp" />
@@ -910,6 +912,9 @@
     <ClCompile Include="src\stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="vendor\implot\implot.cpp" />
+    <ClCompile Include="vendor\implot\implot_demo.cpp" />
+    <ClCompile Include="vendor\implot\implot_items.cpp" />
     <ClCompile Include="vendor\stb_image\stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -56,9 +56,9 @@ namespace Frostium
 	void Framebuffer::OnResize(const uint32_t width, const uint32_t height)
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
-		m_OpenglFramebuffer.OnResize(height, width);
+		m_OpenglFramebuffer.OnResize(width, height);
 #else
-		m_VulkanFrameBuffer.OnResize(height, width);
+		m_VulkanFrameBuffer.OnResize(width, height);
 #endif
 	}
 

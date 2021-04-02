@@ -10,6 +10,12 @@
 #include "Common/Core.h"
 #include "Common/Window.h"
 #include "Common/Framebuffer.h"
+#include "Common/EventHandler.h"
+#include "Common/Texture.h"
+
+#include "ImGUI/ImGuiContext.h"
+
+#include <functional>
 
 namespace Frostium 
 {
@@ -21,8 +27,7 @@ namespace Frostium
 	{
 		bool                bMSAA = true;
 		bool                bTargetsSwapchain = true;
-		uint32_t            Width = 1920;
-		uint32_t            Height = 1080;
+		std::string         ResourcesFolderPath = "../resources/";
 
 		WindowCreateInfo*   WindowInfo = nullptr;
 	};
@@ -41,7 +46,11 @@ namespace Frostium
 
 		static void OnResize(uint32_t width, uint32_t height);
 
-		/// Getters
+		// Setters
+
+		static void SetEventCallback(std::function<void(Event&)> callback);
+
+		// Getters
 
 #ifdef  FROSTIUM_OPENGL_IMPL
 		static OpenglRendererAPI* GetOpenglRendererAPI();
@@ -58,7 +67,12 @@ namespace Frostium
 
 	private:
 
+		void OnEvent(Event& event);
+
+	private:
+
 		static GraphicsContext*              s_Instance;
+		Ref<Texture>                         m_DummyTexure = nullptr;
 		bool                                 m_Initialized = false;
 #ifdef  FROSTIUM_OPENGL_IMPL
 		OpenglContext                        m_OpenglContext = {};
@@ -68,12 +82,20 @@ namespace Frostium
 #endif
 		Framebuffer                          m_Framebuffer = {};
 		Window                               m_Window = {};
+		ImGuiContext                         m_ImGuiContext = {};
+		EventHandler                         m_EventHandler = {};
+
+		std::string                          m_ResourcesFolderPath = "";
+		std::function<void(Event&)>          m_EventCallback;
 
 	private:
 
 		friend class GraphicsPipeline;
 		friend class Renderer;
 		friend class Renderer2D;
+		friend class ImGuiContext;
+		friend class VulkanPBR;
+		friend class VulkanDescriptor;
 		friend class Window;
 	};
 }

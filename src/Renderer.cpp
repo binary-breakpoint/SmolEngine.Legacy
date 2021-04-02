@@ -467,7 +467,7 @@ namespace Frostium
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
 #else
-		VulkanPBR::Init("../Resources/Textures/uffizi_cube.ktx", TextureFormat::R16G16B16A16_SFLOAT);
+		VulkanPBR::Init(GraphicsContext::s_Instance->m_ResourcesFolderPath + "Skyboxes/uffizi_cube.ktx", TextureFormat::R16G16B16A16_SFLOAT);
 #endif
 	}
 
@@ -490,8 +490,8 @@ namespace Frostium
 			s_Data->m_MainPipeline = std::make_unique<GraphicsPipeline>();
 			GraphicsPipelineShaderCreateInfo shaderCI = {};
 			{
-				shaderCI.FilePaths[ShaderType::Vertex] = "../Resources/Shaders/Vulkan/PBR.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = "../Resources/Shaders/Vulkan/PBR.frag";
+				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/PBR.vert";
+				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/PBR.frag";
 
 				shaderCI.StorageBuffersSizes[25] = { sizeof(InstanceData) * s_InstanceDataMaxCount };
 				shaderCI.StorageBuffersSizes[26] = { sizeof(Material) * 1000 };
@@ -524,8 +524,8 @@ namespace Frostium
 			s_Data->m_SkyboxPipeline = std::make_unique<GraphicsPipeline>();
 			GraphicsPipelineShaderCreateInfo shaderCI = {};
 			{
-				shaderCI.FilePaths[ShaderType::Vertex] = "../Resources/Shaders/Vulkan/Skybox.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = "../Resources/Shaders/Vulkan/Skybox.frag";
+				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/Skybox.vert";
+				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/Skybox.frag";
 			};
 
 			struct SkyBoxData
@@ -605,8 +605,8 @@ namespace Frostium
 			s_Data->m_DebugViewPipeline = std::make_unique<GraphicsPipeline>();
 			GraphicsPipelineShaderCreateInfo shaderCI = {};
 			{
-				shaderCI.FilePaths[ShaderType::Vertex] = "../Resources/Shaders/Vulkan/GenVertex.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = "../Resources/Shaders/Vulkan/DebugView.frag";
+				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/GenVertex.vert";
+				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/DebugView.frag";
 			};
 
 			float quadVertices[] = {
@@ -657,8 +657,8 @@ namespace Frostium
 			s_Data->m_DepthPassPipeline = std::make_unique<GraphicsPipeline>();
 			GraphicsPipelineShaderCreateInfo shaderCI = {};
 			{
-				shaderCI.FilePaths[ShaderType::Vertex] = "../Resources/Shaders/Vulkan/DepthPass.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = "../Resources/Shaders/Vulkan/DepthPass.frag";
+				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/DepthPass.vert";
+				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/DepthPass.frag";
 			};
 
 			GraphicsPipelineCreateInfo DynamicPipelineCI = {};
@@ -682,8 +682,8 @@ namespace Frostium
 			s_Data->m_OmniPipeline = std::make_unique<GraphicsPipeline>();
 			GraphicsPipelineShaderCreateInfo shaderCI = {};
 			{
-				shaderCI.FilePaths[ShaderType::Vertex] = "../Resources/Shaders/Vulkan/OmniShadow.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = "../Resources/Shaders/Vulkan/OmniShadow.frag";
+				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/OmniShadow.vert";
+				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/OmniShadow.frag";
 			};
 
 			GraphicsPipelineCreateInfo DynamicPipelineCI = {};
@@ -712,6 +712,7 @@ namespace Frostium
 			{
 				framebufferCI.Width = 4096;
 				framebufferCI.Height = 4096;
+				framebufferCI.bResizable = false;
 				framebufferCI.Specialisation = FramebufferSpecialisation::ShadowMap;
 
 				s_Data->m_DepthFramebuffer = Framebuffer::Create(framebufferCI);
@@ -726,6 +727,7 @@ namespace Frostium
 			{
 				framebufferCI.Width = 1024;
 				framebufferCI.Height = 1024;
+				framebufferCI.bResizable = false;
 				framebufferCI.Specialisation = FramebufferSpecialisation::OmniShadow;
 				framebufferCI.NumSubpassDependencies = 0;
 

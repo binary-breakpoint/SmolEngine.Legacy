@@ -11,11 +11,9 @@ namespace Frostium
 
 	struct WindowData
 	{
-		uint32_t            Width = 720;
-		uint32_t            Height = 480;
-
-		std::string         Title = "Some Application";
-		Ref<EventHandler>   EventHandler = nullptr;
+		uint32_t            Width;
+		uint32_t            Height;
+		std::string         Title;
 	};
 
 	struct WindowCreateInfo
@@ -27,7 +25,6 @@ namespace Frostium
 		bool                bFullscreen = false;
 
 		std::string         Title = "SomeApplication";
-		Ref<EventHandler>   EventHandler = nullptr;
 	};
 
 	class Window
@@ -36,7 +33,7 @@ namespace Frostium
 
 		/// Main
 
-		void Init(const WindowCreateInfo* info);
+		void Init(const WindowCreateInfo* info, EventHandler* eventHandler);
 
 		void ProcessEvents();
 
@@ -66,8 +63,8 @@ namespace Frostium
 
 	private:
 
-		GLFWwindow* m_Window = nullptr;
-		WindowData  m_Data;
+		GLFWwindow*     m_Window = nullptr;
+		WindowData      m_Data = {};
 	};
 
 }

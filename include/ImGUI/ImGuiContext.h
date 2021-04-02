@@ -1,30 +1,24 @@
 #pragma once
 
-#include "Common/Layer.h"
-
 #ifndef SMOLENIGNE_OPENGL_IMPL
 #include <ImGUI/ImGuiVulkanImpl.h>
 #endif
+#include "Common/EventHandler.h"
 
 namespace Frostium 
 {
 	class Window;
-
-	class ImGuiLayer: public Layer
+	class ImGuiContext
 	{
 	public:
 
-		ImGuiLayer();
+		void Init();
 
-		~ImGuiLayer();
+		void ShutDown();
 
-		void OnEvent(Event& event) override;
+		// Events
 
-		void OnAttach() override;
-
-		void OnDetach() override;
-
-		void OnImGuiRender() override;
+		void OnEvent(Event& event);
 
 		void OnBegin();
 
@@ -33,7 +27,6 @@ namespace Frostium
 	private:
 
 #ifndef FROSTIUM_OPENGL_IMPL
-
 		ImGuiVulkanImpl m_VulkanImpl = {};
 #endif
 	};

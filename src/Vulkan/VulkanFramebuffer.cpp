@@ -14,9 +14,6 @@ namespace Frostium
 {
 	VulkanFramebuffer::VulkanFramebuffer()
 	{
-		m_Device = VulkanContext::GetDevice().GetLogicalDevice();
-		m_ColorFormat = VulkanContext::GetSwapchain().GetColorFormat();
-		m_DepthFormat = VulkanContext::GetSwapchain().GetDepthFormat();
 	}
 
 	VulkanFramebuffer::~VulkanFramebuffer()
@@ -577,6 +574,10 @@ namespace Frostium
 	{
 		m_Specification = data;
 		m_MSAASamples = data.bUseMSAA ? VulkanContext::GetDevice().GetMSAASamplesCount(): VK_SAMPLE_COUNT_1_BIT;
+
+		m_Device = VulkanContext::GetDevice().GetLogicalDevice();
+		m_ColorFormat = VulkanContext::GetSwapchain().GetColorFormat();
+		m_DepthFormat = VulkanContext::GetSwapchain().GetDepthFormat();
 
 		switch (m_Specification.Specialisation)
 		{

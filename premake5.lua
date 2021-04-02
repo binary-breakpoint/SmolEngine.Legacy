@@ -60,6 +60,7 @@ project "Frostium"
 
 		"vendor/stb_image/**.h",
 		"vendor/stb_image/**.cpp",
+		"vendor/implot/**.cpp",
 	}
 
 	includedirs
@@ -70,6 +71,7 @@ project "Frostium"
 		
 		"include/",
 		"include/Libraries",
+		"include/Libraries/implot/",
 		"include/Libraries/spdlog/include",
 		"include/Libraries/cereal/include",
 

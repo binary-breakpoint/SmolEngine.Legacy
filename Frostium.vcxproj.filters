@@ -103,6 +103,9 @@
     <Filter Include="include\Libraries\imgui\misc\single_file">
       <UniqueIdentifier>{8A094BF9-7686-3E3C-9F03-3F508BDFDACF}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\Libraries\implot">
+      <UniqueIdentifier>{9939717E-855E-C0FE-AEA9-A58E9A2DBF1C}</UniqueIdentifier>
+    </Filter>
     <Filter Include="include\Libraries\spdlog">
       <UniqueIdentifier>{CD84F495-B9A9-4316-E2F4-28A6CE784234}</UniqueIdentifier>
     </Filter>
@@ -159,6 +162,9 @@
     </Filter>
     <Filter Include="vendor">
       <UniqueIdentifier>{B3738122-9F15-ACF8-88D0-BF4C74113349}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\implot">
+      <UniqueIdentifier>{5771DC0A-C331-5841-8C6C-A1BEF8EB9C1D}</UniqueIdentifier>
     </Filter>
     <Filter Include="vendor\stb_image">
       <UniqueIdentifier>{0DA0BA59-F998-D9AB-22CB-BE300E23B9B7}</UniqueIdentifier>
@@ -258,7 +264,13 @@
     <ClInclude Include="include\GraphicsPipeline.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="include\ImGUI\ImGuiContext.h">
+      <Filter>include\ImGUI</Filter>
+    </ClInclude>
     <ClInclude Include="include\ImGUI\ImGuiExtension.h">
+      <Filter>include\ImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ImGUI\ImGuiVulkanImpl.h">
       <Filter>include\ImGUI</Filter>
     </ClInclude>
     <ClInclude Include="include\Libraries\cereal\include\cereal\external\rapidjson\allocators.h">
@@ -1764,6 +1776,12 @@
     <ClInclude Include="include\Libraries\imgui\misc\single_file\imgui_single_file.h">
       <Filter>include\Libraries\imgui\misc\single_file</Filter>
     </ClInclude>
+    <ClInclude Include="include\Libraries\implot\implot.h">
+      <Filter>include\Libraries\implot</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\implot\implot_internal.h">
+      <Filter>include\Libraries\implot</Filter>
+    </ClInclude>
     <ClInclude Include="include\Libraries\spdlog\bench\utils.h">
       <Filter>include\Libraries\spdlog\bench</Filter>
     </ClInclude>
@@ -2142,12 +2160,6 @@
     <ClInclude Include="src\Common\InputCodes.h">
       <Filter>src\Common</Filter>
     </ClInclude>
-    <ClInclude Include="src\ImGUI\ImGuiLayer.h">
-      <Filter>src\ImGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ImGUI\ImGuiVulkanImpl.h">
-      <Filter>src\ImGUI</Filter>
-    </ClInclude>
     <ClInclude Include="src\stdafx.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -2222,10 +2234,10 @@
     <ClCompile Include="src\ImGUI\ImGuiBuid.cpp">
       <Filter>src\ImGUI</Filter>
     </ClCompile>
-    <ClCompile Include="src\ImGUI\ImGuiExtension.cpp">
+    <ClCompile Include="src\ImGUI\ImGuiContext.cpp">
       <Filter>src\ImGUI</Filter>
     </ClCompile>
-    <ClCompile Include="src\ImGUI\ImGuiLayer.cpp">
+    <ClCompile Include="src\ImGUI\ImGuiExtension.cpp">
       <Filter>src\ImGUI</Filter>
     </ClCompile>
     <ClCompile Include="src\ImGUI\ImGuiVulkanImpl.cpp">
@@ -2335,6 +2347,15 @@
     </ClCompile>
     <ClCompile Include="src\stdafx.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\implot\implot.cpp">
+      <Filter>vendor\implot</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\implot\implot_demo.cpp">
+      <Filter>vendor\implot</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\implot\implot_items.cpp">
+      <Filter>vendor\implot</Filter>
     </ClCompile>
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>

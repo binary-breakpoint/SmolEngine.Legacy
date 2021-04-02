@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "ImGUI/ImGuiLayer.h"
+#include "ImGUI/ImGuiContext.h"
 #include "Common/EventHandler.h"
 #include "GraphicsContext.h"
 
@@ -24,28 +24,50 @@
 
 namespace Frostium 
 {
-
-	ImGuiLayer::ImGuiLayer()
-		:Layer("ImGuiLayer")
-	{
-
-	}
-
-	ImGuiLayer::~ImGuiLayer()
-	{
-	}
-
-	void ImGuiLayer::OnEvent(Event& event)
+	void ImGuiContext::OnEvent(Event& event)
 	{
 		ImGuiIO& io = ImGui::GetIO();
-
 		if (io.WantTextInput && event.m_EventCategory == (uint32_t)EventCategory::S_EVENT_KEYBOARD)
 		{
 			event.m_Handled = true;
 		}
 	}
 
-	void ImGuiLayer::OnAttach()
+	void ImGuiContext::OnBegin()
+	{
+#ifdef  FROSTIUM_OPENGL_IMPL
+		ImGui_ImplOpenGL3_NewFrame();
+#else
+		ImGui_ImplVulkan_NewFrame();
+#endif
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+		ImGuizmo::BeginFrame();
+	}
+
+	void ImGuiContext::OnEnd()
+	{
+		float width = static_cast<float>(GraphicsContext::GetWindowData()->Width);
+		float height = static_cast<float>(GraphicsContext::GetWindowData()->Height);
+
+		ImGuiIO& io = ImGui::GetIO();
+		io.DisplaySize = ImVec2(width, height);
+		ImGui::Render();
+
+#ifdef  FROSTIUM_OPENGL_IMPL
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+#else
+#endif
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			GLFWwindow* backup_current_context = glfwGetCurrentContext();
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+			glfwMakeContextCurrent(backup_current_context);
+		}
+	}
+
+	void ImGuiContext::Init()
 	{
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
@@ -122,7 +144,8 @@ namespace Frostium
 		config.OversampleH = 3;
 		config.OversampleV = 1;
 		config.GlyphExtraSpacing.x = 1.0f;
-		io.Fonts->AddFontFromFileTTF("resources/Fonts/Font1.ttf", 17.0f, &config);
+		std::string fontPath = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Fonts/Font1.ttf";
+		io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 17.0f, &config);
 
 		GLFWwindow* window = GraphicsContext::GetNativeWindow();
 #ifdef  FROSTIUM_OPENGL_IMPL
@@ -153,7 +176,7 @@ namespace Frostium
 #endif //  FROSTIUM_OPENGL_IMPL
 	}
 
-	void ImGuiLayer::OnDetach()
+	void ImGuiContext::ShutDown()
 	{
 #ifdef  FROSTIUM_OPENGL_IMPL
 		ImGui_ImplOpenGL3_Shutdown();
@@ -164,46 +187,5 @@ namespace Frostium
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
 		ImPlot::DestroyContext();
-	}
-
-	void ImGuiLayer::OnImGuiRender()
-	{
-		//static bool show = true;
-		//ImGui::ShowDemoWindow(&show);
-	}
-
-	void ImGuiLayer::OnBegin()
-	{
-#ifdef  FROSTIUM_OPENGL_IMPL
-		ImGui_ImplOpenGL3_NewFrame();
-#else
-		ImGui_ImplVulkan_NewFrame();
-#endif
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-		ImGuizmo::BeginFrame();
-	}
-
-
-	void ImGuiLayer::OnEnd()
-	{
-		float width = static_cast<float>(GraphicsContext::GetWindowData()->Width);
-		float height = static_cast<float>(GraphicsContext::GetWindowData()->Height);
-
-		ImGuiIO& io = ImGui::GetIO();
-		io.DisplaySize = ImVec2(width, height);
-		ImGui::Render();
-
-#ifdef  FROSTIUM_OPENGL_IMPL
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-#else
-#endif
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-		{
-			GLFWwindow* backup_current_context = glfwGetCurrentContext();
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
-			glfwMakeContextCurrent(backup_current_context);
-		}
 	}
 }
