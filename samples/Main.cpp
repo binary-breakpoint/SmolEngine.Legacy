@@ -1,9 +1,8 @@
 #include "Main.h"
 
+#include <GraphicsContext.h>
+#include <Renderer.h>
 #include <string>
-
-#include "GraphicsContext.h"
-#include "Renderer.h"
 
 using namespace Frostium;
 
@@ -23,6 +22,7 @@ int main(int argc, char** argv)
 		info.bMSAA = true;
 		info.bTargetsSwapchain = true;
 		info.WindowCI = &windoInfo;
+		info.ResourcesFolderPath = "../resources/";
 	}
 
 	GraphicsContext* context = new GraphicsContext(&info);

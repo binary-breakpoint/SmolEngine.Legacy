@@ -22,7 +22,7 @@ namespace Frostium
 			return;
 
 		s_Instance = this;
-		// Initialize loggin tool
+		// Initialize spdlog
 		SLog::InitLog();
 		m_ResourcesFolderPath = info->ResourcesFolderPath;
 		m_EventHandler.OnEventFn = std::bind(&GraphicsContext::OnEvent, this, std::placeholders::_1);
@@ -109,7 +109,8 @@ namespace Frostium
 	{
 		if (m_Initialized)
 		{
-			delete m_EditorCamera;
+			if(m_UseEditorCamera)
+				delete m_EditorCamera;
 			if (m_UseImGUI)
 				m_ImGuiContext.ShutDown();
 
