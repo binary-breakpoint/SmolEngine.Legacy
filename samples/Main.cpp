@@ -1,6 +1,7 @@
 #include "Main.h"
 
 #include <Common/Mesh.h>
+#include <Common/Input.h>
 #include <GraphicsContext.h>
 #include <Renderer.h>
 
@@ -28,13 +29,17 @@ int main(int argc, char** argv)
 	}
 
 	GraphicsContext* context = new GraphicsContext(&info);
-	ClearInfo clearInfo = {};
-
-	context->SetEventCallback([&](Event&) {});
-
 	Ref<Mesh> cube = Mesh::Create("Assets/cube.glb");
+	ClearInfo clearInfo = {};
+	bool process = true;
 
-	while (true)
+	context->SetEventCallback([&](Event& e) 
+	{
+		if (Input::IsEventReceived(EventType::S_WINDOW_CLOSE, e))
+			process = false;
+	});
+
+	while (process)
 	{
 		context->ProcessEvents();
 		DeltaTime deltaTime = context->CalculateDeltaTime();
