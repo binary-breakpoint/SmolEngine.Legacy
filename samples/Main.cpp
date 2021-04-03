@@ -1,8 +1,8 @@
 #include "Main.h"
 
+#include <Common/Mesh.h>
 #include <GraphicsContext.h>
 #include <Renderer.h>
-#include <string>
 
 using namespace Frostium;
 
@@ -17,18 +17,22 @@ int main(int argc, char** argv)
 		windoInfo.Title = "Frostium Example";
 	}
 
+	EditorCameraCreateInfo cameraCI = {};
 	GraphicsContextInitInfo info = {};
 	{
 		info.bMSAA = true;
 		info.bTargetsSwapchain = true;
-		info.WindowCI = &windoInfo;
 		info.ResourcesFolderPath = "../resources/";
+		info.pWindowCI = &windoInfo;
+		info.pEditorCameraCI = &cameraCI;
 	}
 
 	GraphicsContext* context = new GraphicsContext(&info);
 	ClearInfo clearInfo = {};
 
 	context->SetEventCallback([&](Event&) {});
+
+	Ref<Mesh> cube = Mesh::Create("Assets/cube.glb");
 
 	while (true)
 	{
@@ -49,6 +53,12 @@ int main(int argc, char** argv)
 			ImGui::End();
 
 			Renderer::BeginScene(&clearInfo);
+			{
+				Renderer::SubmitMesh({ 0, 0, -10 }, { 0, 0, 0 }, { 1, 8, 1 }, cube);
+				Renderer::SubmitMesh(  { 0, 0, 0 }, { 0, 0, 0 }, { 1, 6, 1 }, cube);
+				Renderer::SubmitMesh( { 0, 0, 10 }, { 0, 0, 0 }, { 1, 4, 1 }, cube);
+				Renderer::SubmitMesh( { 0, 0, 20 }, { 0, 0, 0 }, { 1, 2, 1 }, cube);
+			}
 			Renderer::EndScene();
 		}
 		context->SwapBuffers();

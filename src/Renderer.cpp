@@ -189,6 +189,18 @@ namespace Frostium
 
 	void Renderer::BeginScene(const ClearInfo* clearInfo, const BeginSceneInfo* info)
 	{
+		if (GraphicsContext::GetSingleton()->m_UseEditorCamera)
+		{
+			EditorCamera* camera = GraphicsContext::GetSingleton()->GetEditorCamera();
+
+			s_Data->m_SceneData.View = camera->GetViewMatrix();
+			s_Data->m_SceneData.Projection = camera->GetProjection();
+			s_Data->m_SceneData.CamPos = glm::vec4(camera->GetPosition(), 1.0f);
+			s_Data->m_SceneData.SkyBoxMatrix = glm::mat4(glm::mat3(camera->GetViewMatrix()));
+			s_Data->m_NearClip = camera->GetNearClip();
+			s_Data->m_FarClip = camera->GetFarClip();
+		}
+
 		if (info)
 		{
 			s_Data->m_SceneData.View = info->view;
@@ -275,10 +287,8 @@ namespace Frostium
 			// Updates model views and material indexes
 			s_Data->m_MainPipeline->SubmitBuffer(s_Data->m_ShaderDataBinding, sizeof(InstanceData) * s_Data->m_InstanceDataIndex, &s_Data->m_InstancesData);
 
-#ifdef Frostium_EDITOR
 			// Update materials
 			UpdateMaterials();
-#endif
 		}
 
 		// Depth Pass

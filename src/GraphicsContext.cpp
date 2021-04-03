@@ -2,6 +2,7 @@
 #include "GraphicsContext.h"
 #include "Renderer.h"
 #include "Renderer2D.h"
+#include "MaterialLibrary.h"
 
 #include "Common/SLog.h"
 #include "Common/Input.h"
@@ -16,9 +17,9 @@ namespace Frostium
 	GraphicsContext::GraphicsContext(GraphicsContextInitInfo* info)
 		:
 		m_UseImGUI(info->bImGUI),
-		m_UseEditorCamera(info->EditorCameraCI != nullptr ? true: false)
+		m_UseEditorCamera(info->pEditorCameraCI != nullptr ? true: false)
 	{
-		if (m_Initialized || !info->WindowCI)
+		if (m_Initialized || !info->pWindowCI)
 			return;
 
 		s_Instance = this;
@@ -27,7 +28,7 @@ namespace Frostium
 		m_ResourcesFolderPath = info->ResourcesFolderPath;
 		m_EventHandler.OnEventFn = std::bind(&GraphicsContext::OnEvent, this, std::placeholders::_1);
 		// Creates GLFW window
-		m_Window.Init(info->WindowCI, &m_EventHandler);
+		m_Window.Init(info->pWindowCI, &m_EventHandler);
 		GLFWwindow* window = m_Window.GetNativeWindow();
 		// Creates API context
 #ifdef  FROSTIUM_OPENGL_IMPL
@@ -41,20 +42,33 @@ namespace Frostium
 		// Creates main framebuffer
 		FramebufferSpecification framebufferCI = {};
 		{
-			framebufferCI.Width = info->WindowCI->Width;
-			framebufferCI.Height = info->WindowCI->Height;
+#ifdef  FROSTIUM_OPENGL_IMPL
+			framebufferCI.Width = info->pWindowCI->Width;
+			framebufferCI.Height = info->pWindowCI->Height;
+#else
+			framebufferCI.Width = m_VulkanContext.GetSwapchain().GetWidth();
+			framebufferCI.Height = m_VulkanContext.GetSwapchain().GetHeight();
+#endif
 			framebufferCI.bUseMSAA = info->bMSAA;
 			framebufferCI.bTargetsSwapchain = info->bTargetsSwapchain;
+			framebufferCI.bResizable = true;
 			framebufferCI.bUsedByImGui = info->bImGUI && !info->bTargetsSwapchain ? true : false;
 			framebufferCI.Attachments = { FramebufferAttachment(AttachmentFormat::Color) };
 
 			Framebuffer::Create(framebufferCI, &m_Framebuffer);
 		}
 
+		// Adds default material
+		MaterialCreateInfo materialInfo = {};
+		materialInfo.Metallic = 0.2f;
+		materialInfo.Roughness = 1.0f;
+		m_MaterialLibrary = new MaterialLibrary();
+		int32_t id = m_MaterialLibrary->Add(&materialInfo, "default material");
+
 		// Creates editor camera
 		if (m_UseEditorCamera)
 		{
-			m_EditorCamera = new EditorCamera(info->EditorCameraCI);
+			m_EditorCamera = new EditorCamera(info->pEditorCameraCI);
 		}
 
 		// Initialize ImGUI and renderers
@@ -109,30 +123,33 @@ namespace Frostium
 	{
 		if (m_Initialized)
 		{
+			delete m_MaterialLibrary;
 			if(m_UseEditorCamera)
 				delete m_EditorCamera;
+
 			if (m_UseImGUI)
 				m_ImGuiContext.ShutDown();
 
 			Renderer::Shutdown();
 			Renderer2D::Shutdown();
+			m_Framebuffer.~Framebuffer();
 			m_Window.ShutDown();
 #ifdef FROSTIUM_OPENGL_IMPL
 #else
 			m_VulkanContext.~VulkanContext();
 #endif
 			m_Initialized = false;
-	}
+	    }
 }
 
-	void GraphicsContext::OnResize(uint32_t height, uint32_t width)
+	void GraphicsContext::OnResize(uint32_t* width, uint32_t* height)
 	{
 #ifdef  FROSTIUM_OPENGL_IMPL
 		SetViewport(0, 0, width, height);
 #else
-		m_VulkanContext.OnResize(height, width);
+		m_VulkanContext.OnResize(width, height);
 #endif
-		m_Framebuffer.OnResize(width, height);
+		m_Framebuffer.OnResize(*width, *height);
 	}
 
 	void GraphicsContext::SetEventCallback(std::function<void(Event&)> callback)
@@ -191,11 +208,7 @@ namespace Frostium
 			auto& resize_event = static_cast<WindowResizeEvent&>(event);
 			uint32_t width = resize_event.GetWidth();
 			uint32_t height = resize_event.GetHeight();
-#ifdef  FROSTIUM_OPENGL_IMPL
-#else
-			m_VulkanContext.OnResize(width, height);
-#endif
-			m_Framebuffer.OnResize(width, height);
+			OnResize(&width, &height);
 		}
 
 		m_EventCallback(std::forward<Event&>(event));

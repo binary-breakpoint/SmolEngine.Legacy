@@ -258,7 +258,7 @@ namespace Frostium
 
 		m_ViewportWidth = static_cast<float>(res_e.GetWidth());
 		m_ViewportHeight = static_cast<float>(res_e.GetHeight());
-		m_AspectRatio = m_ViewportHeight / m_ViewportWidth;
+		m_AspectRatio = m_ViewportWidth / m_ViewportHeight;
 
 		SetCameraType(m_Type);
 		return false;

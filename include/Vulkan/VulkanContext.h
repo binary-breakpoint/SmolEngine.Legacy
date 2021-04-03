@@ -22,7 +22,7 @@ namespace Frostium
 
 		/// Main
 		
-		void OnResize(uint32_t width, uint32_t height);
+		void OnResize(uint32_t* width, uint32_t* height);
 
 		void Setup(GLFWwindow* window, uint32_t* width, uint32_t* height);
 

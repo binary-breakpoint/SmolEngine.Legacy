@@ -17,7 +17,7 @@ namespace Frostium
 		m_Device.~VulkanDevice();
 	}
 
-	void VulkanContext::OnResize(uint32_t width, uint32_t height)
+	void VulkanContext::OnResize(uint32_t* width, uint32_t* height)
 	{
 		if (m_IsInitialized == false)
 		{
@@ -176,7 +176,10 @@ namespace Frostium
 
 			if (present == VK_ERROR_OUT_OF_DATE_KHR)
 			{
-				m_Swapchain.OnResize(m_Swapchain.GetWidth(), m_Swapchain.GetHeight(), &m_CommandBuffer);
+				uint32_t w = m_Swapchain.GetWidth();
+				uint32_t h = m_Swapchain.GetHeight();
+
+				m_Swapchain.OnResize(&w, &h, &m_CommandBuffer);
 				return;
 			}
 			else

@@ -56,7 +56,7 @@ namespace Frostium
 
 		/// Events
 
-		void OnResize(uint32_t width, uint32_t height, VulkanCommandBuffer* commandBuffer);
+		void OnResize(uint32_t* width, uint32_t* height, VulkanCommandBuffer* commandBuffer);
 
 		/// Getters
 

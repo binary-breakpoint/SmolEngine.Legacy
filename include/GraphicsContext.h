@@ -23,6 +23,7 @@ namespace Frostium
 	struct WindowCreateInfo;
 	struct WindowData;
 	class Framebuffer;
+	class MaterialLibrary;
 
 	struct GraphicsContextInitInfo
 	{
@@ -31,8 +32,8 @@ namespace Frostium
 		bool                     bImGUI = true;
 		std::string              ResourcesFolderPath = "../resources/";
 
-		EditorCameraCreateInfo*  EditorCameraCI = nullptr;
-		WindowCreateInfo*        WindowCI = nullptr;
+		EditorCameraCreateInfo*  pEditorCameraCI = nullptr;
+		WindowCreateInfo*        pWindowCI = nullptr;
 	};
 
 	class GraphicsContext
@@ -51,8 +52,6 @@ namespace Frostium
 		void SwapBuffers();
 
 		void ShutDown();
-
-		void OnResize(uint32_t width, uint32_t height);
 
 		// Setters
 
@@ -86,6 +85,8 @@ namespace Frostium
 
 	private:
 
+		void OnResize(uint32_t* width, uint32_t* height);
+
 		void OnEvent(Event& event);
 
 	private:
@@ -93,6 +94,7 @@ namespace Frostium
 		static GraphicsContext*              s_Instance;
 		Ref<Texture>                         m_DummyTexure = nullptr;
 		EditorCamera*                        m_EditorCamera = nullptr;
+		MaterialLibrary*                     m_MaterialLibrary = nullptr;
 		bool                                 m_Initialized = false;
 		const bool                           m_UseImGUI = false;
 		const bool                           m_UseEditorCamera = false;

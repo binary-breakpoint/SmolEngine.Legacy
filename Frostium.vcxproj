@@ -818,6 +818,7 @@
     <ClInclude Include="include\OpenGL\OpenglVertexArray.h" />
     <ClInclude Include="include\Renderer.h" />
     <ClInclude Include="include\Renderer2D.h" />
+    <ClInclude Include="include\RendererDebug.h" />
     <ClInclude Include="include\Utils\ModelImporter.h" />
     <ClInclude Include="include\Utils\SSAOGenerator.h" />
     <ClInclude Include="include\Utils\Utils.h" />
@@ -885,6 +886,7 @@
     <ClCompile Include="src\OpenGL\OpenglVertexArray.cpp" />
     <ClCompile Include="src\Renderer.cpp" />
     <ClCompile Include="src\Renderer2D.cpp" />
+    <ClCompile Include="src\RendererDebug.cpp" />
     <ClCompile Include="src\Utils\ModelImporter.cpp" />
     <ClCompile Include="src\Utils\Utils.cpp" />
     <ClCompile Include="src\Utils\glTFImporter.cpp" />

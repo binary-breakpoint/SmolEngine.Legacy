@@ -255,18 +255,15 @@ namespace Frostium
 		}
 	}
 
-	void VulkanSwapchain::OnResize(uint32_t width, uint32_t height, VulkanCommandBuffer* commandBuffer)
+	void VulkanSwapchain::OnResize(uint32_t* width, uint32_t* height, VulkanCommandBuffer* commandBuffer)
 	{
 		const auto& device = m_Device->GetLogicalDevice();
 
 		vkDeviceWaitIdle(device);
 
 		{
-			uint32_t w_width = width;
-			uint32_t w_height = height;
-
-			Create(&w_width, &w_height);
-			Prepare(w_width, w_height);
+			Create(width, height);
+			Prepare(*width, *height);
 
 			assert(commandBuffer->Recrate() == true);
 		}

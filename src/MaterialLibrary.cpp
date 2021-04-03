@@ -7,16 +7,17 @@
 namespace Frostium
 {
 	const uint32_t maxTextures = 4096;
-	MaterialLibrary* MaterialLibrary::s_Instance = new MaterialLibrary();
+	MaterialLibrary* MaterialLibrary::s_Instance = nullptr;
 
 	MaterialLibrary::MaterialLibrary()
 	{
+		s_Instance = this;
 		m_Textures.resize(maxTextures);
 	}
 
 	MaterialLibrary::~MaterialLibrary()
 	{
-
+		s_Instance = nullptr;
 	}
 
 	int32_t MaterialLibrary::Add(MaterialCreateInfo* infoCI, const std::string& path)
