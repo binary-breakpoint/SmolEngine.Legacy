@@ -124,7 +124,7 @@ namespace Frostium
 		};
 
 		float                            m_NearClip = 1.0f;
-		float                            m_FarClip = 1.0f;
+		float                            m_FarClip = 1000.0f;
 		glm::vec3                        m_ShadowLightDirection = glm::vec3(0.0f, 0.0f, 0.0f);
 
 		struct AmbientLighting
@@ -187,24 +187,29 @@ namespace Frostium
 		delete s_Data;
 	}
 
-	void Renderer::BeginScene(const BeginSceneInfo& info)
+	void Renderer::BeginScene(const ClearInfo* clearInfo, const BeginSceneInfo* info)
 	{
-		s_Data->m_SceneData.View = info.view;
-		s_Data->m_SceneData.Projection = info.proj;
-		s_Data->m_SceneData.CamPos = glm::vec4(info.pos, 1);
-		s_Data->m_SceneData.SkyBoxMatrix = glm::mat4(glm::mat3(info.view));
-		s_Data->m_NearClip = info.nearClip;
-		s_Data->m_FarClip = info.farClip;
+		if (info)
+		{
+			s_Data->m_SceneData.View = info->view;
+			s_Data->m_SceneData.Projection = info->proj;
+			s_Data->m_SceneData.CamPos = glm::vec4(info->pos, 1);
+			s_Data->m_SceneData.SkyBoxMatrix = glm::mat4(glm::mat3(info->view));
+			s_Data->m_NearClip = info->nearClip;
+			s_Data->m_FarClip = info->farClip;
+		}
 
 		s_Data->m_MainPipeline->BeginCommandBuffer(true);
 		s_Data->m_SkyboxPipeline->BeginCommandBuffer(true);
-
-		// Clear Pass
-		s_Data->m_MainPipeline->BeginRenderPass();
+		if (clearInfo->bClear)
 		{
-			s_Data->m_MainPipeline->ClearColors();
+			// Clear Pass
+			s_Data->m_MainPipeline->BeginRenderPass();
+			{
+				s_Data->m_MainPipeline->ClearColors(clearInfo->color);
+			}
+			s_Data->m_MainPipeline->EndRenderPass();
 		}
-		s_Data->m_MainPipeline->EndRenderPass();
 
 		Reset();
 	}
@@ -235,7 +240,7 @@ namespace Frostium
 				auto& package = instance.Data[x];
 				auto& shaderData = s_Data->m_InstancesData[s_Data->m_InstanceDataIndex];
 
-				shaderData.Params.x = package.MaterialID;
+				shaderData.Params.x = static_cast<float>(package.MaterialID);
 				Utils::ComposeTransform(package.WorldPos, package.Rotation, package.Scale, true, shaderData.ModelView);
 				s_Data->m_InstanceDataIndex++;
 			}
@@ -702,9 +707,7 @@ namespace Frostium
 	void Renderer::InitFramebuffers()
 	{
 		// Main
-		{
-			s_Data->m_Framebuffer = GraphicsContext::GetSingleton()->GetFramebuffer();
-		}
+		s_Data->m_Framebuffer = GraphicsContext::GetSingleton()->GetFramebuffer();
 
 		// Depth
 		{

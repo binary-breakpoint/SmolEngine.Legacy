@@ -4,7 +4,6 @@
 
 #include "GraphicsContext.h"
 #include "Renderer.h"
-#include "Common/EventHandler.h"
 
 using namespace Frostium;
 
@@ -23,29 +22,35 @@ int main(int argc, char** argv)
 	{
 		info.bMSAA = true;
 		info.bTargetsSwapchain = true;
-		info.WindowInfo = &windoInfo;
+		info.WindowCI = &windoInfo;
 	}
 
-	GraphicsContext::Init(&info);
-	GraphicsContext::SetEventCallback([&](Event&)
-	{
-		
-	});
+	GraphicsContext* context = new GraphicsContext(&info);
+	ClearInfo clearInfo = {};
 
-	BeginSceneInfo bInfo = {};
-	bInfo.farClip = 1000.0f;
-	bInfo.nearClip = 0.01f;
-	bInfo.pos = { 0, 0, -6 };
-	bInfo.proj = glm::mat4(1.0f);
-	bInfo.view = glm::mat4(1.0f);
+	context->SetEventCallback([&](Event&) {});
 
 	while (true)
 	{
-		GraphicsContext::BeginFrame();
+		context->ProcessEvents();
+		DeltaTime deltaTime = context->CalculateDeltaTime();
 
-		Renderer::BeginScene(bInfo);
-		Renderer::EndScene();
+		/* 
+		   @Calculate physics, process script, etc
+		*/
 
-		GraphicsContext::SwapBuffers();
+		context->BeginFrame(deltaTime);
+		{
+			ImGui::Begin("Debug Window");
+			{
+				float lastFrameTime = deltaTime.GetTimeSeconds();
+				ImGui::InputFloat("DeltaTime", &lastFrameTime, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
+			}
+			ImGui::End();
+
+			Renderer::BeginScene(&clearInfo);
+			Renderer::EndScene();
+		}
+		context->SwapBuffers();
 	}
 }

@@ -16,6 +16,7 @@ namespace Frostium
 		uint32_t       mrtAttachmentIndex = 0;
 	};
 
+
 	class Renderer
 	{
 	public:
@@ -28,7 +29,7 @@ namespace Frostium
 
 		// Main
 
-		static void BeginScene(const BeginSceneInfo& info);
+		static void BeginScene(const ClearInfo* clearInfo, const BeginSceneInfo* info = nullptr);
 
 		static void EndScene();
 
@@ -91,6 +92,6 @@ namespace Frostium
 
 	private:
 
-		friend class Renderer3DTestLayer; // temp
+		friend class GraphicsContext;
 	};
 }

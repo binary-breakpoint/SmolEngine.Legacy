@@ -18,6 +18,12 @@ namespace Frostium
 		glm::mat4      view;
 	};
 
+	struct ClearInfo
+	{
+		bool      bClear = false;
+		glm::vec4 color = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f);
+	};
+
 	enum class DebugPrimitives : uint16_t
 	{
 		None = 0,

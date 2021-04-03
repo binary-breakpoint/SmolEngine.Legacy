@@ -8,14 +8,14 @@ namespace Frostium
 {
 	bool Input::IsKeyPressed(KeyCode key)
 	{
-		GLFWwindow* window = GraphicsContext::GetNativeWindow();
+		GLFWwindow* window = GraphicsContext::GetSingleton()->GetNativeWindow();
 		auto state = glfwGetKey(window, static_cast<int32_t>(key));
 		return state == GLFW_PRESS || state == GLFW_REPEAT;
 	}
 
 	bool Input::IsMouseButtonPressed(MouseCode button)
 	{
-		GLFWwindow* window = GraphicsContext::GetNativeWindow();
+		GLFWwindow* window = GraphicsContext::GetSingleton()->GetNativeWindow();
 		auto state = glfwGetMouseButton(window, static_cast<int32_t>(button));
 		return state == GLFW_PRESS;
 	}
@@ -39,7 +39,7 @@ namespace Frostium
 
 	std::pair<float, float> Input::GetMousePosition()
 	{
-		GLFWwindow* window = GraphicsContext::GetNativeWindow();
+		GLFWwindow* window = GraphicsContext::GetSingleton()->GetNativeWindow();
 		double xpos, ypos;
 		glfwGetCursorPos(window, &xpos, &ypos);
 

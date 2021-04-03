@@ -1,4 +1,5 @@
 #pragma once
+#include "EditorCamera.h"
 
 #ifdef  FROSTIUM_OPENGL_IMPL
 #include "OpenGL/OpenglContext.h"
@@ -25,30 +26,41 @@ namespace Frostium
 
 	struct GraphicsContextInitInfo
 	{
-		bool                bMSAA = true;
-		bool                bTargetsSwapchain = true;
-		std::string         ResourcesFolderPath = "../resources/";
+		bool                     bMSAA = true;
+		bool                     bTargetsSwapchain = true;
+		bool                     bImGUI = true;
+		std::string              ResourcesFolderPath = "../resources/";
 
-		WindowCreateInfo*   WindowInfo = nullptr;
+		EditorCameraCreateInfo*  EditorCameraCI = nullptr;
+		WindowCreateInfo*        WindowCI = nullptr;
 	};
 
 	class GraphicsContext
 	{
 	public:
 
-	    static bool Init(GraphicsContextInitInfo* info);
+		GraphicsContext(GraphicsContextInitInfo* info);
 
-		static void SwapBuffers();
+		~GraphicsContext();
 
-		static void BeginFrame();
 
-		static void ShutDown();
+		void ProcessEvents();
 
-		static void OnResize(uint32_t width, uint32_t height);
+		void BeginFrame(DeltaTime time);
+
+		void SwapBuffers();
+
+		void ShutDown();
+
+		void OnResize(uint32_t width, uint32_t height);
 
 		// Setters
 
-		static void SetEventCallback(std::function<void(Event&)> callback);
+		void SetEventCallback(std::function<void(Event&)> callback);
+
+		// Helpers
+
+		DeltaTime CalculateDeltaTime();
 
 		// Getters
 
@@ -57,13 +69,20 @@ namespace Frostium
 #else
 		static VulkanContext& GetVulkanContext();
 #endif
-		static Framebuffer* GetFramebuffer();
-
-		static GLFWwindow* GetNativeWindow();
-
 		static GraphicsContext* GetSingleton();
 
-		static WindowData* GetWindowData();
+	    Framebuffer* GetFramebuffer();
+	   
+	    EditorCamera* GetEditorCamera();
+	   
+	    GLFWwindow* GetNativeWindow();
+	   
+	    WindowData* GetWindowData();
+
+	   
+	    float GetTime();
+
+		float GetLastFrameTime();
 
 	private:
 
@@ -73,7 +92,11 @@ namespace Frostium
 
 		static GraphicsContext*              s_Instance;
 		Ref<Texture>                         m_DummyTexure = nullptr;
+		EditorCamera*                        m_EditorCamera = nullptr;
 		bool                                 m_Initialized = false;
+		const bool                           m_UseImGUI = false;
+		const bool                           m_UseEditorCamera = false;
+		float                                m_LastFrameTime = 1.0f;
 #ifdef  FROSTIUM_OPENGL_IMPL
 		OpenglContext                        m_OpenglContext = {};
 		OpenglRendererAPI*                   m_RendererAPI = nullptr;

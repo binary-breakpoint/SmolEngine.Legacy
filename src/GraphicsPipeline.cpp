@@ -25,7 +25,7 @@ namespace Frostium
 		if(!IsPipelineCreateInfoValid(pipelineInfo))
 			return PipelineCreateResult::ERROR_INVALID_CREATE_INFO;
 
-		m_GraphicsContext = GraphicsContext::GetSingleton();
+		m_GraphicsContext = GraphicsContext::s_Instance;
 		m_Shader = std::make_shared<Shader>();
 
 		if (pipelineInfo->ShaderCreateInfo->UseSingleFile)

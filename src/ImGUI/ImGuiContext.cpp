@@ -47,8 +47,8 @@ namespace Frostium
 
 	void ImGuiContext::OnEnd()
 	{
-		float width = static_cast<float>(GraphicsContext::GetWindowData()->Width);
-		float height = static_cast<float>(GraphicsContext::GetWindowData()->Height);
+		float width = static_cast<float>(GraphicsContext::GetSingleton()->GetWindowData()->Width);
+		float height = static_cast<float>(GraphicsContext::GetSingleton()->GetWindowData()->Height);
 
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2(width, height);
@@ -147,7 +147,7 @@ namespace Frostium
 		std::string fontPath = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Fonts/Font1.ttf";
 		io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 17.0f, &config);
 
-		GLFWwindow* window = GraphicsContext::GetNativeWindow();
+		GLFWwindow* window = GraphicsContext::GetSingleton()->GetNativeWindow();
 #ifdef  FROSTIUM_OPENGL_IMPL
 		ImGui_ImplGlfw_InitForOpenGL(window, true);
 		ImGui_ImplOpenGL3_Init("#version 410");

@@ -11,85 +11,180 @@
 
 namespace Frostium
 {
-	GraphicsContext* GraphicsContext::s_Instance = new GraphicsContext();
+	GraphicsContext* GraphicsContext::s_Instance = nullptr;
 
-	bool GraphicsContext::Init(GraphicsContextInitInfo* info)
+	GraphicsContext::GraphicsContext(GraphicsContextInitInfo* info)
+		:
+		m_UseImGUI(info->bImGUI),
+		m_UseEditorCamera(info->EditorCameraCI != nullptr ? true: false)
 	{
-		if (s_Instance->m_Initialized || !info->WindowInfo)
-			return false;
+		if (m_Initialized || !info->WindowCI)
+			return;
 
+		s_Instance = this;
+		// Initialize loggin tool
 		SLog::InitLog();
-		s_Instance->m_ResourcesFolderPath = info->ResourcesFolderPath;
-		s_Instance->m_EventHandler.OnEventFn = std::bind(&GraphicsContext::OnEvent, s_Instance, std::placeholders::_1);
-		s_Instance->m_Window.Init(info->WindowInfo, &s_Instance->m_EventHandler);
-		GLFWwindow* window = s_Instance->m_Window.GetNativeWindow();
+		m_ResourcesFolderPath = info->ResourcesFolderPath;
+		m_EventHandler.OnEventFn = std::bind(&GraphicsContext::OnEvent, this, std::placeholders::_1);
+		// Creates GLFW window
+		m_Window.Init(info->WindowCI, &m_EventHandler);
+		GLFWwindow* window = m_Window.GetNativeWindow();
+		// Creates API context
 #ifdef  FROSTIUM_OPENGL_IMPL
-		s_Instance->m_OpenglContext.Setup(window);
+		m_OpenglContext.Setup(window);
 #else
-		s_Instance->m_VulkanContext.Setup(window,
-			&s_Instance->m_Window.GetWindowData()->Width, &s_Instance->m_Window.GetWindowData()->Height);
+		m_VulkanContext.Setup(window,
+			&m_Window.GetWindowData()->Width, &m_Window.GetWindowData()->Height);
 #endif
-		s_Instance->m_DummyTexure = Texture::CreateWhiteTexture();
+		// Creates white 4x4 white texture
+		m_DummyTexure = Texture::CreateWhiteTexture();
+		// Creates main framebuffer
 		FramebufferSpecification framebufferCI = {};
 		{
-			framebufferCI.Width = info->WindowInfo->Width;
-			framebufferCI.Height = info->WindowInfo->Height;
+			framebufferCI.Width = info->WindowCI->Width;
+			framebufferCI.Height = info->WindowCI->Height;
 			framebufferCI.bUseMSAA = info->bMSAA;
 			framebufferCI.bTargetsSwapchain = info->bTargetsSwapchain;
-			framebufferCI.bUsedByImGui = true;
+			framebufferCI.bUsedByImGui = info->bImGUI && !info->bTargetsSwapchain ? true : false;
 			framebufferCI.Attachments = { FramebufferAttachment(AttachmentFormat::Color) };
 
-			Framebuffer::Create(framebufferCI, &s_Instance->m_Framebuffer);
+			Framebuffer::Create(framebufferCI, &m_Framebuffer);
 		}
 
-		s_Instance->m_ImGuiContext.Init();
+		// Creates editor camera
+		if (m_UseEditorCamera)
+		{
+			m_EditorCamera = new EditorCamera(info->EditorCameraCI);
+		}
+
+		// Initialize ImGUI and renderers
+		if (m_UseImGUI)
+		{
+			m_ImGuiContext.Init();
+		}
+
 		Renderer::Init();
 		Renderer2D::Init();
 #ifdef  FROSTIUM_OPENGL_IMPL
-		s_Instance->GetOpenglRendererAPI()->Init();
+		GetOpenglRendererAPI()->Init();
 #endif
-		s_Instance->m_Initialized = true;
-		return true;
+		m_Initialized = true;
 	}
+
+	GraphicsContext::~GraphicsContext()
+	{
+		ShutDown();
+		s_Instance = nullptr;
+	}
+
+	void GraphicsContext::SwapBuffers()
+	{
+		if (m_UseImGUI)
+			m_ImGuiContext.OnEnd();
+#ifdef  FROSTIUM_OPENGL_IMPL
+		m_OpenglContext.SwapBuffers();
+#else
+		m_VulkanContext.SwapBuffers();
+#endif
+	}
+
+	void GraphicsContext::ProcessEvents()
+	{
+		m_Window.ProcessEvents();
+	}
+
+	void GraphicsContext::BeginFrame(DeltaTime time)
+	{
+		if (m_UseEditorCamera)
+			m_EditorCamera->OnUpdate(time);
+#ifdef  FROSTIUM_OPENGL_IMPL
+#else
+		m_VulkanContext.BeginFrame();
+#endif
+		if (m_UseImGUI)
+			m_ImGuiContext.OnBegin();
+	}
+
+	void GraphicsContext::ShutDown()
+	{
+		if (m_Initialized)
+		{
+			delete m_EditorCamera;
+			if (m_UseImGUI)
+				m_ImGuiContext.ShutDown();
+
+			Renderer::Shutdown();
+			Renderer2D::Shutdown();
+			m_Window.ShutDown();
+#ifdef FROSTIUM_OPENGL_IMPL
+#else
+			m_VulkanContext.~VulkanContext();
+#endif
+			m_Initialized = false;
+	}
+}
 
 	void GraphicsContext::OnResize(uint32_t height, uint32_t width)
 	{
 #ifdef  FROSTIUM_OPENGL_IMPL
-		m_RendererAPI->SetViewport(0, 0, width, height);
+		SetViewport(0, 0, width, height);
 #else
-		s_Instance->m_VulkanContext.OnResize(height, width);
+		m_VulkanContext.OnResize(height, width);
 #endif
-		s_Instance->m_Framebuffer.OnResize(width, height);
+		m_Framebuffer.OnResize(width, height);
 	}
 
 	void GraphicsContext::SetEventCallback(std::function<void(Event&)> callback)
 	{
-		s_Instance->m_EventCallback = callback;
+		m_EventCallback = callback;
+	}
+
+	DeltaTime GraphicsContext::CalculateDeltaTime()
+	{
+		float time = (float)glfwGetTime();
+		DeltaTime deltaTime = time - m_LastFrameTime;
+		m_LastFrameTime = time;
+		return deltaTime;
 	}
 
 	Framebuffer* GraphicsContext::GetFramebuffer()
 	{
-		return &s_Instance->m_Framebuffer;
+		return &m_Framebuffer;
+	}
+
+	EditorCamera* GraphicsContext::GetEditorCamera()
+	{
+		return m_EditorCamera;
 	}
 
 	GLFWwindow* GraphicsContext::GetNativeWindow()
 	{
-		return s_Instance->m_Window.GetNativeWindow();
-}
-
-	GraphicsContext* GraphicsContext::GetSingleton()
-	{
-		return s_Instance;
-	}
+		return m_Window.GetNativeWindow();
+    }
 
 	WindowData* GraphicsContext::GetWindowData()
 	{
-		return s_Instance->m_Window.GetWindowData();
+		return m_Window.GetWindowData();
+	}
+
+	float GraphicsContext::GetTime()
+	{
+		return (float)glfwGetTime();
+	}
+
+	float GraphicsContext::GetLastFrameTime()
+	{
+		return m_LastFrameTime;
 	}
 
 	void GraphicsContext::OnEvent(Event& event)
 	{
-		m_ImGuiContext.OnEvent(event);
+		if (m_UseImGUI)
+			m_ImGuiContext.OnEvent(event);
+
+		if (m_UseEditorCamera)
+			m_EditorCamera->OnEvent(event);
+
 		if (Input::IsEventReceived(EventType::S_WINDOW_RESIZE, event))
 		{
 			auto& resize_event = static_cast<WindowResizeEvent&>(event);
@@ -97,42 +192,12 @@ namespace Frostium
 			uint32_t height = resize_event.GetHeight();
 #ifdef  FROSTIUM_OPENGL_IMPL
 #else
-			s_Instance->m_VulkanContext.OnResize(width, height);
+			m_VulkanContext.OnResize(width, height);
 #endif
-			s_Instance->m_Framebuffer.OnResize(width, height);
+			m_Framebuffer.OnResize(width, height);
 		}
 
 		m_EventCallback(std::forward<Event&>(event));
-	}
-
-	void GraphicsContext::SwapBuffers()
-	{
-		s_Instance->m_ImGuiContext.OnEnd();
-#ifdef  FROSTIUM_OPENGL_IMPL
-		s_Instance->m_OpenglContext.SwapBuffers();
-#else
-		s_Instance->m_VulkanContext.SwapBuffers();
-#endif
-	}
-
-	void GraphicsContext::BeginFrame()
-	{
-		s_Instance->m_Window.ProcessEvents();
-#ifdef  FROSTIUM_OPENGL_IMPL
-#else
-		s_Instance->m_VulkanContext.BeginFrame();
-#endif
-		s_Instance->m_ImGuiContext.OnBegin();
-	}
-
-	void GraphicsContext::ShutDown()
-	{
-		s_Instance->m_ImGuiContext.ShutDown();
-		s_Instance->m_Window.ShutDown();
-#ifdef FROSTIUM_OPENGL_IMPL
-#else
-		s_Instance->m_VulkanContext.~VulkanContext();
-#endif
 	}
 
 #ifdef FROSTIUM_OPENGL_IMPL
@@ -146,4 +211,9 @@ namespace Frostium
 		return s_Instance->m_VulkanContext;
 	}
 #endif
+
+	GraphicsContext* GraphicsContext::GetSingleton()
+	{
+		return s_Instance;
+	}
 }
