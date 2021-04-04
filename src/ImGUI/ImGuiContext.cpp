@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "ImGUI/ImGuiContext.h"
-#include "Common/EventHandler.h"
 #include "GraphicsContext.h"
 
 #include <imgui/imgui.h>
@@ -27,10 +26,8 @@ namespace Frostium
 	void ImGuiContext::OnEvent(Event& event)
 	{
 		ImGuiIO& io = ImGui::GetIO();
-		if (io.WantTextInput && event.m_EventCategory == (uint32_t)EventCategory::S_EVENT_KEYBOARD)
-		{
+		if (io.WantTextInput &&  event.IsCategory(EventCategory::EVENT_KEYBOARD))
 			event.m_Handled = true;
-		}
 	}
 
 	void ImGuiContext::OnBegin()

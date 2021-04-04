@@ -11,7 +11,7 @@
 #include "Common/Core.h"
 #include "Common/Window.h"
 #include "Common/Framebuffer.h"
-#include "Common/EventHandler.h"
+#include "Common/Events.h"
 #include "Common/Texture.h"
 
 #include "ImGUI/ImGuiContext.h"
@@ -78,10 +78,11 @@ namespace Frostium
 	   
 	    WindowData* GetWindowData();
 
+		bool IsWindowMinimized() const;
 	   
-	    float GetTime();
+	    float GetTime() const;
 
-		float GetLastFrameTime();
+		float GetLastFrameTime() const;
 
 	private:
 
@@ -96,6 +97,7 @@ namespace Frostium
 		EditorCamera*                        m_EditorCamera = nullptr;
 		MaterialLibrary*                     m_MaterialLibrary = nullptr;
 		bool                                 m_Initialized = false;
+		bool                                 m_WindowMinimized = false;
 		const bool                           m_UseImGUI = false;
 		const bool                           m_UseEditorCamera = false;
 		float                                m_LastFrameTime = 1.0f;
@@ -108,7 +110,7 @@ namespace Frostium
 		Framebuffer                          m_Framebuffer = {};
 		Window                               m_Window = {};
 		ImGuiContext                         m_ImGuiContext = {};
-		EventHandler                         m_EventHandler = {};
+		EventSender                          m_EventHandler = {};
 
 		std::string                          m_ResourcesFolderPath = "";
 		std::function<void(Event&)>          m_EventCallback;

@@ -32,11 +32,6 @@ namespace Frostium
 		return y;
 	}
 
-	bool Input::IsEventReceived(EventType type, Event& event)
-	{
-		return event.m_EventType == (unsigned int)type;
-	}
-
 	std::pair<float, float> Input::GetMousePosition()
 	{
 		GLFWwindow* window = GraphicsContext::GetSingleton()->GetNativeWindow();

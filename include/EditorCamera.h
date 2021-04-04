@@ -1,6 +1,6 @@
 #pragma once
 #include "Common/Time.h"
-#include "Common/EventHandler.h"
+#include "Common/Events.h"
 
 #include <glm/glm.hpp>
 
@@ -104,14 +104,6 @@ namespace Frostium
 		void MouseRotate(const glm::vec2& delta);
 
 		void MouseZoom(float delta);
-
-		// Events
-
-		bool OnMouseScroll(Event& e);
-
-		bool OnResize(Event& e);
-
-		bool OnResize(uint32_t width, uint32_t height);
 
 	private:
 

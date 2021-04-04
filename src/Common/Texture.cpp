@@ -117,7 +117,7 @@ namespace Frostium
 		return texture;
 	}
 
-	Ref<Texture> Texture::Create(const std::string& filePath, TextureFormat format, bool pooling)
+	Ref<Texture> Texture::Create(const std::string& filePath, TextureFormat format)
 	{
 		if (!Utils::IsPathValid(filePath))
 			return nullptr;
@@ -132,23 +132,85 @@ namespace Frostium
 		return texture;
 	}
 
-	Ref<Texture> Texture::Create(const TextureLoadedData* data, TextureFormat format, bool pooling)
+	Ref<Texture> Texture::Create(const TextureLoadedData* data, TextureFormat format)
 	{
-		if (!data)
-			return nullptr;
+		if (data)
+		{
+			if (data->Data == nullptr)
+				return nullptr;
 
-		if (data->Data == nullptr)
-			return nullptr;
-
-		Ref<Texture> texture = std::make_shared<Texture>();
+			Ref<Texture> texture = std::make_shared<Texture>();
 #ifdef  FROSTIUM_OPENGL_IMPL
-		texture->m_OpenglTexture2D.Init(filePath);
+			texture->m_OpenglTexture2D.Init(filePath);
 #else
-		texture->m_VulkanTexture.LoadTexture(data, format);
+			texture->m_VulkanTexture.LoadTexture(data, format);
 #endif
-		stbi_image_free(data->Data);
-		texture->m_Initialized = true;
-		return texture;
+			stbi_image_free(data->Data);
+			texture->m_Initialized = true;
+			return texture;
+		}
+
+		return nullptr;
+	}
+
+	void Texture::Create(const std::string& filePath, Texture* out_texture, TextureFormat format)
+	{
+		if (out_texture)
+		{
+			if (!Utils::IsPathValid(filePath))
+				return;
+
+#ifdef  FROSTIUM_OPENGL_IMPL
+			out_texture->m_OpenglTexture2D.Init(filePath);
+#else
+			out_texture->m_VulkanTexture.LoadTexture(filePath, format);
+#endif
+			out_texture->m_Initialized = true;
+		}
+	}
+
+	void Texture::Create(const TextureLoadedData* data, Texture* out_texture, TextureFormat format)
+	{
+		if (out_texture && data)
+		{
+			if (data->Data == nullptr)
+				return;
+#ifdef  FROSTIUM_OPENGL_IMPL
+			out_texture->m_OpenglTexture2D.Init(filePath);
+#else
+			out_texture->m_VulkanTexture.LoadTexture(data, format);
+#endif
+			stbi_image_free(data->Data);
+			out_texture->m_Initialized = true;
+		}
+	}
+
+	void Texture::Create(const void* data, uint32_t size, const uint32_t width, const uint32_t height, Texture* out_texture, TextureFormat format)
+	{
+		if (out_texture)
+		{
+#ifdef  FROSTIUM_OPENGL_IMPL
+#else
+			out_texture->m_VulkanTexture.GenTexture(data, size, width, height, format);
+
+			out_texture->m_Initialized = true;
+#endif
+		}
+	}
+
+	void Texture::CreateWhiteTexture(Texture* out_texture)
+	{
+		if (out_texture)
+		{
+#ifdef  FROSTIUM_OPENGL_IMPL
+			uint32_t whiteTextureData = 0xffffffff;
+			out_texture->m_OpenglTexture2D.Init(w, h);
+			out_texture->m_OpenglTexture2D.SetData(&whiteTextureData, sizeof(uint32_t));
+#else
+			out_texture->m_VulkanTexture.GenWhiteTetxure(1, 1);
+#endif
+			out_texture->m_Initialized = true;
+		}
 	}
 
 	Ref<Texture> Texture::Create(const void* data, uint32_t size, const uint32_t width,

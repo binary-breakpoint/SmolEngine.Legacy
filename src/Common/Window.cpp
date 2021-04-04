@@ -1,22 +1,20 @@
 #include "stdafx.h"
 #include "Common/Window.h"
-#include "Common/ApplicationEvent.h"
-#include "Common/MouseEvent.h"
-#include "Common/InputEvent.h"
+#include "Common/Events.h"
+#include "Common/SLog.h"
 
 #include <GLFW/glfw3.h>
 #include <glad\glad.h>
 
-
 namespace Frostium 
 {
 	static WindowData* DataPtr = nullptr;
-	static EventHandler* EventSender = nullptr;
+	static EventSender* EventHandler = nullptr;
 
-	void Window::Init(const WindowCreateInfo* info, EventHandler* event_hadler)
+	void Window::Init(const WindowCreateInfo* info, EventSender* event_hadler)
 	{
 		DataPtr = &m_Data;
-		EventSender = event_hadler;
+		EventHandler = event_hadler;
 
 		m_Data.Title = info->Title;
 		m_Data.Height = info->Height;
@@ -36,14 +34,14 @@ namespace Frostium
 	{
 		m_Data.Width = value;
 		WindowResizeEvent resizeEvent(m_Data);
-		EventSender->SendEvent(resizeEvent, EventType::S_WINDOW_RESIZE, EventCategory::S_EVENT_APP);
+		EventHandler->SendEvent(resizeEvent, EventType::WINDOW_RESIZE, EventCategory::EVENT_APP);
 	}
 
 	void Window::SetHeight(uint32_t value)
 	{
 		m_Data.Height = value;
 		WindowResizeEvent resizeEvent(m_Data);
-		EventSender->SendEvent(resizeEvent, EventType::S_WINDOW_RESIZE, EventCategory::S_EVENT_APP);
+		EventHandler->SendEvent(resizeEvent, EventType::WINDOW_RESIZE, EventCategory::EVENT_APP);
 	}
 
 	GLFWwindow* Window::GetNativeWindow() const
@@ -101,13 +99,13 @@ namespace Frostium
 				DataPtr->Width = width;
 
 				WindowResizeEvent resizeEvent(*DataPtr);
-				EventSender->SendEvent(resizeEvent, EventType::S_WINDOW_RESIZE, EventCategory::S_EVENT_APP);
+				EventHandler->SendEvent(resizeEvent, EventType::WINDOW_RESIZE, EventCategory::EVENT_APP);
 		});
 
 		glfwSetWindowCloseCallback(m_Window, [](GLFWwindow* window) 
 		{
 				WindowCloseEvent closeEvent;
-				EventSender->SendEvent(closeEvent, EventType::S_WINDOW_CLOSE, EventCategory::S_EVENT_APP);
+				EventHandler->SendEvent(closeEvent, EventType::WINDOW_CLOSE, EventCategory::EVENT_APP);
 		});
 
 		glfwSetKeyCallback(m_Window, [](GLFWwindow * window, int key, int scancode, int action, int mods)
@@ -118,17 +116,17 @@ namespace Frostium
 				{
 				case GLFW_PRESS:
 				{
-					EventSender->SendEvent(keyEvent, EventType::S_KEY_PRESS, EventCategory::S_EVENT_KEYBOARD, action, key);
+					EventHandler->SendEvent(keyEvent, EventType::KEY_PRESS, EventCategory::EVENT_KEYBOARD, action, key);
 					break;
 				}
 				case GLFW_RELEASE:
 				{
-					EventSender->SendEvent(keyEvent, EventType::S_KEY_RELEASE, EventCategory::S_EVENT_KEYBOARD, action, key);
+					EventHandler->SendEvent(keyEvent, EventType::KEY_RELEASE, EventCategory::EVENT_KEYBOARD, action, key);
 					break;
 				}
 				case GLFW_REPEAT:
 				{
-					EventSender->SendEvent(keyEvent, EventType::S_KEY_REPEAT, EventCategory::S_EVENT_KEYBOARD, action, key);
+					EventHandler->SendEvent(keyEvent, EventType::KEY_REPEAT, EventCategory::EVENT_KEYBOARD, action, key);
 					break;
 				}
 				default:
@@ -144,12 +142,12 @@ namespace Frostium
 				{
 				case GLFW_PRESS:
 				{
-					EventSender->SendEvent(mouseButton, EventType::S_MOUSE_PRESS, EventCategory::S_EVENT_MOUSE, action, button);
+					EventHandler->SendEvent(mouseButton, EventType::MOUSE_PRESS, EventCategory::EVENT_MOUSE, action, button);
 					break;
 				}
 				case GLFW_RELEASE:
 				{
-					EventSender->SendEvent(mouseButton, EventType::S_MOUSE_RELEASE, EventCategory::S_EVENT_MOUSE, action, button);
+					EventHandler->SendEvent(mouseButton, EventType::MOUSE_RELEASE, EventCategory::EVENT_MOUSE, action, button);
 					break;
 				}
 				}
@@ -159,14 +157,14 @@ namespace Frostium
 		glfwSetScrollCallback(m_Window, [](GLFWwindow* window, double xOffset, double yOffset)
 		{
 				MouseScrollEvent scrollEvent(static_cast<float>(xOffset), static_cast<float>(yOffset));
-				EventSender->SendEvent(scrollEvent, EventType::S_MOUSE_SCROLL, EventCategory::S_EVENT_MOUSE);
+				EventHandler->SendEvent(scrollEvent, EventType::MOUSE_SCROLL, EventCategory::EVENT_MOUSE);
 		});
 	
 
 		glfwSetCursorPosCallback(m_Window, [](GLFWwindow* window, double xPos, double yPos) 
 		{
 				MouseMoveEvent mouseEvent(xPos, yPos);
-				EventSender->SendEvent(mouseEvent, EventType::S_MOUSE_MOVE, EventCategory::S_EVENT_MOUSE);
+				EventHandler->SendEvent(mouseEvent, EventType::MOUSE_MOVE, EventCategory::EVENT_MOUSE);
 		});
 
 	}

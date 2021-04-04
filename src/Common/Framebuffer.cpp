@@ -17,16 +17,14 @@ namespace Frostium
 
 	void Framebuffer::Create(const FramebufferSpecification& data, Framebuffer* out_fb)
 	{
-		if (out_fb == nullptr)
+		if (out_fb)
 		{
-			out_fb = new Framebuffer();
-		}
-
 #ifdef FROSTIUM_OPENGL_IMPL
-		out_fb->m_OpenglFramebuffer.Init(data);
+			out_fb->m_OpenglFramebuffer.Init(data);
 #else
-		out_fb->m_VulkanFrameBuffer.Init(data);
+			out_fb->m_VulkanFrameBuffer.Init(data);
 #endif
+		}
 	}
 
 	void Framebuffer::Bind()

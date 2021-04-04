@@ -1,10 +1,7 @@
 #include "stdafx.h"
 #include "EditorCamera.h"
 #include "Common/Input.h"
-#include "Common/MouseEvent.h"
-#include "Common/ApplicationEvent.h"
 #include "Common/Framebuffer.h"
-#include "Common/EventHandler.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
@@ -60,16 +57,16 @@ namespace Frostium
 		{
 		case CameraType::Ortho:
 		{
-			if (Input::IsKeyPressed(S_KEY_D))
+			if (Input::IsKeyPressed(F_KEY_D))
 				m_Position.x += speed * delta;
 
-			else if (Input::IsKeyPressed(S_KEY_A))
+			else if (Input::IsKeyPressed(F_KEY_A))
 				m_Position.x -= speed * delta;
 
-			else if (Input::IsKeyPressed(S_KEY_W))
+			else if (Input::IsKeyPressed(F_KEY_W))
 				m_Position.y += speed * delta;
 
-			else if (Input::IsKeyPressed(S_KEY_S))
+			else if (Input::IsKeyPressed(F_KEY_S))
 				m_Position.y -= speed * delta;
 
 			speed = m_Distance;
@@ -117,13 +114,42 @@ namespace Frostium
 
 	void EditorCamera::OnEvent(Event& event)
 	{
-		if (event.m_EventType == (int)EventType::S_MOUSE_SCROLL)
+		if (event.IsType(EventType::MOUSE_SCROLL))
 		{
-			OnMouseScroll(event);
+			MouseScrollEvent* scroll = event.Cast<MouseScrollEvent>();
+
+			switch (m_Type)
+			{
+			case CameraType::Ortho:
+			{
+				m_Distance -= scroll->GetYoffset() * 0.25f;
+				m_Distance = std::max(m_Distance, 0.25f);
+				UpdateViewOrtho();
+				break;
+			}
+			case CameraType::Perspective:
+			{
+				float delta = scroll->GetYoffset() * 0.1f;
+				MouseZoom(delta);
+				UpdateViewPerspective();
+				break;
+			}
+			}
+
 		}
-		if (event.m_EventType == (int)EventType::S_WINDOW_RESIZE)
+
+		if (event.IsType(EventType::WINDOW_RESIZE))
 		{
-			OnResize(event);
+			WindowResizeEvent* resize = event.Cast<WindowResizeEvent>();
+
+			m_ViewportWidth = static_cast<float>(resize->GetWidth());
+			m_ViewportHeight = static_cast<float>(resize->GetHeight());
+			m_AspectRatio = m_ViewportWidth / m_ViewportHeight;
+
+			if (m_ViewportWidth == 0.0f || m_ViewportHeight == 0.0f)
+				return;
+
+			SetCameraType(m_Type);
 		}
 	}
 
@@ -225,68 +251,6 @@ namespace Frostium
 			m_FocalPoint += GetForwardDirection();
 			m_Distance = 1.0f;
 		}
-	}
-
-	bool EditorCamera::OnMouseScroll(Event& e)
-	{
-		auto& m_e = static_cast<MouseScrollEvent&>(e);
-
-		switch (m_Type)
-		{
-		case CameraType::Ortho:
-		{
-			m_Distance -= m_e.GetYoffset() * 0.25f;
-			m_Distance = std::max(m_Distance, 0.25f);
-			UpdateViewOrtho();
-			break;
-		}
-		case CameraType::Perspective:
-		{
-			float delta = m_e.GetYoffset() * 0.1f;
-			MouseZoom(delta);
-			UpdateViewPerspective();
-			break;
-		}
-		}
-
-		return false;
-	}
-
-	bool EditorCamera::OnResize(Event& e)
-	{
-		auto& res_e = static_cast<WindowResizeEvent&>(e);
-
-		m_ViewportWidth = static_cast<float>(res_e.GetWidth());
-		m_ViewportHeight = static_cast<float>(res_e.GetHeight());
-		m_AspectRatio = m_ViewportWidth / m_ViewportHeight;
-
-		SetCameraType(m_Type);
-		return false;
-	}
-
-	bool EditorCamera::OnResize(uint32_t width, uint32_t height)
-	{
-		m_ViewportWidth = static_cast<float>(width);
-		m_ViewportHeight = static_cast<float>(height);
-
-		m_AspectRatio = m_ViewportHeight / m_ViewportWidth;
-
-		switch (m_Type)
-		{
-		case CameraType::Ortho:
-		{
-			UpdateViewOrtho();
-			break;
-		}
-		case CameraType::Perspective:
-		{
-			UpdateViewPerspective();
-			break;
-		}
-		}
-
-		SetCameraType(m_Type);
-		return false;
 	}
 
 	float EditorCamera::RotationSpeed() const

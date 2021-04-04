@@ -6,7 +6,6 @@
 
 #include "Common/SLog.h"
 #include "Common/Input.h"
-#include "Common/ApplicationEvent.h"
 
 #include <GLFW/glfw3.h>
 
@@ -185,12 +184,17 @@ namespace Frostium
 		return m_Window.GetWindowData();
 	}
 
-	float GraphicsContext::GetTime()
+	bool GraphicsContext::IsWindowMinimized() const
+	{
+		return m_WindowMinimized;
+	}
+
+	float GraphicsContext::GetTime() const
 	{
 		return (float)glfwGetTime();
 	}
 
-	float GraphicsContext::GetLastFrameTime()
+	float GraphicsContext::GetLastFrameTime() const
 	{
 		return m_LastFrameTime;
 	}
@@ -203,12 +207,19 @@ namespace Frostium
 		if (m_UseEditorCamera)
 			m_EditorCamera->OnEvent(event);
 
-		if (Input::IsEventReceived(EventType::S_WINDOW_RESIZE, event))
+		if (event.IsType(EventType::WINDOW_RESIZE))
 		{
-			auto& resize_event = static_cast<WindowResizeEvent&>(event);
-			uint32_t width = resize_event.GetWidth();
-			uint32_t height = resize_event.GetHeight();
-			OnResize(&width, &height);
+			WindowResizeEvent* resize = event.Cast<WindowResizeEvent>();
+			uint32_t width = resize->GetWidth();
+			uint32_t height = resize->GetHeight();
+
+			if (width == 0 || height == 0)
+				m_WindowMinimized = true;
+			else
+			{
+				m_WindowMinimized = false;
+				OnResize(&width, &height);
+			}
 		}
 
 		m_EventCallback(std::forward<Event&>(event));

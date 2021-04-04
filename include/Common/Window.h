@@ -1,13 +1,12 @@
 #pragma once
 
 #include "Common/Core.h"
-#include "Common/SLog.h"
-#include "Common/EventHandler.h"
 
 struct GLFWwindow;
 
 namespace Frostium 
 {
+	class EventSender;
 
 	struct WindowData
 	{
@@ -33,7 +32,7 @@ namespace Frostium
 
 		/// Main
 
-		void Init(const WindowCreateInfo* info, EventHandler* eventHandler);
+		void Init(const WindowCreateInfo* info, EventSender* eventHandler);
 
 		void ProcessEvents();
 

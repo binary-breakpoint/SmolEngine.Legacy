@@ -27,6 +27,22 @@ namespace Frostium
         return mesh;
     }
 
+    void Mesh::Create(const std::string& filePath, Mesh* out_mesh)
+    {
+        if (out_mesh)
+        {
+            if (out_mesh->m_Initialized)
+                return;
+
+            ImportedData* data = new ImportedData();
+            if (ModelImporter::Load(filePath, data))
+            {
+                out_mesh->Init(data);
+                out_mesh->m_Initialized = true;
+            }
+        }
+    }
+
     Ref<Mesh> Mesh::FindSubMeshByIndex(uint32_t index)
     {
         if (index >= m_SubMeshes.size())

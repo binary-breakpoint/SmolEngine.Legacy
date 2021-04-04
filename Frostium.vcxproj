@@ -183,23 +183,19 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="include\Common\ApplicationEvent.h" />
     <ClInclude Include="include\Common\BufferElement.h" />
     <ClInclude Include="include\Common\BufferLayout.h" />
     <ClInclude Include="include\Common\Core.h" />
     <ClInclude Include="include\Common\CubeTexture.h" />
-    <ClInclude Include="include\Common\EventHandler.h" />
+    <ClInclude Include="include\Common\Events.h" />
     <ClInclude Include="include\Common\Framebuffer.h" />
     <ClInclude Include="include\Common\FramebufferSpecification.h" />
     <ClInclude Include="include\Common\GraphicsPipelineShaderCreateInfo.h" />
     <ClInclude Include="include\Common\IndexBuffer.h" />
     <ClInclude Include="include\Common\Input.h" />
     <ClInclude Include="include\Common\InputCodes.h" />
-    <ClInclude Include="include\Common\InputEvent.h" />
-    <ClInclude Include="include\Common\Layer.h" />
     <ClInclude Include="include\Common\Material.h" />
     <ClInclude Include="include\Common\Mesh.h" />
-    <ClInclude Include="include\Common\MouseEvent.h" />
     <ClInclude Include="include\Common\RendererShared.h" />
     <ClInclude Include="include\Common\SLog.h" />
     <ClInclude Include="include\Common\Shader.h" />
@@ -846,19 +842,16 @@
     <ClInclude Include="include\Vulkan\VulkanTexture.h" />
     <ClInclude Include="include\Vulkan\VulkanUtils.h" />
     <ClInclude Include="include\Vulkan\VulkanVertexBuffer.h" />
-    <ClInclude Include="src\Common\InputCodes.h" />
     <ClInclude Include="src\stdafx.h" />
     <ClInclude Include="vendor\stb_image\stb_image.h" />
     <ClInclude Include="vendor\stb_image\stb_image_write.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Common\CubeTexture.cpp" />
-    <ClCompile Include="src\Common\EventHandler.cpp" />
+    <ClCompile Include="src\Common\Events.cpp" />
     <ClCompile Include="src\Common\Framebuffer.cpp" />
     <ClCompile Include="src\Common\IndexBuffer.cpp" />
     <ClCompile Include="src\Common\Input.cpp" />
-    <ClCompile Include="src\Common\Layer.cpp" />
-    <ClCompile Include="src\Common\Material.cpp" />
     <ClCompile Include="src\Common\Mesh.cpp" />
     <ClCompile Include="src\Common\SLog.cpp" />
     <ClCompile Include="src\Common\SSAOGenerator.cpp" />

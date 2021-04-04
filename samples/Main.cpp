@@ -29,13 +29,15 @@ int main(int argc, char** argv)
 	}
 
 	GraphicsContext* context = new GraphicsContext(&info);
-	Ref<Mesh> cube = Mesh::Create("Assets/cube.glb");
 	ClearInfo clearInfo = {};
+	Mesh cube = {};
 	bool process = true;
+
+	Mesh::Create("Assets/cube.glb", &cube);
 
 	context->SetEventCallback([&](Event& e) 
 	{
-		if (Input::IsEventReceived(EventType::S_WINDOW_CLOSE, e))
+		if(e.IsType(EventType::WINDOW_CLOSE))
 			process = false;
 	});
 
@@ -43,6 +45,9 @@ int main(int argc, char** argv)
 	{
 		context->ProcessEvents();
 		DeltaTime deltaTime = context->CalculateDeltaTime();
+
+		if (context->IsWindowMinimized())
+			continue;
 
 		/* 
 		   @Calculate physics, process script, etc
@@ -59,10 +64,10 @@ int main(int argc, char** argv)
 
 			Renderer::BeginScene(&clearInfo);
 			{
-				Renderer::SubmitMesh({ 0, 0, -10 }, { 0, 0, 0 }, { 1, 8, 1 }, cube);
-				Renderer::SubmitMesh(  { 0, 0, 0 }, { 0, 0, 0 }, { 1, 6, 1 }, cube);
-				Renderer::SubmitMesh( { 0, 0, 10 }, { 0, 0, 0 }, { 1, 4, 1 }, cube);
-				Renderer::SubmitMesh( { 0, 0, 20 }, { 0, 0, 0 }, { 1, 2, 1 }, cube);
+				Renderer::SubmitMesh({ 0, 0, -10 }, { 0, 0, 0 }, { 1, 8, 1 }, &cube);
+				Renderer::SubmitMesh(  { 0, 0, 0 }, { 0, 0, 0 }, { 1, 6, 1 }, &cube);
+				Renderer::SubmitMesh( { 0, 0, 10 }, { 0, 0, 0 }, { 1, 4, 1 }, &cube);
+				Renderer::SubmitMesh( { 0, 0, 20 }, { 0, 0, 0 }, { 1, 2, 1 }, &cube);
 			}
 			Renderer::EndScene();
 		}

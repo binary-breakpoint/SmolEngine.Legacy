@@ -25,6 +25,8 @@ namespace Frostium
 
 		static Ref<Mesh> Create(const std::string& filePath);
 
+		static void Create(const std::string& filePath, Mesh* out_mesh);
+
 		// Find
 
 		Ref<Mesh> FindSubMeshByIndex(uint32_t index);
@@ -39,9 +41,9 @@ namespace Frostium
 
 		const uint32_t GetVertexCount() const { return m_VertexCount; }
 
-		const std::vector<Ref<Mesh>>& GetSubMeshes() { return m_SubMeshes; }
+		const std::vector<Ref<Mesh>>& GetSubMeshes() const { return m_SubMeshes; }
 
-		const std::vector<Mesh*>& GetAllMeshes() { return m_Meshes; }
+		const std::vector<Mesh*>& GetAllMeshes() const { return m_Meshes; }
 
 		const std::string& GetName() const;
 

@@ -3,7 +3,7 @@
 #ifndef SMOLENIGNE_OPENGL_IMPL
 #include <ImGUI/ImGuiVulkanImpl.h>
 #endif
-#include "Common/EventHandler.h"
+#include "Common/Events.h"
 
 namespace Frostium 
 {

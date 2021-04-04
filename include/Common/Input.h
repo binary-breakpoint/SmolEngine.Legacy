@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common/EventHandler.h"
+#include "Common/Events.h"
 #include "InputCodes.h"
 
 namespace Frostium 
@@ -12,8 +12,6 @@ namespace Frostium
 		static bool IsKeyPressed(KeyCode key);
 
 		static bool IsMouseButtonPressed(MouseCode button);
-
-		static bool IsEventReceived(Frostium::EventType type, Event& event);
 
 		static float GetMouseX();
 

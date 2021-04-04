@@ -171,9 +171,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\Common\ApplicationEvent.h">
-      <Filter>include\Common</Filter>
-    </ClInclude>
     <ClInclude Include="include\Common\BufferElement.h">
       <Filter>include\Common</Filter>
     </ClInclude>
@@ -184,9 +181,6 @@
       <Filter>include\Common</Filter>
     </ClInclude>
     <ClInclude Include="include\Common\CubeTexture.h">
-      <Filter>include\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Common\EventHandler.h">
       <Filter>include\Common</Filter>
     </ClInclude>
     <ClInclude Include="include\Common\Framebuffer.h">
@@ -207,19 +201,10 @@
     <ClInclude Include="include\Common\InputCodes.h">
       <Filter>include\Common</Filter>
     </ClInclude>
-    <ClInclude Include="include\Common\InputEvent.h">
-      <Filter>include\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Common\Layer.h">
-      <Filter>include\Common</Filter>
-    </ClInclude>
     <ClInclude Include="include\Common\Material.h">
       <Filter>include\Common</Filter>
     </ClInclude>
     <ClInclude Include="include\Common\Mesh.h">
-      <Filter>include\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Common\MouseEvent.h">
       <Filter>include\Common</Filter>
     </ClInclude>
     <ClInclude Include="include\Common\RendererShared.h">
@@ -2157,9 +2142,6 @@
     <ClInclude Include="include\Vulkan\VulkanVertexBuffer.h">
       <Filter>include\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="src\Common\InputCodes.h">
-      <Filter>src\Common</Filter>
-    </ClInclude>
     <ClInclude Include="src\stdafx.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -2170,12 +2152,10 @@
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
     <ClInclude Include="include\RendererDebug.h" />
+    <ClInclude Include="include\Common\Events.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Common\CubeTexture.cpp">
-      <Filter>src\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Common\EventHandler.cpp">
       <Filter>src\Common</Filter>
     </ClCompile>
     <ClCompile Include="src\Common\Framebuffer.cpp">
@@ -2185,12 +2165,6 @@
       <Filter>src\Common</Filter>
     </ClCompile>
     <ClCompile Include="src\Common\Input.cpp">
-      <Filter>src\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Common\Layer.cpp">
-      <Filter>src\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Common\Material.cpp">
       <Filter>src\Common</Filter>
     </ClCompile>
     <ClCompile Include="src\Common\Mesh.cpp">
@@ -2362,5 +2336,6 @@
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
     <ClCompile Include="src\RendererDebug.cpp" />
+    <ClCompile Include="src\Common\Events.cpp" />
   </ItemGroup>
 </Project>
