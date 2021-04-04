@@ -2,6 +2,7 @@
 #include "Vulkan/VulkanContext.h"
 #include "Vulkan/VulkanRenderPass.h"
 
+
 #include <GLFW/glfw3.h>
 #include <imgui/examples/imgui_impl_vulkan.h>
 
@@ -81,62 +82,64 @@ namespace Frostium
 
 	void VulkanContext::SwapBuffers(bool skip)
 	{
-		// Second Render Pass - ImGui
+		// ImGUI pass
 		{
-			if (ImGui::GetDrawData()->CmdListsCount > 0)
+			if (m_UseImGUI)
 			{
-				auto framebuffer = m_Swapchain.GetCurrentFramebuffer();
-				uint32_t width = m_Swapchain.GetWidth();
-				uint32_t height = m_Swapchain.GetHeight();
+				if (ImGui::GetDrawData()->CmdListsCount > 0)
+				{
+					auto framebuffer = m_Swapchain.GetCurrentFramebuffer();
+					uint32_t width = m_Swapchain.GetWidth();
+					uint32_t height = m_Swapchain.GetHeight();
 
-				// Set clear values for all framebuffer attachments with loadOp set to clear
-				// We use two attachments (color and depth) that are cleared at the start of the subpass and as such we need to set clear values for both
-				VkClearValue clearValues[2];
-				clearValues[1].depthStencil = { 1.0f, 0 };
+					// Set clear values for all framebuffer attachments with loadOp set to clear
+					// We use two attachments (color and depth) that are cleared at the start of the subpass and as such we need to set clear values for both
+					VkClearValue clearValues[2];
+					clearValues[1].depthStencil = { 1.0f, 0 };
 
-				VkRenderPassBeginInfo renderPassBeginInfo = {};
-				renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-				renderPassBeginInfo.pNext = nullptr;
-				renderPassBeginInfo.renderPass = m_Swapchain.GetVkRenderPass();
-				renderPassBeginInfo.renderArea.offset.x = 0;
-				renderPassBeginInfo.renderArea.offset.y = 0;
-				renderPassBeginInfo.renderArea.extent.width = width;
-				renderPassBeginInfo.renderArea.extent.height = height;
-				renderPassBeginInfo.clearValueCount = 2;
-				renderPassBeginInfo.pClearValues = clearValues;
+					VkRenderPassBeginInfo renderPassBeginInfo = {};
+					renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+					renderPassBeginInfo.pNext = nullptr;
+					renderPassBeginInfo.renderPass = m_Swapchain.GetVkRenderPass();
+					renderPassBeginInfo.renderArea.offset.x = 0;
+					renderPassBeginInfo.renderArea.offset.y = 0;
+					renderPassBeginInfo.renderArea.extent.width = width;
+					renderPassBeginInfo.renderArea.extent.height = height;
+					renderPassBeginInfo.clearValueCount = 2;
+					renderPassBeginInfo.pClearValues = clearValues;
 
-				// Set target frame buffer
-				renderPassBeginInfo.framebuffer = framebuffer;
+					// Set target frame buffer
+					renderPassBeginInfo.framebuffer = framebuffer;
 
-				// Start the first sub pass specified in our default render pass setup by the base class
-				// This will clear the color and depth attachment
-				vkCmdBeginRenderPass(m_CurrentVkCmdBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+					// Start the first sub pass specified in our default render pass setup by the base class
+					// This will clear the color and depth attachment
+					vkCmdBeginRenderPass(m_CurrentVkCmdBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-				// Update dynamic viewport state
-				VkViewport viewport = {};
-				viewport.x = 0;
-				viewport.y = (float)height;
-				viewport.height = -(float)height;
-				viewport.width = (float)width;
-				viewport.minDepth = (float)0.0f;
-				viewport.maxDepth = (float)1.0f;
-				vkCmdSetViewport(m_CurrentVkCmdBuffer, 0, 1, &viewport);
+					// Update dynamic viewport state
+					VkViewport viewport = {};
+					viewport.x = 0;
+					viewport.y = (float)height;
+					viewport.height = -(float)height;
+					viewport.width = (float)width;
+					viewport.minDepth = (float)0.0f;
+					viewport.maxDepth = (float)1.0f;
+					vkCmdSetViewport(m_CurrentVkCmdBuffer, 0, 1, &viewport);
 
-				// Update dynamic scissor state
-				VkRect2D scissor = {};
-				scissor.extent.width = width;
-				scissor.extent.height = height;
-				scissor.offset.x = 0;
-				scissor.offset.y = 0;
-				vkCmdSetScissor(m_CurrentVkCmdBuffer, 0, 1, &scissor);
+					// Update dynamic scissor state
+					VkRect2D scissor = {};
+					scissor.extent.width = width;
+					scissor.extent.height = height;
+					scissor.offset.x = 0;
+					scissor.offset.y = 0;
+					vkCmdSetScissor(m_CurrentVkCmdBuffer, 0, 1, &scissor);
 
-				// Draw Imgui
-				ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), m_CurrentVkCmdBuffer);
+					// Draw Imgui
+					ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), m_CurrentVkCmdBuffer);
 
-				vkCmdEndRenderPass(m_CurrentVkCmdBuffer);
+					vkCmdEndRenderPass(m_CurrentVkCmdBuffer);
+				}
 			}
 		}
-
 
 		const auto& present_ref = m_Semaphore.GetPresentCompleteSemaphore();
 		const auto& render_ref = m_Semaphore.GetRenderCompleteSemaphore();

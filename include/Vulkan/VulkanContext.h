@@ -63,8 +63,11 @@ namespace Frostium
 		GLFWwindow*                             m_Window = nullptr;
 
 		bool                                    m_IsInitialized = false;
+		bool                                    m_UseImGUI = false;
 
+	private:
 
+		friend class GraphicsContext;
 		friend class ImGuiVulkanImpl;
 	};
 }

@@ -23,6 +23,7 @@ int main(int argc, char** argv)
 	{
 		info.bMSAA = true;
 		info.bTargetsSwapchain = true;
+		info.bImGUI = true;
 		info.ResourcesFolderPath = "../resources/";
 		info.pWindowCI = &windoInfo;
 		info.pEditorCameraCI = &cameraCI;
@@ -40,6 +41,28 @@ int main(int argc, char** argv)
 		if(e.IsType(EventType::WINDOW_CLOSE))
 			process = false;
 	});
+
+	struct Chunk
+	{
+		glm::vec3 Pos;
+		glm::vec3 Rot;
+		glm::vec3 Scale;
+	};
+
+	std::vector<Chunk> chunks;
+	Chunk chunk;
+
+	for (uint32_t x = 0; x < 50; x+=2)
+	{
+		for (uint32_t z = 0; z < 50; z+=2)
+		{
+			chunk.Pos = { x, 0, z };
+			chunk.Rot = { 0, 0, 0 };
+			chunk.Scale = { 0.5, 0.5, 0.5 };
+
+			chunks.emplace_back(chunk);
+		}
+	}
 
 	while (process)
 	{
@@ -64,10 +87,10 @@ int main(int argc, char** argv)
 
 			Renderer::BeginScene(&clearInfo);
 			{
-				Renderer::SubmitMesh({ 0, 0, -10 }, { 0, 0, 0 }, { 1, 8, 1 }, &cube);
-				Renderer::SubmitMesh(  { 0, 0, 0 }, { 0, 0, 0 }, { 1, 6, 1 }, &cube);
-				Renderer::SubmitMesh( { 0, 0, 10 }, { 0, 0, 0 }, { 1, 4, 1 }, &cube);
-				Renderer::SubmitMesh( { 0, 0, 20 }, { 0, 0, 0 }, { 1, 2, 1 }, &cube);
+				for (auto& c : chunks)
+				{
+					Renderer::SubmitMesh(c.Pos, c.Rot, c.Scale, &cube);
+				}
 			}
 			Renderer::EndScene();
 		}

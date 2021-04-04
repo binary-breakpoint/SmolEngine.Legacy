@@ -35,6 +35,7 @@ namespace Frostium
 #else
 		m_VulkanContext.Setup(window,
 			&m_Window.GetWindowData()->Width, &m_Window.GetWindowData()->Height);
+		m_VulkanContext.m_UseImGUI = m_UseImGUI;
 #endif
 		// Creates white 4x4 white texture
 		m_DummyTexure = Texture::CreateWhiteTexture();

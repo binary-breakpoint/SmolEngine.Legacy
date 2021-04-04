@@ -26,7 +26,7 @@
 
 namespace Frostium
 {
-	static const size_t                  s_MaxInstances = 500;
+	static const size_t                  s_MaxInstances = 1000;
 	static const size_t                  s_MaxPackages = 1200;
 	static const size_t                  s_MaxDirectionalLights = 1000;
 	static const size_t                  s_MaxPointLights = 1000;
@@ -68,7 +68,7 @@ namespace Frostium
 
 		~RendererData()
 		{
-			delete m_Framebuffer;
+
 		}
 
 		// States
