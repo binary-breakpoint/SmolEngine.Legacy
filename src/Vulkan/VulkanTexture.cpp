@@ -262,7 +262,6 @@ namespace Frostium
 		m_FilePath = filePath;
 		m_IsCreated = true;
 
-		stagingBuffer.Destroy();
 		ktxTexture_Destroy(ktxTexture);
 	}
 
@@ -358,8 +357,6 @@ namespace Frostium
 
 		}
 		VulkanContext::GetCommandBuffer().EndSingleCommandBuffer(cmdBuffer);
-		stagingBuffer.Destroy();
-
 		GenerateMipMaps(m_Image, width, height, mipMaps, subresourceRange);
 		m_ImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		CreateSamplerAndImageView(mipMaps);
@@ -429,7 +426,6 @@ namespace Frostium
 
 		}
 		VulkanContext::GetCommandBuffer().EndSingleCommandBuffer(cmdBuffer);
-		stagingBuffer.Destroy();
 
 		m_ImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		CreateSamplerAndImageView(1);

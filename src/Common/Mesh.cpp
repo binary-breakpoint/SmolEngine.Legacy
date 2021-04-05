@@ -69,14 +69,6 @@ namespace Frostium
 
     void Mesh::Free()
     {
-        if (m_IndexBuffer)
-            m_IndexBuffer->Destory();
-        if (m_VertexBuffer)
-            m_VertexBuffer->Destory();
-
-        for (auto& subMeshes: m_SubMeshes)
-            subMeshes->Free();
-
         if (m_SubMeshes.size() != 0)
             m_SubMeshes.clear();
 
@@ -128,7 +120,7 @@ namespace Frostium
     {
         m_Name = component.Name;
         m_VertexCount = static_cast<uint32_t>(component.VertexData.size());
-        m_VertexBuffer = VertexBuffer::Create(component.VertexData.data(), static_cast<uint32_t>(sizeof(PBRVertex) * component.VertexData.size()));
-        m_IndexBuffer = IndexBuffer::Create(component.Indices.data(), static_cast<uint32_t>(component.Indices.size()));
+        m_VertexBuffer = VertexBuffer::Create(component.VertexData.data(), static_cast<uint32_t>(sizeof(PBRVertex) * component.VertexData.size()), true);
+        m_IndexBuffer = IndexBuffer::Create(component.Indices.data(), static_cast<uint32_t>(component.Indices.size()), true);
     }
 }

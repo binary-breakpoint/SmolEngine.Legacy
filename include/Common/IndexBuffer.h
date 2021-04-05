@@ -17,26 +17,19 @@ namespace Frostium
 
 		~IndexBuffer() = default;
 
-
 		void Bind() const;
 
 		void UnBind() const;
 
-
 		void UploadData(uint32_t* indices, uint32_t count);
 
 #ifndef FROSTIUM_OPENGL_IMPL
-
 		void CmdUpdateData(VkCommandBuffer cmdBuffer, const void* data, size_t size, uint32_t offset = 0)
 		{
 			m_VulkanIndexBuffer.CmdUpdateData(cmdBuffer, data, size, offset);
 		}
-
 #endif
-
-		void Destory();
-
-		///  Getters
+		//  Getters
 
 		uint32_t GetCount() const;
 
@@ -44,10 +37,11 @@ namespace Frostium
 
 		VulkanIndexBuffer& GetVulkanIndexBuffer() { return m_VulkanIndexBuffer; };
 #endif
+		// Factory
 
-		/// Factory
+		static Ref<IndexBuffer> Create(uint32_t* indices, uint32_t count, bool is_static = false);
 
-		static Ref<IndexBuffer> Create(uint32_t* indices, uint32_t count);
+		static void Create(IndexBuffer* out_ib, uint32_t* indices, uint32_t count, bool is_static = false);
 
 	private:
 

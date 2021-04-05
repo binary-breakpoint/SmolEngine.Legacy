@@ -22,14 +22,26 @@ namespace Frostium
 		return buffer;
 	}
 
+	void VertexBuffer::Create(VertexBuffer* out_vb, void* vertices, uint32_t size, bool is_static)
+	{
+		if (out_vb)
+		{
+#ifdef FROSTIUM_OPENGL_IMPL
+			buffer->m_OpenglVertexBuffer.Init(vertices, size);
+#else
+			out_vb->m_VulkanVertexBuffer.Create(vertices, size, is_static);
+#endif
+		}
+	}
 
-	Ref<VertexBuffer> VertexBuffer::Create(void* vertices, uint32_t size)
+
+	Ref<VertexBuffer> VertexBuffer::Create(void* vertices, uint32_t size, bool is_static)
 	{
 		Ref<VertexBuffer> buffer = std::make_shared<VertexBuffer>();
 #ifdef FROSTIUM_OPENGL_IMPL
 		buffer->m_OpenglVertexBuffer.Init(vertices, size);
 #else
-		buffer->m_VulkanVertexBuffer.Create(vertices, size);
+		buffer->m_VulkanVertexBuffer.Create(vertices, size, is_static);
 #endif
 		return buffer;
 	}
@@ -45,15 +57,6 @@ namespace Frostium
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
 		m_OpenglVertexBuffer.UnBind();
-#endif
-	}
-
-	void VertexBuffer::Destory()
-	{
-#ifdef FROSTIUM_OPENGL_IMPL
-		m_OpenglVertexBuffer.Destroy();
-#else
-		m_VulkanVertexBuffer.Destroy();
 #endif
 	}
 

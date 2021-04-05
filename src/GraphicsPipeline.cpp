@@ -69,17 +69,6 @@ namespace Frostium
 
 	void GraphicsPipeline::Destroy()
 	{
-#ifndef FROSTIUM_OPENGL_IMPL
-		for (auto& index : m_IndexBuffers)
-		{
-			index->GetVulkanIndexBuffer().Destroy();
-		}
-
-		for (auto& vertex : m_VertexBuffers)
-		{
-			vertex->GetVulkanVertexBuffer().Destroy();
-		}
-#endif
 		m_VertexBuffers.clear();
 		m_IndexBuffers.clear();
 

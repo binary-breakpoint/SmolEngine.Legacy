@@ -7,7 +7,11 @@ namespace Frostium
 	{
 	public:
 
-		void Create(const uint32_t* data, uint64_t count, bool is_static = false);
+		VulkanIndexBuffer() = default;
+
+		~VulkanIndexBuffer() = default;
+
+		void Create(const uint32_t* data, uint64_t count, bool is_static);
 
 		void Create(uint64_t size);
 

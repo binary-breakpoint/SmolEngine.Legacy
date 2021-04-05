@@ -2,6 +2,7 @@
 #include "Vulkan/VulkanBuffer.h"
 
 #include "Vulkan/VulkanContext.h"
+#include "Vulkan/VulkanStagingBuffer.h"
 
 namespace Frostium
 {
@@ -12,13 +13,9 @@ namespace Frostium
 
 	VulkanBuffer::~VulkanBuffer()
 	{
-
-#if 0
-		const auto& device = *m_Device->GetLogicalDevice();
-		vkUnmapMemory(device, m_DeviceMemory);
+		const auto& device = m_Device->GetLogicalDevice();
 		vkDestroyBuffer(device, m_Buffer, nullptr);
 		vkFreeMemory(device, m_DeviceMemory, nullptr);
-#endif
 	}
 
 	void VulkanBuffer::CreateBuffer(const void* data, size_t size, VkMemoryPropertyFlags memFlags, VkBufferUsageFlags usageFlags, uint32_t offset, VkSharingMode shareMode)
@@ -61,14 +58,18 @@ namespace Frostium
 
 		}
 
-		void* destBuffer =  nullptr;
-		VkResult map_result = vkMapMemory(device, m_DeviceMemory, 0, m_MemoryRequirementsSize, 0, &destBuffer);
-		assert(map_result == VK_SUCCESS);
+		if (data)
+		{
+			void* destBuffer = nullptr;
+			VkResult map_result = vkMapMemory(device, m_DeviceMemory, 0, m_MemoryRequirementsSize, 0, &destBuffer);
+			assert(map_result == VK_SUCCESS);
 
-		memcpy(destBuffer, data, size);
+			memcpy(destBuffer, data, size);
+			vkUnmapMemory(device, m_DeviceMemory);
+		}
+
 		VkResult bind_result = vkBindBufferMemory(device, m_Buffer, m_DeviceMemory, offset);
 		assert(bind_result == VK_SUCCESS);
-		vkUnmapMemory(device, m_DeviceMemory);
 	}
 
 	void VulkanBuffer::CreateBuffer(size_t size, VkMemoryPropertyFlags memFlags, VkBufferUsageFlags usageFlags, uint32_t offset, VkSharingMode shareMode)
@@ -112,6 +113,26 @@ namespace Frostium
 
 		VkResult bind_result = vkBindBufferMemory(device, m_Buffer, m_DeviceMemory, offset);
 		assert(bind_result == VK_SUCCESS);
+	}
+
+	void VulkanBuffer::CreateStaticBuffer(const void* data, size_t size, VkBufferUsageFlags usageFlags)
+	{
+		VulkanStagingBuffer staging = {};
+		staging.Create(data, size);
+		CreateBuffer(nullptr, size, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, usageFlags);
+
+		VkCommandBuffer copyCmd = VulkanCommandBuffer::CreateSingleCommandBuffer();
+		{
+			VkBufferCopy copyRegion = { };
+			copyRegion.size = m_Size;
+			vkCmdCopyBuffer(
+				copyCmd,
+				staging.GetBuffer(),
+				m_Buffer,
+				1,
+				&copyRegion);
+		}
+		VulkanCommandBuffer::FlushCommandBuffer(copyCmd);
 	}
 
 	void VulkanBuffer::Flush(VkDeviceSize size, VkDeviceSize offset)
@@ -164,12 +185,6 @@ namespace Frostium
 		const auto& device = m_Device->GetLogicalDevice();
 		vkUnmapMemory(device, m_DeviceMemory);
 		m_Mapped = nullptr;
-	}
-
-	void VulkanBuffer::Destroy()
-	{
-		const auto& device = m_Device->GetLogicalDevice();
-		vkDestroyBuffer(device, m_Buffer, nullptr);
 	}
 
 	size_t VulkanBuffer::GetSize() const

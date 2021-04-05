@@ -14,20 +14,25 @@ namespace Frostium
 
 		virtual ~VulkanBuffer();
 
-		void CreateBuffer(const void* data, size_t size, VkMemoryPropertyFlags memFlags, VkBufferUsageFlags usageFlags, uint32_t offset = 0,
+
+		void CreateBuffer(const void* data, size_t size, VkMemoryPropertyFlags memFlags, 
+			VkBufferUsageFlags usageFlags, uint32_t offset = 0,
 			VkSharingMode shareMode = VkSharingMode::VK_SHARING_MODE_EXCLUSIVE);
 
-		void CreateBuffer(size_t size, VkMemoryPropertyFlags memFlags, VkBufferUsageFlags usageFlags, uint32_t offset = 0,
+		void CreateBuffer(size_t size, VkMemoryPropertyFlags memFlags,
+			VkBufferUsageFlags usageFlags, uint32_t offset = 0,
 			VkSharingMode shareMode = VkSharingMode::VK_SHARING_MODE_EXCLUSIVE);
+
+		void CreateStaticBuffer(const void* data, size_t size, 
+			VkBufferUsageFlags usageFlags);
 
 		void Flush(VkDeviceSize size, VkDeviceSize offset);
-
-		void Destroy();
 
 
 		void SetData(const void* data, size_t size, uint32_t offset = 0);
 
-		void CmdUpdateData(VkCommandBuffer cmdBuffer, const void* data, size_t size, uint32_t offset = 0);
+		void CmdUpdateData(VkCommandBuffer cmdBuffer, const void* data, 
+			size_t size, uint32_t offset = 0);
 
 
 		void* MapMemory();
@@ -41,8 +46,10 @@ namespace Frostium
 
 		const VkDeviceMemory GetDeviceMemory() const;
 
+	private:
 
-		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags memFlags);
+		uint32_t FindMemoryType(uint32_t typeFilter,
+			VkMemoryPropertyFlags memFlags);
 
 	private:
 
