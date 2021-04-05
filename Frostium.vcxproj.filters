@@ -2154,6 +2154,7 @@
     <ClInclude Include="include\RendererDebug.h" />
     <ClInclude Include="include\Common\Events.h" />
     <ClInclude Include="include\Utils\GLM.h" />
+    <ClInclude Include="include\Utils\Frustum.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Common\CubeTexture.cpp">
@@ -2338,5 +2339,6 @@
     </ClCompile>
     <ClCompile Include="src\RendererDebug.cpp" />
     <ClCompile Include="src\Common\Events.cpp" />
+    <ClCompile Include="src\Utils\Frustum.cpp" />
   </ItemGroup>
 </Project>

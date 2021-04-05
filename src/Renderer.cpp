@@ -12,6 +12,7 @@
 #include "Common/Mesh.h"
 #include "Common/Texture.h"
 
+#include "Utils/Frustum.h"
 #include "Utils/Utils.h"
 
 #ifdef FROSTIUM_OPENGL_IMPL
@@ -154,6 +155,7 @@ namespace Frostium
 			glm::mat4 shadowTransforms[6];
 		};
 
+		Frustum                          m_Frustum = {};
 		DebugView                        m_DebugView = {};
 		SceneData                        m_SceneData = {};
 		PushConstant                     m_MainPushConstant = {};
@@ -209,6 +211,7 @@ namespace Frostium
 			s_Data->m_FarClip = info->farClip;
 		}
 
+		s_Data->m_Frustum.Update(s_Data->m_SceneData.Projection * s_Data->m_SceneData.View);
 		s_Data->m_MainPipeline->BeginCommandBuffer(true);
 		s_Data->m_SkyboxPipeline->BeginCommandBuffer(true);
 		if (clearInfo->bClear)
@@ -374,40 +377,43 @@ namespace Frostium
 	void Renderer::SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation,
 		const glm::vec3& scale, Mesh* mesh, int32_t materialID)
 	{
-		if (s_Data->m_Objects >= s_Data->m_MaxObjects)
-			StartNewBacth();
-
-		auto& instance = s_Data->m_Packages[mesh];
-		if(instance.CurrentIndex >= s_MaxInstances)
-			StartNewBacth();
-
-		auto& package = instance.Data[instance.CurrentIndex];
-
-		package.MaterialID = materialID;
-		package.WorldPos = pos;
-		package.Rotation = rotation;
-		package.Scale = scale;
-		instance.CurrentIndex++;
-
-		bool found = false;
-		for (uint32_t i = 0; i < s_Data->m_UsedMeshesIndex; ++i)
+		if (s_Data->m_Frustum.CheckSphere(pos))
 		{
-			if (s_Data->m_UsedMeshes[i] == mesh)
+			if (s_Data->m_Objects >= s_Data->m_MaxObjects)
+				StartNewBacth();
+
+			auto& instance = s_Data->m_Packages[mesh];
+			if (instance.CurrentIndex >= s_MaxInstances)
+				StartNewBacth();
+
+			auto& package = instance.Data[instance.CurrentIndex];
+
+			package.MaterialID = materialID;
+			package.WorldPos = pos;
+			package.Rotation = rotation;
+			package.Scale = scale;
+			instance.CurrentIndex++;
+
+			bool found = false;
+			for (uint32_t i = 0; i < s_Data->m_UsedMeshesIndex; ++i)
 			{
-				found = true;
-				break;
+				if (s_Data->m_UsedMeshes[i] == mesh)
+				{
+					found = true;
+					break;
+				}
 			}
-		}
 
-		if (found == false)
-		{
-			s_Data->m_UsedMeshes[s_Data->m_UsedMeshesIndex] = mesh;
-			s_Data->m_UsedMeshesIndex++;
-		}
-		s_Data->m_Objects++;
+			if (found == false)
+			{
+				s_Data->m_UsedMeshes[s_Data->m_UsedMeshesIndex] = mesh;
+				s_Data->m_UsedMeshesIndex++;
+			}
+			s_Data->m_Objects++;
 
-		for (auto& sub : mesh->GetSubMeshes())
-			SubmitMesh(pos, rotation, scale, sub.get());
+			for (auto& sub : mesh->GetSubMeshes())
+				SubmitMesh(pos, rotation, scale, sub.get());
+		}
 	}
 
 	void Renderer::SubmitDirectionalLight(const glm::vec3& dir, const glm::vec4& color)

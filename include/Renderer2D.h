@@ -2,14 +2,8 @@
 
 #include "Common/RendererShared.h"
 
-/// 07.11.2020
-/// 
-/// 2D Batch Renderer
-
 namespace Frostium
 {
-	class OrthographicCamera;
-
 	class Framebuffer;
 
 	///
@@ -22,21 +16,11 @@ namespace Frostium
 
 		static void Shutdown();
 
-		static void BeginScene(const BeginSceneInfo& info);
+		static void BeginScene(const ClearInfo* clearInfo, const BeginSceneInfo* info = nullptr);
 
 		static void EndScene();
 
-		// Batch
-		
-		static void DrawLayer(LayerDataBuffer& layer);
-
-		static void FlushLayer(LayerDataBuffer& layer);
-
-		static void ResetLayer(LayerDataBuffer& layer);
-
 		static void StartNewBatch();
-
-		static void FlushAllLayers();
 
 		static void UploadLightUniforms();
 
@@ -44,30 +28,14 @@ namespace Frostium
 
 		// Submit
 
-		static void SubmitSprite(const glm::vec3& worldPos, const uint32_t layerIndex, const glm::vec2& scale,
-			const float rotation, const Ref<Texture>& texture,
-			const float repeatValue = 1.0f, const glm::vec4& tintColor = glm::vec4(1.0f));
+		static void DrawSprite(const glm::vec3& worldPos, const uint32_t layerIndex, const glm::vec2& scale,
+			const float rotation, const Ref<Texture>& texture);
 
-		static void SubmitQuad(const glm::vec3& worldPos, const uint32_t layerIndex,
+		static void DrawQuad(const glm::vec3& worldPos, const uint32_t layerIndex,
 			const glm::vec2& scale, const float rotation, const glm::vec4& color);
 
-		static void DrawUIText(const glm::vec3& pos, const glm::vec2& scale, 
+		static void DrawText(const glm::vec3& pos, const glm::vec2& scale, 
 			const Ref<Texture> texture, const glm::vec4& tintColor = glm::vec4(1.0f));
-
-		// Debug
-
-		static void BeginDebug();
-
-		static void EndDebug();
-
-		static void DebugDrawQuad(const glm::vec3& worldPos, const glm::vec2& scale, const float rotation,
-			const glm::vec4& color = glm::vec4(0.121f, 1.0f, 0.058f, 1.0f));
-
-		static void DebugDrawCircle(const glm::vec3& worldPos, const glm::vec2& scale, const float rotation,
-			const glm::vec4& color = glm::vec4(0.121f, 1.0f, 0.058f, 1.0f));
-
-		static void DebugDrawLine(const glm::vec3& startPos, const glm::vec3& endPos,
-			const glm::vec4& color = glm::vec4(0.121f, 1.0f, 0.058f, 1.0f));
 
 		// Light
 
@@ -77,11 +45,12 @@ namespace Frostium
 
 		static void DrawFrameBuffer(const uint32_t colorAttachmentID);
 
+	private:
+
 		// Helpers
 
 		static void CreateBatchData();
 
-		static void CreateDebugData();
 
 		static void CreateFramebufferData();
 
@@ -102,11 +71,5 @@ namespace Frostium
 
 		static Renderer2DStats* Stats;
 		inline static bool m_RenderResetted = false;
-
-	private:
-
-		friend class WorldAdmin;
-
-		friend class EditorLayer;
 	};
 }
