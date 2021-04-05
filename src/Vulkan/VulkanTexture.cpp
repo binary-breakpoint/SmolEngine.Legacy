@@ -115,7 +115,7 @@ namespace Frostium
 		ktx_size_t ktxTextureSize = ktxTexture_GetSize(ktxTexture);
 
 		VulkanBuffer stagingBuffer;
-		stagingBuffer.Create(ktxTextureSize, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+		stagingBuffer.CreateBuffer(ktxTextureSize, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
 		stagingBuffer.SetData(ktxTextureData, ktxTextureSize);
 
 		// Create optimal tiled target image
@@ -305,7 +305,7 @@ namespace Frostium
 		const VkDeviceSize size = width * height * 4;
 
 		VulkanBuffer stagingBuffer;
-		stagingBuffer.Create(size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+		stagingBuffer.CreateBuffer(size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
 		stagingBuffer.SetData(data, size);
 
 		m_Image = CreateVkImage(width, height, mipMaps, VK_SAMPLE_COUNT_1_BIT, m_Format,
@@ -377,7 +377,7 @@ namespace Frostium
 		m_Height = height;
 
 		VulkanBuffer stagingBuffer;
-		stagingBuffer.Create(size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+		stagingBuffer.CreateBuffer(size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
 		stagingBuffer.SetData(data, size);
 
 		m_Image = CreateVkImage(width, height, 1, VK_SAMPLE_COUNT_1_BIT, m_Format,

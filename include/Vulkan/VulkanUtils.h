@@ -14,5 +14,7 @@ namespace Frostium
 		static void* AlignedAlloc(size_t size, size_t alignment);
 
 		static void AlignedFree(void* data);
+
+		static void AllocBuffer(size_t);
 	};
 }

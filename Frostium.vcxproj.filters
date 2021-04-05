@@ -2153,6 +2153,7 @@
     </ClInclude>
     <ClInclude Include="include\RendererDebug.h" />
     <ClInclude Include="include\Common\Events.h" />
+    <ClInclude Include="include\Utils\GLM.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Common\CubeTexture.cpp">

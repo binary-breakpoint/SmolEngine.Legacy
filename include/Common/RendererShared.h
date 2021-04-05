@@ -4,7 +4,7 @@
 #include "Common/Texture.h"
 #include "Common/SubTexture.h"
 
-#include <glm/glm.hpp>
+#include "Utils/GLM.h"
 
 namespace Frostium
 {

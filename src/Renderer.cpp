@@ -21,8 +21,6 @@
 #include "Vulkan/VulkanPBR.h"
 #endif
 
-#define GLM_ENABLE_EXPERIMENTAL 
-#include <glm/gtx/dual_quaternion.hpp>
 
 namespace Frostium
 {

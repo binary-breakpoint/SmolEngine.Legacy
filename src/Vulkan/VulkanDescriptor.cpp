@@ -93,7 +93,7 @@ namespace Frostium
 			size_t dataSize = buffer.Size;
 			VkDescriptorType type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 			VkBufferUsageFlags usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-			VkMemoryPropertyFlags mem = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT; // temp
+			VkMemoryPropertyFlags mem = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
 			if (buffer.Type == ShaderBufferType::Storage)
 			{

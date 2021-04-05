@@ -13,7 +13,7 @@ namespace Frostium
 		if (it == m_Buffers.end())
 		{
 			Ref<BufferObject> object = std::make_shared<BufferObject>();
-			object->VkBuffer.Create(size, mem, usage);
+			object->VkBuffer.CreateBuffer(size, mem, usage);
 			object->DesriptorBufferInfo.buffer = object->VkBuffer.GetBuffer();
 			object->DesriptorBufferInfo.offset = 0;
 			object->DesriptorBufferInfo.range = size;

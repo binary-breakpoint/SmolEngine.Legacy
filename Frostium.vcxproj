@@ -815,6 +815,7 @@
     <ClInclude Include="include\Renderer.h" />
     <ClInclude Include="include\Renderer2D.h" />
     <ClInclude Include="include\RendererDebug.h" />
+    <ClInclude Include="include\Utils\GLM.h" />
     <ClInclude Include="include\Utils\ModelImporter.h" />
     <ClInclude Include="include\Utils\SSAOGenerator.h" />
     <ClInclude Include="include\Utils\Utils.h" />

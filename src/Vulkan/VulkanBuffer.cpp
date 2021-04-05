@@ -21,7 +21,7 @@ namespace Frostium
 #endif
 	}
 
-	void VulkanBuffer::Create(const void* data, size_t size, VkMemoryPropertyFlags memFlags, VkBufferUsageFlags usageFlags, uint32_t offset, VkSharingMode shareMode)
+	void VulkanBuffer::CreateBuffer(const void* data, size_t size, VkMemoryPropertyFlags memFlags, VkBufferUsageFlags usageFlags, uint32_t offset, VkSharingMode shareMode)
 	{
 		const auto& device = m_Device->GetLogicalDevice();
 
@@ -43,6 +43,8 @@ namespace Frostium
 		vkGetBufferMemoryRequirements(device, m_Buffer, &memoryRequirements);
 		m_MemoryType = FindMemoryType(memoryRequirements.memoryTypeBits, memFlags);
 		m_MemoryRequirementsSize = memoryRequirements.size;
+		m_Alignment = memoryRequirements.alignment;
+		m_Size = size;
 
 		VkMemoryAllocateInfo memAllocateInfo = {};
 		{
@@ -60,20 +62,16 @@ namespace Frostium
 		}
 
 		void* destBuffer =  nullptr;
-
 		VkResult map_result = vkMapMemory(device, m_DeviceMemory, 0, m_MemoryRequirementsSize, 0, &destBuffer);
 		assert(map_result == VK_SUCCESS);
 
 		memcpy(destBuffer, data, size);
-
 		VkResult bind_result = vkBindBufferMemory(device, m_Buffer, m_DeviceMemory, offset);
 		assert(bind_result == VK_SUCCESS);
-
-		m_Size = static_cast<uint32_t>(size);
 		vkUnmapMemory(device, m_DeviceMemory);
 	}
 
-	void VulkanBuffer::Create(size_t size, VkMemoryPropertyFlags memFlags, VkBufferUsageFlags usageFlags, uint32_t offset, VkSharingMode shareMode)
+	void VulkanBuffer::CreateBuffer(size_t size, VkMemoryPropertyFlags memFlags, VkBufferUsageFlags usageFlags, uint32_t offset, VkSharingMode shareMode)
 	{
 		const auto& device = m_Device->GetLogicalDevice();
 
@@ -95,6 +93,7 @@ namespace Frostium
 		vkGetBufferMemoryRequirements(device, m_Buffer, &memoryRequirements);
 		m_MemoryType = FindMemoryType(memoryRequirements.memoryTypeBits, memFlags);
 		m_MemoryRequirementsSize = memoryRequirements.size;
+		m_Size = size;
 
 		VkMemoryAllocateInfo memAllocateInfo = {};
 		{
@@ -113,7 +112,18 @@ namespace Frostium
 
 		VkResult bind_result = vkBindBufferMemory(device, m_Buffer, m_DeviceMemory, offset);
 		assert(bind_result == VK_SUCCESS);
-		m_Size = static_cast<uint32_t>(size);
+	}
+
+	void VulkanBuffer::Flush(VkDeviceSize size, VkDeviceSize offset)
+	{
+		VkMappedMemoryRange mappedRange = {};
+		mappedRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+		mappedRange.memory = m_DeviceMemory;
+		mappedRange.offset = offset;
+		mappedRange.size = size;
+
+		const auto& device = m_Device->GetLogicalDevice();
+		vkFlushMappedMemoryRanges(device, 1, &mappedRange);
 	}
 
 	void VulkanBuffer::SetData(const void* data, size_t size, uint32_t offset)
@@ -162,7 +172,7 @@ namespace Frostium
 		vkDestroyBuffer(device, m_Buffer, nullptr);
 	}
 
-	uint32_t VulkanBuffer::GetSize() const
+	size_t VulkanBuffer::GetSize() const
 	{
 		return m_Size;
 	}

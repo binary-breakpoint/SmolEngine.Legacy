@@ -56,9 +56,11 @@ int main(int argc, char** argv)
 	{
 		for (uint32_t z = 0; z < 50; z+=2)
 		{
+			float scale_y = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 6));
+
 			chunk.Pos = { x, 0, z };
 			chunk.Rot = { 0, 0, 0 };
-			chunk.Scale = { 0.5, 0.5, 0.5 };
+			chunk.Scale = { 0.5, scale_y, 0.5 };
 
 			chunks.emplace_back(chunk);
 		}
