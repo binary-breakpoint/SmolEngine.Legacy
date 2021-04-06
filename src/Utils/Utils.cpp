@@ -105,6 +105,24 @@ namespace Frostium
 		return std::filesystem::exists(path);
 	}
 
+	glm::vec3 Utils::ScreenToWorld(const glm::vec2& mousePos, float width, float height, const glm::mat4& viewProj)
+	{
+		// these positions must be in range [-1, 1] (!!!), not [0, width] and [0, height]
+		float mouseX = mousePos.x / (width * 0.5f) - 1.0f;
+		float mouseY = mousePos.y / (height * 0.5f) - 1.0f;
+
+		glm::mat4 invVP = glm::inverse(viewProj);
+		glm::vec4 screenPos = glm::vec4(mouseX, -mouseY, 1.0f, 1.0f);
+		glm::vec4 worldPos = invVP * screenPos;
+		return glm::normalize(glm::vec3(worldPos));
+	}
+
+	glm::vec3 Utils::CastRay(const glm::vec3& startPos, const glm::vec2& mousePos, float width, float height, float distance, const glm::mat4& viewProj)
+	{
+		glm::vec3 rayDir = ScreenToWorld(mousePos, width, height, viewProj);
+		return startPos + rayDir * distance;
+	}
+
 	std::string Utils::GetCachedPath(const std::string& filePath, CachedPathType type)
 	{
 		std::filesystem::path p = filePath;

@@ -2,10 +2,18 @@
 
 #include <Common/Mesh.h>
 #include <Common/Input.h>
+#include <Utils/Utils.h>
 #include <GraphicsContext.h>
 #include <Renderer.h>
 
 using namespace Frostium;
+
+struct Chunk
+{
+	glm::vec3 Pos = glm::vec3(1.0f);
+	glm::vec3 Rot = glm::vec3(0.0f);
+	glm::vec3 Scale = glm::vec3(1.0f);
+};
 
 int main(int argc, char** argv)
 {
@@ -42,16 +50,8 @@ int main(int argc, char** argv)
 			process = false;
 	});
 
-	struct Chunk
-	{
-		glm::vec3 Pos;
-		glm::vec3 Rot;
-		glm::vec3 Scale;
-	};
-
 	std::vector<Chunk> chunks;
-	Chunk chunk;
-
+	Chunk chunk = {};
 	for (uint32_t x = 0; x < 50; x+=2)
 	{
 		for (uint32_t z = 0; z < 50; z+=2)
@@ -74,6 +74,27 @@ int main(int argc, char** argv)
 		if (context->IsWindowMinimized())
 			continue;
 
+		if (Input::IsMouseButtonPressed(MouseCode::ButtonRight))
+		{
+			float w = static_cast<float>(context->GetWindowData()->Width);
+			float h = static_cast<float>(context->GetWindowData()->Height);
+			float rayDistance = 50.0f;
+			float scale_y = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 6));
+
+			glm::vec2 mouse = { Input::GetMouseX(), Input::GetMouseY() };
+			glm::vec3 startPos = context->GetEditorCamera()->GetPosition();
+			glm::mat4 viewProj = context->GetEditorCamera()->GetViewProjection();
+
+			{
+				glm::vec3 pos = Utils::CastRay(startPos, mouse, w, h, rayDistance, viewProj);
+
+				chunk.Pos = pos;
+				chunk.Rot = { 0, 0, 0 };
+				chunk.Scale = { 0.5, scale_y, 0.5 };
+				chunks.emplace_back(chunk);
+			}
+		}
+
 		/* 
 		   @Calculate physics, process script, etc
 		*/
@@ -89,10 +110,8 @@ int main(int argc, char** argv)
 
 			Renderer::BeginScene(&clearInfo);
 			{
-				for (auto& c : chunks)
-				{
+				for (const auto& c : chunks)
 					Renderer::SubmitMesh(c.Pos, c.Rot, c.Scale, &cube);
-				}
 			}
 			Renderer::EndScene();
 		}
