@@ -173,36 +173,6 @@ namespace Frostium
 #endif
 	}
 
-	void GraphicsPipeline::BeginBufferSubmit()
-	{
-#ifndef FROSTIUM_OPENGL_IMPL
-		for (auto& vertextBuffer : m_VertexBuffers)
-		{
-			vertextBuffer->GetVulkanVertexBuffer().MapMemory();
-		}
-
-		for (auto& indexBuffer : m_IndexBuffers)
-		{
-			indexBuffer->GetVulkanIndexBuffer().MapMemory();
-		}
-#endif
-	}
-
-	void GraphicsPipeline::EndBufferSubmit()
-	{
-#ifndef FROSTIUM_OPENGL_IMPL
-		for (auto& vertextBuffer : m_VertexBuffers)
-		{
-			vertextBuffer->GetVulkanVertexBuffer().UnMapMemory();
-		}
-
-		for (auto& indexBuffer : m_IndexBuffers)
-		{
-			indexBuffer->GetVulkanIndexBuffer().UnMapMemory();
-		}
-#endif
-	}
-
 	void GraphicsPipeline::SubmitBuffer(uint32_t bindingPoint, size_t size, const void* data, uint32_t offset)
 	{
 #ifndef FROSTIUM_OPENGL_IMPL
@@ -378,7 +348,7 @@ namespace Frostium
 #endif
 	}
 
-	bool GraphicsPipeline::UpdateSamplers(const std::vector<Ref<Texture>>& textures, uint32_t bindingPoint, uint32_t descriptorSetIndex)
+	bool GraphicsPipeline::UpdateSamplers(const std::vector<Texture*>& textures, uint32_t bindingPoint, uint32_t descriptorSetIndex)
 	{
 		m_Shader->Bind();
 		uint32_t index = 0;
@@ -417,7 +387,7 @@ namespace Frostium
 #endif
 	}
 
-	bool GraphicsPipeline::UpdateCubeMap(const Ref<Texture>& cubeMap, uint32_t bindingPoint, uint32_t descriptorSetIndex)
+	bool GraphicsPipeline::UpdateCubeMap(Texture* cubeMap, uint32_t bindingPoint, uint32_t descriptorSetIndex)
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
 		return false; // temp

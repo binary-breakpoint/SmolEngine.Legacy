@@ -7,6 +7,7 @@
 #else
 #include "Vulkan/VulkanIndexBuffer.h"
 #endif
+
 namespace Frostium
 {
 	class IndexBuffer
@@ -14,15 +15,14 @@ namespace Frostium
 	public:
 
 		IndexBuffer() = default;
-
 		~IndexBuffer() = default;
 
+		// Bind
 		void Bind() const;
-
 		void UnBind() const;
 
+		// Upload
 		void UploadData(uint32_t* indices, uint32_t count);
-
 #ifndef FROSTIUM_OPENGL_IMPL
 		void CmdUpdateData(VkCommandBuffer cmdBuffer, const void* data, size_t size, uint32_t offset = 0)
 		{
@@ -30,17 +30,13 @@ namespace Frostium
 		}
 #endif
 		//  Getters
-
 		uint32_t GetCount() const;
-
 #ifndef FROSTIUM_OPENGL_IMPL
 
 		VulkanIndexBuffer& GetVulkanIndexBuffer() { return m_VulkanIndexBuffer; };
 #endif
 		// Factory
-
 		static Ref<IndexBuffer> Create(uint32_t* indices, uint32_t count, bool is_static = false);
-
 		static void Create(IndexBuffer* out_ib, uint32_t* indices, uint32_t count, bool is_static = false);
 
 	private:

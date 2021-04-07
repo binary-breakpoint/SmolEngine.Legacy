@@ -47,7 +47,6 @@ namespace Frostium
 		//TODO: Add flags
 
 		CullMode                             PipelineCullMode = CullMode::Back;
-
 		bool                                 bDepthTestEnabled = true;
 		bool                                 bDepthBiasEnabled = false;
 
@@ -70,50 +69,30 @@ namespace Frostium
 
 		~GraphicsPipeline();
 
-		// Main
-
 		PipelineCreateResult Create(GraphicsPipelineCreateInfo* pipelineInfo);
-
 		PipelineCreateResult Reload();
-
-
 		void Destroy();
 
-		void ClearColors(const glm::vec4& clearColors = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
-
 		// Render Pass
-
+		void ClearColors(const glm::vec4& clearColors = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
 		void BeginRenderPass(uint32_t framebufferIndex = 0, bool flip = false);
-
 		void EndRenderPass();
 
 		// Cmd Buffer
-
 		void BeginCommandBuffer(bool isMainCmdBufferInUse = false);
-
 		void EndCommandBuffer();
-
 		void FlushCommandBuffer();
 
 		// Draw
-
 		void DrawIndexed(DrawMode mode = DrawMode::Triangle, uint32_t vertexBufferIndex = 0, 
 			uint32_t indexBufferIndex = 0, uint32_t descriptorSetIndex = 0);
-
 		void Draw(uint32_t vertextCount, DrawMode mode = DrawMode::Triangle,
 			uint32_t vertexBufferIndex = 0, uint32_t descriptorSetIndex = 0);
-
 		void DrawMesh(Mesh* mesh, DrawMode mode = DrawMode::Triangle,
 			uint32_t instances = 1, uint32_t descriptorSetIndex = 0);
 
 		// Submit
-
-		void BeginBufferSubmit();
-
-		void EndBufferSubmit();
-
 		void SubmitBuffer(uint32_t bindingPoint, size_t size, const void* data, uint32_t offset = 0);
-
 		template<typename T>
 		void SubmitUniform(const std::string& name, const void* data, uint32_t arrayElements = 0, size_t size = 0)
 		{
@@ -122,21 +101,14 @@ namespace Frostium
 			m_Shader->SumbitUniform<T>(name, data, arrayElements, size);
 #endif
 		}
-
 		void SubmitPushConstant(ShaderType shaderStage, size_t size, const void* data);
 
 		// Update Resources
-
 		void SetVertexBuffers(std::vector<Ref<VertexBuffer>> buffer);
-
 		void SetIndexBuffers(std::vector<Ref<IndexBuffer>> buffer);
-
 		void UpdateVertextBuffer(void* vertices, size_t size, uint32_t bufferIndex = 0, uint32_t offset = 0);
-
 		void UpdateIndexBuffer(uint32_t* indices, size_t count, uint32_t bufferIndex = 0, uint32_t offset = 0);
-
 #ifndef FROSTIUM_OPENGL_IMPL
-
 		void CmdUpdateVertextBuffer(const void* data, size_t size, uint32_t bufferIndex = 0, uint32_t offset = 0)
 		{
 			m_VertexBuffers[bufferIndex]->CmdUpdateData(m_CommandBuffer, data, size, offset);
@@ -153,14 +125,11 @@ namespace Frostium
 		}
 
 #endif
-		bool UpdateSamplers(const std::vector<Ref<Texture>>& textures, uint32_t bindingPoint, uint32_t descriptorSetIndex = 0);
-
+		bool UpdateSamplers(const std::vector<Texture*>& textures, uint32_t bindingPoint, uint32_t descriptorSetIndex = 0);
 		bool UpdateSampler(Ref<Texture>& tetxure, uint32_t bindingPoint, uint32_t descriptorSetIndex = 0);
-
-		bool UpdateCubeMap(const Ref<Texture>& cubeMap, uint32_t bindingPoint, uint32_t descriptorSetIndex = 0);
+		bool UpdateCubeMap(Texture* cubeMap, uint32_t bindingPoint, uint32_t descriptorSetIndex = 0);
 
 #ifndef FROSTIUM_OPENGL_IMPL
-
 		const VkPipeline& GetVkPipeline(DrawMode mode)
 		{
 			return m_VulkanPipeline.GetVkPipeline(mode);
@@ -181,7 +150,6 @@ namespace Frostium
 			m_CommandBuffer = cmdBuffer;
 		}
 #endif
-
 #ifdef FROSTIUM_OPENGL_IMPL
 
 		void BindOpenGLShader()
@@ -189,11 +157,9 @@ namespace Frostium
 			m_Shader->Bind();
 		}
 #endif
-
 	private:
 
 		// Helpres
-
 		bool IsPipelineCreateInfoValid(const GraphicsPipelineCreateInfo* pipelineInfo);
 
 	private:

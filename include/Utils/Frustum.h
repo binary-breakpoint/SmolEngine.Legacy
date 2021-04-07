@@ -11,7 +11,6 @@ namespace Frostium
 	public:
 
 		void Update(const glm::mat4& matrix);
-
 		bool CheckSphere(const glm::vec3& pos, float radius = 1.0f) const;
 
 	private:

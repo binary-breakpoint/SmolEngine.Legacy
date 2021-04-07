@@ -49,6 +49,11 @@ namespace Frostium
 		return m_Window;
 	}
 
+	void Window::SetTitle(const std::string& name)
+	{
+		glfwSetWindowTitle(m_Window, name.c_str());
+	}
+
 	WindowData* Window::GetWindowData()
 	{
 		return &m_Data;

@@ -13,9 +13,7 @@ namespace Frostium
 	public:
 
 		void Init();
-
 		void Reset();
-
 		void InitResources();
 
 

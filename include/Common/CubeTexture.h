@@ -18,7 +18,6 @@ namespace Frostium
 		static Ref<CubeTexture> Create(const std::string& filePath, TextureFormat format = TextureFormat::R8G8B8A8_UNORM);
 
 #ifndef FROSTIUM_OPENGL_IMPL
-
 		VulkanTexture* GetVulkanTexture()
 		{
 			return &m_VulkanTetxure;

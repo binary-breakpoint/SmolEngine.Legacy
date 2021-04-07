@@ -21,27 +21,20 @@ namespace Frostium
 	public:
 
 		VertexArray() = default;
-
 		~VertexArray() = default;
 
-		/// Binding
-		
+		// Binding
 		void Bind() const;
-
 		void UnBind() const;
 
-		/// Setters
-
+		// Setters
 		void SetVertexBuffer(const Ref<VertexBuffer>& vertexBuffer);
-
 		void SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer);
 
-		/// Getters
-
+		// Getters
 		Ref<IndexBuffer> GetIndexBuffer() const;
 
-		/// Factory
-
+		// Factory
 		static Ref<VertexArray> Create();
 
 	private:

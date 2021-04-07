@@ -179,15 +179,20 @@ namespace Frostium
 	{
 		return m_Materials;
 	}
-
-	const std::vector<Ref<Texture>>& MaterialLibrary::GetTextures() const
-	{
-		return m_Textures;
-	}
-
 	void MaterialLibrary::GetMaterialsPtr(void*& data, uint32_t& size)
 	{
 		data = m_Materials.data();
 		size = static_cast<uint32_t>(sizeof(Material) * m_Materials.size());
+	}
+
+	void MaterialLibrary::GetTextures(std::vector<Texture*>& out_textures) const
+	{
+		out_textures.clear();
+		out_textures.resize(m_Textures.size());
+
+		for (size_t i = 0; i < m_Textures.size(); ++i)
+		{
+			out_textures[i] = m_Textures[i].get();
+		}
 	}
 }

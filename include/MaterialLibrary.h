@@ -79,7 +79,7 @@ namespace Frostium
 
 		void GetMaterialsPtr(void*& data, uint32_t& size);
 
-		const std::vector<Ref<Texture>>& GetTextures() const;
+		void GetTextures(std::vector<Texture*>& out_textures) const;
 
 		static MaterialLibrary* GetSinglenton();
 

@@ -3,11 +3,19 @@
 #include "Common/Core.h"
 #include "Common/Texture.h"
 #include "Common/SubTexture.h"
+#include "Common/BufferLayout.h"
 
 #include "Utils/GLM.h"
 
 namespace Frostium
 {
+	enum class DebugPrimitives : uint16_t
+	{
+		None = 0,
+		Quad,
+		Circle
+	};
+
 	struct BeginSceneInfo
 	{
 		float          nearClip;
@@ -24,11 +32,14 @@ namespace Frostium
 		glm::vec4 color = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f);
 	};
 
-	enum class DebugPrimitives : uint16_t
+	struct SceneData
 	{
-		None = 0,
-		Quad,
-		Circle
+		glm::mat4                    Projection = glm::mat4(1.0f);
+		glm::mat4                    View = glm::mat4(1.0f);
+		glm::mat4                    SkyBoxMatrix = glm::mat4(1.0f);
+		glm::vec4                    CamPos = glm::vec4(1.0f);
+
+		glm::vec4                    Params = glm::vec4(2.5f, 4.0f, 1.0f, 1.0f);
 	};
 
 	struct DirectionalLightBuffer
@@ -44,52 +55,10 @@ namespace Frostium
 		glm::vec4 Params; // x = Constant, y = Linear, z = Exp
 	};
 
-	struct QuadVertex
+	struct FullscreenVertex
 	{
-		glm::vec3 Position = glm::vec3(1.0f);
-		glm::vec4 Color = glm::vec4(1.0f);
-		glm::vec2 TextureCood = glm::vec2(1.0f);
-
-		float TextMode = 0;
-		float TextureID = 0.0f;
-	};
-
-	struct DebugVertex
-	{
-		glm::vec3 Position = glm::vec3(0.0f);
-	};
-
-	struct Light2DBuffer
-	{
-		Light2DBuffer() = default;
-
-		Light2DBuffer(const glm::vec4 color, const glm::vec4 pos, float r, float intensity)
-			:
-			Color(color), Offset(pos), Attributes(r, intensity, 0, 0) {}
-
-
-		glm::vec4 Color = glm::vec4(1.0f);
-		glm::vec4 Offset = glm::vec4(1.0f);
-		glm::vec4 Attributes = glm::vec4(1.0); // r = radius, g = intensity, b = 0, a = 0
-	};
-
-	struct LayerDataBuffer
-	{
-		LayerDataBuffer() = default;
-
-		~LayerDataBuffer() { delete[] Base; }
-
-		size_t ClearSize = 0;
-		QuadVertex* Base = nullptr;
-		QuadVertex* BasePtr = nullptr;
-
-		uint32_t TextureSlotIndex = 1; // index 0 reserved for white texture
-		std::vector<Ref<Texture>> TextureSlots;
-
-		uint32_t IndexCount = 0;
-		uint32_t QuadCount = 0;
-		uint32_t LayerIndex = 0;
-		bool isActive = false;
+		glm::vec2 pos;
+		glm::vec2 uv;
 	};
 
 	struct Renderer2DStats
@@ -99,8 +68,6 @@ namespace Frostium
 		uint32_t TexturesInUse = 0;
 		uint32_t LayersInUse = 0;
 
-		/// Helpers
-
 		void Reset()
 		{
 			DrawCalls = 0;
@@ -108,8 +75,6 @@ namespace Frostium
 			TexturesInUse = 0;
 			LayersInUse = 0;
 		}
-
-		///  Getters
 
 		inline uint32_t GetTotalVertexCount() { return QuadCount * 4; }
 

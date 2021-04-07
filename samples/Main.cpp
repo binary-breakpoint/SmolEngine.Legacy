@@ -76,21 +76,18 @@ int main(int argc, char** argv)
 
 		if (Input::IsMouseButtonPressed(MouseCode::ButtonRight))
 		{
-			float w = static_cast<float>(context->GetWindowData()->Width);
-			float h = static_cast<float>(context->GetWindowData()->Height);
 			float rayDistance = 50.0f;
-			float scale_y = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 6));
+			float y = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 6));
 
-			glm::vec2 mouse = { Input::GetMouseX(), Input::GetMouseY() };
 			glm::vec3 startPos = context->GetEditorCamera()->GetPosition();
 			glm::mat4 viewProj = context->GetEditorCamera()->GetViewProjection();
 
 			{
-				glm::vec3 pos = Utils::CastRay(startPos, mouse, w, h, rayDistance, viewProj);
+				glm::vec3 pos = Utils::CastRay(startPos, rayDistance, viewProj);
 
 				chunk.Pos = pos;
 				chunk.Rot = { 0, 0, 0 };
-				chunk.Scale = { 0.5, scale_y, 0.5 };
+				chunk.Scale = { 0.5, y, 0.5 };
 				chunks.emplace_back(chunk);
 			}
 		}

@@ -11,39 +11,30 @@ namespace Frostium
 	public:
 
 		OpenglFramebuffer();
-
 		~OpenglFramebuffer();
 
-		/// Init
-
 		void Init(const FramebufferSpecification& data);
-
 		void Recreate();
 
-		/// Binding
-		
+		// Binding
 		void Bind();
-
 		void UnBind();
-
 		void BindColorAttachment(uint32_t slot = 0);
 
-		///  Events
-
+		//  Events
 		void OnResize(const uint32_t width, const uint32_t height);
 
-		/// Getters
-
+		// Getters
 		const FramebufferSpecification& GetSpecification() const;
-
 		uint32_t GetColorAttachmentID() const;
-
 		uint32_t GetRendererID() const;
 
 	private:
 
-		FramebufferSpecification m_Data = {};
-		uint32_t m_RendererID = 0, m_ColorAttachment = 0, m_DepthAttachment = 0;
-		const uint32_t m_MaxSize = 8192;
+		FramebufferSpecification    m_Data = {};
+		uint32_t                    m_RendererID = 0;
+		uint32_t                    m_ColorAttachment = 0;
+		uint32_t                    m_DepthAttachment = 0;
+		const uint32_t              m_MaxSize = 8192;
 	};
 }

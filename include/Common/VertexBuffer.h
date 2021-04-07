@@ -15,19 +15,14 @@ namespace Frostium
 	public:
 
 		VertexBuffer() = default;
-
 		~VertexBuffer() = default;
 
-		//  Binding
-
+		// Binding
 		void Bind() const;
-
 		void UnBind() const;
 
-		// Data
-
+		// Upload
 		void UploadData(const void* data, const uint32_t size, const uint32_t offset = 0);
-
 #ifndef FROSTIUM_OPENGL_IMPL
 		void CmdUpdateData(VkCommandBuffer cmdBuffer, const void* data, size_t size, uint32_t offset = 0)
 		{
@@ -35,23 +30,16 @@ namespace Frostium
 		}
 #endif
 		// Getters
-
 		const BufferLayout& GetLayout() const;
-
 #ifndef FROSTIUM_OPENGL_IMPL
-
 		VulkanVertexBuffer& GetVulkanVertexBuffer() { return m_VulkanVertexBuffer; }
 #endif
 		// Setters
-
 		void SetLayout(const BufferLayout& layout);
 
 		// Factory
-
 		static Ref<VertexBuffer> Create(uint32_t size);
-
 		static Ref<VertexBuffer> Create(void* vertices, uint32_t size, bool is_static = false);
-
 		static void Create (VertexBuffer* ot_vb, void* vertices, uint32_t size, bool is_static = false);
 
 	private:
@@ -61,6 +49,5 @@ namespace Frostium
 #else
 		VulkanVertexBuffer m_VulkanVertexBuffer = {};
 #endif
-
 	};
 }

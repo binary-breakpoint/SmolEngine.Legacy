@@ -9,39 +9,29 @@ namespace Frostium
 	public:
 
 		OpenglVertexBuffer();
-
 		~OpenglVertexBuffer();
 
-		/// Init
-
 		void Init(uint32_t size);
-
 		void Init(void* vertices, uint32_t size);
-
 		void Destroy();
 
-		/// Binding
-
+		// Binding
 		void Bind() const;
-
 		void UnBind() const;
 
-		/// Data
-
+		// Data
 		void UploadData(const void* data, const uint32_t size, const uint32_t offset = 0) const;
 
-		/// Getters
-
+		// Getters
 		const BufferLayout& GetLayout() const { return m_Layout; }
 
-		/// Setters
-
+		// Setters
 		void SetLayout(const BufferLayout& layout) { m_Layout = layout; }
 
 	private:
 
-		uint32_t m_RendererID;
-		BufferLayout m_Layout;
+		uint32_t      m_RendererID;
+		BufferLayout  m_Layout;
 	};
 
 	class OpenglIndexBuffer
@@ -49,25 +39,17 @@ namespace Frostium
 	public:
 
 		OpenglIndexBuffer();
-
 		~OpenglIndexBuffer();
 
-		/// Init
-		
 		void Init(uint32_t* indices, uint32_t count);
-
 		void UploadData(uint32_t* indices, uint32_t count) const;
-
 		void Destroy() const;
 
-		/// Binding
-
+		// Binding
 		void Bind() const;
-
 		void UnBind() const;
 
-		/// Getters
-
+		// Getters
 		uint32_t GetCount() const { return m_Count; };
 
 	private:

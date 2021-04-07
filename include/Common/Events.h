@@ -38,20 +38,17 @@ namespace Frostium
 	public:
 
 		Event() = default;
-
 		virtual ~Event() = default;
 
 		bool IsType(EventType type);
-
 		bool IsCategory(EventCategory category);
+		static bool IsEventReceived(Frostium::EventType type, Event& event);
 
 		template<typename T>
 		T* Cast()
 		{
 			return static_cast<T*>(this);
 		}
-
-		static bool IsEventReceived(Frostium::EventType type, Event& event);
 
 	public:
 

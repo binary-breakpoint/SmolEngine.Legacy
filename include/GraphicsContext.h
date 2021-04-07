@@ -30,10 +30,9 @@ namespace Frostium
 		bool                     bMSAA = true;
 		bool                     bTargetsSwapchain = true;
 		bool                     bImGUI = true;
-		std::string              ResourcesFolderPath = "../resources/";
-
 		EditorCameraCreateInfo*  pEditorCameraCI = nullptr;
 		WindowCreateInfo*        pWindowCI = nullptr;
+		std::string              ResourcesFolderPath = "../resources/";
 	};
 
 	class GraphicsContext
@@ -44,50 +43,39 @@ namespace Frostium
 
 		~GraphicsContext();
 
-
 		void ProcessEvents();
-
 		void BeginFrame(DeltaTime time);
-
 		void SwapBuffers();
-
 		void ShutDown();
 
 		// Setters
-
 		void SetEventCallback(std::function<void(Event&)> callback);
 
 		// Helpers
-
 		DeltaTime CalculateDeltaTime();
 
 		// Getters
+		static GraphicsContext* GetSingleton();
+		Framebuffer* GetFramebuffer();
+	    EditorCamera* GetEditorCamera();
+	    GLFWwindow* GetNativeWindow();
+	    WindowData* GetWindowData();
+
+		float GetTime() const;
+		float GetLastFrameTime() const;
 
 #ifdef  FROSTIUM_OPENGL_IMPL
 		static OpenglRendererAPI* GetOpenglRendererAPI();
 #else
 		static VulkanContext& GetVulkanContext();
 #endif
-		static GraphicsContext* GetSingleton();
-
-	    Framebuffer* GetFramebuffer();
-	   
-	    EditorCamera* GetEditorCamera();
-	   
-	    GLFWwindow* GetNativeWindow();
-	   
-	    WindowData* GetWindowData();
-
+		// Helpers
 		bool IsWindowMinimized() const;
-	   
-	    float GetTime() const;
-
-		float GetLastFrameTime() const;
 
 	private:
 
+		// Events
 		void OnResize(uint32_t* width, uint32_t* height);
-
 		void OnEvent(Event& event);
 
 	private:

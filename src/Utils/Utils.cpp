@@ -1,5 +1,7 @@
 #include "stdafx.h"
 #include "Utils/Utils.h"
+#include "Common/Input.h"
+#include "GraphicsContext.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
@@ -121,6 +123,16 @@ namespace Frostium
 	{
 		glm::vec3 rayDir = ScreenToWorld(mousePos, width, height, viewProj);
 		return startPos + rayDir * distance;
+	}
+
+	glm::vec3 Utils::CastRay(const glm::vec3& startPos, float distance, const glm::mat4& viewProj)
+	{
+		auto data = GraphicsContext::GetSingleton()->GetWindowData();
+		float w = static_cast<float>(data->Width);
+		float h = static_cast<float>(data->Height);
+		glm::vec2 mousePos = { Input::GetMouseX(), Input::GetMouseY() };
+
+		return CastRay(startPos, mousePos, w, h, distance, viewProj);
 	}
 
 	std::string Utils::GetCachedPath(const std::string& filePath, CachedPathType type)

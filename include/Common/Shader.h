@@ -18,20 +18,18 @@ namespace Frostium
 	{
 	public:
 
-		/// Main
-		
 		void Bind() const;
-
 		void UnBind() const;
-
 		bool Realod();
 
-		///  Uniforms
+		// Factory
+		static void Create(Ref<Shader>& outShader, const std::string& filePath);
+		static void Create(Ref<Shader>& outShader, GraphicsPipelineShaderCreateInfo* shader);
 
+		// Uniforms
 		template<typename T>
 		void SumbitUniform(const std::string& name, const void* data, uint32_t count = 0, uint32_t size = 0)
 		{
-
 #ifdef FROSTIUM_OPENGL_IMPL
 
 			if (std::is_same<T, float>::value)
@@ -80,47 +78,26 @@ namespace Frostium
 	private:
 
 		void SetUniformIntArray(const std::string& name, const int* values, uint32_t count);
-
 		void SetUniformFloat2(const std::string& name, const glm::vec2& vec3);
-
 		void SetUniformFloat3(const std::string& name, const glm::vec3& vec3);
-
 		void SetUniformFloat4(const std::string& name, const glm::vec4& vec4);
-
 		void SetUniformMat4(const std::string& name, const glm::mat4& mat4);
-
 		void SetUniformFloat(const std::string& name, const float value);
-
 		void SetUniformInt(const std::string& name, const int value);
 
 	public:
 
-		/// Getters
-
+		// Getters
 		uint32_t GetProgramID();
-
 		const std::string& GetName();
 
-		/// Operators
-
+		// Operators
 #ifdef FROSTIUM_OPENGL_IMPL
-
 		operator OpenglShader() const { return m_OpenglShader; }
 #else
+		VulkanShader* GetVulkanShader() { return &m_VulkanShader; }
 		operator  VulkanShader() const { return m_VulkanShader; }
 #endif
-
-#ifdef FROSTIUM_OPENGL_IMPL
-
-#else
-		VulkanShader* GetVulkanShader() { return &m_VulkanShader; }
-#endif
-
-		/// Factory
-
-		static void Create(Ref<Shader>& outShader, const std::string& filePath);
-
-		static void Create(Ref<Shader>& outShader, GraphicsPipelineShaderCreateInfo* shader);
 
 	private:
 

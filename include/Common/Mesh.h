@@ -13,48 +13,31 @@ namespace Frostium
 	class Texture;
 	class Material;
 
-	struct MeshOffset
-	{
-		size_t                         VBOffset = 0;
-		size_t                         IBOffset = 0;
-	};
-
 	class Mesh
 	{
 	public:
 
+		// Factory
 		static Ref<Mesh> Create(const std::string& filePath);
-
 		static void Create(const std::string& filePath, Mesh* out_mesh);
 
 		// Find
-
 		Ref<Mesh> FindSubMeshByIndex(uint32_t index);
-
 		Ref<Mesh> FindSubMeshByName(const std::string& name);
 
 		// Getters
-
 		Ref<VertexBuffer> GetVertexBuffer() { return m_VertexBuffer; }
-
 		Ref<IndexBuffer> GetIndexBuffer() { return m_IndexBuffer; }
-
 		const uint32_t GetVertexCount() const { return m_VertexCount; }
-
 		const std::vector<Ref<Mesh>>& GetSubMeshes() const { return m_SubMeshes; }
-
 		const std::vector<Mesh*>& GetAllMeshes() const { return m_Meshes; }
-
 		const std::string& GetName() const;
 
 	private:
 
 		void Free();
-
 		void FindAllMeshes();
-
 		bool Init(ImportedData* data);
-
 		void CreateVertexAndIndexBuffers(ImportedComponent& component);
 
 	private:

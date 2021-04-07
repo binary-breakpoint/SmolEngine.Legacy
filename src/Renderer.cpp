@@ -112,19 +112,6 @@ namespace Frostium
 			InstancePackage>             m_Packages;
 
 		// UBO's & Push Constants
-		struct SceneData
-		{
-			glm::mat4                    Projection = glm::mat4(1.0f);
-			glm::mat4                    View = glm::mat4(1.0f);
-			glm::mat4                    SkyBoxMatrix = glm::mat4(1.0f);
-			glm::vec4                    CamPos = glm::vec4(1.0f);
-
-			glm::vec4                    Params = glm::vec4(2.5f, 4.0f, 1.0f, 1.0f);
-		};
-
-		float                            m_NearClip = 1.0f;
-		float                            m_FarClip = 1000.0f;
-		glm::vec3                        m_ShadowLightDirection = glm::vec3(0.0f, 0.0f, 0.0f);
 
 		struct AmbientLighting
 		{
@@ -154,6 +141,10 @@ namespace Frostium
 		{
 			glm::mat4 shadowTransforms[6];
 		};
+
+		float                            m_NearClip = 1.0f;
+		float                            m_FarClip = 1000.0f;
+		glm::vec3                        m_ShadowLightDirection = glm::vec3(0.0f, 0.0f, 0.0f);
 
 		Frustum                          m_Frustum = {};
 		DebugView                        m_DebugView = {};
@@ -263,7 +254,6 @@ namespace Frostium
 		}
 
 		// Updates UBOs and SSBOs 
-		s_Data->m_MainPipeline->BeginBufferSubmit();
 		{
 			// Updates scene data
 			s_Data->m_MainPipeline->SubmitBuffer(s_Data->m_SceneDataBinding, s_Data->m_SceneDataSize, &s_Data->m_SceneData);
@@ -363,7 +353,6 @@ namespace Frostium
 			}
 		}
 		s_Data->m_MainPipeline->EndRenderPass();
-		s_Data->m_MainPipeline->EndBufferSubmit();
 
 		// Post-Processing
 	}
@@ -769,17 +758,14 @@ namespace Frostium
 		return depthProjectionMatrix * depthViewMatrix * depthModelMatrix;
 	}
 
-	bool Renderer::OnNewLevelLoaded()
-	{
-		return false;
-	}
-
 	bool Renderer::UpdateMaterials()
 	{
 		if (!s_Data->m_IsInitialized)
 			return false;
 
-		s_Data->m_MainPipeline->UpdateSamplers(MaterialLibrary::GetSinglenton()->GetTextures(), s_Data->m_TexturesBinding);
+		std::vector<Texture*> tetxures;
+		MaterialLibrary::GetSinglenton()->GetTextures(tetxures);
+		s_Data->m_MainPipeline->UpdateSamplers(tetxures, s_Data->m_TexturesBinding);
 
 		void* data = nullptr;
 		uint32_t size = 0;

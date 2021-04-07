@@ -13,34 +13,27 @@ namespace Frostium
 	public:
 
 		OpenglVertexArray();
-
 		~OpenglVertexArray();
 
-		/// Init
-
+		// Init
 		void Init();
 
-		/// Binding
-
+		// Binding
 		void Bind() const;
-
 		void UnBind() const;
 
-		/// Setters
-
+		// Setters
 		void SetVertexBuffer(const Ref<VertexBuffer>& vertexBuffer);
-
 		void SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer);
 
-		/// Getters
-
+		// Getters
 		Ref<IndexBuffer> GetIndexBuffer() const { return m_IndexBuffer; }
 
 	private:
 
-		std::vector<Ref<VertexBuffer>>         m_VertexBuffers;
-		Ref<IndexBuffer>                       m_IndexBuffer = nullptr;
-		uint32_t                               m_RendererID = UINT32_MAX;
-		bool                                   m_IsInitialized = false;
+		std::vector<Ref<VertexBuffer>> m_VertexBuffers;
+		Ref<IndexBuffer>               m_IndexBuffer = nullptr;
+		uint32_t                       m_RendererID = UINT32_MAX;
+		bool                           m_IsInitialized = false;
 	};
 }

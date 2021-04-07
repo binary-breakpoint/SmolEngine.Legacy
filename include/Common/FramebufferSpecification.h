@@ -1,5 +1,10 @@
 #pragma once
 
+#include "Common/Core.h"
+
+#include <string>
+#include <vector>
+
 namespace Frostium
 {
 	class Framebuffer;

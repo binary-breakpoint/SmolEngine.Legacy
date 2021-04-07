@@ -19,10 +19,8 @@ namespace Frostium
 	{
 		uint32_t            Width = 720;
 		uint32_t            Height = 480;
-
 		bool                bVSync = false;
 		bool                bFullscreen = false;
-
 		std::string         Title = "SomeApplication";
 	};
 
@@ -30,35 +28,25 @@ namespace Frostium
 	{
 	public:
 
-		/// Main
-
 		void Init(const WindowCreateInfo* info, EventSender* eventHandler);
-
 		void ProcessEvents();
-
 		void ShutDown();
 
-		/// Getters
-
+		// Getters
 		GLFWwindow* GetNativeWindow() const;
-
 		WindowData* GetWindowData();
-
 		uint32_t GetWidth() const;
-
 		uint32_t GetHeight() const;
 
-		/// Setters
-
+		// Setters
 		void SetWidth(uint32_t value);
-
 		void SetHeight(uint32_t value);
+		void SetVSync(bool enabled);
+		void SetTitle(const std::string& name);
 
 	private:
 
 		void Create(const WindowCreateInfo* info);
-
-		void SetVSync(bool enabled);
 
 	private:
 

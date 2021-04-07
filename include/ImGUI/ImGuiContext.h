@@ -13,15 +13,11 @@ namespace Frostium
 	public:
 
 		void Init();
-
 		void ShutDown();
 
 		// Events
-
 		void OnEvent(Event& event);
-
 		void OnBegin();
-
 		void OnEnd();
 
 	private:

@@ -7,7 +7,6 @@
 namespace Frostium
 {
 	class Framebuffer;
-
 	enum class CameraType : uint16_t
 	{
 		Perspective,
@@ -22,7 +21,6 @@ namespace Frostium
 		float             Speed = 1.0f;
 		float             Pitch = 0.0f;
 		float             Yaw = 0.0f;
-
 		glm::vec3         WorldPos = glm::vec3(0, 0, 0);
 		CameraType        Type = CameraType::Perspective;
 	};
@@ -33,76 +31,50 @@ namespace Frostium
 
 		EditorCamera(EditorCameraCreateInfo* createInfo = nullptr);
 
-		// Main
-
+		// Evenst
 		void OnUpdate(DeltaTime delta);
-
 		void OnEvent(Event& event);
 
 		// Setters
-
 		void SetDistance(float distance) { m_Distance = distance; }
-
 		void SetViewportSize(float width, float height);
-
 		void SetCameraType(CameraType type);
 
 		// Getters
-
 		const glm::mat4 GetViewProjection() const { return m_Projection * m_ViewMatrix; }
-
 		const glm::mat4& GetProjection() const { return m_Projection; }
-
 		const glm::mat4& GetViewMatrix() const { return m_ViewMatrix; }
-
 		const glm::vec3& GetPosition() const { return m_Position; }
-
 		const glm::vec3& GetFPoint() const { return m_FocalPoint; }
 
 		float GetDistance() const { return m_Distance; }
-
 		float GetPitch() const { return m_Pitch; }
-
 		float GetYaw() const { return m_Yaw; }
-
 		float GetNearClip() const { return m_NearClip; }
-
 		float GetFarClip() const { return m_FarClip; }
 
 		glm::vec3 GetForwardDirection() const;
-
 		glm::vec3 GetRightDirection() const;
-
 		glm::vec3 GetUpDirection() const;
-
 		glm::quat GetOrientation() const;
-
-		const CameraType GetType() const ;
+		const CameraType GetType() const;
 
 	private:
 
 		// Calculations
-
 		void UpdateProjection();
-
 		void UpdateViewPerspective();
-
 		void UpdateViewOrtho();
 
 		float RotationSpeed() const;
-
 		float ZoomSpeed() const;
 
 		std::pair<float, float> PanSpeed() const;
-
 		glm::vec3 CalculatePosition() const;
 
 		// Mouse
-
 		void MousePan(const glm::vec2& delta);
-
 		void MouseRotate(const glm::vec2& delta);
-
 		void MouseZoom(float delta);
 
 	private:

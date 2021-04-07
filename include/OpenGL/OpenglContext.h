@@ -7,12 +7,11 @@ namespace Frostium
 	class OpenglContext
 	{
 	public:
-		void Setup(GLFWwindow* window);
 
+		void Setup(GLFWwindow* window);
 		void SwapBuffers();
 
-		/// Getters
-
+		// Getters
 		inline GLFWwindow* GetWindow() { return m_Window; }
 
 	private:

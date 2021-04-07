@@ -13,7 +13,6 @@ namespace Frostium
 	public:
 
 		static void InitLog();
-
 		inline static std::shared_ptr<spdlog::logger>& GetNativeLogger() { return s_NativeLogger; }
 
 	private:
