@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Vulkan/VulkanDevice.h"
 #include "Vulkan/VulkanInstance.h"
 
@@ -265,3 +266,4 @@ return result == VK_SUCCESS;
 		return m_Queue;
 	}
 }
+#endif

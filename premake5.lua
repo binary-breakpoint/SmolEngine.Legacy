@@ -5,10 +5,11 @@ workspace "Frostium"
 
 	configurations
 	{
-		"Debug (Vulkan)",
-		"Release (Vulkan)",
-		"Debug (OpenGL)",
-		"Release (OpenGL)",
+		"Debug_Vulkan",
+		"Release_Vulkan",
+
+		"Debug_OpenGL",
+		"Release_OpenGL",
 	}
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
@@ -21,7 +22,7 @@ IncludeDir["imgizmo"] = "include/Libraries/imgizmo/src"
 
 IncludeDir["GLFW"] = "vendor/glfw/include"
 IncludeDir["Glad"] = "vendor/glad/include"
-IncludeDir["vulkan"] = "vendor/vulkan/include"
+IncludeDir["vulkan"] = "include/Libraries/vulkan/include"
 IncludeDir["stb"] = "vendor/stb_image"
 IncludeDir["ktx"] = "vendor/ktx/include"
 IncludeDir["gli"] = "vendor/gli"
@@ -121,7 +122,7 @@ project "Frostium"
 			"GLFW_INCLUDE_NONE"
 		}
 
-	filter "configurations:Debug (Vulkan)"
+	filter "configurations:Debug_Vulkan"
 		buildoptions "/MDd"
 		buildoptions "/bigobj"
 		buildoptions "/Zm500"
@@ -149,7 +150,7 @@ project "Frostium"
 			"FROSTIUM_DEBUG"
 		}
 
-	filter "configurations:Debug (OpenGL)"
+	filter "configurations:Debug_OpenGL"
 	buildoptions "/MDd"
 	buildoptions "/bigobj"
 	buildoptions "/Zm500"
@@ -179,7 +180,7 @@ project "Frostium"
 		"FROSTIUM_DEBUG"
 	}
 
-	filter "configurations:Release (Vulkan)"
+	filter "configurations:Release_Vulkan"
 		buildoptions "/MD"
 		buildoptions "/bigobj"
 		buildoptions "/Zm500"
@@ -202,7 +203,7 @@ project "Frostium"
 			"vendor/assimp/libs/zlibstatic.lib"
 		}
 
-	filter "configurations:Release (OpenGL)"
+	filter "configurations:Release_OpenGL"
 	buildoptions "/MD"
 	buildoptions "/bigobj"
 	buildoptions "/Zm500"
@@ -275,12 +276,12 @@ project "Samples"
 
 	--------------------------------------- Debug
 
-	filter "configurations:Debug (Vulkan)"
+	filter "configurations:Debug_Vulkan"
 	buildoptions "/MDd"
 	buildoptions "/bigobj"
 	symbols "on"
 
-	filter "configurations:Debug (OpenGL)"
+	filter "configurations:Debug_OpenGL"
 	buildoptions "/MDd"
 	buildoptions "/bigobj"
 	symbols "on"
@@ -292,12 +293,12 @@ project "Samples"
 
 	--------------------------------------- Release
 
-	filter "configurations:Release (Vulkan)"
+	filter "configurations:Release_Vulkan"
 	buildoptions "/MD"
 	buildoptions "/bigobj"
 	optimize "on"
 
-	filter "configurations:Release (OpenGL)"
+	filter "configurations:Release_OpenGL"
 	buildoptions "/MD"
 	buildoptions "/bigobj"
 	optimize "on"

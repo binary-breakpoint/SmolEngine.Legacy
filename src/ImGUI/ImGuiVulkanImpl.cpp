@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "ImGUI/ImGuiVulkanImpl.h"
 
 #include "Vulkan/VulkanContext.h"
@@ -64,3 +65,4 @@ namespace Frostium
 		ImGui_ImplVulkan_DestroyFontUploadObjects();
 	}
 }
+#endif

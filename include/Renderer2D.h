@@ -12,6 +12,7 @@ namespace Frostium
 		static void BeginScene(const ClearInfo* clearInfo, const BeginSceneInfo* info = nullptr);
 		static void EndScene();
 
+		// Submit
 		static void SubmitSprite(const glm::vec3& worldPos, const glm::vec2& scale,
 			float rotation, uint32_t layerIndex, const Texture* texture);
 		static void SubmitQuad(const glm::vec3& worldPos, const glm::vec2& scale, 
@@ -20,7 +21,6 @@ namespace Frostium
 			const Texture* texture, const glm::vec4& color = glm::vec4(1.0f));
 		static void SubmitLight2D(const glm::vec3& worldPos, const glm::vec4& color, 
 			float radius, float lightIntensity);
-
 
 	private:
 

@@ -1,5 +1,5 @@
 #pragma once
-
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Vulkan/Vulkan.h"
 #include <imgui/examples/imgui_impl_vulkan.h>
 
@@ -22,3 +22,5 @@ namespace Frostium
 		VkDescriptorPool g_DescriptorPool = VK_NULL_HANDLE;
 	};
 }
+
+#endif

@@ -1,4 +1,5 @@
 #pragma once
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Vulkan/Vulkan.h"
 #include "Common/FramebufferSpecification.h"
 
@@ -22,3 +23,4 @@ namespace Frostium
 		static void Create(FramebufferSpecification* framebufferSpec, RenderPassGenInfo* renderPassInfo, VkRenderPass& outPass);
 	};
 }
+#endif

@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#ifdef FROSTIUM_OPENGL_IMPL
 #include "OpenGL/OpenglBuffer.h"
 #include "OpenGL/OpenglFramebuffer.h"
 
@@ -101,3 +102,4 @@ namespace Frostium
 		return m_RendererID;
 	}
 }
+#endif

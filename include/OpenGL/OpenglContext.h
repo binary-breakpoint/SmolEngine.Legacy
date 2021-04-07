@@ -1,8 +1,8 @@
 #pragma once
-
+#ifdef FROSTIUM_OPENGL_IMPL
 struct GLFWwindow;
 
-namespace Frostium 
+namespace Frostium
 {
 	class OpenglContext
 	{
@@ -16,7 +16,9 @@ namespace Frostium
 
 	private:
 
-		GLFWwindow* m_Window =  nullptr;
+		GLFWwindow* m_Window = nullptr;
 	};
 }
 
+
+#endif

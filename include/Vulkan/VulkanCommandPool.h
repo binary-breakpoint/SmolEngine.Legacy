@@ -1,4 +1,5 @@
 #pragma once
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Vulkan/Vulkan.h"
 
 namespace Frostium
@@ -10,13 +11,9 @@ namespace Frostium
 	public:
 
 		VulkanCommandPool();
-
 		~VulkanCommandPool();
 
-		/// Main
-		
 		void Init(VulkanDevice* device);
-
 		void Reset();
 
 	private:
@@ -25,8 +22,7 @@ namespace Frostium
 
 	public:
 
-		/// Getters
-
+		// Getters
 		const VkCommandPool GetCommandPool() const;
 
 	private:
@@ -39,3 +35,4 @@ namespace Frostium
 		friend class VulkanRendererAPI;
 	};
 }
+#endif

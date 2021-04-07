@@ -1,5 +1,5 @@
 #pragma once
-
+#ifdef FROSTIUM_OPENGL_IMPL
 #include "Common/Core.h"
 
 #include <glm/glm.hpp>
@@ -8,7 +8,7 @@ namespace Frostium
 {
 	class OrthographicCamera;
 	class VertexArray;
-	
+
 	class OpenglRendererAPI
 	{
 	public:
@@ -24,7 +24,7 @@ namespace Frostium
 		void SetClearColor(const glm::vec4& color);
 
 		// Draw
-		void DrawTriangle (const Ref<VertexArray> vertexArray, uint32_t count = 0, size_t vertices = 0);
+		void DrawTriangle(const Ref<VertexArray> vertexArray, uint32_t count = 0, size_t vertices = 0);
 		void DrawLine(const Ref<VertexArray> vertexArray, uint32_t count = 0, size_t vertices = 0);
 		void DrawFan(const Ref<VertexArray> vertexArray, uint32_t count = 0, size_t vertices = 0);
 
@@ -33,3 +33,4 @@ namespace Frostium
 		void BindTexture(uint32_t id);
 	};
 }
+#endif

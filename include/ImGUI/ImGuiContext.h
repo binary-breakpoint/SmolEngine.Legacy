@@ -1,6 +1,6 @@
 #pragma once
 
-#ifndef SMOLENIGNE_OPENGL_IMPL
+#ifndef FROSTIUM_OPENGL_IMPL
 #include <ImGUI/ImGuiVulkanImpl.h>
 #endif
 #include "Common/Events.h"

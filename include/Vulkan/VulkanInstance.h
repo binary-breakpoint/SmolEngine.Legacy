@@ -1,4 +1,5 @@
 #pragma once
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Vulkan/Vulkan.h"
 
 namespace Frostium
@@ -8,21 +9,16 @@ namespace Frostium
 	public:
 
 		VulkanInstance();
-
 		~VulkanInstance();
 
-		/// Init
-		
 		void Init();
 
-		/// Getters
-
+		// Getters
 		const VkInstance GetInstance() const;
 
 	private:
 
 		bool CreateAppInfo();
-
 		bool CreateInstance(const VkApplicationInfo& info);
 
 	private:
@@ -32,3 +28,5 @@ namespace Frostium
 		friend class VulkanRendererAPI;
 	};
 }
+
+#endif

@@ -1,4 +1,5 @@
 #pragma once
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Common/Core.h"
 
 #include "Vulkan/Vulkan.h"
@@ -18,13 +19,11 @@ namespace Frostium
 
 		void Add(size_t size, uint32_t binding, VkMemoryPropertyFlags mem, VkBufferUsageFlags usage,
 			VkDescriptorBufferInfo& outDescriptorBufferInfo);
-
 		bool IsBindingExist(uint32_t binding);
 
 		// Getters
 
 		VulkanBuffer* GetBuffer(uint32_t binding);
-
 		static VulkanBufferPool* GetSingleton();
 
 	private:
@@ -33,3 +32,4 @@ namespace Frostium
 		std::unordered_map<uint32_t, Ref<BufferObject>>    m_Buffers;
 	};
 }
+#endif

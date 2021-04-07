@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#ifdef FROSTIUM_OPENGL_IMPL
 #include "OpenGL/OpenglBuffer.h"
 
 #include <glad/glad.h>
@@ -97,3 +98,4 @@ namespace Frostium
 	}
 
 }
+#endif

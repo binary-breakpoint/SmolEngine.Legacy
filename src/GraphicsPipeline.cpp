@@ -209,13 +209,6 @@ namespace Frostium
 #endif
 	}
 
-	void GraphicsPipeline::FlushCommandBuffer()
-	{
-#ifndef FROSTIUM_OPENGL_IMPL
-		VulkanCommandBuffer::FlushCommandBuffer(m_CommandBuffer);
-#endif
-	}
-
 	void GraphicsPipeline::DrawIndexed(DrawMode mode, uint32_t vertexBufferIndex, uint32_t indexBufferIndex, uint32_t descriptorSetIndex)
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
@@ -320,14 +313,14 @@ namespace Frostium
 #endif
 	}
 
-	void GraphicsPipeline::SetVertexBuffers(std::vector<Ref<VertexBuffer>> buffer)
+	void GraphicsPipeline::SetVertexBuffers(const std::vector<Ref<VertexBuffer>>& buffer)
 	{
-		m_VertexBuffers = std::move(buffer);
+		m_VertexBuffers = buffer;
 	}
 
-	void GraphicsPipeline::SetIndexBuffers(std::vector<Ref<IndexBuffer>> buffer)
+	void GraphicsPipeline::SetIndexBuffers(const std::vector<Ref<IndexBuffer>>& buffer)
 	{
-		m_IndexBuffers = std::move(buffer);
+		m_IndexBuffers = buffer;
 	}
 
 	void GraphicsPipeline::UpdateVertextBuffer(void* vertices, size_t size, uint32_t bufferIndex, uint32_t offset)
@@ -377,13 +370,33 @@ namespace Frostium
 #endif
 	}
 
-	bool GraphicsPipeline::UpdateSampler(Ref<Texture>& tetxure, uint32_t bindingPoint, uint32_t descriptorSetIndex)
+	bool GraphicsPipeline::UpdateSampler(Texture* tetxure, uint32_t bindingPoint, uint32_t descriptorSetIndex)
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
 		return false;
 #else
 		return m_VulkanPipeline.m_Descriptors[descriptorSetIndex].UpdateImageResource(bindingPoint,
 			tetxure->GetVulkanTexture()->GetVkDescriptorImageInfo());
+#endif
+	}
+
+	bool GraphicsPipeline::UpdateSampler(Framebuffer* framebuffer, uint32_t bindingPoint, uint32_t attachmentIndex, uint32_t descriptorSetIndex)
+	{
+#ifdef FROSTIUM_OPENGL_IMPL
+		return false;
+#else
+		const auto& descriptor = framebuffer->GetVulkanFramebuffer().GetAttachment(attachmentIndex)->ImageInfo;
+		return m_VulkanPipeline.m_Descriptors[descriptorSetIndex].UpdateImageResource(bindingPoint, descriptor);
+#endif
+	}
+
+	bool GraphicsPipeline::UpdateSampler(Framebuffer* framebuffer, uint32_t bindingPoint, const std::string& attachmentName, uint32_t descriptorSetIndex)
+	{
+#ifdef FROSTIUM_OPENGL_IMPL
+		return false;
+#else
+		const auto& descriptor = framebuffer->GetVulkanFramebuffer().GetAttachment(attachmentName)->ImageInfo;
+		return m_VulkanPipeline.m_Descriptors[descriptorSetIndex].UpdateImageResource(bindingPoint, descriptor);
 #endif
 	}
 

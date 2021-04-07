@@ -1,8 +1,7 @@
 #pragma once
-
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Common/SLog.h"
-
-#include <../vendor/vulkan/include/vulkan/vulkan.h>
+#include <vulkan/include/vulkan/vulkan.h>
 
 #define VK_CHECK_RESULT(f)															\
 {																					\
@@ -13,3 +12,4 @@
 		assert(res == VK_SUCCESS);													\
 	}																				\
 }
+#endif

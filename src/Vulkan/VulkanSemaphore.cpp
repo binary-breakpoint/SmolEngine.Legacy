@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Vulkan/VulkanSemaphore.h"
 
 #include "Vulkan/VulkanCommandBuffer.h"
@@ -95,3 +96,4 @@ namespace Frostium
         return &m_SubmitInfo;
     }
 }
+#endif

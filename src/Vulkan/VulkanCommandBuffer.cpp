@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Vulkan/VulkanCommandBuffer.h"
 
 #include "Vulkan/VulkanDevice.h"
@@ -135,3 +136,4 @@ namespace Frostium
 		return m_CommandBuffers.size();
 	}
 }
+#endif

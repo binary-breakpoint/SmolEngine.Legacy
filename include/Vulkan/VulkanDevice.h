@@ -1,4 +1,5 @@
 #pragma once
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Vulkan/Vulkan.h"
 
 #include <vector>
@@ -12,45 +13,28 @@ namespace Frostium
 	public:
 
 		VulkanDevice();
-
 		~VulkanDevice();
 
-		/// Main
-		
 		bool Init(const VulkanInstance* instance);
 
-		/// Getters
-
+		// Getters
 		uint32_t GetMemoryTypeIndex(uint32_t typeBits, VkMemoryPropertyFlags memFlags) const;
-
 		const VkPhysicalDeviceMemoryProperties* GetMemoryProperties() const;
-
 		const VkPhysicalDeviceProperties* GetDeviceProperties() const;
-
 		const VkPhysicalDeviceFeatures* GetDeviceFeatures() const;
-
 		const VkSampleCountFlagBits GetMSAASamplesCount() const;
-
 		const VkPhysicalDevice GetPhysicalDevice() const;
-
 		const VkDevice GetLogicalDevice() const;
-
 		uint32_t GetQueueFamilyIndex() const;
-
 		const VkQueue GetQueue() const;
-		
+
 	private:
 
+		// Helpers
 		bool SetupPhysicalDevice(const VulkanInstance* instance);
-
 		bool SetupLogicalDevice();
-
-		/// Helpers
-
 		bool HasRequiredExtensions(const VkPhysicalDevice& device, const std::vector<const char*>& extensionsList);
-
 		bool GetFamilyQueue(const VkPhysicalDevice& device, VkQueueFlags flags, uint32_t& outQueueIndex);
-
 		void FindMaxUsableSampleCount();
 
 	private:
@@ -70,3 +54,4 @@ namespace Frostium
 		friend class VulkanCommandPool;
 	};
 }
+#endif

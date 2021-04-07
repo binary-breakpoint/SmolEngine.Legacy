@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Vulkan/VulkanInstance.h"
 
 #include <assert.h>
@@ -80,3 +81,4 @@ namespace Frostium
 	}
 
 }
+#endif

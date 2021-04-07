@@ -1,4 +1,5 @@
 #pragma once
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Common/Core.h"
 #include "Vulkan/Vulkan.h"
 
@@ -11,39 +12,28 @@ namespace Frostium
 	public:
 
 		VulkanBuffer();
-
 		virtual ~VulkanBuffer();
 
 
-		void CreateBuffer(const void* data, size_t size, VkMemoryPropertyFlags memFlags, 
+		void CreateBuffer(const void* data, size_t size, VkMemoryPropertyFlags memFlags,
 			VkBufferUsageFlags usageFlags, uint32_t offset = 0,
 			VkSharingMode shareMode = VkSharingMode::VK_SHARING_MODE_EXCLUSIVE);
-
 		void CreateBuffer(size_t size, VkMemoryPropertyFlags memFlags,
 			VkBufferUsageFlags usageFlags, uint32_t offset = 0,
 			VkSharingMode shareMode = VkSharingMode::VK_SHARING_MODE_EXCLUSIVE);
-
-		void CreateStaticBuffer(const void* data, size_t size, 
+		void CreateStaticBuffer(const void* data, size_t size,
 			VkBufferUsageFlags usageFlags);
 
 		void Flush(VkDeviceSize size, VkDeviceSize offset);
-
-
 		void SetData(const void* data, size_t size, uint32_t offset = 0);
-
-		void CmdUpdateData(VkCommandBuffer cmdBuffer, const void* data, 
+		void CmdUpdateData(VkCommandBuffer cmdBuffer, const void* data,
 			size_t size, uint32_t offset = 0);
 
-
 		void* MapMemory();
-
 		void UnMapMemory();
 
-
 		size_t GetSize() const;
-
 		const VkBuffer& GetBuffer() const;
-
 		const VkDeviceMemory GetDeviceMemory() const;
 
 	private:
@@ -65,3 +55,4 @@ namespace Frostium
 		VulkanDevice*      m_Device = nullptr;
 	};
 }
+#endif

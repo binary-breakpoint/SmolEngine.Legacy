@@ -1,5 +1,5 @@
 #pragma once
-
+#ifdef FROSTIUM_OPENGL_IMPL
 #include "Common/FramebufferSpecification.h"
 
 namespace Frostium
@@ -38,3 +38,5 @@ namespace Frostium
 		const uint32_t              m_MaxSize = 8192;
 	};
 }
+
+#endif

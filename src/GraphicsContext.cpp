@@ -145,7 +145,7 @@ namespace Frostium
 	void GraphicsContext::OnResize(uint32_t* width, uint32_t* height)
 	{
 #ifdef  FROSTIUM_OPENGL_IMPL
-		SetViewport(0, 0, width, height);
+		//;
 #else
 		m_VulkanContext.OnResize(width, height);
 #endif

@@ -21,23 +21,19 @@ project "Glad"
     filter "system:windows"
         systemversion "latest"
 
-	--------------------------------------- Debug
-
-	filter "configurations:Debug (Vulkan)"
+	filter "configurations:Debug_Vulkan"
 	buildoptions "/MDd"
 	symbols "on"
 
-	filter "configurations:Debug (OpenGL)"
+	filter "configurations:Debug_OpenGL"
 	buildoptions "/MDd"
 	symbols "on"
 
-	--------------------------------------- Release
-
-	filter "configurations:Release (Vulkan)"
+	filter "configurations:Release_Vulkan"
 	buildoptions "/MD"
 	optimize "on"
 
-	filter "configurations:Release (OpenGL)"
+	filter "configurations:Release_OpenGL"
 	buildoptions "/MD"
 	optimize "on"
 

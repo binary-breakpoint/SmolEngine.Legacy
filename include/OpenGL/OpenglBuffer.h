@@ -1,5 +1,5 @@
 #pragma once
-
+#ifdef FROSTIUM_OPENGL_IMPL
 #include "Common/BufferLayout.h"
 
 namespace Frostium
@@ -58,3 +58,4 @@ namespace Frostium
 		uint32_t m_RendererID;
 	};
 }
+#endif

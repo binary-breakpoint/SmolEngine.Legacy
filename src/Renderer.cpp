@@ -16,8 +16,8 @@
 #include "Utils/Utils.h"
 
 #ifdef FROSTIUM_OPENGL_IMPL
-#include "Renderer/OpenGL/OpenglShader.h"
-#include "Renderer/OpenGL/OpenglRendererAPI.h"
+#include "OpenGL/OpenglShader.h"
+#include "OpenGL/OpenglRendererAPI.h"
 #else
 #include "Vulkan/VulkanPBR.h"
 #endif
@@ -291,9 +291,11 @@ namespace Frostium
 #endif
 			s_Data->m_DepthPassPipeline->BeginRenderPass();
 			{
+#ifndef FROSTIUM_OPENGL_IMPL
 				// Set depth bias (aka "Polygon offset")
 				// Required to avoid shadow mapping artifacts
 				vkCmdSetDepthBias(cmdBuffer, 1.25f, 0.0f, 1.75f);
+#endif
 
 				struct PushConstant
 				{
@@ -519,8 +521,8 @@ namespace Frostium
 			assert(result == PipelineCreateResult::SUCCESS);
 
 			s_Data->m_MainPipeline->SubmitBuffer(30, s_Data->m_AmbientLightingSize, &s_Data->m_AmbientLighting);
+			s_Data->m_MainPipeline->UpdateSampler(s_Data->m_DepthFramebuffer.get(), 1, "Depth_Attachment");
 #ifndef FROSTIUM_OPENGL_IMPL
-			s_Data->m_MainPipeline->UpdateVulkanImageDescriptor(1, s_Data->m_DepthFramebuffer->GetVulkanFramebuffer().GetDethAttachment()->ImageInfo);
 			s_Data->m_MainPipeline->UpdateVulkanImageDescriptor(2, VulkanPBR::GetIrradianceImageInfo());
 			s_Data->m_MainPipeline->UpdateVulkanImageDescriptor(3, VulkanPBR::GetBRDFLUTImageInfo());
 			s_Data->m_MainPipeline->UpdateVulkanImageDescriptor(4, VulkanPBR::GetPrefilteredCubeImageInfo());
@@ -651,10 +653,8 @@ namespace Frostium
 
 				auto result = s_Data->m_DebugViewPipeline->Create(&DynamicPipelineCI);
 				assert(result == PipelineCreateResult::SUCCESS);
-#ifndef FROSTIUM_OPENGL_IMPL
-				s_Data->m_DebugViewPipeline->UpdateVulkanImageDescriptor(1, s_Data->m_DepthFramebuffer->GetVulkanFramebuffer().GetDethAttachment()->ImageInfo);
-#endif
 
+				s_Data->m_DebugViewPipeline->UpdateSampler(s_Data->m_DepthFramebuffer.get(), 1, "Depth_Attachment");
 				s_Data->m_DebugViewPipeline->SetVertexBuffers({ FullScreenVB });
 				s_Data->m_DebugViewPipeline->SetIndexBuffers({ FullScreenID });
 			}

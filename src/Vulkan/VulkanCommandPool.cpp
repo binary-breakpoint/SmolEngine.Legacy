@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Vulkan/VulkanCommandPool.h"
 #include "Vulkan/VulkanDevice.h"
 
@@ -53,3 +54,4 @@ namespace Frostium
 		return m_VkCommandPool;
 	}
 }
+#endif

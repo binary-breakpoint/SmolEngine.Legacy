@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Vulkan/VulkanPipeline.h"
 #include "Vulkan/VulkanRenderPass.h"
 #include "Vulkan/VulkanShader.h"
@@ -555,3 +556,4 @@ namespace Frostium
 		}
 	}
 }
+#endif

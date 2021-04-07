@@ -91,16 +91,13 @@ namespace Frostium
 	void Shader::SetUniformFloat(const std::string& name, const float value)
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
-
 		m_OpenglShader.SetUniformFloat(name, value);
-
 #endif
 	}
 
 	void Shader::SetUniformInt(const std::string& name, const int value)
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
-
 		m_OpenglShader.SetUniformInt(name, value);
 #endif
 	}
@@ -114,13 +111,12 @@ namespace Frostium
 #endif
 	}
 
-	const std::string& Shader::GetName()
+	const std::string Shader::GetName()
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
 		return m_OpenglShader.GetName();
 #else
-		// Vulkan
-		return std::string("empty");
+		return std::string("None");
 #endif
 	}
 }

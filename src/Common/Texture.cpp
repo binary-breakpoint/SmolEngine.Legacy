@@ -107,7 +107,7 @@ namespace Frostium
 		Ref<Texture> texture = std::make_shared<Texture>();
 #ifdef  FROSTIUM_OPENGL_IMPL
 		uint32_t whiteTextureData = 0xffffffff;
-		texture->m_OpenglTexture2D.Init(w, h);
+		texture->m_OpenglTexture2D.Init(4, 4);
 		texture->m_OpenglTexture2D.SetData(&whiteTextureData, sizeof(uint32_t));
 #else
 		texture->m_VulkanTexture.GenWhiteTetxure(1, 1);
@@ -141,7 +141,7 @@ namespace Frostium
 
 			Ref<Texture> texture = std::make_shared<Texture>();
 #ifdef  FROSTIUM_OPENGL_IMPL
-			texture->m_OpenglTexture2D.Init(filePath);
+			//texture->m_OpenglTexture2D.Init(filePath);
 #else
 			texture->m_VulkanTexture.LoadTexture(data, format);
 #endif
@@ -176,7 +176,7 @@ namespace Frostium
 			if (data->Data == nullptr)
 				return;
 #ifdef  FROSTIUM_OPENGL_IMPL
-			out_texture->m_OpenglTexture2D.Init(filePath);
+			//out_texture->m_OpenglTexture2D.Init(filePath);
 #else
 			out_texture->m_VulkanTexture.LoadTexture(data, format);
 #endif
@@ -204,7 +204,7 @@ namespace Frostium
 		{
 #ifdef  FROSTIUM_OPENGL_IMPL
 			uint32_t whiteTextureData = 0xffffffff;
-			out_texture->m_OpenglTexture2D.Init(w, h);
+			out_texture->m_OpenglTexture2D.Init(4, 4);
 			out_texture->m_OpenglTexture2D.SetData(&whiteTextureData, sizeof(uint32_t));
 #else
 			out_texture->m_VulkanTexture.GenWhiteTetxure(1, 1);

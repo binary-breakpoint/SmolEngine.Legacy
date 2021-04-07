@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Vulkan/VulkanTexture.h"
 #include "Vulkan/VulkanContext.h"
 #include "Vulkan/VulkanStagingBuffer.h"
@@ -768,3 +769,4 @@ namespace Frostium
 		return m_IsCreated;
 	}
 }
+#endif

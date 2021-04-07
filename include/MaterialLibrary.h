@@ -25,7 +25,6 @@ namespace Frostium
 		float                                             Metallic = 1.0f;
 		float                                             Albedro = 1.0f;
 		float                                             Roughness = 1.0f;
-		float                                             Specular = 9.0f;
 					                                      
 		std::string                                       Name = "";
 		std::unordered_map<MaterialTexture, Ref<Texture>> Textures;
@@ -39,7 +38,7 @@ namespace Frostium
 		template<typename Archive>
 		void serialize(Archive& archive)
 		{
-			archive(Metallic, Albedro, Roughness, Specular, Name, TexturesFilePaths);
+			archive(Metallic, Albedro, Roughness, Name, TexturesFilePaths);
 		}
 	};
 
@@ -48,57 +47,41 @@ namespace Frostium
 	public:
 
 		MaterialLibrary();
-
 		~MaterialLibrary();
 
-		// Add / Delete
-
 		int32_t Add(MaterialCreateInfo* infoCI, const std::string& path = "");
-
 		bool Delete(const std::string& name);
-
 		void Reset();
 
-		// Save / Load MaterialCreateInfo
-
+		// Serialization
 		bool Load(std::string& filePath, MaterialCreateInfo& out_info);
-
 		bool Save(std::string& filePath, MaterialCreateInfo& info);
 
 		// Getters
-
-		Material* GetMaterial(int32_t ID);
-
-		Material* GetMaterial(std::string& path);
-
-		int32_t GetMaterialID(std::string& path);
-
-		int32_t GetMaterialID(size_t& hashed_path);
-
-		std::vector<Material>& GetMaterials();
-
-		void GetMaterialsPtr(void*& data, uint32_t& size);
-
-		void GetTextures(std::vector<Texture*>& out_textures) const;
-
 		static MaterialLibrary* GetSinglenton();
+		Material* GetMaterial(int32_t ID);
+		Material* GetMaterial(std::string& path);
+		int32_t GetMaterialID(std::string& path);
+		int32_t GetMaterialID(size_t& hashed_path);
+		std::vector<Material>& GetMaterials();
+		void GetMaterialsPtr(void*& data, uint32_t& size);
+		void GetTextures(std::vector<Texture*>& out_textures) const;
 
 	private:
 
 		// Helpers
-
 		int32_t AddTexture(const Ref<Texture>& texture);
 
 	private:
 
-		static MaterialLibrary*                     s_Instance;
-		int32_t                                     m_MaterialIndex = 0;
-		uint32_t                                    m_TextureIndex = 0;
+		static MaterialLibrary*              s_Instance;
+		int32_t                              m_MaterialIndex = 0;
+		uint32_t                             m_TextureIndex = 0;
 
-		std::vector<Material>                       m_Materials;
-		std::vector<Ref<Texture>>                   m_Textures;
-		std::hash<std::string_view>                 m_Hash{};
+		std::vector<Material>                m_Materials;
+		std::vector<Ref<Texture>>            m_Textures;
+		std::hash<std::string_view>          m_Hash{};
 
-		std::unordered_map<size_t, int32_t>         m_MaterialMap;
+		std::unordered_map<size_t, int32_t>  m_MaterialMap;
 	};
 }

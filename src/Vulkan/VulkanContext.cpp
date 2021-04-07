@@ -1,7 +1,7 @@
 #include "stdafx.h"
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Vulkan/VulkanContext.h"
 #include "Vulkan/VulkanRenderPass.h"
-
 
 #include <GLFW/glfw3.h>
 #include <imgui/examples/imgui_impl_vulkan.h>
@@ -194,3 +194,4 @@ namespace Frostium
 		VK_CHECK_RESULT(vkWaitForFences(m_Device.GetLogicalDevice(), 1, &m_Semaphore.GetVkFences()[m_Swapchain.GetCurrentBufferIndex()], VK_TRUE, DEFAULT_FENCE_TIME_OUT));
 	}
 }
+#endif

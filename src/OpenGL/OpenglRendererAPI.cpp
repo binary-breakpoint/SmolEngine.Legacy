@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#ifdef FROSTIUM_OPENGL_IMPL
 #include "OpenGL/OpenglRendererAPI.h"
 
 #include "Common/SLog.h"
@@ -122,3 +123,4 @@ namespace Frostium
 	}
 
 }
+#endif

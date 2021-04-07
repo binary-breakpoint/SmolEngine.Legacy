@@ -1,4 +1,5 @@
 #pragma once
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Common/Core.h"
 #include "Common/Shared.h"
 
@@ -21,20 +22,15 @@ namespace Frostium
 	public:
 
 		static void Init(const std::string& cubeMapFile, TextureFormat format = TextureFormat::R8G8B8A8_UNORM);
-
 		static void Reload(const std::string& cubeMapFile, TextureFormat format = TextureFormat::R8G8B8A8_UNORM);
-
 		static void Free();
 
 		// Getters
 
 		static const VkDescriptorImageInfo& GetBRDFLUTImageInfo();
-
 		static const VkDescriptorImageInfo& GetIrradianceImageInfo();
-
 		static const VkDescriptorImageInfo& GetPrefilteredCubeImageInfo();
-
-		static const VulkanTexture&  GetSkyBox();
+		static const VulkanTexture& GetSkyBox();
 
 	private:
 
@@ -62,6 +58,7 @@ namespace Frostium
 		inline static VkDescriptorImageInfo                 m_IrradianceImageInfo = { };
 		inline static VkDescriptorImageInfo                 m_PrefilteredCubeImageInfo = {};
 
-		inline static VulkanTexture*                        m_SkyBox = nullptr;
+		inline static VulkanTexture* m_SkyBox = nullptr;
 	};
 }
+#endif

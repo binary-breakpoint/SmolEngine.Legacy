@@ -5,16 +5,16 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 #include <imgui/examples/imgui_impl_glfw.h>
-#include <imgui/examples/imgui_impl_opengl3.h>
-#include <imgui/examples/imgui_impl_vulkan.h>
 
 #include <GLFW/glfw3.h>
 
 #ifdef FROSTIUM_OPENGL_IMPL
+#include <imgui/examples/imgui_impl_opengl3.h>
 #include <glad/glad.h>
 #else
 #define GLFW_INCLUDE_VULKAN
 #define IMGUI_VULKAN_DEBUG_REPORT
+#include <imgui/examples/imgui_impl_vulkan.h>
 #endif
 #include <implot/implot.h>
 

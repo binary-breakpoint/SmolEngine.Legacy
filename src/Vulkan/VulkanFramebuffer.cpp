@@ -1,11 +1,11 @@
 #include "stdafx.h"
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Vulkan/VulkanFramebuffer.h"
 #include "Vulkan/VulkanContext.h"
 #include "Vulkan/VulkanRenderPass.h"
 #include "Vulkan/VulkanMemoryAllocator.h"
 #include "Vulkan/VulkanTexture.h"
 #include "Vulkan/VulkanSemaphore.h"
-
 #include "Common/Framebuffer.h"
 
 #include <imgui/examples/imgui_impl_vulkan.h>
@@ -761,8 +761,11 @@ namespace Frostium
 		return &m_Attachments[index];
 	}
 
-	Attachment* VulkanFramebuffer::GetAttachment(std::string& name)
+	Attachment* VulkanFramebuffer::GetAttachment(const std::string& name)
 	{
+		if (name == "Depth_Attachment")
+			return &m_DepthAttachment;
+
 		const auto& it = m_AttachmentsMap.find(name);
 		if (it != m_AttachmentsMap.end())
 			return &m_Attachments[it->second];
@@ -814,3 +817,4 @@ namespace Frostium
 		return m_VkFrameBuffers[index];
 	}
 }
+#endif

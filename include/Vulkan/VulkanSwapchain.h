@@ -1,4 +1,5 @@
 #pragma once
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Common/Core.h"
 
 #include "Vulkan/Vulkan.h"
@@ -33,69 +34,42 @@ namespace Frostium
 	public:
 
 		VulkanSwapchain();
-
 		~VulkanSwapchain();
 
-		/// Init
-
 		bool Init(VulkanInstance* instance, VulkanDevice* device, GLFWwindow* window);
-
 		bool Prepare(uint32_t width, uint32_t height);
-
 		void Create(uint32_t* width, uint32_t* height, bool vSync = false);
-
 		void CleanUp();
-
 		void ClearColors(VkCommandBuffer cmdBuffer, const glm::vec4& color = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
 
-		/// Main
-
+		// Main
 		VkResult AcquireNextImage(VkSemaphore presentCompleteSemaphore);
-
 		VkResult QueuePresent(VkQueue queue, VkSemaphore waitSemaphore = VK_NULL_HANDLE);
 
-		/// Events
-
+		// Events
 		void OnResize(uint32_t* width, uint32_t* height, VulkanCommandBuffer* commandBuffer);
 
-		/// Getters
-
+		// Getters
 		const VkFramebuffer GetCurrentFramebuffer() const;
-
 		const VkSwapchainKHR& GetVkSwapchain() const;
-
 		const VkRenderPass GetVkRenderPass() const;
-
 		const VkSurfaceKHR GetVkSurface() const;
-
 		const VkFormat& GetColorFormat() const;
-
 		const VkFormat& GetDepthFormat() const;
-
 		uint32_t GetCurrentBufferIndex() const;
-
 		uint32_t& GetCurrentBufferIndexRef();
-
 		uint32_t GetHeight() const;
-
 		uint32_t GetWidth() const;
 
 	private:
 
 		VkResult CreateFramebuffers(uint32_t width, uint32_t height);
-
 		VkResult InitSurface(GLFWwindow* window);
-
 		VkResult CreateRenderPass();
-
 		VkResult CreateDepthStencil();
-
 		void GetPtrs();
-
 		void FindColorSpaceFormat();
-
 		void FindDepthStencilFormat();
-
 		void FreeResources();
 
 	private:
@@ -110,11 +84,11 @@ namespace Frostium
 		VkRenderPass                       m_RenderPass = nullptr;
 		VkSwapchainKHR                     m_Swapchain = nullptr;
 		VkPipelineCache                    m_PipelineCash = nullptr;
-		VulkanInstance*                    m_Instance = nullptr;
-		VulkanDevice*                      m_Device = nullptr;
+		VulkanInstance* m_Instance = nullptr;
+		VulkanDevice* m_Device = nullptr;
 		VkSurfaceKHR                       m_Surface = nullptr;
-		VkSurfaceFormatKHR*                m_SurfaceFormat = nullptr;
-		VkPresentModeKHR*                  m_PresentMode =  nullptr;
+		VkSurfaceFormatKHR* m_SurfaceFormat = nullptr;
+		VkPresentModeKHR* m_PresentMode = nullptr;
 
 		uint32_t                           m_PresentModeCount = 0;
 		uint32_t                           m_SurfaceFormatCount = 0;
@@ -134,3 +108,4 @@ namespace Frostium
 		friend class VulkanSwapchainFramebuffer;
 	};
 }
+#endif

@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Vulkan/VulkanShader.h"
 #include "Vulkan/VulkanContext.h"
 
@@ -400,3 +401,4 @@ namespace Frostium
         return m_PipelineShaderStages;
     }
 }
+#endif

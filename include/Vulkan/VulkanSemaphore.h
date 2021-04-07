@@ -1,4 +1,5 @@
 #pragma once
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Common/Core.h"
 #include "Vulkan/Vulkan.h"
 
@@ -12,25 +13,15 @@ namespace Frostium
 	public:
 
 		VulkanSemaphore();
-
 		~VulkanSemaphore();
 
-		/// Init
-		
 		bool Init(const VulkanDevice* device, const VulkanCommandBuffer* commandBuffer);
-
-		/// Helpres
-
 		static void CreateVkSemaphore(VkSemaphore& outSemapthore);
 
-		/// Getters
-
+		// Getters
 		const VkSemaphore GetPresentCompleteSemaphore() const;
-
 		const VkSemaphore GetRenderCompleteSemaphore() const;
-
 		const std::vector<VkFence>& GetVkFences() const;
-
 		const VkSubmitInfo* GetSubmitInfo() const;
 
 	private:
@@ -42,3 +33,4 @@ namespace Frostium
 		std::vector<VkFence>     m_WaitFences;
 	};
 }
+#endif

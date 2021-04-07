@@ -1,4 +1,5 @@
 #pragma once
+#ifdef FROSTIUM_OPENGL_IMPL
 #include "Common/Core.h"
 
 #include <string>
@@ -39,3 +40,5 @@ namespace Frostium
 		std::string   m_FilePath = "";
 	};
 }
+
+#endif

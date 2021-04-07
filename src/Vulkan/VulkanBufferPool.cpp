@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Vulkan/VulkanBufferPool.h"
 #include "Common/SLog.h"
 
@@ -46,3 +47,4 @@ namespace Frostium
 		return s_Instance;
 	}
 }
+#endif

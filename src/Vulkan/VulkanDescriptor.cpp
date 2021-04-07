@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Vulkan/VulkanDescriptor.h"
 
 #include "Common/Texture.h"
@@ -337,3 +338,4 @@ namespace Frostium
 		return writeSet;
 	}
 }
+#endif

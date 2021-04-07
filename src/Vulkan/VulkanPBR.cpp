@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Vulkan/VulkanPBR.h"
 #include "Vulkan/VulkanTexture.h"
 #include "Vulkan/VulkanContext.h"
@@ -1689,3 +1690,4 @@ namespace Frostium
 		return *m_SkyBox;
 	}
 }
+#endif

@@ -1,4 +1,5 @@
 #pragma once
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Vulkan/Vulkan.h"
 
 #include "Common/Core.h"
@@ -11,24 +12,21 @@ namespace Frostium
 	public:
 
 		VulkanTexture();
-
 		~VulkanTexture();
 
-		/// Load
-
 		void LoadTexture(const std::string& filePath, TextureFormat format);
-
 		void LoadTexture(const TextureLoadedData* data, TextureFormat format);
-
 		void LoadCubeMap(const std::string& filePath, TextureFormat format);
-
-		/// Gen
-
 		void GenTexture(const void* data, uint32_t size, uint32_t width, uint32_t height, TextureFormat format);
-
 		void GenWhiteTetxure(uint32_t width, uint32_t height);
 
-		/// Static Helpers
+		// Getters
+		const VkDescriptorImageInfo& GetVkDescriptorImageInfo() const;
+		void* GetImGuiTextureID() const;
+		uint32_t GetHeight() const;
+		uint32_t GetWidth() const;
+		bool IsActive() const;
+		size_t GetID() const;
 
 		static VkImage CreateVkImage(uint32_t width, uint32_t height, int32_t mipLevels,
 			VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling,
@@ -63,31 +61,12 @@ namespace Frostium
 			VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
 			VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
 
-		/// Getters
-		
-		const VkDescriptorImageInfo& GetVkDescriptorImageInfo() const;
-
-		void* GetImGuiTextureID() const;
-
-		uint32_t GetHeight() const;
-
-		uint32_t GetWidth() const;
-
-		bool IsActive() const;
-
-		size_t GetID() const;
-
-
 	private:
 
 		void GenerateMipMaps(VkImage image, int32_t width, int32_t height, int32_t mipMaps, VkImageSubresourceRange& range);
-
 		void CreateTexture(uint32_t width, uint32_t height, uint32_t mipMaps, const void* data);
-
 		void CreateFromBuffer(const void* data, VkDeviceSize size, uint32_t width, uint32_t height);
-
 		void CreateSamplerAndImageView(uint32_t mipMaps);
-
 		VkFormat GetImageFormat(TextureFormat format);
 
 	private:
@@ -95,14 +74,14 @@ namespace Frostium
 		VkDescriptorImageInfo        m_DescriptorImageInfo;
 		VkImage                      m_Image;
 		VkFormat                     m_Format;
-		 
+
 		VkDevice                     m_Device;
 		VkSampler                    m_Samper;
 		VkImageView                  m_ImageView;
 		VkImageLayout                m_ImageLayout;
 		VkDeviceMemory               m_DeviceMemory;
 
-		void*                       m_ImGuiTextureID = nullptr;
+		void* m_ImGuiTextureID = nullptr;
 		bool                        m_IsCreated = false;
 
 		uint32_t                    m_Height = 0;
@@ -118,3 +97,4 @@ namespace Frostium
 		friend class VulkanDescriptor;
 	};
 }
+#endif

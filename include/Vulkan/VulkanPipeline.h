@@ -1,4 +1,5 @@
 #pragma once
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Common/Core.h"
 
 #include "Vulkan/Vulkan.h"
@@ -20,49 +21,34 @@ namespace Frostium
 	public:
 
 		VulkanPipeline();
-
 		~VulkanPipeline();
 
-		/// Main
-		
+		// Main
+
 		bool Invalidate(GraphicsPipelineCreateInfo* pipelineSpec, VulkanShader* shader);
-
 		bool CreatePipeline(DrawMode mode);
-
 		bool ReCreate();
-
 		void Destroy();
 
 		// Update Descriptors
-
 		bool UpdateSamplers2D(const std::vector<VulkanTexture*>& textures, uint32_t bindingPoint, uint32_t setIndex = 0);
-
 		bool UpdateCubeMap(const VulkanTexture* cubeMap, uint32_t bindingPoint, uint32_t setIndex = 0);
 
-		/// Save / Load
-
+		// Save / Load
 		bool SaveCache(const std::string& fileName, DrawMode mode);
-
 		bool CreateOrLoadCached(const std::string& fileName, DrawMode mode);
 
-		/// Getters
-
+		// Getters
 		const VkPipeline& GetVkPipeline(DrawMode mode);
-
 		const VkPipelineLayout& GetVkPipelineLayot() const;
-
 		const VkDescriptorSet GetVkDescriptorSets(uint32_t setIndex = 0) const;
 
 	private:
 
 		void BuildDescriptors(VulkanShader* shader, uint32_t DescriptorSets);
-
 		VkFormat GetVkInputFormat(DataTypes type);
-
 		VkPrimitiveTopology GetVkTopology(DrawMode mode);
-
 		VkPolygonMode GetVkPolygonMode(DrawMode mode);
-
 		VkCullModeFlags GetVkCullMode(CullMode mode);
 
 	private:
@@ -70,19 +56,20 @@ namespace Frostium
 		VkPipelineLayout                                m_PipelineLayout = VK_NULL_HANDLE;
 		VkRenderPass                                    m_TargetRenderPass = nullptr;
 		VkDevice                                        m_Device = nullptr;
-		VulkanShader*                                   m_Shader = nullptr;
+		VulkanShader* m_Shader = nullptr;
 
 		VkDescriptorPool                                m_DescriptorPool = nullptr;
-		GraphicsPipelineCreateInfo*                     m_PipelineSpecification = nullptr;
+		GraphicsPipelineCreateInfo* m_PipelineSpecification = nullptr;
 
 		std::vector<VulkanDescriptor>                   m_Descriptors;
 		std::vector<VkDescriptorSetLayout>              m_SetLayout;
 		std::unordered_map<DrawMode, VkPipelineCache>   m_PipelineCaches;
 		std::unordered_map<DrawMode, VkPipeline>        m_Pipelines;
 		std::string                                     m_FilePath = "";
-		
+
 	private:
 
 		friend class GraphicsPipeline;
 	};
 }
+#endif

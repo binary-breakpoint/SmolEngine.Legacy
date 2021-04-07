@@ -27,7 +27,7 @@ namespace Frostium
 		if (out_vb)
 		{
 #ifdef FROSTIUM_OPENGL_IMPL
-			buffer->m_OpenglVertexBuffer.Init(vertices, size);
+			out_vb->m_OpenglVertexBuffer.Init(vertices, size);
 #else
 			out_vb->m_VulkanVertexBuffer.Create(vertices, size, is_static);
 #endif

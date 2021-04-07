@@ -39,7 +39,6 @@ namespace Frostium
 			newMaterial.m_MaterialProperties.PBRValues.x = infoCI->Metallic;
 			newMaterial.m_MaterialProperties.PBRValues.y = infoCI->Roughness;
 			newMaterial.m_MaterialProperties.PBRValues.z = infoCI->Albedro;
-			newMaterial.m_MaterialProperties.PBRValues.w = infoCI->Specular;
 
 			newMaterial.m_MaterialProperties.Indexes_1.x = AddTexture(infoCI->Textures[MaterialTexture::Albedro]);
 			newMaterial.m_MaterialProperties.Indexes_1.y = AddTexture(infoCI->Textures[MaterialTexture::Normal]);
@@ -92,7 +91,7 @@ namespace Frostium
 		{
 			cereal::JSONInputArchive input{ storage };
 			input(out_info.Metallic, out_info.Albedro,
-				out_info.Roughness, out_info.Specular, out_info.Name,
+				out_info.Roughness, out_info.Name,
 				out_info.TexturesFilePaths);
 		}
 

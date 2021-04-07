@@ -89,14 +89,10 @@ namespace Frostium
 
 		// Getters
 		uint32_t GetProgramID();
-		const std::string& GetName();
-
-		// Operators
+		const std::string GetName();
 #ifdef FROSTIUM_OPENGL_IMPL
-		operator OpenglShader() const { return m_OpenglShader; }
 #else
 		VulkanShader* GetVulkanShader() { return &m_VulkanShader; }
-		operator  VulkanShader() const { return m_VulkanShader; }
 #endif
 
 	private:

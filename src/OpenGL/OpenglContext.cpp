@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#ifdef FROSTIUM_OPENGL_IMPL
 #include "OpenGL/OpenglContext.h"
 #include "Common/SLog.h"
 
@@ -21,3 +22,4 @@ namespace Frostium
         glfwSwapBuffers(m_Window);
     }
 }
+#endif

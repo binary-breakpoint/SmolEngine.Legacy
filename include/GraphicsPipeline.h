@@ -45,17 +45,13 @@ namespace Frostium
 	struct GraphicsPipelineCreateInfo
 	{
 		//TODO: Add flags
-
 		CullMode                             PipelineCullMode = CullMode::Back;
 		bool                                 bDepthTestEnabled = true;
 		bool                                 bDepthBiasEnabled = false;
-
 		float                                MinDepth = 0.0f;
 		float                                MaxDepth = 1.0f;
-
 		int32_t                              DescriptorSets = 1;
 		int32_t                              StageCount = -1;
-
 		Framebuffer*                         TargetFramebuffer = nullptr;
 		GraphicsPipelineShaderCreateInfo*    ShaderCreateInfo = nullptr;
 		std::string                          PipelineName = "";
@@ -81,7 +77,6 @@ namespace Frostium
 		// Cmd Buffer
 		void BeginCommandBuffer(bool isMainCmdBufferInUse = false);
 		void EndCommandBuffer();
-		void FlushCommandBuffer();
 
 		// Draw
 		void DrawIndexed(DrawMode mode = DrawMode::Triangle, uint32_t vertexBufferIndex = 0, 
@@ -104,8 +99,8 @@ namespace Frostium
 		void SubmitPushConstant(ShaderType shaderStage, size_t size, const void* data);
 
 		// Update Resources
-		void SetVertexBuffers(std::vector<Ref<VertexBuffer>> buffer);
-		void SetIndexBuffers(std::vector<Ref<IndexBuffer>> buffer);
+		void SetVertexBuffers(const std::vector<Ref<VertexBuffer>>& buffer);
+		void SetIndexBuffers(const std::vector<Ref<IndexBuffer>>& buffer);
 		void UpdateVertextBuffer(void* vertices, size_t size, uint32_t bufferIndex = 0, uint32_t offset = 0);
 		void UpdateIndexBuffer(uint32_t* indices, size_t count, uint32_t bufferIndex = 0, uint32_t offset = 0);
 #ifndef FROSTIUM_OPENGL_IMPL
@@ -123,10 +118,11 @@ namespace Frostium
 		{
 			return m_VulkanPipeline.m_Descriptors[descriptorSetIndex].UpdateImageResource(bindingPoint, imageInfo);
 		}
-
 #endif
 		bool UpdateSamplers(const std::vector<Texture*>& textures, uint32_t bindingPoint, uint32_t descriptorSetIndex = 0);
-		bool UpdateSampler(Ref<Texture>& tetxure, uint32_t bindingPoint, uint32_t descriptorSetIndex = 0);
+		bool UpdateSampler(Texture* tetxure, uint32_t bindingPoint, uint32_t descriptorSetIndex = 0);
+		bool UpdateSampler(Framebuffer* framebuffer, uint32_t bindingPoint, uint32_t attachmentIndex, uint32_t descriptorSetIndex = 0);
+		bool UpdateSampler(Framebuffer* framebuffer, uint32_t bindingPoint, const std::string& attachmentName, uint32_t descriptorSetIndex = 0);
 		bool UpdateCubeMap(Texture* cubeMap, uint32_t bindingPoint, uint32_t descriptorSetIndex = 0);
 
 #ifndef FROSTIUM_OPENGL_IMPL

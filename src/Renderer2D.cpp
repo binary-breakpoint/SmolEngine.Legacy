@@ -83,6 +83,7 @@ namespace Frostium
 
 		CreateFramebuffers();
 		CreatePipelines();
+		LoadMeshes();
 	}
 
 	void Renderer2D::Shutdown()
@@ -111,14 +112,14 @@ namespace Frostium
 
 		if (clearInfo->bClear)
 		{
-			s_Data->DeferredPipeline.BeginRenderPass();
-			s_Data->DeferredPipeline.ClearColors(clearInfo->color);
-			s_Data->DeferredPipeline.EndRenderPass();
-
 			s_Data->CombinationPipeline.BeginRenderPass();
 			s_Data->CombinationPipeline.ClearColors(clearInfo->color);
 			s_Data->CombinationPipeline.EndRenderPass();
 		}
+
+		s_Data->DeferredPipeline.BeginRenderPass();
+		s_Data->DeferredPipeline.ClearColors(clearInfo->color);
+		s_Data->DeferredPipeline.EndRenderPass();
 
 		StartNewBatch();
 		Stats->Reset();
@@ -219,14 +220,10 @@ namespace Frostium
 			pipelineCI.ShaderCreateInfo = &shaderCI;
 
 			assert(s_Data->CombinationPipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
-#ifndef FROSTIUM_OPENGL_IMPL
-			auto& vkFB = s_Data->DeferredFB.GetVulkanFramebuffer();
 
-			s_Data->CombinationPipeline.UpdateVulkanImageDescriptor(5, vkFB.GetAttachment(std::string("Albedro"))->ImageInfo);
-			s_Data->CombinationPipeline.UpdateVulkanImageDescriptor(6, vkFB.GetAttachment(std::string("Position"))->ImageInfo);
-			s_Data->CombinationPipeline.UpdateVulkanImageDescriptor(7, vkFB.GetAttachment(std::string("Normals"))->ImageInfo);
-#endif
-
+			s_Data->CombinationPipeline.UpdateSampler(&s_Data->DeferredFB, 5, "Albedro");
+			s_Data->CombinationPipeline.UpdateSampler(&s_Data->DeferredFB, 6, "Position");
+			s_Data->CombinationPipeline.UpdateSampler(&s_Data->DeferredFB, 7, "Normals");
 		}
 	}
 
@@ -242,12 +239,16 @@ namespace Frostium
 			framebufferCI.bResizable = false;
 
 			framebufferCI.Attachments.resize(3);
-			framebufferCI.Attachments[0] = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "Albedro");
-			framebufferCI.Attachments[1] = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "Position");
-			framebufferCI.Attachments[2] = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "Normals");
+			framebufferCI.Attachments[0] = FramebufferAttachment(AttachmentFormat::SFloat4_32, false, "Albedro");
+			framebufferCI.Attachments[1] = FramebufferAttachment(AttachmentFormat::SFloat4_32, false, "Position");
+			framebufferCI.Attachments[2] = FramebufferAttachment(AttachmentFormat::SFloat4_32, false, "Normals");
 
 			Framebuffer::Create(framebufferCI, &s_Data->DeferredFB);
 		}
 	}
 
+	void Renderer2D::LoadMeshes()
+	{
+		Mesh::Create(GraphicsContext::s_Instance->m_ResourcesFolderPath + "Models/plane.glb", &s_Data->PlaneMesh);
+	}
 }

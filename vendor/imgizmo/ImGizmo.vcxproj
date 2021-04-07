@@ -1,20 +1,20 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug (Vulkan)|x64">
-      <Configuration>Debug (Vulkan)</Configuration>
+    <ProjectConfiguration Include="Debug_Vulkan|x64">
+      <Configuration>Debug_Vulkan</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Release (Vulkan)|x64">
-      <Configuration>Release (Vulkan)</Configuration>
+    <ProjectConfiguration Include="Release_Vulkan|x64">
+      <Configuration>Release_Vulkan</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug (OpenGL)|x64">
-      <Configuration>Debug (OpenGL)</Configuration>
+    <ProjectConfiguration Include="Debug_OpenGL|x64">
+      <Configuration>Debug_OpenGL</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Release (OpenGL)|x64">
-      <Configuration>Release (OpenGL)</Configuration>
+    <ProjectConfiguration Include="Release_OpenGL|x64">
+      <Configuration>Release_OpenGL</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
@@ -26,25 +26,25 @@
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug (Vulkan)|x64'" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Vulkan|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (Vulkan)|x64'" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Vulkan|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug (OpenGL)|x64'" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_OpenGL|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (OpenGL)|x64'" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_OpenGL|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
@@ -53,44 +53,44 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug (Vulkan)|x64'">
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug_Vulkan|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release (Vulkan)|x64'">
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release_Vulkan|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug (OpenGL)|x64'">
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug_OpenGL|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release (OpenGL)|x64'">
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release_OpenGL|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug (Vulkan)|x64'">
-    <OutDir>..\libs\Debug (Vulkan)-windows-x86_64\ImGizmo\</OutDir>
-    <IntDir>..\libs\bin-int\Debug (Vulkan)-windows-x86_64\ImGizmo\</IntDir>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Vulkan|x64'">
+    <OutDir>..\libs\Debug_Vulkan-windows-x86_64\ImGizmo\</OutDir>
+    <IntDir>..\libs\bin-int\Debug_Vulkan-windows-x86_64\ImGizmo\</IntDir>
     <TargetName>ImGizmo</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (Vulkan)|x64'">
-    <OutDir>..\libs\Release (Vulkan)-windows-x86_64\ImGizmo\</OutDir>
-    <IntDir>..\libs\bin-int\Release (Vulkan)-windows-x86_64\ImGizmo\</IntDir>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Vulkan|x64'">
+    <OutDir>..\libs\Release_Vulkan-windows-x86_64\ImGizmo\</OutDir>
+    <IntDir>..\libs\bin-int\Release_Vulkan-windows-x86_64\ImGizmo\</IntDir>
     <TargetName>ImGizmo</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug (OpenGL)|x64'">
-    <OutDir>..\libs\Debug (OpenGL)-windows-x86_64\ImGizmo\</OutDir>
-    <IntDir>..\libs\bin-int\Debug (OpenGL)-windows-x86_64\ImGizmo\</IntDir>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_OpenGL|x64'">
+    <OutDir>..\libs\Debug_OpenGL-windows-x86_64\ImGizmo\</OutDir>
+    <IntDir>..\libs\bin-int\Debug_OpenGL-windows-x86_64\ImGizmo\</IntDir>
     <TargetName>ImGizmo</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (OpenGL)|x64'">
-    <OutDir>..\libs\Release (OpenGL)-windows-x86_64\ImGizmo\</OutDir>
-    <IntDir>..\libs\bin-int\Release (OpenGL)-windows-x86_64\ImGizmo\</IntDir>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_OpenGL|x64'">
+    <OutDir>..\libs\Release_OpenGL-windows-x86_64\ImGizmo\</OutDir>
+    <IntDir>..\libs\bin-int\Release_OpenGL-windows-x86_64\ImGizmo\</IntDir>
     <TargetName>ImGizmo</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug (Vulkan)|x64'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Vulkan|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
@@ -105,7 +105,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release (Vulkan)|x64'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_Vulkan|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
@@ -124,7 +124,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug (OpenGL)|x64'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_OpenGL|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
@@ -139,7 +139,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release (OpenGL)|x64'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_OpenGL|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>

@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#ifdef FROSTIUM_OPENGL_IMPL
 #include "OpenGL/OpenglVertexArray.h"
 
 #include "Common/VertexArray.h"
@@ -87,3 +88,4 @@ namespace Frostium
 		m_IndexBuffer = indexBuffer;
 	}
 }
+#endif

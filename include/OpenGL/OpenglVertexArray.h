@@ -1,4 +1,5 @@
 #pragma once
+#ifdef FROSTIUM_OPENGL_IMPL
 #include "Common/Core.h"
 
 #include <vector>
@@ -37,3 +38,5 @@ namespace Frostium
 		bool                           m_IsInitialized = false;
 	};
 }
+
+#endif

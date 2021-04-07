@@ -1,4 +1,5 @@
 #pragma once
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Common/Core.h"
 
 #include "Vulkan/VulkanBuffer.h"
@@ -49,3 +50,5 @@ namespace Frostium
 		uint32_t                         ArraySize = 0;
 	};
 }
+
+#endif

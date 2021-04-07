@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Vulkan/VulkanIndexBuffer.h"
 
 #include "Vulkan/VulkanDevice.h"
@@ -33,3 +34,4 @@ namespace Frostium
 	}
 
 }
+#endif

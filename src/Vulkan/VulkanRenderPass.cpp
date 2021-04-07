@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Vulkan/VulkanRenderPass.h"
 #include "Vulkan/VulkanContext.h"
 #include "Vulkan/VulkanFramebuffer.h"
@@ -141,3 +142,4 @@ namespace Frostium
 		VK_CHECK_RESULT(vkCreateRenderPass(device, &renderPassCI, nullptr, &outPass));
 	}
 }
+#endif

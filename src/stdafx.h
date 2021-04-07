@@ -15,11 +15,13 @@
 #include <filesystem>
 
 #include <vector>
+#include <array>
 #include <unordered_map>
 #include <map>
 #include <unordered_set>
 #include <string>
 
+#include "GraphicsContext.h"
 #ifndef FROSTIUM_OPENGL_IMPL
 #include "Vulkan/Vulkan.h"
 #endif

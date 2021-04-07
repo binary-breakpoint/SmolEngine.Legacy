@@ -1,8 +1,9 @@
 #pragma once
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Common/Core.h"
 #include "Vulkan/Vulkan.h"
 
-namespace Frostium 
+namespace Frostium
 {
 	class VulkanDevice;
 
@@ -17,3 +18,4 @@ namespace Frostium
 			VkDeviceMemory* dest, VkMemoryPropertyFlags flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 	};
 }
+#endif

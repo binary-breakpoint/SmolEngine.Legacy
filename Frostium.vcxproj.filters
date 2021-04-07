@@ -133,6 +133,42 @@
     <Filter Include="include\Libraries\spdlog\include\spdlog\sinks">
       <UniqueIdentifier>{EF38635F-5BA9-65D8-24C8-DF6090F79DD9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\Libraries\vulkan">
+      <UniqueIdentifier>{35D6529D-21FB-A11D-4A46-87AD36CAA03B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Libraries\vulkan\include">
+      <UniqueIdentifier>{A86219EE-94B3-0430-BD17-F3F1A9C79799}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Libraries\vulkan\include\glslang">
+      <UniqueIdentifier>{9F1B1569-8B98-08AC-B415-09C0A0F1A43F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Libraries\vulkan\include\glslang\Include">
+      <UniqueIdentifier>{F2D98F82-DE82-F7B1-0719-1331F32012F3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Libraries\vulkan\include\glslang\MachineIndependent">
+      <UniqueIdentifier>{1164E41F-7D21-8D56-06EC-78BE72A8FFAA}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Libraries\vulkan\include\glslang\Public">
+      <UniqueIdentifier>{ED95D652-59D1-3616-62C6-B3A5CE80BB46}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Libraries\vulkan\include\glslang\SPIRV">
+      <UniqueIdentifier>{029E56CC-EE1B-A765-D713-65FDC330E98D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Libraries\vulkan\include\shaderc">
+      <UniqueIdentifier>{914731FA-7DC4-243D-A641-2551921DC1D0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Libraries\vulkan\include\spirv-headers">
+      <UniqueIdentifier>{74A8B088-6026-0122-491E-BFB9353B434A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Libraries\vulkan\include\spirv-tools">
+      <UniqueIdentifier>{09D8AAE6-F5EA-AA3F-9ED4-872C8AC6478D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Libraries\vulkan\include\spirv_cross">
+      <UniqueIdentifier>{F4CC1A5A-E0DF-1AB3-89C9-F79F75BBB700}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Libraries\vulkan\include\vulkan">
+      <UniqueIdentifier>{48F75E74-B486-205F-BD82-017729915B6B}</UniqueIdentifier>
+    </Filter>
     <Filter Include="include\OpenGL">
       <UniqueIdentifier>{9D649317-8932-871D-72C6-F7435E336382}</UniqueIdentifier>
     </Filter>
@@ -2033,6 +2069,144 @@
     </ClInclude>
     <ClInclude Include="include\Libraries\spdlog\include\spdlog\version.h">
       <Filter>include\Libraries\spdlog\include\spdlog</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\glslang\Include\BaseTypes.h">
+      <Filter>include\Libraries\vulkan\include\glslang\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\glslang\Include\Common.h">
+      <Filter>include\Libraries\vulkan\include\glslang\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\glslang\Include\ConstantUnion.h">
+      <Filter>include\Libraries\vulkan\include\glslang\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\glslang\Include\PoolAlloc.h">
+      <Filter>include\Libraries\vulkan\include\glslang\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\glslang\Include\ResourceLimits.h">
+      <Filter>include\Libraries\vulkan\include\glslang\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\glslang\Include\Types.h">
+      <Filter>include\Libraries\vulkan\include\glslang\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\glslang\Include\arrays.h">
+      <Filter>include\Libraries\vulkan\include\glslang\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\glslang\Include\intermediate.h">
+      <Filter>include\Libraries\vulkan\include\glslang\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\glslang\MachineIndependent\Versions.h">
+      <Filter>include\Libraries\vulkan\include\glslang\MachineIndependent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\glslang\MachineIndependent\localintermediate.h">
+      <Filter>include\Libraries\vulkan\include\glslang\MachineIndependent</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\glslang\Public\ShaderLang.h">
+      <Filter>include\Libraries\vulkan\include\glslang\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\glslang\SPIRV\GlslangToSpv.h">
+      <Filter>include\Libraries\vulkan\include\glslang\SPIRV</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\glslang\SPIRV\Logger.h">
+      <Filter>include\Libraries\vulkan\include\glslang\SPIRV</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\glslang\SPIRV\SPVRemapper.h">
+      <Filter>include\Libraries\vulkan\include\glslang\SPIRV</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\glslang\SPIRV\SpvTools.h">
+      <Filter>include\Libraries\vulkan\include\glslang\SPIRV</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\glslang\SPIRV\spvIR.h">
+      <Filter>include\Libraries\vulkan\include\glslang\SPIRV</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\shaderc\env.h">
+      <Filter>include\Libraries\vulkan\include\shaderc</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\shaderc\shaderc.h">
+      <Filter>include\Libraries\vulkan\include\shaderc</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\shaderc\status.h">
+      <Filter>include\Libraries\vulkan\include\shaderc</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\shaderc\visibility.h">
+      <Filter>include\Libraries\vulkan\include\shaderc</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\spirv-headers\GLSL.std.450.h">
+      <Filter>include\Libraries\vulkan\include\spirv-headers</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\spirv-headers\spirv.h">
+      <Filter>include\Libraries\vulkan\include\spirv-headers</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\spirv-tools\libspirv.h">
+      <Filter>include\Libraries\vulkan\include\spirv-tools</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\spirv_cross\GLSL.std.450.h">
+      <Filter>include\Libraries\vulkan\include\spirv_cross</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\spirv_cross\spirv.h">
+      <Filter>include\Libraries\vulkan\include\spirv_cross</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\spirv_cross\spirv_cross_c.h">
+      <Filter>include\Libraries\vulkan\include\spirv_cross</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\vulkan\vk_icd.h">
+      <Filter>include\Libraries\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\vulkan\vk_layer.h">
+      <Filter>include\Libraries\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\vulkan\vk_platform.h">
+      <Filter>include\Libraries\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\vulkan\vk_sdk_platform.h">
+      <Filter>include\Libraries\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\vulkan\vulkan.h">
+      <Filter>include\Libraries\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\vulkan\vulkan_android.h">
+      <Filter>include\Libraries\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\vulkan\vulkan_beta.h">
+      <Filter>include\Libraries\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\vulkan\vulkan_core.h">
+      <Filter>include\Libraries\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\vulkan\vulkan_directfb.h">
+      <Filter>include\Libraries\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\vulkan\vulkan_fuchsia.h">
+      <Filter>include\Libraries\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\vulkan\vulkan_ggp.h">
+      <Filter>include\Libraries\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\vulkan\vulkan_ios.h">
+      <Filter>include\Libraries\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\vulkan\vulkan_macos.h">
+      <Filter>include\Libraries\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\vulkan\vulkan_metal.h">
+      <Filter>include\Libraries\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\vulkan\vulkan_vi.h">
+      <Filter>include\Libraries\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\vulkan\vulkan_wayland.h">
+      <Filter>include\Libraries\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\vulkan\vulkan_win32.h">
+      <Filter>include\Libraries\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\vulkan\vulkan_xcb.h">
+      <Filter>include\Libraries\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\vulkan\vulkan_xlib.h">
+      <Filter>include\Libraries\vulkan\include\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\vulkan\include\vulkan\vulkan_xlib_xrandr.h">
+      <Filter>include\Libraries\vulkan\include\vulkan</Filter>
     </ClInclude>
     <ClInclude Include="include\MaterialLibrary.h">
       <Filter>include</Filter>

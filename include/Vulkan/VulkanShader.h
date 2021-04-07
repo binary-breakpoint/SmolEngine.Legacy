@@ -1,4 +1,5 @@
 #pragma once
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Common/Core.h"
 #include "Common/GraphicsPipelineShaderCreateInfo.h"
 
@@ -17,43 +18,29 @@ namespace Frostium
 	public:
 
 		VulkanShader();
-
 		~VulkanShader();
 
-		/// Init
-		
 		bool Init(GraphicsPipelineShaderCreateInfo* shaderCI);
-
 		bool Reload();
 
-		/// Getters
-
+		// Getters
 		static ShaderType GetShaderType(shaderc_shader_kind shadercType);
-
 		static VkShaderStageFlagBits GetVkShaderStage(ShaderType type);
-
 		std::vector<VkPipelineShaderStageCreateInfo>& GetVkPipelineShaderStages();
 
 	private:
 
-		/// Compilation
-		
+		// Compilation
 		bool LoadOrCompile(const shaderc::Compiler& compiler, const shaderc::CompileOptions& options, const std::string& filePath,
 			shaderc_shader_kind shaderType, bool usePrecompiledBinaries, std::unordered_map<ShaderType, std::vector<uint32_t>>& out_binaryData);
-
 		const shaderc::SpvCompilationResult CompileToSPIRV(const shaderc::Compiler& comp, const shaderc::CompileOptions& options,
 			const std::string& source, shaderc_shader_kind type, const std::string& shaderName) const;
-
 		void Reflect(const std::vector<uint32_t>& binaryData, ShaderType shaderType);
 
-		/// Helpers
-
+		// Helpers
 		bool SaveSPIRVBinaries(const std::string& filePath, const std::vector<uint32_t>& data);
-
 		VkShaderModule LoadSPIRVBinaries(const std::string& filePath, ShaderType type);
-
 		const std::string LoadShaderSource(const std::string& filePath);
-
 		void DeleteShaderModules();
 
 	private:
@@ -75,3 +62,4 @@ namespace Frostium
 		friend class GraphicsPipeline;
 	};
 }
+#endif

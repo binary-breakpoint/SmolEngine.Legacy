@@ -1,6 +1,6 @@
 #include "stdafx.h"
+#ifndef FROSTIUM_OPENGL_IMPL
 #include "Vulkan/VulkanSwapchain.h"
-
 #include "Vulkan/VulkanContext.h"
 #include "Vulkan/VulkanInstance.h"
 #include "Vulkan/VulkanDevice.h"
@@ -710,6 +710,5 @@ namespace Frostium
 	{
 		return m_Height;
 	}
-
-
 }
+#endif
