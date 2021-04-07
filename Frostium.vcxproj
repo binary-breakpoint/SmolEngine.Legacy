@@ -68,25 +68,25 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug (Vulkan)|x64'">
     <OutDir>bin\Debug (Vulkan)-windows-x86_64\Frostium\</OutDir>
-    <IntDir>bin-int\Debug (Vulkan)-windows-x86_64\Frostium\</IntDir>
+    <IntDir>vendor\libs\bin-int\Debug (Vulkan)-windows-x86_64\Frostium\</IntDir>
     <TargetName>Frostium</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (Vulkan)|x64'">
     <OutDir>bin\Release (Vulkan)-windows-x86_64\Frostium\</OutDir>
-    <IntDir>bin-int\Release (Vulkan)-windows-x86_64\Frostium\</IntDir>
+    <IntDir>vendor\libs\bin-int\Release (Vulkan)-windows-x86_64\Frostium\</IntDir>
     <TargetName>Frostium</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug (OpenGL)|x64'">
     <OutDir>bin\Debug (OpenGL)-windows-x86_64\Frostium\</OutDir>
-    <IntDir>bin-int\Debug (OpenGL)-windows-x86_64\Frostium\</IntDir>
+    <IntDir>vendor\libs\bin-int\Debug (OpenGL)-windows-x86_64\Frostium\</IntDir>
     <TargetName>Frostium</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (OpenGL)|x64'">
     <OutDir>bin\Release (OpenGL)-windows-x86_64\Frostium\</OutDir>
-    <IntDir>bin-int\Release (OpenGL)-windows-x86_64\Frostium\</IntDir>
+    <IntDir>vendor\libs\bin-int\Release (OpenGL)-windows-x86_64\Frostium\</IntDir>
     <TargetName>Frostium</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>

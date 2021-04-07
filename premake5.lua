@@ -44,7 +44,7 @@ project "Frostium"
 	staticruntime "on"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+	objdir ("vendor/libs/bin-int/" .. outputdir .. "/%{prj.name}")
 
 	pchheader "stdafx.h"
 	pchsource "src/stdafx.cpp"
@@ -241,7 +241,7 @@ project "Samples"
 	staticruntime "on"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+	objdir ("vendor/libs/bin-int/" .. outputdir .. "/%{prj.name}")
 
 	files
 	{

@@ -69,28 +69,28 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug (Vulkan)|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>..\bin\Debug (Vulkan)-windows-x86_64\Samples\</OutDir>
-    <IntDir>..\bin-int\Debug (Vulkan)-windows-x86_64\Samples\</IntDir>
+    <IntDir>..\vendor\libs\bin-int\Debug (Vulkan)-windows-x86_64\Samples\</IntDir>
     <TargetName>Samples</TargetName>
     <TargetExt>.exe</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (Vulkan)|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>..\bin\Release (Vulkan)-windows-x86_64\Samples\</OutDir>
-    <IntDir>..\bin-int\Release (Vulkan)-windows-x86_64\Samples\</IntDir>
+    <IntDir>..\vendor\libs\bin-int\Release (Vulkan)-windows-x86_64\Samples\</IntDir>
     <TargetName>Samples</TargetName>
     <TargetExt>.exe</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug (OpenGL)|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>..\bin\Debug (OpenGL)-windows-x86_64\Samples\</OutDir>
-    <IntDir>..\bin-int\Debug (OpenGL)-windows-x86_64\Samples\</IntDir>
+    <IntDir>..\vendor\libs\bin-int\Debug (OpenGL)-windows-x86_64\Samples\</IntDir>
     <TargetName>Samples</TargetName>
     <TargetExt>.exe</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (OpenGL)|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>..\bin\Release (OpenGL)-windows-x86_64\Samples\</OutDir>
-    <IntDir>..\bin-int\Release (OpenGL)-windows-x86_64\Samples\</IntDir>
+    <IntDir>..\vendor\libs\bin-int\Release (OpenGL)-windows-x86_64\Samples\</IntDir>
     <TargetName>Samples</TargetName>
     <TargetExt>.exe</TargetExt>
   </PropertyGroup>

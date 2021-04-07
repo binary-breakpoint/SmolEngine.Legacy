@@ -183,6 +183,9 @@
     <ClInclude Include="include\Common\CubeTexture.h">
       <Filter>include\Common</Filter>
     </ClInclude>
+    <ClInclude Include="include\Common\Events.h">
+      <Filter>include\Common</Filter>
+    </ClInclude>
     <ClInclude Include="include\Common\Framebuffer.h">
       <Filter>include\Common</Filter>
     </ClInclude>
@@ -2061,6 +2064,15 @@
     <ClInclude Include="include\Renderer2D.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="include\RendererDebug.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Utils\Frustum.h">
+      <Filter>include\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Utils\GLM.h">
+      <Filter>include\Utils</Filter>
+    </ClInclude>
     <ClInclude Include="include\Utils\ModelImporter.h">
       <Filter>include\Utils</Filter>
     </ClInclude>
@@ -2151,13 +2163,12 @@
     <ClInclude Include="vendor\stb_image\stb_image_write.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="include\RendererDebug.h" />
-    <ClInclude Include="include\Common\Events.h" />
-    <ClInclude Include="include\Utils\GLM.h" />
-    <ClInclude Include="include\Utils\Frustum.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Common\CubeTexture.cpp">
+      <Filter>src\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Common\Events.cpp">
       <Filter>src\Common</Filter>
     </ClCompile>
     <ClCompile Include="src\Common\Framebuffer.cpp">
@@ -2250,6 +2261,12 @@
     <ClCompile Include="src\Renderer2D.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\RendererDebug.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Utils\Frustum.cpp">
+      <Filter>src\Utils</Filter>
+    </ClCompile>
     <ClCompile Include="src\Utils\ModelImporter.cpp">
       <Filter>src\Utils</Filter>
     </ClCompile>
@@ -2337,8 +2354,5 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
-    <ClCompile Include="src\RendererDebug.cpp" />
-    <ClCompile Include="src\Common\Events.cpp" />
-    <ClCompile Include="src\Utils\Frustum.cpp" />
   </ItemGroup>
 </Project>
