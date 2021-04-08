@@ -58,7 +58,8 @@ namespace Frostium
 		static GraphicsContext* GetSingleton();
 		Framebuffer* GetFramebuffer();
 	    EditorCamera* GetEditorCamera();
-	    GLFWwindow* GetNativeWindow();
+		GLFWwindow* GetNativeWindow();
+		Window* GetWindow();
 	    WindowData* GetWindowData();
 
 		float GetTime() const;

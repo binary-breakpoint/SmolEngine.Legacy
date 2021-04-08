@@ -1,4 +1,4 @@
-#include "Main.h"
+#include "PBR.h"
 
 #include <Common/Mesh.h>
 #include <Common/Input.h>
@@ -33,6 +33,7 @@ void GenerateMap(std::vector<Chunk>& map)
 		}
 	}
 }
+
 
 int main(int argc, char** argv)
 {

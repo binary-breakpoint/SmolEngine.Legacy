@@ -39,18 +39,17 @@ namespace Frostium
 
 	private:
 
-		inline static VulkanContext* s_ContextInstance = nullptr;
-		inline static VkCommandBuffer           m_CurrentVkCmdBuffer = nullptr;
-		inline static VulkanCommandBuffer       m_CommandBuffer = {};
-		inline static VulkanCommandPool         m_CommandPool = {};
-		inline static VulkanSwapchain           m_Swapchain = {};
-		inline static VulkanSemaphore           m_Semaphore = {};
-		inline static VulkanInstance            m_Instance = {};
-		inline static VulkanDevice              m_Device = {};
-		GLFWwindow* m_Window = nullptr;
-
-		bool                                    m_IsInitialized = false;
-		bool                                    m_UseImGUI = false;
+		bool                                m_IsInitialized = false;
+		bool                                m_UseImGUI = false;
+		GLFWwindow*                         m_Window = nullptr;
+		inline static VulkanContext*        s_ContextInstance = nullptr;
+		inline static VkCommandBuffer       m_CurrentVkCmdBuffer = nullptr;
+		inline static VulkanCommandBuffer   m_CommandBuffer = {};
+		inline static VulkanCommandPool     m_CommandPool = {};
+		inline static VulkanSwapchain       m_Swapchain = {};
+		inline static VulkanSemaphore       m_Semaphore = {};
+		inline static VulkanInstance        m_Instance = {};
+		inline static VulkanDevice          m_Device = {};
 
 	private:
 

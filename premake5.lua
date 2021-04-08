@@ -232,11 +232,14 @@ project "Frostium"
 		 "FROSTIUM_OPENGL_IMPL"
 	   }
 
+--------------------------------------------------------------------------------- PBR
 
+group "Samples"
+outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
-project "Samples"
-	location "samples"
+project "PBR"
 	kind "ConsoleApp"
+	location "samples"
 	language "C++"
 	cppdialect "C++17"
 	staticruntime "on"
@@ -246,8 +249,8 @@ project "Samples"
 
 	files
 	{
-		"%{prj.name}/**.h",
-		"%{prj.name}/**.cpp",
+		"samples/PBR.h",
+		"samples/PBR.cpp",
 	}
 
 	includedirs
@@ -256,7 +259,7 @@ project "Samples"
 		"include/Libraries",
 		"include/Libraries/spdlog/include",
 		"include/Libraries/cereal/include",
-		"include/Libraries/glm/",
+		"include/Libraries/glm/"
 	}
 
 	links
@@ -273,37 +276,115 @@ project "Samples"
 			"PLATFORM_WIN"
 		}
 
+	filter "configurations:Debug_Vulkan"
+	buildoptions "/MDd"
+	buildoptions "/bigobj"
+	symbols "on"
 
-	--------------------------------------- Debug
+	filter "configurations:Release_Vulkan"
+		buildoptions "/MD"
+		optimize "on"
+
+--------------------------------------------------------- C#
+
+project "CSharpBinding"
+	kind "ConsoleApp"
+	location "samples"
+	language "C++"
+	cppdialect "C++17"
+	staticruntime "on"
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("vendor/libs/bin-int/" .. outputdir .. "/%{prj.name}")
+
+	files
+	{
+		"samples/CSharpBinding.h",
+		"samples/CSharpBinding.cpp",
+	}
+
+	includedirs
+	{
+		"include/",
+		"include/Libraries",
+		"include/Libraries/spdlog/include",
+		"include/Libraries/cereal/include",
+		"include/Libraries/glm/",
+		"vendor/mono/include/mono-2.0"
+	}
+
+	links
+	{
+		"Frostium",
+		"vendor/mono/lib/mono-2.0-sgen.lib"
+	}
+
+	filter "system:windows"
+		systemversion "latest"
+
+		defines
+		{
+			"_CRT_SECURE_NO_WARNINGS",
+			"PLATFORM_WIN"
+		}
 
 	filter "configurations:Debug_Vulkan"
 	buildoptions "/MDd"
 	buildoptions "/bigobj"
 	symbols "on"
 
-	filter "configurations:Debug_OpenGL"
+	filter "configurations:Release_Vulkan"
+		buildoptions "/MD"
+		optimize "on"
+
+------------------------------------------------- 2D
+
+project "2D"
+	kind "ConsoleApp"
+	location "samples"
+	language "C++"
+	cppdialect "C++17"
+	staticruntime "on"
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("vendor/libs/bin-int/" .. outputdir .. "/%{prj.name}")
+
+	files
+	{
+		"samples/2D.h",
+		"samples/2D.cpp",
+	}
+
+	includedirs
+	{
+		"include/",
+		"include/Libraries",
+		"include/Libraries/spdlog/include",
+		"include/Libraries/cereal/include",
+		"include/Libraries/glm/"
+	}
+
+	links
+	{
+		"Frostium"
+	}
+
+	filter "system:windows"
+		systemversion "latest"
+
+		defines
+		{
+			"_CRT_SECURE_NO_WARNINGS",
+			"PLATFORM_WIN"
+		}
+
+	filter "configurations:Debug_Vulkan"
 	buildoptions "/MDd"
 	buildoptions "/bigobj"
 	symbols "on"
 
-	defines
-	{
-		"FROSTIUM_OPENGL_IMPL"
-	}
-
-	--------------------------------------- Release
-
 	filter "configurations:Release_Vulkan"
-	buildoptions "/MD"
-	buildoptions "/bigobj"
-	optimize "on"
+		buildoptions "/MD"
+		optimize "on"
 
-	filter "configurations:Release_OpenGL"
-	buildoptions "/MD"
-	buildoptions "/bigobj"
-	optimize "on"
-
-	defines
-	{
-		"FROSTIUM_OPENGL_IMPL"
-	}
+	group ""

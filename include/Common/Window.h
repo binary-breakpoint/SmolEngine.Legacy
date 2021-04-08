@@ -2,6 +2,8 @@
 
 #include "Common/Core.h"
 
+#include <string>
+
 struct GLFWwindow;
 
 namespace Frostium 

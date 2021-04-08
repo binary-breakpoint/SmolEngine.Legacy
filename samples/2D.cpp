@@ -1,0 +1,75 @@
+#include "PBR.h"
+
+#include <Common/Mesh.h>
+#include <Common/Input.h>
+#include <Utils/Utils.h>
+#include <GraphicsContext.h>
+#include <Renderer.h>
+
+#include <imgui/imgui.h>
+
+using namespace Frostium;
+
+int main(int argc, char** argv)
+{
+	GraphicsContext* context = nullptr;
+	{
+		WindowCreateInfo windoInfo = {};
+		{
+			windoInfo.bFullscreen = false;
+			windoInfo.bVSync = false;
+			windoInfo.Height = 480;
+			windoInfo.Width = 720;
+			windoInfo.Title = "Frostium Example";
+		}
+
+		EditorCameraCreateInfo cameraCI = {};
+		GraphicsContextInitInfo info = {};
+		{
+			info.bMSAA = true;
+			info.bTargetsSwapchain = true;
+			info.bImGUI = true;
+			info.ResourcesFolderPath = "../resources/";
+			info.pWindowCI = &windoInfo;
+			info.pEditorCameraCI = &cameraCI;
+		}
+
+		context = new GraphicsContext(&info);
+	}
+
+	ClearInfo clearInfo = {};
+	bool process = true;
+
+	context->SetEventCallback([&](Event& e) 
+	{
+		if(e.IsType(EventType::WINDOW_CLOSE))
+			process = false;
+	});
+
+	while (process)
+	{
+		context->ProcessEvents();
+		DeltaTime deltaTime = context->CalculateDeltaTime();
+
+		if (context->IsWindowMinimized())
+			continue;
+
+		/* 
+		   @Calculate physics, process script, etc
+		*/
+
+		context->BeginFrame(deltaTime);
+		{
+			ImGui::Begin("Debug Window");
+			{
+				float lastFrameTime = deltaTime.GetTimeSeconds();
+				ImGui::InputFloat("DeltaTime", &lastFrameTime, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
+			}
+			ImGui::End();
+
+			Renderer::BeginScene(&clearInfo);
+			Renderer::EndScene();
+		}
+		context->SwapBuffers();
+	}
+}

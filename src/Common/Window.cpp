@@ -32,16 +32,12 @@ namespace Frostium
 
 	void Window::SetWidth(uint32_t value)
 	{
-		m_Data.Width = value;
-		WindowResizeEvent resizeEvent(m_Data);
-		EventHandler->SendEvent(resizeEvent, EventType::WINDOW_RESIZE, EventCategory::EVENT_APP);
+		glfwSetWindowSize(m_Window, static_cast<int>(value), static_cast<int>(m_Data.Height));
 	}
 
 	void Window::SetHeight(uint32_t value)
 	{
-		m_Data.Height = value;
-		WindowResizeEvent resizeEvent(m_Data);
-		EventHandler->SendEvent(resizeEvent, EventType::WINDOW_RESIZE, EventCategory::EVENT_APP);
+		glfwSetWindowSize(m_Window, static_cast<int>(m_Data.Width), static_cast<int>(value));
 	}
 
 	GLFWwindow* Window::GetNativeWindow() const

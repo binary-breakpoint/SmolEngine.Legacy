@@ -1,8 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Samples", "samples\Samples.vcxproj", "{3A6719E3-A646-987E-AF5E-23551BBDFEDF}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependencies", "Dependencies", "{53E47842-3FC8-3998-A828-34EB942B241A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GLFW", "vendor\glfw\GLFW.vcxproj", "{154B857C-0182-860D-AA6E-6C109684020F}"
@@ -19,6 +17,14 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SPIRV-Cross", "vendor\spir_
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Frostium", "Frostium.vcxproj", "{5E977168-4A64-CC73-737D-BA1B5FA90102}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{C11D5431-2DDE-CF67-F618-19E562981444}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "2D", "samples\2D.vcxproj", "{FB705900-E7FC-870B-50AB-880B3C56880B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CSharpBinding", "samples\CSharpBinding.vcxproj", "{81AB14D9-ED6B-900F-B6A6-D98C2226D5EB}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PBR", "samples\PBR.vcxproj", "{0910880B-7519-887C-FE94-9E7C6A9D937C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug_OpenGL|x64 = Debug_OpenGL|x64
@@ -27,14 +33,6 @@ Global
 		Release_Vulkan|x64 = Release_Vulkan|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{3A6719E3-A646-987E-AF5E-23551BBDFEDF}.Debug_OpenGL|x64.ActiveCfg = Debug_OpenGL|x64
-		{3A6719E3-A646-987E-AF5E-23551BBDFEDF}.Debug_OpenGL|x64.Build.0 = Debug_OpenGL|x64
-		{3A6719E3-A646-987E-AF5E-23551BBDFEDF}.Debug_Vulkan|x64.ActiveCfg = Debug_Vulkan|x64
-		{3A6719E3-A646-987E-AF5E-23551BBDFEDF}.Debug_Vulkan|x64.Build.0 = Debug_Vulkan|x64
-		{3A6719E3-A646-987E-AF5E-23551BBDFEDF}.Release_OpenGL|x64.ActiveCfg = Release_OpenGL|x64
-		{3A6719E3-A646-987E-AF5E-23551BBDFEDF}.Release_OpenGL|x64.Build.0 = Release_OpenGL|x64
-		{3A6719E3-A646-987E-AF5E-23551BBDFEDF}.Release_Vulkan|x64.ActiveCfg = Release_Vulkan|x64
-		{3A6719E3-A646-987E-AF5E-23551BBDFEDF}.Release_Vulkan|x64.Build.0 = Release_Vulkan|x64
 		{154B857C-0182-860D-AA6E-6C109684020F}.Debug_OpenGL|x64.ActiveCfg = Debug_OpenGL|x64
 		{154B857C-0182-860D-AA6E-6C109684020F}.Debug_OpenGL|x64.Build.0 = Debug_OpenGL|x64
 		{154B857C-0182-860D-AA6E-6C109684020F}.Debug_Vulkan|x64.ActiveCfg = Debug_Vulkan|x64
@@ -91,6 +89,30 @@ Global
 		{5E977168-4A64-CC73-737D-BA1B5FA90102}.Release_OpenGL|x64.Build.0 = Release_OpenGL|x64
 		{5E977168-4A64-CC73-737D-BA1B5FA90102}.Release_Vulkan|x64.ActiveCfg = Release_Vulkan|x64
 		{5E977168-4A64-CC73-737D-BA1B5FA90102}.Release_Vulkan|x64.Build.0 = Release_Vulkan|x64
+		{FB705900-E7FC-870B-50AB-880B3C56880B}.Debug_OpenGL|x64.ActiveCfg = Debug_OpenGL|x64
+		{FB705900-E7FC-870B-50AB-880B3C56880B}.Debug_OpenGL|x64.Build.0 = Debug_OpenGL|x64
+		{FB705900-E7FC-870B-50AB-880B3C56880B}.Debug_Vulkan|x64.ActiveCfg = Debug_Vulkan|x64
+		{FB705900-E7FC-870B-50AB-880B3C56880B}.Debug_Vulkan|x64.Build.0 = Debug_Vulkan|x64
+		{FB705900-E7FC-870B-50AB-880B3C56880B}.Release_OpenGL|x64.ActiveCfg = Release_OpenGL|x64
+		{FB705900-E7FC-870B-50AB-880B3C56880B}.Release_OpenGL|x64.Build.0 = Release_OpenGL|x64
+		{FB705900-E7FC-870B-50AB-880B3C56880B}.Release_Vulkan|x64.ActiveCfg = Release_Vulkan|x64
+		{FB705900-E7FC-870B-50AB-880B3C56880B}.Release_Vulkan|x64.Build.0 = Release_Vulkan|x64
+		{81AB14D9-ED6B-900F-B6A6-D98C2226D5EB}.Debug_OpenGL|x64.ActiveCfg = Debug_OpenGL|x64
+		{81AB14D9-ED6B-900F-B6A6-D98C2226D5EB}.Debug_OpenGL|x64.Build.0 = Debug_OpenGL|x64
+		{81AB14D9-ED6B-900F-B6A6-D98C2226D5EB}.Debug_Vulkan|x64.ActiveCfg = Debug_Vulkan|x64
+		{81AB14D9-ED6B-900F-B6A6-D98C2226D5EB}.Debug_Vulkan|x64.Build.0 = Debug_Vulkan|x64
+		{81AB14D9-ED6B-900F-B6A6-D98C2226D5EB}.Release_OpenGL|x64.ActiveCfg = Release_OpenGL|x64
+		{81AB14D9-ED6B-900F-B6A6-D98C2226D5EB}.Release_OpenGL|x64.Build.0 = Release_OpenGL|x64
+		{81AB14D9-ED6B-900F-B6A6-D98C2226D5EB}.Release_Vulkan|x64.ActiveCfg = Release_Vulkan|x64
+		{81AB14D9-ED6B-900F-B6A6-D98C2226D5EB}.Release_Vulkan|x64.Build.0 = Release_Vulkan|x64
+		{0910880B-7519-887C-FE94-9E7C6A9D937C}.Debug_OpenGL|x64.ActiveCfg = Debug_OpenGL|x64
+		{0910880B-7519-887C-FE94-9E7C6A9D937C}.Debug_OpenGL|x64.Build.0 = Debug_OpenGL|x64
+		{0910880B-7519-887C-FE94-9E7C6A9D937C}.Debug_Vulkan|x64.ActiveCfg = Debug_Vulkan|x64
+		{0910880B-7519-887C-FE94-9E7C6A9D937C}.Debug_Vulkan|x64.Build.0 = Debug_Vulkan|x64
+		{0910880B-7519-887C-FE94-9E7C6A9D937C}.Release_OpenGL|x64.ActiveCfg = Release_OpenGL|x64
+		{0910880B-7519-887C-FE94-9E7C6A9D937C}.Release_OpenGL|x64.Build.0 = Release_OpenGL|x64
+		{0910880B-7519-887C-FE94-9E7C6A9D937C}.Release_Vulkan|x64.ActiveCfg = Release_Vulkan|x64
+		{0910880B-7519-887C-FE94-9E7C6A9D937C}.Release_Vulkan|x64.Build.0 = Release_Vulkan|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -102,5 +124,8 @@ Global
 		{C0FF640D-2C14-8DBE-F595-301E616989EF} = {53E47842-3FC8-3998-A828-34EB942B241A}
 		{5A55577D-C6BF-0BF4-0FFE-BC997BA7E948} = {53E47842-3FC8-3998-A828-34EB942B241A}
 		{30B15D9A-9C66-D68F-255B-D066910FCD93} = {53E47842-3FC8-3998-A828-34EB942B241A}
+		{FB705900-E7FC-870B-50AB-880B3C56880B} = {C11D5431-2DDE-CF67-F618-19E562981444}
+		{81AB14D9-ED6B-900F-B6A6-D98C2226D5EB} = {C11D5431-2DDE-CF67-F618-19E562981444}
+		{0910880B-7519-887C-FE94-9E7C6A9D937C} = {C11D5431-2DDE-CF67-F618-19E562981444}
 	EndGlobalSection
 EndGlobal

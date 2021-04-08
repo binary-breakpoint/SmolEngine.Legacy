@@ -145,7 +145,6 @@ namespace Frostium
 	void GraphicsContext::OnResize(uint32_t* width, uint32_t* height)
 	{
 #ifdef  FROSTIUM_OPENGL_IMPL
-		//;
 #else
 		m_VulkanContext.OnResize(width, height);
 #endif
@@ -188,6 +187,11 @@ namespace Frostium
 	bool GraphicsContext::IsWindowMinimized() const
 	{
 		return m_WindowMinimized;
+	}
+
+	Window* GraphicsContext::GetWindow()
+	{
+		return &m_Window;
 	}
 
 	float GraphicsContext::GetTime() const
