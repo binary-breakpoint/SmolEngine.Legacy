@@ -8,8 +8,8 @@ Frostium3D
   - Shadow Mapping
   - MSAA / FXAA
   - SSAO
-  - 2D/3D Renderer
-  - ImGUI 
+  - 2D and 3D renderers
+  - ImGUI Integration
 ### Usage
 The first step is to initialize the graphical context class:
 ```cpp
@@ -22,13 +22,13 @@ The first step is to initialize the graphical context class:
 int main(int argc, char** argv)
 {
 	GraphicsContext* context = nullptr;
-	WindowCreateInfo windoInfo = {};
+	WindowCreateInfo windowCI = {};
 	{
-		windoInfo.bFullscreen = false;
-		windoInfo.bVSync = false;
-		windoInfo.Height = 480;
-		windoInfo.Width = 720;
-		windoInfo.Title = "Frostium Example";
+		windowCI.bFullscreen = false;
+		windowCI.bVSync = false;
+		windowCI.Height = 480;
+		windowCI.Width = 720;
+		windowCI.Title = "Frostium Example";
 	}
 
 	EditorCameraCreateInfo cameraCI = {}; // default camera
@@ -38,14 +38,14 @@ int main(int argc, char** argv)
 		info.bMSAA = true;
 		info.bTargetsSwapchain = true;
 		info.ResourcesFolderPath = "../resources/";
-		info.pWindowCI = &windoInfo;
+		info.pWindowCI = &windowCI;
 		info.pEditorCameraCI = &cameraCI;
 	}
 
 	context = new GraphicsContext(&info);
 }
 ```
-Once graphical context is initialized, set event callback:
+Once graphics context is initialized, set event callback:
 ```cpp
 	bool process = true;
 	context->SetEventCallback([&](Event& e)
