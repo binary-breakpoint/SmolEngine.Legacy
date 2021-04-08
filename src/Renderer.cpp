@@ -12,7 +12,6 @@
 #include "Common/Mesh.h"
 #include "Common/Texture.h"
 
-#include "Utils/Frustum.h"
 #include "Utils/Utils.h"
 
 #ifdef FROSTIUM_OPENGL_IMPL
@@ -62,6 +61,7 @@ namespace Frostium
 	{
 		RendererData()
 		{
+			m_Frustum = GraphicsContext::GetSingleton()->GetFrustum();
 			m_Packages.reserve(s_MaxPackages);
 		}
 
@@ -146,7 +146,7 @@ namespace Frostium
 		float                            m_FarClip = 1000.0f;
 		glm::vec3                        m_ShadowLightDirection = glm::vec3(0.0f, 0.0f, 0.0f);
 
-		Frustum                          m_Frustum = {};
+		Frustum*                         m_Frustum = nullptr;
 		DebugView                        m_DebugView = {};
 		SceneData                        m_SceneData = {};
 		PushConstant                     m_MainPushConstant = {};
@@ -202,7 +202,7 @@ namespace Frostium
 			s_Data->m_FarClip = info->farClip;
 		}
 
-		s_Data->m_Frustum.Update(s_Data->m_SceneData.Projection * s_Data->m_SceneData.View);
+		s_Data->m_Frustum->Update(s_Data->m_SceneData.Projection * s_Data->m_SceneData.View);
 		s_Data->m_MainPipeline->BeginCommandBuffer(true);
 		s_Data->m_SkyboxPipeline->BeginCommandBuffer(true);
 		if (clearInfo->bClear)
@@ -368,7 +368,7 @@ namespace Frostium
 	void Renderer::SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation,
 		const glm::vec3& scale, Mesh* mesh, int32_t materialID)
 	{
-		if (s_Data->m_Frustum.CheckSphere(pos))
+		if (s_Data->m_Frustum->CheckSphere(pos))
 		{
 			if (s_Data->m_Objects >= s_Data->m_MaxObjects)
 				StartNewBacth();

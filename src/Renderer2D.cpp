@@ -9,12 +9,19 @@ namespace Frostium
 {
 	struct Instance
 	{
-		Texture* Texture;
+		uint32_t  Layer = 0;
+		uint32_t  TextureIndex = 0;
 
-		glm::vec3 Position;
-		glm::vec3 Rotation;
-		glm::vec3 Scale;
-		glm::vec4 Color;
+		glm::vec3 Position = glm::vec3(1.0f);
+		glm::vec3 Rotation = glm::vec3(0.0f);
+		glm::vec3 Scale = glm::vec3(1.0f);
+		glm::vec4 Color = glm::vec4(1.0f);
+	};
+
+	struct CmdBuffer
+	{
+		uint32_t  Instances = 0;
+		uint32_t  LastElement = 0;
 	};
 
 	struct ShaderInstance
@@ -28,49 +35,44 @@ namespace Frostium
 	{
 		Renderer2DStorage()
 		{
-			Tetxures.resize(Renderer2D::MaxTextureSlot);
+			Frustum = GraphicsContext::GetSingleton()->GetFrustum();
+			Textures.resize(Renderer2D::MaxTextureSlot);
 		}
 
-		~Renderer2DStorage()
-		{
-
-		}
+		~Renderer2DStorage() { }
 
 		// Limits
 		static const uint32_t     Light2DBufferMaxSize = 100;
 		static const uint32_t     MaxQuads = 15000;
 		static const uint32_t     MaxLayers = 12;
-
 		// Count tracking
 		uint32_t                  InstIndex = 0;
 		uint32_t                  TexIndex = 1; // 0 - white dummy texture
-
+		// Framebuffers
+		Framebuffer               DeferredFB = {};
+		Framebuffer*              MainFB = nullptr;
 		// Pipelines
 		GraphicsPipeline          DeferredPipeline = {};
 		GraphicsPipeline          CombinationPipeline = {};
 		GraphicsPipeline          TextPipeline = {};
-
+		// Refs
+		Frustum*                  Frustum = nullptr;
+		Texture*                  WhiteTetxure = nullptr;
 		// Meshes
 		Mesh                      PlaneMesh = {};
-
-		// Framebuffers
-		Framebuffer               DeferredFB = {};
-		Framebuffer*              MainFB = nullptr;
-
 		// UBO's and SSBO's
-		SceneData                 m_SceneData = {};
+		SceneData                 SceneData = {};
 		ShaderInstance            ShaderInstances[MaxQuads];
-
 		// Buffers
 		Instance                  Instances[MaxQuads];
-		std::vector<Texture*>     Tetxures;
-
+		CmdBuffer                 CommandBuffer[MaxLayers];
+		std::vector<Texture*>     Textures; 
 		// Bindings
-		const uint32_t     StorageBufferBP = 1;
-		const uint32_t     SamplersBP = 2;
-
+		const uint32_t            InstancesBP = 1;
+		const uint32_t            SamplersBP = 2;
+		const uint32_t            SceneDataBP = 27;
 		// Sizes
-		const size_t       ShaderInstanceSize = sizeof(ShaderInstance);
+		const size_t              ShaderInstanceSize = sizeof(ShaderInstance);
 
 	};
 
@@ -83,7 +85,7 @@ namespace Frostium
 
 		CreateFramebuffers();
 		CreatePipelines();
-		LoadMeshes();
+		Prepare();
 	}
 
 	void Renderer2D::Shutdown()
@@ -96,16 +98,17 @@ namespace Frostium
 		if (GraphicsContext::GetSingleton()->m_UseEditorCamera)
 		{
 			EditorCamera* camera = GraphicsContext::GetSingleton()->GetEditorCamera();
-			s_Data->m_SceneData.View = camera->GetViewMatrix();
-			s_Data->m_SceneData.Projection = camera->GetProjection();
+			s_Data->SceneData.View = camera->GetViewMatrix();
+			s_Data->SceneData.Projection = camera->GetProjection();
 		}
 
 		if (info)
 		{
-			s_Data->m_SceneData.View = info->view;
-			s_Data->m_SceneData.Projection = info->proj;
+			s_Data->SceneData.View = info->view;
+			s_Data->SceneData.Projection = info->proj;
 		}
 
+		s_Data->Frustum->Update(s_Data->SceneData.Projection * s_Data->SceneData.View);
 		s_Data->CombinationPipeline.BeginCommandBuffer(true);
 		s_Data->DeferredPipeline.BeginCommandBuffer(true);
 		//s_Data->TextPipeline.BeginCommandBuffer(true);
@@ -122,7 +125,7 @@ namespace Frostium
 		s_Data->DeferredPipeline.EndRenderPass();
 
 		StartNewBatch();
-		Stats->Reset();
+		Reset();
 	}
 
 	void Renderer2D::EndScene()
@@ -133,34 +136,136 @@ namespace Frostium
 		//s_Data->TextPipeline.EndCommandBuffer();
 	}
 
-	void Renderer2D::SubmitSprite(const glm::vec3& worldPos, const glm::vec2& scale, float rotation, uint32_t layerIndex, const Texture* texture)
+	void Renderer2D::SubmitSprite(const glm::vec3& worldPos, const glm::vec2& scale, const glm::vec4& color, float rotation,
+		uint32_t layerIndex, Texture* texture, GraphicsPipeline* material)
 	{
+		if (s_Data->Frustum->CheckSphere(worldPos))
+		{
+			if (s_Data->InstIndex >= Renderer2DStorage::MaxQuads)
+				StartNewBatch();
 
+			uint32_t index = s_Data->InstIndex;
+
+			s_Data->Instances[index].Layer = layerIndex > Renderer2DStorage::MaxLayers ? Renderer2DStorage::MaxLayers : layerIndex;
+			s_Data->Instances[index].Color = color;
+			s_Data->Instances[index].Position = worldPos;
+			s_Data->Instances[index].Rotation = { rotation, rotation, 0 };
+			s_Data->Instances[index].Scale = { scale, 1 };
+			s_Data->Instances[index].TextureIndex = AddTexture(texture);
+
+			s_Data->InstIndex++;
+		}
 	}
 
-	void Renderer2D::SubmitQuad(const glm::vec3& worldPos, const glm::vec2& scale, const glm::vec4& color, float rotation, uint32_t layerIndex)
+	void Renderer2D::SubmitQuad(const glm::vec3& worldPos, const glm::vec2& scale, const glm::vec4& color,
+		float rotation, uint32_t layerIndex, GraphicsPipeline* material)
 	{
+		if (s_Data->Frustum->CheckSphere(worldPos))
+		{
 
+		}
 	}
 
-	void Renderer2D::SubmitText(const glm::vec3& pos, const glm::vec2& scale, const Texture* texture, const glm::vec4& color)
+	void Renderer2D::SubmitText(const glm::vec3& worldPos, const glm::vec2& scale, Texture* texture, const glm::vec4& color)
 	{
+		if (s_Data->Frustum->CheckSphere(worldPos))
+		{
 
+		}
 	}
 
 	void Renderer2D::SubmitLight2D(const glm::vec3& worldPos, const glm::vec4& color, float radius, float lightIntensity)
 	{
+		if (s_Data->Frustum->CheckSphere(worldPos, 5.0f))
+		{
 
+		}
 	}
 
 	void Renderer2D::Flush()
 	{
+		// Fill command buffer
+		for (uint32_t i = 0; i < s_Data->InstIndex; ++i)
+		{
+			for (uint32_t l = 0; l < Renderer2DStorage::MaxLayers; ++l)
+			{
+				Instance& inst = s_Data->Instances[i];
+				if (l == inst.Layer)
+				{
+					s_Data->CommandBuffer[l].LastElement = i;
+					s_Data->CommandBuffer[l].Instances++;
 
+					s_Data->ShaderInstances[i].Color = inst.Color;
+					s_Data->ShaderInstances[i].Params.x = inst.TextureIndex;
+					s_Data->ShaderInstances[i].Params.w = inst.Layer;
+					Utils::ComposeTransform(inst.Position, inst.Rotation, inst.Scale, false, s_Data->ShaderInstances[i].Model);
+				}
+			}
+		}
+
+		// Update UBO/SSBO
+		{
+			// Scene data
+			s_Data->DeferredPipeline.SubmitBuffer(s_Data->SceneDataBP, sizeof(SceneData), &s_Data->SceneData);
+			// Instances data
+			s_Data->DeferredPipeline.SubmitBuffer(s_Data->InstancesBP, s_Data->ShaderInstanceSize * s_Data->InstIndex, s_Data->ShaderInstances);
+		}
+
+		// Deferred Pass
+		{
+			uint32_t dataOffset = 0;
+			s_Data->DeferredPipeline.BeginRenderPass();
+			{
+				for (uint32_t i = 0; i < Renderer2DStorage::MaxLayers; ++i)
+				{
+					auto& cmd = s_Data->CommandBuffer[i];
+					if (cmd.Instances > 0)
+					{
+						dataOffset = cmd.LastElement - cmd.Instances;
+						s_Data->DeferredPipeline.SubmitPushConstant(ShaderType::Vertex, sizeof(uint32_t), &dataOffset);
+						s_Data->DeferredPipeline.DrawMesh(&s_Data->PlaneMesh, DrawMode::Triangle, cmd.Instances);
+					}
+				}
+			}
+			s_Data->DeferredPipeline.EndRenderPass();
+		}
+
+		// Combination Pass (Lighting + Post-Processing)
+		{
+			s_Data->CombinationPipeline.BeginRenderPass();
+			{
+				s_Data->CombinationPipeline.DrawIndexed();
+			}
+			s_Data->CombinationPipeline.EndRenderPass();
+		}
 	}
 
 	void Renderer2D::StartNewBatch()
 	{
 
+	}
+
+	void Renderer2D::Reset()
+	{
+		s_Data->InstIndex = 0;
+		s_Data->TexIndex = 1;
+
+		Stats->Reset();
+	}
+
+	uint32_t Renderer2D::AddTexture(Texture* tex_)
+	{
+		for (uint32_t i = 0; i < s_Data->TexIndex; ++i)
+		{
+			Texture* tex = s_Data->Textures[i];
+			if (tex == tex_)
+				return i;
+		}
+
+		uint32_t index = s_Data->TexIndex;
+		s_Data->Textures[index] = tex_;
+		s_Data->TexIndex++;
+		return index;
 	}
 
 	void Renderer2D::CreatePipelines()
@@ -199,11 +304,23 @@ namespace Frostium
 
 		// Combination pipeline
 		{
+			float quadVertices[] = {
+				// positions   // texCoords
+				-1.0f, -1.0f,  0.0f, 1.0f,
+				 1.0f, -1.0f,  1.0f, 1.0f,
+				 1.0f,  1.0f,  1.0f, 0.0f,
+				-1.0f,  1.0f,  0.0f, 0.0f
+			};
+
 			BufferLayout Fullscreenlayout =
 			{
 				{ DataTypes::Float2, "aPos" },
 				{ DataTypes::Float2, "aUV" },
 			};
+
+			uint32_t squareIndices[6] = { 0, 1, 2, 2, 3, 0 };
+			auto FullScreenVB = VertexBuffer::Create(quadVertices, sizeof(quadVertices));
+			auto FullScreenID = IndexBuffer::Create(squareIndices, 6);
 
 			GraphicsPipelineShaderCreateInfo shaderCI = {};
 			{
@@ -221,6 +338,8 @@ namespace Frostium
 
 			assert(s_Data->CombinationPipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
 
+			s_Data->CombinationPipeline.SetVertexBuffers({ FullScreenVB });
+			s_Data->CombinationPipeline.SetIndexBuffers({ FullScreenID });
 			s_Data->CombinationPipeline.UpdateSampler(&s_Data->DeferredFB, 5, "Albedro");
 			s_Data->CombinationPipeline.UpdateSampler(&s_Data->DeferredFB, 6, "Position");
 			s_Data->CombinationPipeline.UpdateSampler(&s_Data->DeferredFB, 7, "Normals");
@@ -247,8 +366,11 @@ namespace Frostium
 		}
 	}
 
-	void Renderer2D::LoadMeshes()
+	void Renderer2D::Prepare()
 	{
+		s_Data->WhiteTetxure = GraphicsContext::s_Instance->m_DummyTexure.get();
+		s_Data->Textures[0] = s_Data->WhiteTetxure;
+
 		Mesh::Create(GraphicsContext::s_Instance->m_ResourcesFolderPath + "Models/plane.glb", &s_Data->PlaneMesh);
 	}
 }

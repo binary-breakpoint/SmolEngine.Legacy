@@ -13,7 +13,9 @@
 #include "Common/Framebuffer.h"
 #include "Common/Events.h"
 #include "Common/Texture.h"
+#include "Common/Flags.h"
 
+#include "Utils/Frustum.h"
 #include "ImGUI/ImGuiContext.h"
 
 #include <functional>
@@ -27,9 +29,9 @@ namespace Frostium
 
 	struct GraphicsContextInitInfo
 	{
+		Flags                    Flags = Features_Renderer_3D_Flags;
 		bool                     bMSAA = true;
 		bool                     bTargetsSwapchain = true;
-		bool                     bImGUI = true;
 		EditorCameraCreateInfo*  pEditorCameraCI = nullptr;
 		WindowCreateInfo*        pWindowCI = nullptr;
 		std::string              ResourcesFolderPath = "../resources/";
@@ -40,7 +42,6 @@ namespace Frostium
 	public:
 
 		GraphicsContext(GraphicsContextInitInfo* info);
-
 		~GraphicsContext();
 
 		void ProcessEvents();
@@ -51,9 +52,6 @@ namespace Frostium
 		// Setters
 		void SetEventCallback(std::function<void(Event&)> callback);
 
-		// Helpers
-		DeltaTime CalculateDeltaTime();
-
 		// Getters
 		static GraphicsContext* GetSingleton();
 		Framebuffer* GetFramebuffer();
@@ -61,17 +59,20 @@ namespace Frostium
 		GLFWwindow* GetNativeWindow();
 		Window* GetWindow();
 	    WindowData* GetWindowData();
+		Frustum* GetFrustum();
 
 		float GetTime() const;
 		float GetLastFrameTime() const;
+
+		// Helpers
+		DeltaTime CalculateDeltaTime();
+		bool IsWindowMinimized() const;
 
 #ifdef  FROSTIUM_OPENGL_IMPL
 		static OpenglRendererAPI* GetOpenglRendererAPI();
 #else
 		static VulkanContext& GetVulkanContext();
 #endif
-		// Helpers
-		bool IsWindowMinimized() const;
 
 	private:
 
@@ -81,28 +82,29 @@ namespace Frostium
 
 	private:
 
-		static GraphicsContext*              s_Instance;
-		Ref<Texture>                         m_DummyTexure = nullptr;
-		EditorCamera*                        m_EditorCamera = nullptr;
-		MaterialLibrary*                     m_MaterialLibrary = nullptr;
-		bool                                 m_Initialized = false;
-		bool                                 m_WindowMinimized = false;
-		const bool                           m_UseImGUI = false;
-		const bool                           m_UseEditorCamera = false;
-		float                                m_LastFrameTime = 1.0f;
+		static GraphicsContext*         s_Instance;
+		Ref<Texture>                    m_DummyTexure = nullptr;
+		EditorCamera*                   m_EditorCamera = nullptr;
+		MaterialLibrary*                m_MaterialLibrary = nullptr;
+		bool                            m_Initialized = false;
+		bool                            m_WindowMinimized = false;
+		const bool                      m_UseImGUI = false;
+		const bool                      m_UseEditorCamera = false;
+		float                           m_LastFrameTime = 1.0f;
 #ifdef  FROSTIUM_OPENGL_IMPL
-		OpenglContext                        m_OpenglContext = {};
-		OpenglRendererAPI*                   m_RendererAPI = nullptr;
+		OpenglContext                   m_OpenglContext = {};
+		OpenglRendererAPI*              m_RendererAPI = nullptr;
 #else
-		VulkanContext                        m_VulkanContext = {};
+		VulkanContext                   m_VulkanContext = {};
 #endif
-		Framebuffer                          m_Framebuffer = {};
-		Window                               m_Window = {};
-		ImGuiContext                         m_ImGuiContext = {};
-		EventSender                          m_EventHandler = {};
+		Frustum                         m_Frustum = {};
+		Framebuffer                     m_Framebuffer = {};
+		Window                          m_Window = {};
+		ImGuiContext                    m_ImGuiContext = {};
+		EventSender                     m_EventHandler = {};
 
-		std::string                          m_ResourcesFolderPath = "";
-		std::function<void(Event&)>          m_EventCallback;
+		std::string                     m_ResourcesFolderPath = "";
+		std::function<void(Event&)>     m_EventCallback;
 
 	private:
 

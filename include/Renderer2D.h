@@ -3,6 +3,7 @@
 
 namespace Frostium
 {
+	class GraphicsPipeline;
 	class Renderer2D
 	{
 	public:
@@ -13,12 +14,12 @@ namespace Frostium
 		static void EndScene();
 
 		// Submit
-		static void SubmitSprite(const glm::vec3& worldPos, const glm::vec2& scale,
-			float rotation, uint32_t layerIndex, const Texture* texture);
+		static void SubmitSprite(const glm::vec3& worldPos, const glm::vec2& scale, const glm::vec4& color,
+			float rotation, uint32_t layerIndex, Texture* texture, GraphicsPipeline* material = nullptr);
 		static void SubmitQuad(const glm::vec3& worldPos, const glm::vec2& scale, 
-			const glm::vec4& color, float rotation, uint32_t layerIndex);
+			const glm::vec4& color, float rotation, uint32_t layerIndex, GraphicsPipeline* material = nullptr);
 		static void SubmitText(const glm::vec3& pos, const glm::vec2& scale,
-			const Texture* texture, const glm::vec4& color = glm::vec4(1.0f));
+			Texture* texture, const glm::vec4& color = glm::vec4(1.0f));
 		static void SubmitLight2D(const glm::vec3& worldPos, const glm::vec4& color, 
 			float radius, float lightIntensity);
 
@@ -26,10 +27,13 @@ namespace Frostium
 
 		static void Flush();
 		static void StartNewBatch();
+		static void Reset();
+
+		static uint32_t AddTexture(Texture* tex);
 
 		static void CreatePipelines();
 		static void CreateFramebuffers();
-		static void LoadMeshes();
+		static void Prepare();
 
 	public:
 

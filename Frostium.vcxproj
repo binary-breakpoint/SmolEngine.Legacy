@@ -188,6 +188,7 @@
     <ClInclude Include="include\Common\Core.h" />
     <ClInclude Include="include\Common\CubeTexture.h" />
     <ClInclude Include="include\Common\Events.h" />
+    <ClInclude Include="include\Common\Flags.h" />
     <ClInclude Include="include\Common\Framebuffer.h" />
     <ClInclude Include="include\Common\FramebufferSpecification.h" />
     <ClInclude Include="include\Common\GraphicsPipelineShaderCreateInfo.h" />

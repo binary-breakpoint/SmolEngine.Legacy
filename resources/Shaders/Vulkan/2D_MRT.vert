@@ -33,6 +33,11 @@ layout(std140, binding = 1) readonly buffer ShaderDataBuffer
 	Instance data[];
 };
 
+layout(push_constant) uniform ConstantData
+{
+	uint dataOffset;
+};
+
 struct VS_OUT_
 {
 	vec2 uv;
@@ -46,7 +51,7 @@ layout (location = 0) out VS_OUT_ vs_out;
 
 void main()
 {
-	mat4 model = data[gl_InstanceIndex].model;
+	mat4 model = data[dataOffset + gl_InstanceIndex].model;
 
 	vs_out.color = data[gl_InstanceIndex].color;
 	vs_out.texIndex = data[gl_InstanceIndex].params.x;

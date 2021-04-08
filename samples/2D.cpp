@@ -4,7 +4,7 @@
 #include <Common/Input.h>
 #include <Utils/Utils.h>
 #include <GraphicsContext.h>
-#include <Renderer.h>
+#include <Renderer2D.h>
 
 #include <imgui/imgui.h>
 
@@ -26,9 +26,9 @@ int main(int argc, char** argv)
 		EditorCameraCreateInfo cameraCI = {};
 		GraphicsContextInitInfo info = {};
 		{
+			info.Flags = Features_Renderer_2D_Flags | Features_ImGui_Flags;
 			info.bMSAA = true;
 			info.bTargetsSwapchain = true;
-			info.bImGUI = true;
 			info.ResourcesFolderPath = "../resources/";
 			info.pWindowCI = &windoInfo;
 			info.pEditorCameraCI = &cameraCI;
@@ -36,6 +36,9 @@ int main(int argc, char** argv)
 
 		context = new GraphicsContext(&info);
 	}
+
+	Texture texture = {};
+	Texture::Create("Assets/Wood.png", &texture);
 
 	ClearInfo clearInfo = {};
 	bool process = true;
@@ -67,8 +70,9 @@ int main(int argc, char** argv)
 			}
 			ImGui::End();
 
-			Renderer::BeginScene(&clearInfo);
-			Renderer::EndScene();
+			Renderer2D::BeginScene(&clearInfo);
+			Renderer2D::SubmitSprite({ 0, 0, 0 }, { 1, 1 }, { 1, 1, 1, 1 }, 0, 1, &texture);
+			Renderer2D::EndScene();
 		}
 		context->SwapBuffers();
 	}

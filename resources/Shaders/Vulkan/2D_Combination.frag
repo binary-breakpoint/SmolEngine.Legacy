@@ -25,5 +25,5 @@ void main()
 	vec4 position = texture(positionSampler, uv);
 	vec4 normals = texture(normalsSampler, uv);
 
-	color = vec4(1, 1, 1, 1);
+	color = albedro;
 }

@@ -15,7 +15,7 @@ namespace Frostium
 
 	GraphicsContext::GraphicsContext(GraphicsContextInitInfo* info)
 		:
-		m_UseImGUI(info->bImGUI),
+		m_UseImGUI(info->Flags & Features_ImGui_Flags),
 		m_UseEditorCamera(info->pEditorCameraCI != nullptr ? true: false)
 	{
 		if (m_Initialized || !info->pWindowCI)
@@ -52,7 +52,7 @@ namespace Frostium
 			framebufferCI.bUseMSAA = info->bMSAA;
 			framebufferCI.bTargetsSwapchain = info->bTargetsSwapchain;
 			framebufferCI.bResizable = true;
-			framebufferCI.bUsedByImGui = info->bImGUI && !info->bTargetsSwapchain ? true : false;
+			framebufferCI.bUsedByImGui = m_UseImGUI && !info->bTargetsSwapchain ? true : false;
 			framebufferCI.Attachments = { FramebufferAttachment(AttachmentFormat::Color) };
 
 			Framebuffer::Create(framebufferCI, &m_Framebuffer);
@@ -77,8 +77,12 @@ namespace Frostium
 			m_ImGuiContext.Init();
 		}
 
-		Renderer::Init();
-		Renderer2D::Init();
+		if (info->Flags & Features_Renderer_3D_Flags)
+			Renderer::Init();
+
+		if (info->Flags & Features_Renderer_2D_Flags)
+			Renderer2D::Init();
+
 #ifdef  FROSTIUM_OPENGL_IMPL
 		GetOpenglRendererAPI()->Init();
 #endif
@@ -182,6 +186,11 @@ namespace Frostium
 	WindowData* GraphicsContext::GetWindowData()
 	{
 		return m_Window.GetWindowData();
+	}
+
+	Frustum* GraphicsContext::GetFrustum()
+	{
+		return &m_Frustum;
 	}
 
 	bool GraphicsContext::IsWindowMinimized() const

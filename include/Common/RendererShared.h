@@ -5,10 +5,14 @@
 #include "Common/SubTexture.h"
 #include "Common/BufferLayout.h"
 
+#include "EditorCamera.h"
 #include "Utils/GLM.h"
+
+#include <glm/glm.hpp>
 
 namespace Frostium
 {
+	class EditorCamera;
 	enum class DebugPrimitives : uint16_t
 	{
 		None = 0,
@@ -18,6 +22,17 @@ namespace Frostium
 
 	struct BeginSceneInfo
 	{
+		void Update(EditorCamera* cam)
+		{
+			view = cam->GetViewMatrix();
+			proj = cam->GetProjection();
+			pos = cam->GetPosition();
+			nearClip = cam->GetNearClip();
+			farClip = cam->GetFarClip();
+		}
+
+	public:
+
 		float          nearClip;
 		float          farClip;
 

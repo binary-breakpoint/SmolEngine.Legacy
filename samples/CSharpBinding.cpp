@@ -3,7 +3,6 @@
 #include <GraphicsContext.h>
 #include <Renderer.h>
 
-#include <imgui/imgui.h>
 #include <mono/metadata/assembly.h>
 #include <mono/jit/jit.h>
 
@@ -68,9 +67,9 @@ int main(int argc, char** argv)
 	EditorCameraCreateInfo cameraCI = {};
 	GraphicsContextInitInfo info = {};
 	{
+		info.Flags = Features_Renderer_3D_Flags;
 		info.bMSAA = true;
 		info.bTargetsSwapchain = true;
-		info.bImGUI = true;
 		info.ResourcesFolderPath = "../resources/";
 		info.pWindowCI = &windoInfo;
 		info.pEditorCameraCI = &cameraCI;
