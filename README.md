@@ -104,6 +104,7 @@ More samples can be found [here.](https://github.com/YellowDummy/Frostium3D/tree
 - [ktx](https://github.com/KhronosGroup/KTX-Software)
 - [glm](https://github.com/g-truc/glm)
 - [gli](https://github.com/g-truc/gli)
+- [assimp](https://github.com/assimp/assimp)
 - [imgui](https://github.com/ocornut/imgui)
 
 ## Limitations
