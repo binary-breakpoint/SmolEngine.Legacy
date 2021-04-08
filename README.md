@@ -1,6 +1,15 @@
 Frostium3D
 =====
 ![SmolEngine](https://i.imgur.com/W81qlzQ.png)
+### Current State
+  - Multiple rendering API backends: Vulkan - 100%, OpenGL - 70%
+  - Physically Based Rendering (PBR)
+  - Deferred Shading
+  - Shadow Mapping
+  - MSAA / FXAA
+  - SSAO
+  - 2D/3D Renderer
+  - ImGUI 
 ### Usage
 The first step is to initialize the graphical context class:
 ```cpp
