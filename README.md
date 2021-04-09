@@ -11,7 +11,7 @@ Frostium3D
   - 2D and 3D renderers
   - ImGUI Integration
 ### Usage
-The first step is to initialize the graphical context class:
+The first step is to initialize graphics context class:
 ```cpp
 #include <Common/Mesh.h>
 #include <GraphicsContext.h>
