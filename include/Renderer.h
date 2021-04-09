@@ -43,6 +43,7 @@ namespace Frostium
 
 		// Getters
 		static Framebuffer* GetFramebuffer();
+		static uint32_t GetNumObjects();
 
 		// Helpers
 		static bool UpdateMaterials();

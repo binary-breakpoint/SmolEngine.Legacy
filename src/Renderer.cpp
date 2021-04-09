@@ -282,7 +282,7 @@ namespace Frostium
 			s_Data->m_MainPipeline->SubmitBuffer(s_Data->m_ShaderDataBinding, sizeof(InstanceData) * s_Data->m_InstanceDataIndex, &s_Data->m_InstancesData);
 
 			// Update materials
-			UpdateMaterials();
+			//UpdateMaterials();
 		}
 
 		// Depth Pass
@@ -371,7 +371,7 @@ namespace Frostium
 	void Renderer::SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation,
 		const glm::vec3& scale, Mesh* mesh, int32_t materialID)
 	{
-		if (s_Data->m_Frustum->CheckSphere(pos))
+		if (s_Data->m_Frustum->CheckSphere(pos, 3.0f))
 		{
 			if (s_Data->m_Objects >= s_Data->m_MaxObjects)
 				StartNewBacth();
@@ -791,6 +791,11 @@ namespace Frostium
 	Framebuffer* Renderer::GetFramebuffer()
 	{
 		return s_Data->m_Framebuffer;
+	}
+
+	uint32_t Renderer::GetNumObjects()
+	{
+		return s_Data->m_Objects;
 	}
 
 }

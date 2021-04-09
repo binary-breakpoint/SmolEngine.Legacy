@@ -91,8 +91,7 @@ namespace Frostium
 		{
 			cereal::JSONInputArchive input{ storage };
 			input(out_info.Metallic, out_info.Albedro,
-				out_info.Roughness, out_info.Name,
-				out_info.TexturesFilePaths);
+				out_info.Roughness, out_info.TexturesFilePaths);
 		}
 
 		return true;
@@ -122,7 +121,7 @@ namespace Frostium
 		return s_Instance;
 	}
 
-	int32_t MaterialLibrary::AddTexture(const Ref<Texture>& texture)
+	int32_t MaterialLibrary::AddTexture(Texture* texture)
 	{
 		int32_t index = -1;
 		if (texture)
@@ -186,12 +185,27 @@ namespace Frostium
 
 	void MaterialLibrary::GetTextures(std::vector<Texture*>& out_textures) const
 	{
-		out_textures.clear();
-		out_textures.resize(m_Textures.size());
+		out_textures = m_Textures;
+	}
 
-		for (size_t i = 0; i < m_Textures.size(); ++i)
-		{
-			out_textures[i] = m_Textures[i].get();
-		}
+	void MaterialCreateInfo::SetMetalness(float value)
+	{
+		Metallic = value;
+	}
+
+	void MaterialCreateInfo::SetRoughness(float value)
+	{
+		Roughness = value;
+	}
+
+	void MaterialCreateInfo::SetAlbedro(float value)
+	{
+		Albedro = value;
+	}
+
+	void MaterialCreateInfo::SetTexture(MaterialTexture type, Texture* texture, const std::string& filePath)
+	{
+		Textures[type] = texture;
+		TexturesFilePaths[type] = filePath;
 	}
 }

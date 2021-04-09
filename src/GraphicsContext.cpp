@@ -58,13 +58,6 @@ namespace Frostium
 			Framebuffer::Create(framebufferCI, &m_Framebuffer);
 		}
 
-		// Adds default material
-		MaterialCreateInfo materialInfo = {};
-		materialInfo.Metallic = 0.2f;
-		materialInfo.Roughness = 1.0f;
-		m_MaterialLibrary = new MaterialLibrary();
-		int32_t id = m_MaterialLibrary->Add(&materialInfo, "default material");
-
 		// Creates editor camera
 		if (m_UseEditorCamera)
 		{
@@ -78,7 +71,17 @@ namespace Frostium
 		}
 
 		if (info->Flags & Features_Renderer_3D_Flags)
+		{
 			Renderer::Init();
+
+			// Adds default material
+			MaterialCreateInfo materialInfo = {};
+			materialInfo.SetMetalness(0.2f);
+			materialInfo.SetRoughness(1.0f);
+			m_MaterialLibrary = new MaterialLibrary();
+			int32_t id = m_MaterialLibrary->Add(&materialInfo, "default material");
+			Renderer::UpdateMaterials();
+		}
 
 		if (info->Flags & Features_Renderer_2D_Flags)
 			Renderer2D::Init();

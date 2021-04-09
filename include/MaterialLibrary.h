@@ -21,13 +21,20 @@ namespace Frostium
 	};
 
 	struct MaterialCreateInfo
-	{				             
+	{
+		// Setters
+		void SetMetalness(float value);
+		void SetRoughness(float value);
+		void SetAlbedro(float value);
+		void SetTexture(MaterialTexture type, Texture* texture, const std::string& filePath);
+
+	private:
+
 		float                                             Metallic = 1.0f;
 		float                                             Albedro = 1.0f;
 		float                                             Roughness = 1.0f;
 					                                      
-		std::string                                       Name = "";
-		std::unordered_map<MaterialTexture, Ref<Texture>> Textures;
+		std::unordered_map<MaterialTexture, Texture*>     Textures;
 		std::unordered_map<MaterialTexture, std::string>  TexturesFilePaths;
 
 	private:
@@ -38,7 +45,7 @@ namespace Frostium
 		template<typename Archive>
 		void serialize(Archive& archive)
 		{
-			archive(Metallic, Albedro, Roughness, Name, TexturesFilePaths);
+			archive(Metallic, Albedro, Roughness, TexturesFilePaths);
 		}
 	};
 
@@ -70,7 +77,7 @@ namespace Frostium
 	private:
 
 		// Helpers
-		int32_t AddTexture(const Ref<Texture>& texture);
+		int32_t AddTexture(Texture* texture);
 
 	private:
 
@@ -79,7 +86,7 @@ namespace Frostium
 		uint32_t                             m_TextureIndex = 0;
 
 		std::vector<Material>                m_Materials;
-		std::vector<Ref<Texture>>            m_Textures;
+		std::vector<Texture*>                m_Textures;
 		std::hash<std::string_view>          m_Hash{};
 
 		std::unordered_map<size_t, int32_t>  m_MaterialMap;
