@@ -19,6 +19,8 @@ The first step is to initialize graphics context class:
 
 #include <imgui/imgui.h>
 
+using namespace Frostium;
+
 int main(int argc, char** argv)
 {
 	GraphicsContext* context = nullptr;
