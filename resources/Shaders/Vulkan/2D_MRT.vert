@@ -38,26 +38,22 @@ layout(push_constant) uniform ConstantData
 	uint dataOffset;
 };
 
-struct VS_OUT_
-{
-	vec2 uv;
-	vec3 pos;
-	vec3 normals;
-	vec4 color;
-	uint texIndex;
-};
-
-layout (location = 0) out VS_OUT_ vs_out;
+layout(location = 0) out vec4 v_color;
+layout(location = 1) out vec3 v_pos;
+layout(location = 2) out vec3 v_normals;
+layout(location = 3) out vec2 v_uv;
+layout(location = 4) out uint v_texIndex;
 
 void main()
 {
-	mat4 model = data[dataOffset + gl_InstanceIndex].model;
+	uint index = dataOffset + gl_InstanceIndex;
+	mat4 model = data[index].model;
 
-	vs_out.color = data[gl_InstanceIndex].color;
-	vs_out.texIndex = data[gl_InstanceIndex].params.x;
-	vs_out.pos = vec3(model * vec4(a_Position, 1.0));
-	vs_out.normals = mat3(model) * a_Normal;
-	vs_out.uv = a_UV;
+	v_color = data[index].color;
+	v_texIndex = data[index].params.x;
+	v_pos = vec3(model * vec4(a_Position, 1.0));
+	v_normals = mat3(model) * a_Normal;
+	v_uv = a_UV;
 
-    gl_Position =  sceneData.projection * sceneData.view * vec4(vs_out.pos, 1.0);
+    gl_Position =  sceneData.projection * sceneData.view * vec4(v_pos, 1.0);
 }

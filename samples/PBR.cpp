@@ -38,29 +38,27 @@ void GenerateMap(std::vector<Chunk>& map)
 int main(int argc, char** argv)
 {
 	GraphicsContext* context = nullptr;
+	WindowCreateInfo windoInfo = {};
 	{
-		WindowCreateInfo windoInfo = {};
-		{
-			windoInfo.bFullscreen = false;
-			windoInfo.bVSync = false;
-			windoInfo.Height = 480;
-			windoInfo.Width = 720;
-			windoInfo.Title = "Frostium Example";
-		}
-
-		EditorCameraCreateInfo cameraCI = {};
-		GraphicsContextInitInfo info = {};
-		{
-			info.Flags = Features_Renderer_3D_Flags | Features_ImGui_Flags;
-			info.bMSAA = true;
-			info.bTargetsSwapchain = true;
-			info.ResourcesFolderPath = "../resources/";
-			info.pWindowCI = &windoInfo;
-			info.pEditorCameraCI = &cameraCI;
-		}
-
-		context = new GraphicsContext(&info);
+		windoInfo.bFullscreen = false;
+		windoInfo.bVSync = false;
+		windoInfo.Height = 480;
+		windoInfo.Width = 720;
+		windoInfo.Title = "Frostium Example";
 	}
+
+	EditorCameraCreateInfo cameraCI = {};
+	GraphicsContextInitInfo info = {};
+	{
+		info.Flags = Features_Renderer_3D_Flags | Features_ImGui_Flags;
+		info.bMSAA = true;
+		info.bTargetsSwapchain = true;
+		info.ResourcesFolderPath = "../resources/";
+		info.pWindowCI = &windoInfo;
+		info.pEditorCameraCI = &cameraCI;
+	}
+
+	context = new GraphicsContext(&info);
 
 	ClearInfo clearInfo = {};
 	Mesh cube = {};
@@ -111,7 +109,8 @@ int main(int argc, char** argv)
 			ImGui::Begin("Debug Window");
 			{
 				float lastFrameTime = deltaTime.GetTimeSeconds();
-				ImGui::InputFloat("DeltaTime", &lastFrameTime, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
+				std::string str = "DeltaTime: " + std::to_string(lastFrameTime);
+				ImGui::Text(str.c_str());
 			}
 			ImGui::End();
 

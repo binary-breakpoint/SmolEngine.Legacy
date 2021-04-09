@@ -20,8 +20,16 @@ namespace Frostium
 
 	struct CmdBuffer
 	{
+		bool      OffsetApplied = false;
 		uint32_t  Instances = 0;
-		uint32_t  LastElement = 0;
+		uint32_t  DataOffset = 0;
+
+		void Reset()
+		{
+			DataOffset = 0;
+			Instances = 0;
+			OffsetApplied = 0;
+		}
 	};
 
 	struct ShaderInstance
@@ -90,7 +98,10 @@ namespace Frostium
 
 	void Renderer2D::Shutdown()
 	{
-		delete s_Data, Stats;
+		if (s_Data != nullptr)
+		{
+			delete s_Data, Stats;
+		}
 	}
 
 	void Renderer2D::BeginScene(const ClearInfo* clearInfo, const BeginSceneInfo* info)
@@ -139,7 +150,7 @@ namespace Frostium
 	void Renderer2D::SubmitSprite(const glm::vec3& worldPos, const glm::vec2& scale, const glm::vec4& color, float rotation,
 		uint32_t layerIndex, Texture* texture, GraphicsPipeline* material)
 	{
-		if (s_Data->Frustum->CheckSphere(worldPos))
+		if (s_Data->Frustum->CheckSphere(worldPos, 10.0f))
 		{
 			if (s_Data->InstIndex >= Renderer2DStorage::MaxQuads)
 				StartNewBatch();
@@ -176,7 +187,7 @@ namespace Frostium
 
 	void Renderer2D::SubmitLight2D(const glm::vec3& worldPos, const glm::vec4& color, float radius, float lightIntensity)
 	{
-		if (s_Data->Frustum->CheckSphere(worldPos, 5.0f))
+		if (s_Data->Frustum->CheckSphere(worldPos, 15.0f))
 		{
 
 		}
@@ -192,9 +203,14 @@ namespace Frostium
 				Instance& inst = s_Data->Instances[i];
 				if (l == inst.Layer)
 				{
-					s_Data->CommandBuffer[l].LastElement = i;
-					s_Data->CommandBuffer[l].Instances++;
+					auto& cmd = s_Data->CommandBuffer[l];
+					if (cmd.OffsetApplied == false)
+					{
+						cmd.DataOffset = i;
+						cmd.OffsetApplied = true;
+					}
 
+					cmd.Instances++;
 					s_Data->ShaderInstances[i].Color = inst.Color;
 					s_Data->ShaderInstances[i].Params.x = inst.TextureIndex;
 					s_Data->ShaderInstances[i].Params.w = inst.Layer;
@@ -209,11 +225,12 @@ namespace Frostium
 			s_Data->DeferredPipeline.SubmitBuffer(s_Data->SceneDataBP, sizeof(SceneData), &s_Data->SceneData);
 			// Instances data
 			s_Data->DeferredPipeline.SubmitBuffer(s_Data->InstancesBP, s_Data->ShaderInstanceSize * s_Data->InstIndex, s_Data->ShaderInstances);
+			// Updates tetxures
+			s_Data->DeferredPipeline.UpdateSamplers(s_Data->Textures, 0);
 		}
 
 		// Deferred Pass
 		{
-			uint32_t dataOffset = 0;
 			s_Data->DeferredPipeline.BeginRenderPass();
 			{
 				for (uint32_t i = 0; i < Renderer2DStorage::MaxLayers; ++i)
@@ -221,9 +238,10 @@ namespace Frostium
 					auto& cmd = s_Data->CommandBuffer[i];
 					if (cmd.Instances > 0)
 					{
-						dataOffset = cmd.LastElement - cmd.Instances;
-						s_Data->DeferredPipeline.SubmitPushConstant(ShaderType::Vertex, sizeof(uint32_t), &dataOffset);
+						s_Data->DeferredPipeline.SubmitPushConstant(ShaderType::Vertex, sizeof(uint32_t), &cmd.DataOffset);
 						s_Data->DeferredPipeline.DrawMesh(&s_Data->PlaneMesh, DrawMode::Triangle, cmd.Instances);
+
+						cmd.Reset();
 					}
 				}
 			}
@@ -294,7 +312,7 @@ namespace Frostium
 
 			pipelineCI.PipelineName = "Deferred_2D";
 			pipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(PBRVertex), PBRlayout) };
-			pipelineCI.PipelineCullMode = CullMode::None;
+			pipelineCI.PipelineCullMode = CullMode::Back;
 			pipelineCI.bDepthTestEnabled = false;
 			pipelineCI.TargetFramebuffer = &s_Data->DeferredFB;
 			pipelineCI.ShaderCreateInfo = &shaderCI;
@@ -358,7 +376,7 @@ namespace Frostium
 			framebufferCI.bResizable = false;
 
 			framebufferCI.Attachments.resize(3);
-			framebufferCI.Attachments[0] = FramebufferAttachment(AttachmentFormat::SFloat4_32, false, "Albedro");
+			framebufferCI.Attachments[0] = FramebufferAttachment(AttachmentFormat::Color, false, "Albedro");
 			framebufferCI.Attachments[1] = FramebufferAttachment(AttachmentFormat::SFloat4_32, false, "Position");
 			framebufferCI.Attachments[2] = FramebufferAttachment(AttachmentFormat::SFloat4_32, false, "Normals");
 
@@ -371,6 +389,6 @@ namespace Frostium
 		s_Data->WhiteTetxure = GraphicsContext::s_Instance->m_DummyTexure.get();
 		s_Data->Textures[0] = s_Data->WhiteTetxure;
 
-		Mesh::Create(GraphicsContext::s_Instance->m_ResourcesFolderPath + "Models/plane.glb", &s_Data->PlaneMesh);
+		Mesh::Create(GraphicsContext::s_Instance->m_ResourcesFolderPath + "Models/plane.fbx", &s_Data->PlaneMesh);
 	}
 }

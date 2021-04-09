@@ -4,24 +4,19 @@ layout(location = 0) out vec4 color;
 layout(location = 1) out vec4 pos;
 layout(location = 2) out vec4 normals;
 
-struct VS_OUT_
-{
-	vec2 uv;
-	vec3 pos;
-	vec3 normals;
-	vec4 color;
-	uint texIndex;
-};
-
-layout (location = 0) flat in VS_OUT_ vs_in;
+layout(location = 0) in vec4 v_color;
+layout(location = 1) in vec3 v_pos;
+layout(location = 2) in vec3 v_normals;
+layout(location = 3) in vec2 v_uv;
+layout(location = 4) flat in uint v_texIndex;
 
 layout (binding = 0) uniform sampler2D texturesMap[4096];
 
 void main()
 {
-	vec4 texColor = texture(texturesMap[vs_in.texIndex], vs_in.uv);
+	vec4 texColor = texture(texturesMap[v_texIndex], v_uv);
 
-	color = texColor * vs_in.color;
-	pos = vec4(vs_in.pos, 1);
-	normals = vec4(vs_in.normals, 1);
+	color = texColor * v_color;
+	pos = vec4(v_pos, 1);
+	normals = vec4(v_normals, 1);
 }

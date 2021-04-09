@@ -1,4 +1,4 @@
-#include "PBR.h"
+#include "2D.h"
 
 #include <Common/Mesh.h>
 #include <Common/Input.h>
@@ -24,6 +24,9 @@ int main(int argc, char** argv)
 		}
 
 		EditorCameraCreateInfo cameraCI = {};
+		cameraCI.Type = CameraType::Ortho;
+		cameraCI.Speed = 55.5;
+
 		GraphicsContextInitInfo info = {};
 		{
 			info.Flags = Features_Renderer_2D_Flags | Features_ImGui_Flags;
@@ -38,7 +41,9 @@ int main(int argc, char** argv)
 	}
 
 	Texture texture = {};
-	Texture::Create("Assets/Wood.png", &texture);
+	Texture texture2 = {};
+	Texture::Create("Assets/Background.png", &texture);
+	Texture::Create("Assets/Bricks.png", &texture2);
 
 	ClearInfo clearInfo = {};
 	bool process = true;
@@ -71,7 +76,8 @@ int main(int argc, char** argv)
 			ImGui::End();
 
 			Renderer2D::BeginScene(&clearInfo);
-			Renderer2D::SubmitSprite({ 0, 0, 0 }, { 1, 1 }, { 1, 1, 1, 1 }, 0, 1, &texture);
+			Renderer2D::SubmitSprite({ 10, 0, 0 }, { 1, 1 }, { 1, 1, 1, 1 }, 0.0f, 0, &texture2);
+			Renderer2D::SubmitSprite({ 0, 0, 0 }, { 1, 1 }, { 1, 1, 1, 1 }, 0.0f, 1, &texture);
 			Renderer2D::EndScene();
 		}
 		context->SwapBuffers();
