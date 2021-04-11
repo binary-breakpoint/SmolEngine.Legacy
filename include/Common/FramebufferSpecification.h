@@ -59,33 +59,40 @@ namespace Frostium
 		OmniShadow
 	};
 
+	enum class MSAASamples : uint16_t
+	{
+		SAMPLE_COUNT_1,
+		SAMPLE_COUNT_2,
+		SAMPLE_COUNT_4,
+		SAMPLE_COUNT_8,
+		SAMPLE_COUNT_16,
+
+		SAMPLE_COUNT_MAX_SUPPORTED
+	};
+
 	struct FramebufferAttachment
 	{
 		FramebufferAttachment() = default;
 
 		FramebufferAttachment(AttachmentFormat _format, bool _bClearOp = false, 
-			const std::string& _name = "", bool _alphaBlending = false)
-			:Format(_format), bClearOp(_bClearOp), bAlphaBlending(_alphaBlending), Name(_name) { }
+			const std::string& _name = "")
+			:Format(_format), bClearOp(_bClearOp), Name(_name) { }
 
 		AttachmentFormat                           Format = AttachmentFormat::None;
 		std::string                                Name = "";
 		bool                                       bClearOp = true;
-		bool                                       bAlphaBlending = false;
 	};
 
 	struct FramebufferSpecification
 	{
-		FramebufferSpecialisation                  Specialisation = FramebufferSpecialisation::None;
-
+		MSAASamples                                eMSAASampels = MSAASamples::SAMPLE_COUNT_MAX_SUPPORTED;
+		FramebufferSpecialisation                  eSpecialisation = FramebufferSpecialisation::None;
 		bool                                       bTargetsSwapchain = false;
 		bool                                       bUsedByImGui = false;
-		bool                                       bUseMSAA = false;
 		bool                                       bResizable = true;
-
 		int32_t                                    Width = 0;
 		int32_t                                    Height = 0;
 		int32_t                                    NumSubpassDependencies = 1;
-
 		FramebufferAttachment                      ResolveAttachment;
 		std::vector<FramebufferAttachment>         Attachments;
 	};

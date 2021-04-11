@@ -30,7 +30,7 @@ namespace Frostium
 	struct GraphicsContextInitInfo
 	{
 		Flags                    Flags = Features_Renderer_3D_Flags;
-		bool                     bMSAA = true;
+		MSAASamples              eMSAASamples = MSAASamples::SAMPLE_COUNT_MAX_SUPPORTED;
 		bool                     bTargetsSwapchain = true;
 		EditorCameraCreateInfo*  pEditorCameraCI = nullptr;
 		WindowCreateInfo*        pWindowCI = nullptr;

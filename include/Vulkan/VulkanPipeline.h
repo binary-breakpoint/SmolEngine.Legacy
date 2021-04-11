@@ -13,6 +13,8 @@ namespace Frostium
 	class VulkanShader;
 	enum class DrawMode : uint16_t;
 	enum class CullMode : uint16_t;
+	enum class BlendFactor : uint16_t;
+	enum class BlendOp : uint16_t;
 
 	struct GraphicsPipelineCreateInfo;
 
@@ -50,6 +52,8 @@ namespace Frostium
 		VkPrimitiveTopology GetVkTopology(DrawMode mode);
 		VkPolygonMode GetVkPolygonMode(DrawMode mode);
 		VkCullModeFlags GetVkCullMode(CullMode mode);
+		VkBlendFactor GetVkBlendFactor(BlendFactor factor);
+		VkBlendOp GetVkBlendOp(BlendOp op);
 
 	private:
 

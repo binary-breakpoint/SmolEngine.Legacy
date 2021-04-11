@@ -407,6 +407,7 @@ namespace Frostium
 			framebufferCI.Width = 2048;
 			framebufferCI.Height = 2048;
 			framebufferCI.bResizable = false;
+			framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
 
 			framebufferCI.Attachments.resize(3);
 			framebufferCI.Attachments[0] = FramebufferAttachment(AttachmentFormat::Color, false, "Albedro");

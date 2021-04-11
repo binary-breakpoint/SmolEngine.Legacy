@@ -722,7 +722,8 @@ namespace Frostium
 				framebufferCI.Width = 4096;
 				framebufferCI.Height = 4096;
 				framebufferCI.bResizable = false;
-				framebufferCI.Specialisation = FramebufferSpecialisation::ShadowMap;
+				framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
+				framebufferCI.eSpecialisation = FramebufferSpecialisation::ShadowMap;
 
 				s_Data->m_DepthFramebuffer = Framebuffer::Create(framebufferCI);
 			}
@@ -737,7 +738,7 @@ namespace Frostium
 				framebufferCI.Width = 1024;
 				framebufferCI.Height = 1024;
 				framebufferCI.bResizable = false;
-				framebufferCI.Specialisation = FramebufferSpecialisation::OmniShadow;
+				framebufferCI.eSpecialisation = FramebufferSpecialisation::OmniShadow;
 				framebufferCI.NumSubpassDependencies = 0;
 
 				s_Data->m_OmniFramebuffer = Framebuffer::Create(framebufferCI);

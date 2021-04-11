@@ -27,7 +27,7 @@ namespace Frostium
 			VkImageLayout layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			if (framebufferSpec->bTargetsSwapchain)
 				layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-			if (framebufferSpec->bUseMSAA && !framebufferSpec->bTargetsSwapchain)
+			if (framebufferSpec->eMSAASampels != MSAASamples::SAMPLE_COUNT_1 && !framebufferSpec->bTargetsSwapchain)
 				layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 			// attachment
@@ -97,7 +97,7 @@ namespace Frostium
 			subpass.pColorAttachments = colorReferences.data();
 			subpass.pDepthStencilAttachment = depthReferences.data();
 
-			if (framebufferSpec->bUseMSAA && renderPassInfo->NumResolveAttachments > 0)
+			if (framebufferSpec->eMSAASampels != MSAASamples::SAMPLE_COUNT_1 && renderPassInfo->NumResolveAttachments > 0)
 				subpass.pResolveAttachments = resolveReferences.data();
 		}
 

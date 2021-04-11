@@ -44,7 +44,9 @@ namespace Frostium
 		void CreateSampler(VkFilter filer = VK_FILTER_NEAREST);
 		void FreeResources();
 		void FreeAttachment(Attachment& framebuffer);
+		bool IsUseMSAA();
 		VkBool32 IsFormatIsFilterable(VkPhysicalDevice physicalDevice, VkFormat format, VkImageTiling tiling);
+		VkSampleCountFlagBits GetVkMSAASamples(MSAASamples samples);
 		void AddAttachment(uint32_t width, uint32_t height, VkSampleCountFlagBits samples,
 			VkImageUsageFlags imageUsage,
 			VkFormat format, VkImage& image,

@@ -49,7 +49,7 @@ namespace Frostium
 			framebufferCI.Width = m_VulkanContext.GetSwapchain().GetWidth();
 			framebufferCI.Height = m_VulkanContext.GetSwapchain().GetHeight();
 #endif
-			framebufferCI.bUseMSAA = info->bMSAA;
+			framebufferCI.eMSAASampels = info->eMSAASamples;
 			framebufferCI.bTargetsSwapchain = info->bTargetsSwapchain;
 			framebufferCI.bResizable = true;
 			framebufferCI.bUsedByImGui = m_UseImGUI && !info->bTargetsSwapchain ? true : false;

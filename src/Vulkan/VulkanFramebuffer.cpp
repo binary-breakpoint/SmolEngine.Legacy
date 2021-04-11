@@ -27,7 +27,7 @@ namespace Frostium
 	bool VulkanFramebuffer::Create(uint32_t width, uint32_t height)
 	{
 		if (m_Specification.Attachments.size() > 1 && m_Specification.bTargetsSwapchain || m_Specification.Attachments.size() == 0
-			|| m_Specification.Attachments.size() > 1 && m_Specification.bUseMSAA)
+			|| m_Specification.Attachments.size() > 1 && IsUseMSAA())
 			return false;
 
 		m_Specification.Width = width;
@@ -35,7 +35,7 @@ namespace Frostium
 
 		uint32_t lastImageViewIndex = 0;
 		uint32_t bufferSize = static_cast<uint32_t>(m_Specification.Attachments.size());
-		uint32_t attachmentsCount = m_Specification.bUseMSAA ? bufferSize + 2 : bufferSize + 1;
+		uint32_t attachmentsCount = IsUseMSAA() ? bufferSize + 2 : bufferSize + 1;
 
 		m_Attachments.resize(bufferSize);
 		m_ClearValues.resize(attachmentsCount);
@@ -51,13 +51,13 @@ namespace Frostium
 			auto& info = m_Specification.Attachments[i];
 			auto& vkInfo = m_Attachments[i];
 
-			VkImageUsageFlags usage = m_Specification.bUseMSAA ? VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT :
+			VkImageUsageFlags usage = IsUseMSAA() ? VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT :
 				VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 
 			AddAttachment(width, height, m_MSAASamples, usage, GetAttachmentFormat(info.Format),
 				vkInfo.AttachmentVkInfo.image, vkInfo.AttachmentVkInfo.view, vkInfo.AttachmentVkInfo.mem);
 
-			if (!m_Specification.bUseMSAA)
+			if (!IsUseMSAA())
 			{
 				vkInfo.ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 				vkInfo.ImageInfo.imageView = vkInfo.AttachmentVkInfo.view;
@@ -81,8 +81,12 @@ namespace Frostium
 			lastImageViewIndex++;
 		}
 
-		// Resolve if MSAA enabled
-		if (m_Specification.bUseMSAA && !m_Specification.bTargetsSwapchain)
+		// Use swapchain image as resolve attachment - no need to create attachment 
+		if (IsUseMSAA() && m_Specification.bTargetsSwapchain)
+			lastImageViewIndex++;
+
+		// Create resolve attachment if MSAA enabled and swapchain is not target
+		if (IsUseMSAA() && !m_Specification.bTargetsSwapchain)
 		{
 			VkImageUsageFlags usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 			AddAttachment(width, height, VK_SAMPLE_COUNT_1_BIT, usage, m_ColorFormat,
@@ -108,7 +112,6 @@ namespace Frostium
 			m_ClearAttachments[lastImageViewIndex].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 			m_ClearAttachments[lastImageViewIndex].clearValue.color = { { 0.1f, 0.1f, 0.1f, 1.0f} };
 			lastImageViewIndex++;
-
 		}
 
 		if (m_Specification.bTargetsSwapchain)
@@ -116,12 +119,11 @@ namespace Frostium
 			m_ClearValues[lastImageViewIndex].color = { { 0.0f, 0.0f, 0.0f, 1.0f} };
 			m_ClearAttachments[lastImageViewIndex].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 			m_ClearAttachments[lastImageViewIndex].clearValue.color = { { 0.1f, 0.1f, 0.1f, 1.0f} };
-			lastImageViewIndex++;
 		}
 
 		// Depth stencil attachment
 		{
-			VkImageUsageFlags usage = m_Specification.bUseMSAA ? VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT
+			VkImageUsageFlags usage = IsUseMSAA() ? VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT
 				: VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 
 			VkImageAspectFlags imageAspect = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
@@ -145,7 +147,7 @@ namespace Frostium
 				renderPassGenInfo.MSAASamples = m_MSAASamples;
 				renderPassGenInfo.NumColorAttachments = static_cast<uint32_t>(m_Attachments.size());
 				renderPassGenInfo.NumDepthAttachments = 1;
-				renderPassGenInfo.NumResolveAttachments = m_Specification.bUseMSAA ? 1 : 0;
+				renderPassGenInfo.NumResolveAttachments = IsUseMSAA() ? 1 : 0;
 			}
 
 			VulkanRenderPass::Create(&m_Specification, &renderPassGenInfo, m_RenderPass);
@@ -163,23 +165,22 @@ namespace Frostium
 			fbufCreateInfo.layers = 1;
 		}
 
-		if (!m_Specification.bTargetsSwapchain)
-		{
-			m_VkFrameBuffers.resize(1);
-			VK_CHECK_RESULT(vkCreateFramebuffer(m_Device, &fbufCreateInfo, nullptr, &m_VkFrameBuffers[0]));
-		}
-		else
+		if (m_Specification.bTargetsSwapchain)
 		{
 			uint32_t count = VulkanContext::GetSwapchain().m_ImageCount;
 			m_VkFrameBuffers.resize(count);
 			for (uint32_t i = 0; i < count; ++i)
 			{
-				uint32_t index = m_Specification.bUseMSAA ? 1 : 0;
+				uint32_t index = IsUseMSAA() ? 1 : 0;
 				attachments[index] = VulkanContext::GetSwapchain().m_Buffers[i].View;
 				VK_CHECK_RESULT(vkCreateFramebuffer(m_Device, &fbufCreateInfo, nullptr, &m_VkFrameBuffers[i]));
 			}
+
+			return true;
 		}
 
+		m_VkFrameBuffers.resize(1);
+		VK_CHECK_RESULT(vkCreateFramebuffer(m_Device, &fbufCreateInfo, nullptr, &m_VkFrameBuffers[0]));
 		return true;
 	}
 
@@ -573,13 +574,13 @@ namespace Frostium
 	bool VulkanFramebuffer::Init(const FramebufferSpecification& data)
 	{
 		m_Specification = data;
-		m_MSAASamples = data.bUseMSAA ? VulkanContext::GetDevice().GetMSAASamplesCount(): VK_SAMPLE_COUNT_1_BIT;
+		m_MSAASamples = GetVkMSAASamples(data.eMSAASampels);
 
 		m_Device = VulkanContext::GetDevice().GetLogicalDevice();
 		m_ColorFormat = VulkanContext::GetSwapchain().GetColorFormat();
 		m_DepthFormat = VulkanContext::GetSwapchain().GetDepthFormat();
 
-		switch (m_Specification.Specialisation)
+		switch (m_Specification.eSpecialisation)
 		{
 		case FramebufferSpecialisation::None:
 		{
@@ -675,6 +676,11 @@ namespace Frostium
 			vkFreeMemory(m_Device, framebuffer.AttachmentVkInfo.mem, nullptr);
 	}
 
+	bool VulkanFramebuffer::IsUseMSAA()
+	{
+		return m_Specification.eMSAASampels != MSAASamples::SAMPLE_COUNT_1;
+	}
+
 	VkBool32 VulkanFramebuffer::IsFormatIsFilterable(VkPhysicalDevice physicalDevice, VkFormat format, VkImageTiling tiling)
 	{
 		VkFormatProperties formatProps;
@@ -689,48 +695,62 @@ namespace Frostium
 		return false;
 	}
 
+	VkSampleCountFlagBits VulkanFramebuffer::GetVkMSAASamples(MSAASamples samples)
+	{
+		switch (samples)
+		{
+		case Frostium::MSAASamples::SAMPLE_COUNT_1:                return VK_SAMPLE_COUNT_1_BIT;
+		case Frostium::MSAASamples::SAMPLE_COUNT_2:                return VK_SAMPLE_COUNT_2_BIT;
+		case Frostium::MSAASamples::SAMPLE_COUNT_4:                return VK_SAMPLE_COUNT_4_BIT;
+		case Frostium::MSAASamples::SAMPLE_COUNT_8:                return VK_SAMPLE_COUNT_8_BIT;
+		case Frostium::MSAASamples::SAMPLE_COUNT_16:               return VK_SAMPLE_COUNT_16_BIT;
+		case Frostium::MSAASamples::SAMPLE_COUNT_MAX_SUPPORTED:    return VulkanContext::GetDevice().GetMSAASamplesCount();
+		default:                                                   return VK_SAMPLE_COUNT_1_BIT;
+		}
+	}
+
 	VkFormat VulkanFramebuffer::GetAttachmentFormat(AttachmentFormat format)
 	{
 		switch (format)
 		{
 
-		case Frostium::AttachmentFormat::UNORM_8:			    return VK_FORMAT_R8_UNORM;
-		case Frostium::AttachmentFormat::UNORM2_8: 			return VK_FORMAT_R8G8_UNORM;
-		case Frostium::AttachmentFormat::UNORM3_8: 			return VK_FORMAT_R8G8B8_UNORM;
-		case Frostium::AttachmentFormat::UNORM4_8: 			return VK_FORMAT_R8G8B8A8_UNORM;
+		case Frostium::AttachmentFormat::UNORM_8:			       return VK_FORMAT_R8_UNORM;
+		case Frostium::AttachmentFormat::UNORM2_8: 			       return VK_FORMAT_R8G8_UNORM;
+		case Frostium::AttachmentFormat::UNORM3_8: 			       return VK_FORMAT_R8G8B8_UNORM;
+		case Frostium::AttachmentFormat::UNORM4_8: 			       return VK_FORMAT_R8G8B8A8_UNORM;
 
-		case Frostium::AttachmentFormat::UNORM_16:			return VK_FORMAT_R16_UNORM;
-		case Frostium::AttachmentFormat::UNORM2_16: 			return VK_FORMAT_R16G16_UNORM;
-		case Frostium::AttachmentFormat::UNORM3_16: 			return VK_FORMAT_R16G16B16_UNORM;
-		case Frostium::AttachmentFormat::UNORM4_16: 			return VK_FORMAT_R16G16B16A16_UNORM;
-
-		case Frostium::AttachmentFormat::SFloat_16: 			return VK_FORMAT_R16_SFLOAT;
-		case Frostium::AttachmentFormat::SFloat2_16: 			return VK_FORMAT_R16G16_SFLOAT;
-		case Frostium::AttachmentFormat::SFloat3_16: 			return VK_FORMAT_R16G16B16_SFLOAT;
-		case Frostium::AttachmentFormat::SFloat4_16: 			return VK_FORMAT_R16G16B16A16_SFLOAT;
-
-		case Frostium::AttachmentFormat::SFloat_32: 			return VK_FORMAT_R32_SFLOAT;
-		case Frostium::AttachmentFormat::SFloat2_32: 			return VK_FORMAT_R32G32_SFLOAT;
-		case Frostium::AttachmentFormat::SFloat3_32: 			return VK_FORMAT_R32G32B32_SFLOAT;
-		case Frostium::AttachmentFormat::SFloat4_32: 			return VK_FORMAT_R32G32B32A32_SFLOAT;
-
-		case Frostium::AttachmentFormat::SInt_8: 			    return VK_FORMAT_R8_SINT;
-		case Frostium::AttachmentFormat::SInt2_8:			    return VK_FORMAT_R8G8_SINT;
-		case Frostium::AttachmentFormat::SInt3_8:			    return VK_FORMAT_R8G8B8_SINT;
-		case Frostium::AttachmentFormat::SInt4_8:			    return VK_FORMAT_R8G8B8A8_SINT;
+		case Frostium::AttachmentFormat::UNORM_16:			       return VK_FORMAT_R16_UNORM;
+		case Frostium::AttachmentFormat::UNORM2_16: 			   return VK_FORMAT_R16G16_UNORM;
+		case Frostium::AttachmentFormat::UNORM3_16: 			   return VK_FORMAT_R16G16B16_UNORM;
+		case Frostium::AttachmentFormat::UNORM4_16: 			   return VK_FORMAT_R16G16B16A16_UNORM;
+																   
+		case Frostium::AttachmentFormat::SFloat_16: 			   return VK_FORMAT_R16_SFLOAT;
+		case Frostium::AttachmentFormat::SFloat2_16: 			   return VK_FORMAT_R16G16_SFLOAT;
+		case Frostium::AttachmentFormat::SFloat3_16: 			   return VK_FORMAT_R16G16B16_SFLOAT;
+		case Frostium::AttachmentFormat::SFloat4_16: 			   return VK_FORMAT_R16G16B16A16_SFLOAT;
+																   
+		case Frostium::AttachmentFormat::SFloat_32: 			   return VK_FORMAT_R32_SFLOAT;
+		case Frostium::AttachmentFormat::SFloat2_32: 			   return VK_FORMAT_R32G32_SFLOAT;
+		case Frostium::AttachmentFormat::SFloat3_32: 			   return VK_FORMAT_R32G32B32_SFLOAT;
+		case Frostium::AttachmentFormat::SFloat4_32: 			   return VK_FORMAT_R32G32B32A32_SFLOAT;
+																   
+		case Frostium::AttachmentFormat::SInt_8: 			       return VK_FORMAT_R8_SINT;
+		case Frostium::AttachmentFormat::SInt2_8:			       return VK_FORMAT_R8G8_SINT;
+		case Frostium::AttachmentFormat::SInt3_8:			       return VK_FORMAT_R8G8B8_SINT;
+		case Frostium::AttachmentFormat::SInt4_8:			       return VK_FORMAT_R8G8B8A8_SINT;
 															    
-		case Frostium::AttachmentFormat::SInt_16: 			return VK_FORMAT_R16_SINT;
-		case Frostium::AttachmentFormat::SInt2_16:			return VK_FORMAT_R16G16_SINT;
-		case Frostium::AttachmentFormat::SInt3_16:			return VK_FORMAT_R16G16B16_SINT;
-		case Frostium::AttachmentFormat::SInt4_16:			return VK_FORMAT_R16G16B16A16_SINT;
-															    
-		case Frostium::AttachmentFormat::SInt_32: 			return VK_FORMAT_R32_SINT;
-		case Frostium::AttachmentFormat::SInt2_32:			return VK_FORMAT_R32G32_SINT;
-		case Frostium::AttachmentFormat::SInt3_32:			return VK_FORMAT_R32G32B32_SINT;
-		case Frostium::AttachmentFormat::SInt4_32:			return VK_FORMAT_R32G32B32A32_SINT;
+		case Frostium::AttachmentFormat::SInt_16: 			       return VK_FORMAT_R16_SINT;
+		case Frostium::AttachmentFormat::SInt2_16:			       return VK_FORMAT_R16G16_SINT;
+		case Frostium::AttachmentFormat::SInt3_16:			       return VK_FORMAT_R16G16B16_SINT;
+		case Frostium::AttachmentFormat::SInt4_16:			       return VK_FORMAT_R16G16B16A16_SINT;
+															           
+		case Frostium::AttachmentFormat::SInt_32: 			       return VK_FORMAT_R32_SINT;
+		case Frostium::AttachmentFormat::SInt2_32:			       return VK_FORMAT_R32G32_SINT;
+		case Frostium::AttachmentFormat::SInt3_32:			       return VK_FORMAT_R32G32B32_SINT;
+		case Frostium::AttachmentFormat::SInt4_32:			       return VK_FORMAT_R32G32B32A32_SINT;
 
-		case Frostium::AttachmentFormat::Color:			    return VulkanContext::GetSwapchain().GetColorFormat();
-		case Frostium::AttachmentFormat::Depth:               return VulkanContext::GetSwapchain().GetDepthFormat();
+		case Frostium::AttachmentFormat::Color:			           return VulkanContext::GetSwapchain().GetColorFormat();
+		case Frostium::AttachmentFormat::Depth:                    return VulkanContext::GetSwapchain().GetDepthFormat();
 		default:
 			break;
 		}
@@ -755,7 +775,7 @@ namespace Frostium
 
 	Attachment* VulkanFramebuffer::GetAttachment(uint32_t index)
 	{
-		if (m_Specification.bUseMSAA)
+		if (IsUseMSAA())
 			return &m_ResolveAttachment;
 
 		return &m_Attachments[index];

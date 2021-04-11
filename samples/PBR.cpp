@@ -66,8 +66,7 @@ int main(int argc, char** argv)
 	GraphicsContextInitInfo info = {};
 	{
 		info.Flags = Features_Renderer_3D_Flags | Features_ImGui_Flags;
-		info.bMSAA = true;
-		info.bTargetsSwapchain = true;
+		info.eMSAASamples = MSAASamples::SAMPLE_COUNT_MAX_SUPPORTED;
 		info.ResourcesFolderPath = "../resources/";
 		info.pWindowCI = &windoInfo;
 		info.pEditorCameraCI = &cameraCI;
