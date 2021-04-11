@@ -315,7 +315,7 @@ namespace Frostium
 					pc.offset = cmd.Offset;
 
 					s_Data->m_DepthPassPipeline->SubmitPushConstant(ShaderType::Vertex, sizeof(PushConstant), &pc);
-					s_Data->m_DepthPassPipeline->DrawMesh(cmd.Mesh, DrawMode::Triangle, cmd.InstancesCount);
+					s_Data->m_DepthPassPipeline->DrawMesh(cmd.Mesh, cmd.InstancesCount);
 				}
 			}
 			s_Data->m_DepthPassPipeline->EndRenderPass();
@@ -354,7 +354,7 @@ namespace Frostium
 				s_Data->m_MainPushConstant.PointLights = s_Data->m_PointLightIndex;
 
 				s_Data->m_MainPipeline->SubmitPushConstant(ShaderType::Vertex, s_Data->m_PushConstantSize, &s_Data->m_MainPushConstant);
-				s_Data->m_MainPipeline->DrawMesh(cmd.Mesh, DrawMode::Triangle, cmd.InstancesCount);
+				s_Data->m_MainPipeline->DrawMesh(cmd.Mesh, cmd.InstancesCount);
 			}
 		}
 		s_Data->m_MainPipeline->EndRenderPass();

@@ -15,11 +15,11 @@ namespace Frostium
 		static void EndScene();
 
 		// Submit
-		static void SubmitSprite(const glm::vec3& worldPos, const glm::vec2& scale, float rotation, uint32_t layerIndex, Texture* texture, 
+		static void SubmitSprite(const glm::vec2& worldPos, const glm::vec2& scale, float rotation, uint32_t layerIndex, Texture* texture, 
 			const glm::vec4& color = glm::vec4(1.0f), GraphicsPipeline* material = nullptr);
-		static void SubmitQuad(const glm::vec3& worldPos, const glm::vec2& scale, float rotation, uint32_t layerIndex, 
+		static void SubmitQuad(const glm::vec2& worldPos, const glm::vec2& scale, float rotation, uint32_t layerIndex, 
 			const glm::vec4& color = glm::vec4(1.0f), GraphicsPipeline* material = nullptr);
-		static void SubmitLight2D(const glm::vec3& worldPos, const glm::vec4& color, float radius, float lightIntensity);
+		static void SubmitLight2D(const glm::vec2& worldPos, const glm::vec4& color, float radius, float lightIntensity);
 		static void SubmitText(Text* text);
 
 	private:
@@ -29,7 +29,6 @@ namespace Frostium
 		static void Reset();
 
 		static uint32_t AddTexture(Texture* tex);
-
 		static void CreatePipelines();
 		static void CreateFramebuffers();
 		static void Prepare();

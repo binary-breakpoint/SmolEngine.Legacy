@@ -22,7 +22,7 @@ namespace Frostium
 		// Setters
 		void SetText(const std::string& text);
 		void SetColor(const glm::vec4& color);
-		void SetPosition(const glm::vec3& pos);
+		void SetPosition(const glm::vec2& pos);
 		void SetScale(const glm::vec2& scale);
 		void SetRotation(float rot);
 		void SetSize(float size);

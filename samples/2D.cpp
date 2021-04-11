@@ -44,7 +44,7 @@ int main(int argc, char** argv)
 	Text text1 = {};
 	std::string str = "Frostium3D!";
 	Text::CreateSDF("Assets/sdf_fonts/font_1.fnt", "Assets/sdf_fonts/font_1.png", &text1);
-	text1.SetPosition({ 0, 5, 0 });
+	text1.SetPosition({ 0, 5 });
 	text1.SetSize(25.0f);
 	text1.SetColor({ 0.2f, 0.7f, 1.0f, 1.0f });
 	text1.SetText(str);
@@ -87,9 +87,9 @@ int main(int argc, char** argv)
 			ImGui::End();
 
 			Renderer2D::BeginScene(&clearInfo);
-			Renderer2D::SubmitSprite(glm::vec3(10, 0, 0),  glm::vec2(1, 1),  0.0f, 0, &texture2);
-			Renderer2D::SubmitSprite(glm::vec3(0, 0, 0),   glm::vec2(1, 1),  0.0f, 1, &texture);
-			Renderer2D::SubmitSprite(glm::vec3(20, 20, 0), glm::vec2(1, 1),  0.0f, 3, &texture2);
+			Renderer2D::SubmitSprite(glm::vec2(10, 0),  glm::vec2(1, 1),  0.0f, 0, &texture2);
+			Renderer2D::SubmitSprite(glm::vec2(0, 0 ),  glm::vec2(1, 1),  0.0f, 1, &texture);
+			Renderer2D::SubmitSprite(glm::vec2(20, 20), glm::vec2(1, 1),  0.0f, 3, &texture2);
 			Renderer2D::SubmitText(&text1);
 			Renderer2D::EndScene();
 

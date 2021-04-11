@@ -23,6 +23,7 @@ namespace Frostium
 	{
 	public:
 
+		GraphicsPipeline() = default;
 		~GraphicsPipeline();
 
 		PipelineCreateResult Create(GraphicsPipelineCreateInfo* pipelineInfo);
@@ -41,12 +42,27 @@ namespace Frostium
 		// Draw
 		void DrawIndexed(DrawMode mode = DrawMode::Triangle, uint32_t vertexBufferIndex = 0,  uint32_t indexBufferIndex = 0, uint32_t descriptorSetIndex = 0);
 		void DrawIndexed(VertexBuffer* vb, IndexBuffer* ib, DrawMode mode = DrawMode::Triangle, uint32_t descriptorSetIndex = 0);
-		void Draw(uint32_t vertextCount, VertexBuffer* vb, DrawMode mode = DrawMode::Triangle, uint32_t descriptorSetIndex = 0);
+		void Draw(VertexBuffer* vb, uint32_t vertextCount, DrawMode mode = DrawMode::Triangle, uint32_t descriptorSetIndex = 0);
 		void Draw(uint32_t vertextCount, DrawMode mode = DrawMode::Triangle, uint32_t vertexBufferIndex = 0, uint32_t descriptorSetIndex = 0);
-		void DrawMesh(Mesh* mesh, DrawMode mode = DrawMode::Triangle, uint32_t instances = 1, uint32_t descriptorSetIndex = 0);
+		void DrawMesh(Mesh* mesh, uint32_t instances = 1, DrawMode mode = DrawMode::Triangle, uint32_t descriptorSetIndex = 0);
 
-		// Submit
+		// Resources
 		void SubmitBuffer(uint32_t bindingPoint, size_t size, const void* data, uint32_t offset = 0);
+		void SubmitPushConstant(ShaderType shaderStage, size_t size, const void* data);
+		void SetVertexBuffers(const std::vector<Ref<VertexBuffer>>& buffer);
+		void SetIndexBuffers(const std::vector<Ref<IndexBuffer>>& buffer);
+		void UpdateVertextBuffer(void* vertices, size_t size, uint32_t bufferIndex = 0, uint32_t offset = 0);
+		void UpdateIndexBuffer(uint32_t* indices, size_t count, uint32_t bufferIndex = 0, uint32_t offset = 0);
+#ifndef FROSTIUM_OPENGL_IMPL
+		void CmdUpdateVertextBuffer(const void* data, size_t size, uint32_t bufferIndex = 0, uint32_t offset = 0);
+		void CmdUpdateIndexBuffer(uint32_t* indices, size_t count, uint32_t bufferIndex = 0, uint32_t offset = 0);
+		bool UpdateVulkanImageDescriptor(uint32_t bindingPoint, const VkDescriptorImageInfo& imageInfo, uint32_t descriptorSetIndex = 0);
+#endif
+		bool UpdateSamplers(const std::vector<Texture*>& textures, uint32_t bindingPoint, uint32_t descriptorSetIndex = 0);
+		bool UpdateSampler(Texture* tetxure, uint32_t bindingPoint, uint32_t descriptorSetIndex = 0);
+		bool UpdateSampler(Framebuffer* framebuffer, uint32_t bindingPoint, uint32_t attachmentIndex, uint32_t descriptorSetIndex = 0);
+		bool UpdateSampler(Framebuffer* framebuffer, uint32_t bindingPoint, const std::string& attachmentName, uint32_t descriptorSetIndex = 0);
+		bool UpdateCubeMap(Texture* cubeMap, uint32_t bindingPoint, uint32_t descriptorSetIndex = 0);
 		template<typename T>
 		void SubmitUniform(const std::string& name, const void* data, uint32_t arrayElements = 0, size_t size = 0)
 		{
@@ -55,62 +71,14 @@ namespace Frostium
 			m_Shader->SumbitUniform<T>(name, data, arrayElements, size);
 #endif
 		}
-		void SubmitPushConstant(ShaderType shaderStage, size_t size, const void* data);
-
-		// Update Resources
-		void SetVertexBuffers(const std::vector<Ref<VertexBuffer>>& buffer);
-		void SetIndexBuffers(const std::vector<Ref<IndexBuffer>>& buffer);
-		void UpdateVertextBuffer(void* vertices, size_t size, uint32_t bufferIndex = 0, uint32_t offset = 0);
-		void UpdateIndexBuffer(uint32_t* indices, size_t count, uint32_t bufferIndex = 0, uint32_t offset = 0);
-#ifndef FROSTIUM_OPENGL_IMPL
-		void CmdUpdateVertextBuffer(const void* data, size_t size, uint32_t bufferIndex = 0, uint32_t offset = 0)
-		{
-			m_VertexBuffers[bufferIndex]->CmdUpdateData(m_CommandBuffer, data, size, offset);
-		}
-
-		void CmdUpdateIndexBuffer(uint32_t* indices, size_t count, uint32_t bufferIndex = 0, uint32_t offset = 0)
-		{
-			m_IndexBuffers[bufferIndex]->CmdUpdateData(m_CommandBuffer, indices, sizeof(uint32_t) * count, offset);
-		}
-
-		bool UpdateVulkanImageDescriptor(uint32_t bindingPoint, const VkDescriptorImageInfo& imageInfo, uint32_t descriptorSetIndex = 0)
-		{
-			return m_VulkanPipeline.m_Descriptors[descriptorSetIndex].UpdateImageResource(bindingPoint, imageInfo);
-		}
-#endif
-		bool UpdateSamplers(const std::vector<Texture*>& textures, uint32_t bindingPoint, uint32_t descriptorSetIndex = 0);
-		bool UpdateSampler(Texture* tetxure, uint32_t bindingPoint, uint32_t descriptorSetIndex = 0);
-		bool UpdateSampler(Framebuffer* framebuffer, uint32_t bindingPoint, uint32_t attachmentIndex, uint32_t descriptorSetIndex = 0);
-		bool UpdateSampler(Framebuffer* framebuffer, uint32_t bindingPoint, const std::string& attachmentName, uint32_t descriptorSetIndex = 0);
-		bool UpdateCubeMap(Texture* cubeMap, uint32_t bindingPoint, uint32_t descriptorSetIndex = 0);
 
 #ifndef FROSTIUM_OPENGL_IMPL
-		const VkPipeline& GetVkPipeline(DrawMode mode)
-		{
-			return m_VulkanPipeline.GetVkPipeline(mode);
-		}
-
-		const VulkanShader* GetVulkanShader() const
-		{
-			return m_Shader->GetVulkanShader();
-		}
-
-		VkCommandBuffer GetVkCommandBuffer() const
-		{
-			return m_CommandBuffer;
-		}
-
-		void SetCommandBuffer(VkCommandBuffer cmdBuffer)
-		{
-			m_CommandBuffer = cmdBuffer;
-		}
-#endif
-#ifdef FROSTIUM_OPENGL_IMPL
-
-		void BindOpenGLShader()
-		{
-			m_Shader->Bind();
-		}
+		const VkPipeline& GetVkPipeline(DrawMode mode);
+		const VulkanShader* GetVulkanShader();
+		VkCommandBuffer GetVkCommandBuffer() const;
+		void SetCommandBuffer(VkCommandBuffer cmdBuffer);
+#else
+		void BindOpenGLShader();
 #endif
 	private:
 

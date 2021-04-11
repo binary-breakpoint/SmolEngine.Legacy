@@ -65,9 +65,9 @@ namespace Frostium
 		m_Color = color;
 	}
 
-	void Text::SetPosition(const glm::vec3& pos)
+	void Text::SetPosition(const glm::vec2& pos)
 	{
-		m_Pos = pos;
+		m_Pos = { pos, 1.0f };
 	}
 
 	void Text::SetScale(const glm::vec2& scale)

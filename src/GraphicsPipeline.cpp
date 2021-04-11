@@ -271,7 +271,7 @@ namespace Frostium
 #endif
 	}
 
-	void GraphicsPipeline::Draw(uint32_t vertextCount, VertexBuffer* vb, DrawMode mode, uint32_t descriptorSetIndex)
+	void GraphicsPipeline::Draw(VertexBuffer* vb, uint32_t vertextCount, DrawMode mode, uint32_t descriptorSetIndex)
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
 #else
@@ -326,7 +326,7 @@ namespace Frostium
 #endif
 	}
 
-	void GraphicsPipeline::DrawMesh(Mesh* mesh, DrawMode mode, uint32_t instances, uint32_t descriptorSetIndex)
+	void GraphicsPipeline::DrawMesh(Mesh* mesh, uint32_t instances, DrawMode mode, uint32_t descriptorSetIndex)
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
 #else
@@ -380,6 +380,48 @@ namespace Frostium
 		m_VextexArray->SetIndexBuffer(m_IndexBuffers[bufferIndex]);
 #endif
 	}
+
+#ifndef FROSTIUM_OPENGL_IMPL
+	void GraphicsPipeline::CmdUpdateVertextBuffer(const void* data, size_t size, uint32_t bufferIndex, uint32_t offset)
+	{
+		m_VertexBuffers[bufferIndex]->CmdUpdateData(m_CommandBuffer, data, size, offset);
+	}
+
+	void GraphicsPipeline::CmdUpdateIndexBuffer(uint32_t* indices, size_t count, uint32_t bufferIndex, uint32_t offset)
+	{
+		m_IndexBuffers[bufferIndex]->CmdUpdateData(m_CommandBuffer, indices, sizeof(uint32_t) * count, offset);
+	}
+
+	bool GraphicsPipeline::UpdateVulkanImageDescriptor(uint32_t bindingPoint, const VkDescriptorImageInfo& imageInfo, uint32_t descriptorSetIndex)
+	{
+		return m_VulkanPipeline.m_Descriptors[descriptorSetIndex].UpdateImageResource(bindingPoint, imageInfo);
+	}
+
+	const VkPipeline& GraphicsPipeline::GetVkPipeline(DrawMode mode)
+	{
+		return m_VulkanPipeline.GetVkPipeline(mode);
+	}
+
+	const VulkanShader* GraphicsPipeline::GetVulkanShader()
+	{
+		return m_Shader->GetVulkanShader();
+	}
+
+	VkCommandBuffer GraphicsPipeline::GetVkCommandBuffer() const
+	{
+		return m_CommandBuffer;
+	}
+
+	void GraphicsPipeline::SetCommandBuffer(VkCommandBuffer cmdBuffer)
+	{
+		m_CommandBuffer = cmdBuffer;
+	}
+#else
+	void GraphicsPipeline::BindOpenGLShader()
+	{
+		m_Shader->Bind();
+	}
+#endif
 
 	bool GraphicsPipeline::UpdateSamplers(const std::vector<Texture*>& textures, uint32_t bindingPoint, uint32_t descriptorSetIndex)
 	{

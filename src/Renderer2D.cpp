@@ -172,9 +172,9 @@ namespace Frostium
 		s_Data->TextPipeline.EndCommandBuffer();
 	}
 
-	void Renderer2D::SubmitSprite(const glm::vec3& worldPos, const glm::vec2& scale, float rotation, uint32_t layerIndex, Texture* texture, const glm::vec4& color, GraphicsPipeline* material)
+	void Renderer2D::SubmitSprite(const glm::vec2& worldPos, const glm::vec2& scale, float rotation, uint32_t layerIndex, Texture* texture, const glm::vec4& color, GraphicsPipeline* material)
 	{
-		if (s_Data->Frustum->CheckSphere(worldPos, 10.0f))
+		if (s_Data->Frustum->CheckSphere(glm::vec3(worldPos, 0.0f), 10.0f))
 		{
 			if (s_Data->InstIndex >= Renderer2DStorage::MaxQuads)
 				StartNewBatch();
@@ -183,7 +183,7 @@ namespace Frostium
 
 			s_Data->Instances[index].Layer = layerIndex > Renderer2DStorage::MaxLayers ? Renderer2DStorage::MaxLayers : layerIndex;
 			s_Data->Instances[index].Color = color;
-			s_Data->Instances[index].Position = worldPos;
+			s_Data->Instances[index].Position = { worldPos, 0.0f };
 			s_Data->Instances[index].Rotation = { rotation, rotation, 0 };
 			s_Data->Instances[index].Scale = { scale, 1 };
 			s_Data->Instances[index].TextureIndex = AddTexture(texture);
@@ -192,9 +192,9 @@ namespace Frostium
 		}
 	}
 
-	void Renderer2D::SubmitQuad(const glm::vec3& worldPos, const glm::vec2& scale, float rotation, uint32_t layerIndex, const glm::vec4& color, GraphicsPipeline* material)
+	void Renderer2D::SubmitQuad(const glm::vec2& worldPos, const glm::vec2& scale, float rotation, uint32_t layerIndex, const glm::vec4& color, GraphicsPipeline* material)
 	{
-		if (s_Data->Frustum->CheckSphere(worldPos, 10.0f))
+		if (s_Data->Frustum->CheckSphere(glm::vec3(worldPos, 0.0f), 10.0f))
 		{
 			if (s_Data->InstIndex >= Renderer2DStorage::MaxQuads)
 				StartNewBatch();
@@ -203,7 +203,7 @@ namespace Frostium
 
 			s_Data->Instances[index].Layer = layerIndex > Renderer2DStorage::MaxLayers ? Renderer2DStorage::MaxLayers : layerIndex;
 			s_Data->Instances[index].Color = color;
-			s_Data->Instances[index].Position = worldPos;
+			s_Data->Instances[index].Position = { worldPos, 0.0f };
 			s_Data->Instances[index].Rotation = { rotation, rotation, 0 };
 			s_Data->Instances[index].Scale = { scale, 1 };
 			s_Data->Instances[index].TextureIndex = 0;
@@ -223,9 +223,9 @@ namespace Frostium
 		s_Data->TextIndex++;
 	}
 
-	void Renderer2D::SubmitLight2D(const glm::vec3& worldPos, const glm::vec4& color, float radius, float lightIntensity)
+	void Renderer2D::SubmitLight2D(const glm::vec2& worldPos, const glm::vec4& color, float radius, float lightIntensity)
 	{
-		if (s_Data->Frustum->CheckSphere(worldPos, 15.0f))
+		if (s_Data->Frustum->CheckSphere(glm::vec3(worldPos, 0.0f), 15.0f))
 		{
 
 		}
@@ -277,7 +277,7 @@ namespace Frostium
 						if (cmd.Instances > 0)
 						{
 							s_Data->DeferredPipeline.SubmitPushConstant(ShaderType::Vertex, sizeof(uint32_t), &cmd.DataOffset);
-							s_Data->DeferredPipeline.DrawMesh(&s_Data->PlaneMesh, DrawMode::Triangle, cmd.Instances);
+							s_Data->DeferredPipeline.DrawMesh(&s_Data->PlaneMesh, cmd.Instances);
 
 							cmd.Reset();
 						}
