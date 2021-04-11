@@ -102,21 +102,14 @@ namespace Frostium
 
 			for (uint32_t i = 0; i < count; ++i)
 			{
-				if (m_PipelineSpecification->eSrcColorBlendFactor != BlendFactor::NONE || m_PipelineSpecification->eDstColorBlendFactor != BlendFactor::NONE
-					|| m_PipelineSpecification->eDstAlphaBlendFactor != BlendFactor::NONE || m_PipelineSpecification->eSrcAlphaBlendFactor != BlendFactor::NONE)
-				{
-					blendAttachmentState[i].blendEnable = VK_TRUE;
-					blendAttachmentState[i].srcColorBlendFactor = GetVkBlendFactor(m_PipelineSpecification->eSrcColorBlendFactor);
-					blendAttachmentState[i].dstColorBlendFactor = GetVkBlendFactor(m_PipelineSpecification->eDstColorBlendFactor);;
-					blendAttachmentState[i].colorBlendOp = GetVkBlendOp(m_PipelineSpecification->eColorBlendOp);
-					blendAttachmentState[i].srcAlphaBlendFactor = GetVkBlendFactor(m_PipelineSpecification->eSrcAlphaBlendFactor);
-					blendAttachmentState[i].dstAlphaBlendFactor = GetVkBlendFactor(m_PipelineSpecification->eDstAlphaBlendFactor);
-					blendAttachmentState[i].alphaBlendOp = GetVkBlendOp(m_PipelineSpecification->eAlphaBlendOp);
-					continue;
-				}
-
 				blendAttachmentState[i].colorWriteMask = 0xf;
-				blendAttachmentState[i].blendEnable = VK_FALSE;
+				blendAttachmentState[i].blendEnable = IsBlendEnableEnabled() ? VK_TRUE: VK_FALSE;
+				blendAttachmentState[i].srcColorBlendFactor = GetVkBlendFactor(m_PipelineSpecification->eSrcColorBlendFactor);
+				blendAttachmentState[i].dstColorBlendFactor = GetVkBlendFactor(m_PipelineSpecification->eDstColorBlendFactor);;
+				blendAttachmentState[i].colorBlendOp = GetVkBlendOp(m_PipelineSpecification->eColorBlendOp);
+				blendAttachmentState[i].srcAlphaBlendFactor = GetVkBlendFactor(m_PipelineSpecification->eSrcAlphaBlendFactor);
+				blendAttachmentState[i].dstAlphaBlendFactor = GetVkBlendFactor(m_PipelineSpecification->eDstAlphaBlendFactor);
+				blendAttachmentState[i].alphaBlendOp = GetVkBlendOp(m_PipelineSpecification->eAlphaBlendOp);
 			}
 		}
 
@@ -160,7 +153,7 @@ namespace Frostium
 		{
 			depthStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 			depthStencilState.depthTestEnable = m_PipelineSpecification->bDepthTestEnabled ? VK_TRUE : VK_FALSE;
-			depthStencilState.depthWriteEnable = m_PipelineSpecification->bDepthTestEnabled ? VK_TRUE : VK_FALSE;
+			depthStencilState.depthWriteEnable = m_PipelineSpecification->bDepthWriteEnabled ? VK_TRUE : VK_FALSE;
 			depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 			depthStencilState.depthBoundsTestEnable = VK_FALSE;
 			depthStencilState.back.compareOp = VK_COMPARE_OP_ALWAYS;
@@ -412,6 +405,12 @@ namespace Frostium
 	const VkDescriptorSet VulkanPipeline::GetVkDescriptorSets(uint32_t setIndex) const
 	{
 		return m_Descriptors[setIndex].GetDescriptorSets();
+	}
+
+	bool VulkanPipeline::IsBlendEnableEnabled()
+	{
+		return m_PipelineSpecification->eSrcColorBlendFactor != BlendFactor::NONE || m_PipelineSpecification->eDstColorBlendFactor != BlendFactor::NONE ||
+			m_PipelineSpecification->eDstAlphaBlendFactor != BlendFactor::NONE || m_PipelineSpecification->eSrcAlphaBlendFactor != BlendFactor::NONE;
 	}
 
 	void VulkanPipeline::BuildDescriptors(VulkanShader* shader, uint32_t DescriptorSets)

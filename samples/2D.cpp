@@ -3,6 +3,7 @@
 #include <Common/Mesh.h>
 #include <Common/Input.h>
 #include <Common/Text.h>
+#include <ImGUI/ImGuiExtension.h>
 #include <Utils/Utils.h>
 #include <GraphicsContext.h>
 #include <Renderer2D.h>
@@ -41,8 +42,12 @@ int main(int argc, char** argv)
 	}
 
 	Text text1 = {};
+	std::string str = "Frostium3D!";
 	Text::CreateSDF("Assets/sdf_fonts/font_1.fnt", "Assets/sdf_fonts/font_1.png", &text1);
-	text1.SetText("Frostium3D!");
+	text1.SetPosition({ 0, 5, 0 });
+	text1.SetSize(25.0f);
+	text1.SetColor({ 0.2f, 0.7f, 1.0f, 1.0f });
+	text1.SetText(str);
 
 	Texture texture = {};
 	Texture texture2 = {};
@@ -75,7 +80,9 @@ int main(int argc, char** argv)
 			ImGui::Begin("Debug Window");
 			{
 				float lastFrameTime = deltaTime.GetTimeSeconds() * 100.0f;
-				ImGui::InputFloat("ms", &lastFrameTime, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
+				ImGui::Extensions::Text("Ms: ", std::to_string(lastFrameTime), 60.0f);
+				if (ImGui::Extensions::InputRawString("Text", str, "Input", 60.0f))
+					text1.SetText(str);
 			}
 			ImGui::End();
 
@@ -83,7 +90,9 @@ int main(int argc, char** argv)
 			Renderer2D::SubmitSprite(glm::vec3(10, 0, 0),  glm::vec2(1, 1),  0.0f, 0, &texture2);
 			Renderer2D::SubmitSprite(glm::vec3(0, 0, 0),   glm::vec2(1, 1),  0.0f, 1, &texture);
 			Renderer2D::SubmitSprite(glm::vec3(20, 20, 0), glm::vec2(1, 1),  0.0f, 3, &texture2);
+			Renderer2D::SubmitText(&text1);
 			Renderer2D::EndScene();
+
 		}
 		context->SwapBuffers();
 	}

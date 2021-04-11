@@ -406,7 +406,7 @@ namespace Frostium
 			s_Data->m_Objects++;
 
 			for (auto& sub : mesh->GetSubMeshes())
-				SubmitMesh(pos, rotation, scale, sub.get());
+				SubmitMesh(pos, rotation, scale, sub);
 		}
 	}
 
@@ -609,7 +609,8 @@ namespace Frostium
 				 1.0f, -1.0f,  1.0f
 			};
 
-			Ref<VertexBuffer> skyBoxFB = VertexBuffer::Create(skyboxVertices, sizeof(skyboxVertices));
+			Ref<VertexBuffer> skyBoxFB = std::make_shared<VertexBuffer>();
+			VertexBuffer::Create(skyBoxFB.get(), skyboxVertices, sizeof(skyboxVertices));
 			s_Data->m_SkyboxPipeline->SetVertexBuffers({ skyBoxFB });
 		}
 
@@ -643,8 +644,10 @@ namespace Frostium
 				{ DataTypes::Float2, "aUV" },
 			};
 
-			auto FullScreenVB = VertexBuffer::Create(quadVertices, sizeof(quadVertices));
-			auto FullScreenID = IndexBuffer::Create(squareIndices, 6);
+			Ref<VertexBuffer> vb = std::make_shared<VertexBuffer>();
+			Ref<IndexBuffer> ib = std::make_shared<IndexBuffer>();
+			VertexBuffer::Create(vb.get(), quadVertices, sizeof(quadVertices));
+			IndexBuffer::Create(ib.get(), squareIndices, 6);
 
 			GraphicsPipelineCreateInfo DynamicPipelineCI = {};
 			{
@@ -658,8 +661,8 @@ namespace Frostium
 				assert(result == PipelineCreateResult::SUCCESS);
 
 				s_Data->m_DebugViewPipeline->UpdateSampler(s_Data->m_DepthFramebuffer.get(), 1, "Depth_Attachment");
-				s_Data->m_DebugViewPipeline->SetVertexBuffers({ FullScreenVB });
-				s_Data->m_DebugViewPipeline->SetIndexBuffers({ FullScreenID });
+				s_Data->m_DebugViewPipeline->SetVertexBuffers({ vb });
+				s_Data->m_DebugViewPipeline->SetIndexBuffers({ ib });
 			}
 		}
 

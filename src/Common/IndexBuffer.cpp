@@ -21,6 +21,23 @@ namespace Frostium
 
 	}
 
+	void IndexBuffer::Clear()
+	{
+#ifdef FROSTIUM_OPENGL_IMPL
+#else
+		m_VulkanIndexBuffer.Destroy();
+#endif
+	}
+
+	bool IndexBuffer::IsInitialized() const
+	{
+#ifdef FROSTIUM_OPENGL_IMPL
+		return false;
+#else
+		return m_VulkanIndexBuffer.GetSize() > 0;
+#endif
+	}
+
 	void IndexBuffer::UploadData(uint32_t* indices, uint32_t count)
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
@@ -39,19 +56,6 @@ namespace Frostium
 		return m_VulkanIndexBuffer.GetCount();
 #endif
 
-	}
-
-	Ref<IndexBuffer> IndexBuffer::Create(uint32_t* indices, uint32_t count, bool is_static)
-	{
-		Ref<IndexBuffer> buffer = std::make_shared<IndexBuffer>();
-
-#ifdef FROSTIUM_OPENGL_IMPL
-
-		buffer->m_OpenglIndexBuffer.Init(indices, count);
-#else
-		buffer->m_VulkanIndexBuffer.Create(indices, count, is_static);
-#endif
-		return buffer;
 	}
 
 	void IndexBuffer::Create(IndexBuffer* out_ib, uint32_t* indices, uint32_t count, bool is_static)

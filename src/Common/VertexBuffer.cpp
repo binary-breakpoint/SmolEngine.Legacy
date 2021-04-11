@@ -11,15 +11,16 @@ namespace Frostium
 #endif
 	}
 
-	Ref<VertexBuffer> VertexBuffer::Create(uint32_t size)
+	void VertexBuffer::Create(VertexBuffer* buffer, uint32_t size)
 	{
-		Ref<VertexBuffer> buffer = std::make_shared<VertexBuffer>();
+		if (buffer)
+		{
 #ifdef FROSTIUM_OPENGL_IMPL
-		buffer->m_OpenglVertexBuffer.Init(size);
+			buffer->m_OpenglVertexBuffer.Init(size);
 #else
-		buffer->m_VulkanVertexBuffer.Create(size);
+			buffer->m_VulkanVertexBuffer.Create(size);
 #endif
-		return buffer;
+		}
 	}
 
 	void VertexBuffer::Create(VertexBuffer* out_vb, void* vertices, uint32_t size, bool is_static)
@@ -32,18 +33,6 @@ namespace Frostium
 			out_vb->m_VulkanVertexBuffer.Create(vertices, size, is_static);
 #endif
 		}
-	}
-
-
-	Ref<VertexBuffer> VertexBuffer::Create(void* vertices, uint32_t size, bool is_static)
-	{
-		Ref<VertexBuffer> buffer = std::make_shared<VertexBuffer>();
-#ifdef FROSTIUM_OPENGL_IMPL
-		buffer->m_OpenglVertexBuffer.Init(vertices, size);
-#else
-		buffer->m_VulkanVertexBuffer.Create(vertices, size, is_static);
-#endif
-		return buffer;
 	}
 
 	void VertexBuffer::Bind() const
@@ -60,6 +49,26 @@ namespace Frostium
 #endif
 	}
 
+	void VertexBuffer::Clear()
+	{
+		if (IsInitialized())
+		{
+#ifdef FROSTIUM_OPENGL_IMPL
+#else
+			m_VulkanVertexBuffer.Destroy();
+#endif
+		}
+	}
+
+	bool VertexBuffer::IsInitialized() const
+	{
+#ifdef FROSTIUM_OPENGL_IMPL
+		return false;
+#else
+		return m_VulkanVertexBuffer.GetSize() > 0;
+#endif
+	}
+
 	void VertexBuffer::UploadData(const void* data, const uint32_t size, const uint32_t offset)
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
@@ -69,13 +78,12 @@ namespace Frostium
 #endif
 	}
 
-	const BufferLayout& VertexBuffer::GetLayout() const
+	BufferLayout* VertexBuffer::GetLayout() 
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
-		return m_OpenglVertexBuffer.GetLayout();
+		return &m_OpenglVertexBuffer.GetLayout();
 #else
-		BufferLayout dummy;
-		return dummy;
+		return nullptr;
 #endif
 	}
 }

@@ -14,9 +14,7 @@ namespace Frostium
 
 	VulkanBuffer::~VulkanBuffer()
 	{
-		const auto& device = m_Device->GetLogicalDevice();
-		vkDestroyBuffer(device, m_Buffer, nullptr);
-		vkFreeMemory(device, m_DeviceMemory, nullptr);
+		Destroy();
 	}
 
 	void VulkanBuffer::CreateBuffer(const void* data, size_t size, VkMemoryPropertyFlags memFlags, VkBufferUsageFlags usageFlags, uint32_t offset, VkSharingMode shareMode)
@@ -43,6 +41,8 @@ namespace Frostium
 		m_MemoryRequirementsSize = memoryRequirements.size;
 		m_Alignment = memoryRequirements.alignment;
 		m_Size = size;
+		m_UsageFlags = usageFlags;
+		m_MemFlags = memFlags;
 
 		VkMemoryAllocateInfo memAllocateInfo = {};
 		{
@@ -96,6 +96,8 @@ namespace Frostium
 		m_MemoryType = FindMemoryType(memoryRequirements.memoryTypeBits, memFlags);
 		m_MemoryRequirementsSize = memoryRequirements.size;
 		m_Size = size;
+		m_UsageFlags = usageFlags;
+		m_MemFlags = memFlags;
 
 		VkMemoryAllocateInfo memAllocateInfo = {};
 		{
@@ -136,20 +138,42 @@ namespace Frostium
 		VulkanCommandBuffer::FlushCommandBuffer(copyCmd);
 	}
 
-	void VulkanBuffer::Flush(VkDeviceSize size, VkDeviceSize offset)
+	void VulkanBuffer::Flush() const
 	{
 		VkMappedMemoryRange mappedRange = {};
 		mappedRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
 		mappedRange.memory = m_DeviceMemory;
-		mappedRange.offset = offset;
-		mappedRange.size = size;
-
+		mappedRange.offset = 0;
+		mappedRange.size = VK_WHOLE_SIZE;
+		
 		const auto& device = m_Device->GetLogicalDevice();
 		vkFlushMappedMemoryRanges(device, 1, &mappedRange);
 	}
 
+	void VulkanBuffer::Destroy()
+	{
+		const auto& device = m_Device->GetLogicalDevice();
+		if (m_Buffer != VK_NULL_HANDLE)
+		{
+			vkDestroyBuffer(device, m_Buffer, nullptr);
+			m_Buffer = VK_NULL_HANDLE;
+		}
+
+		if (m_DeviceMemory != VK_NULL_HANDLE)
+		{
+			vkFreeMemory(device, m_DeviceMemory, nullptr);
+			m_DeviceMemory = VK_NULL_HANDLE;
+		}
+	}
+
 	void VulkanBuffer::SetData(const void* data, size_t size, uint32_t offset)
 	{
+		if (m_Buffer == VK_NULL_HANDLE)
+		{
+			CreateBuffer(data, size, m_MemFlags, m_UsageFlags, offset);
+			return;
+		}
+
 		if (m_Mapped == nullptr)
 		{
 			uint8_t* dest = nullptr;

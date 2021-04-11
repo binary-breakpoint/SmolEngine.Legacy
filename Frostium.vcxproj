@@ -888,7 +888,6 @@
     <ClInclude Include="include\Vulkan\VulkanShaderResources.h" />
     <ClInclude Include="include\Vulkan\VulkanStagingBuffer.h" />
     <ClInclude Include="include\Vulkan\VulkanSwapchain.h" />
-    <ClInclude Include="include\Vulkan\VulkanText.h" />
     <ClInclude Include="include\Vulkan\VulkanTexture.h" />
     <ClInclude Include="include\Vulkan\VulkanUtils.h" />
     <ClInclude Include="include\Vulkan\VulkanVertexBuffer.h" />
@@ -952,7 +951,6 @@
     <ClCompile Include="src\Vulkan\VulkanShader.cpp" />
     <ClCompile Include="src\Vulkan\VulkanStagingBuffer.cpp" />
     <ClCompile Include="src\Vulkan\VulkanSwapchain.cpp" />
-    <ClCompile Include="src\Vulkan\VulkanText.cpp" />
     <ClCompile Include="src\Vulkan\VulkanTexture.cpp" />
     <ClCompile Include="src\Vulkan\VulkanUtils.cpp" />
     <ClCompile Include="src\Vulkan\VulkanVertexBuffer.cpp" />

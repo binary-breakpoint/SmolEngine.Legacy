@@ -90,6 +90,7 @@ namespace Frostium
 		CullMode                             eCullMode = CullMode::Back;
 
 		bool                                 bDepthTestEnabled = true;
+		bool                                 bDepthWriteEnabled = true;
 		bool                                 bDepthBiasEnabled = false;
 		float                                MinDepth = 0.0f;
 		float                                MaxDepth = 1.0f;

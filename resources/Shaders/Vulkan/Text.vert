@@ -17,10 +17,22 @@ layout (std140, binding = 27) uniform SceneDataBuffer
     SceneData sceneData;
 };
 
-layout (location = 0) out vec2 outUV;
+layout(push_constant) uniform pc
+{
+	mat4 model;
+	vec4 color;
+	uint textureID;
+};
+
+layout (location = 0) out vec2 v_UV;
+layout (location = 1) out vec4 v_color;
+layout (location = 2) out uint v_texID;
 
 void main() 
 {
-	outUV = inUV;
-	gl_Position = sceneData.projection * sceneData.view * vec4(inPos.xyz, 1.0);
+	v_UV = inUV;
+	v_texID = textureID;
+	v_color = color;
+	vec4 pos = model * vec4(inPos, 1.0);
+	gl_Position = sceneData.projection * sceneData.view * pos;
 }

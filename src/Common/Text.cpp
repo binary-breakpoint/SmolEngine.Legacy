@@ -46,7 +46,7 @@ namespace Frostium
 				}
 			}
 
-			Texture::Create(texturePath, &out_text->m_SDFTexture, TextureFormat::R8G8B8A8_UNORM);
+			Texture::Create(texturePath, &out_text->m_SDFTexture, TextureFormat::R8G8B8A8_UNORM, false);
 			out_text->m_Initialized = true;
 		}
 	}
@@ -82,7 +82,9 @@ namespace Frostium
 
 	void Text::SetSize(float size)
 	{
-
+		m_Size = size;
+		if(!m_Text.empty())
+			SetText(m_Text);
 	}
 
 	const std::string& Text::GetText() const
@@ -106,11 +108,11 @@ namespace Frostium
 			bmchar* charInfo = &m_FontChars[(int)text[i]];
 
 			if (charInfo->width == 0)
-				charInfo->width = 36;
+				charInfo->width = static_cast<uint32_t>(m_Size);
 
-			float charw = ((float)(charInfo->width) / 36.0f);
+			float charw = ((float)(charInfo->width) / m_Size);
 			float dimx = 1.0f * charw;
-			float charh = ((float)(charInfo->height) / 36.0f);
+			float charh = ((float)(charInfo->height) / m_Size);
 			float dimy = 1.0f * charh;
 
 			float us = charInfo->x / w;
@@ -118,8 +120,8 @@ namespace Frostium
 			float ts = charInfo->y / w;
 			float te = (charInfo->y + charInfo->height) / w;
 
-			float xo = charInfo->xoffset / 36.0f;
-			float yo = charInfo->yoffset / 36.0f;
+			float xo = charInfo->xoffset / m_Size;
+			float yo = charInfo->yoffset / m_Size;
 
 			posy = yo;
 
@@ -135,7 +137,7 @@ namespace Frostium
 			}
 			indexOffset += 4;
 
-			float advance = ((float)(charInfo->xadvance) / 36.0f);
+			float advance = ((float)(charInfo->xadvance) / m_Size);
 			posx += advance;
 		}
 		m_IndexCount = static_cast<uint32_t>(indices.size());
@@ -145,13 +147,19 @@ namespace Frostium
 		{
 			v.Pos[0] -= posx / 2.0f;
 			v.Pos[1] -= 0.5f;
+			// flip
+			v.Pos = v.Pos * glm::vec3(1.0f, -1.0f, 1.0f);
 		}
 
 		// Generate host accessible buffers for the text vertices and indices and upload the data
-#ifdef FROSTIUM_OPENGL_IMPL
-#else
-		m_VulkanText.Update(vertices, indices);
-#endif
+		if (m_VertexBuffer.IsInitialized())
+		{
+			m_VertexBuffer = {};
+			m_IndexBuffer = {};
+		}
+
+		VertexBuffer::Create(&m_VertexBuffer, vertices.data(), static_cast<uint32_t>(vertices.size() * sizeof(TextVertex)), false);
+		IndexBuffer::Create(&m_IndexBuffer, indices.data(), static_cast<uint32_t>(indices.size()), false);
 	}
 
 	int32_t Text::NextValuePair(std::stringstream* stream)

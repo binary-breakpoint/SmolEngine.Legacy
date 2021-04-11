@@ -802,10 +802,7 @@ namespace Frostium
 	{
 		for (auto& clearAttachment : m_ClearAttachments)
 		{
-			if (clearAttachment.aspectMask && VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)
-				clearAttachment.clearValue.depthStencil = { 1.0f, 0 };
-			else
-				clearAttachment.clearValue = { { clearColors.r,  clearColors.g,  clearColors.b,  clearColors.a } };
+			clearAttachment.clearValue = { { clearColors.r,  clearColors.g,  clearColors.b,  clearColors.a } };
 		}
 	}
 

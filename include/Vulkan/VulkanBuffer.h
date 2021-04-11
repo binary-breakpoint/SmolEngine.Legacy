@@ -14,7 +14,6 @@ namespace Frostium
 		VulkanBuffer();
 		virtual ~VulkanBuffer();
 
-
 		void CreateBuffer(const void* data, size_t size, VkMemoryPropertyFlags memFlags,
 			VkBufferUsageFlags usageFlags, uint32_t offset = 0,
 			VkSharingMode shareMode = VkSharingMode::VK_SHARING_MODE_EXCLUSIVE);
@@ -24,7 +23,8 @@ namespace Frostium
 		void CreateStaticBuffer(const void* data, size_t size,
 			VkBufferUsageFlags usageFlags);
 
-		void Flush(VkDeviceSize size, VkDeviceSize offset);
+		void Flush() const;
+		void Destroy();
 		void SetData(const void* data, size_t size, uint32_t offset = 0);
 		void CmdUpdateData(VkCommandBuffer cmdBuffer, const void* data,
 			size_t size, uint32_t offset = 0);
@@ -43,16 +43,16 @@ namespace Frostium
 
 	private:
 
-		VkBuffer           m_Buffer = VK_NULL_HANDLE;
-		VkDeviceMemory     m_DeviceMemory = VK_NULL_HANDLE;
-		VkDeviceSize       m_MemoryRequirementsSize = 0;
-		VkDeviceSize       m_Alignment = 0;
-
-		uint32_t           m_MemoryType = UINT32_MAX;
-		size_t             m_Size = 0;
-
-		void*              m_Mapped = nullptr;
-		VulkanDevice*      m_Device = nullptr;
+		VkBuffer                m_Buffer = VK_NULL_HANDLE;
+		VkDeviceMemory          m_DeviceMemory = VK_NULL_HANDLE;
+		VkDeviceSize            m_MemoryRequirementsSize = 0;
+		VkDeviceSize            m_Alignment = 0;
+		VkBufferUsageFlags      m_UsageFlags;
+		VkMemoryPropertyFlags   m_MemFlags;
+		uint32_t                m_MemoryType = UINT32_MAX;
+		size_t                  m_Size = 0;
+		void*                   m_Mapped = nullptr;
+		VulkanDevice*           m_Device = nullptr;
 	};
 }
 #endif

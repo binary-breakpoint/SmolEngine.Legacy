@@ -54,10 +54,12 @@ namespace Frostium
 		m_IsCreated = true;
 	}
 
-	void VulkanTexture::LoadTexture(const std::string& filePath, TextureFormat format)
+	void VulkanTexture::LoadTexture(const std::string& filePath, bool flip, TextureFormat format)
 	{
 		int height, width, channels;
-		stbi_set_flip_vertically_on_load(1);
+		if(flip)
+			stbi_set_flip_vertically_on_load(1);
+
 		stbi_uc* data = nullptr;
 		{
 			data = stbi_load(filePath.c_str(), &width, &height, &channels, 4);

@@ -47,6 +47,7 @@ namespace Frostium
 
 	private:
 
+		bool IsBlendEnableEnabled();
 		void BuildDescriptors(VulkanShader* shader, uint32_t DescriptorSets);
 		VkFormat GetVkInputFormat(DataTypes type);
 		VkPrimitiveTopology GetVkTopology(DrawMode mode);

@@ -37,8 +37,9 @@ namespace Frostium
 			&m_Window.GetWindowData()->Width, &m_Window.GetWindowData()->Height);
 		m_VulkanContext.m_UseImGUI = m_UseImGUI;
 #endif
-		// Creates white 4x4 white texture
-		m_DummyTexure = Texture::CreateWhiteTexture();
+		// Creates 4x4 white texture
+		m_DummyTexure = new Texture();
+		Texture::CreateWhiteTexture(m_DummyTexure);
 		// Creates main framebuffer
 		FramebufferSpecification framebufferCI = {};
 		{
@@ -130,7 +131,7 @@ namespace Frostium
 	{
 		if (m_Initialized)
 		{
-			delete m_MaterialLibrary;
+			delete m_MaterialLibrary, m_DummyTexure;
 			if(m_UseEditorCamera)
 				delete m_EditorCamera;
 

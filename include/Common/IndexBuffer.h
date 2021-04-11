@@ -17,9 +17,10 @@ namespace Frostium
 		IndexBuffer() = default;
 		~IndexBuffer() = default;
 
-		// Bind
 		void Bind() const;
 		void UnBind() const;
+		void Clear();
+		bool IsInitialized() const;
 
 		// Upload
 		void UploadData(uint32_t* indices, uint32_t count);
@@ -36,16 +37,14 @@ namespace Frostium
 		VulkanIndexBuffer& GetVulkanIndexBuffer() { return m_VulkanIndexBuffer; };
 #endif
 		// Factory
-		static Ref<IndexBuffer> Create(uint32_t* indices, uint32_t count, bool is_static = false);
 		static void Create(IndexBuffer* out_ib, uint32_t* indices, uint32_t count, bool is_static = false);
 
 	private:
 
 #ifdef FROSTIUM_OPENGL_IMPL
-
-		OpenglIndexBuffer m_OpenglIndexBuffer = {};
-#else
-		VulkanIndexBuffer m_VulkanIndexBuffer = {};
+		OpenglIndexBuffer  m_OpenglIndexBuffer = {};
+#else					   
+		VulkanIndexBuffer  m_VulkanIndexBuffer = {};
 #endif
 	};
 }

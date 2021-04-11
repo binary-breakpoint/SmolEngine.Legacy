@@ -12,19 +12,16 @@
 
 namespace Frostium
 {
-    //TODO: add staging buffer
-    Ref<Mesh> Mesh::Create(const std::string& filePath)
+    Mesh::Mesh()
     {
-        Ref<Mesh> mesh = std::make_shared<Mesh>();
-        ImportedData* data = new ImportedData();
-        if (ModelImporter::Load(filePath, data))
-        {
-            mesh->Init(data);
-            mesh->m_Initialized = true;
-        }
 
-        delete data;
-        return mesh;
+    }
+
+    Mesh::~Mesh()
+    {
+        Free();
+        for (auto& s : m_SubMeshes)
+            s->Free();
     }
 
     void Mesh::Create(const std::string& filePath, Mesh* out_mesh)
@@ -43,7 +40,7 @@ namespace Frostium
         }
     }
 
-    Ref<Mesh> Mesh::FindSubMeshByIndex(uint32_t index)
+    Mesh* Mesh::FindSubMeshByIndex(uint32_t index)
     {
         if (index >= m_SubMeshes.size())
             return nullptr;
@@ -51,7 +48,7 @@ namespace Frostium
         return m_SubMeshes[index];
     }
 
-    Ref<Mesh> Mesh::FindSubMeshByName(const std::string& name)
+    Mesh* Mesh::FindSubMeshByName(const std::string& name)
     {
         for (auto& sub : m_SubMeshes)
         {
@@ -69,10 +66,11 @@ namespace Frostium
 
     void Mesh::Free()
     {
-        if (m_SubMeshes.size() != 0)
-            m_SubMeshes.clear();
+        if (m_IndexBuffer)
+            delete m_IndexBuffer;
 
-        m_Meshes.clear();
+        if (m_VertexBuffer)
+            delete m_VertexBuffer;
     }
 
     void Mesh::FindAllMeshes()
@@ -84,7 +82,7 @@ namespace Frostium
 
         for (auto& sub : m_SubMeshes)
         {
-            m_Meshes[index] = sub.get();
+            m_Meshes[index] = sub;
             index++;
         }
     }
@@ -107,7 +105,7 @@ namespace Frostium
             }
 
             // Sub
-            Ref<Mesh> mesh = std::make_shared<Mesh>();
+            Mesh* mesh = new Mesh();
             mesh->CreateVertexAndIndexBuffers(component);
             m_SubMeshes.emplace_back(mesh);
         }
@@ -119,8 +117,11 @@ namespace Frostium
     void Mesh::CreateVertexAndIndexBuffers(ImportedComponent& component)
     {
         m_Name = component.Name;
+        m_VertexBuffer = new VertexBuffer();
+        m_IndexBuffer = new IndexBuffer();
         m_VertexCount = static_cast<uint32_t>(component.VertexData.size());
-        m_VertexBuffer = VertexBuffer::Create(component.VertexData.data(), static_cast<uint32_t>(sizeof(PBRVertex) * component.VertexData.size()), true);
-        m_IndexBuffer = IndexBuffer::Create(component.Indices.data(), static_cast<uint32_t>(component.Indices.size()), true);
+
+        VertexBuffer::Create(m_VertexBuffer, component.VertexData.data(), static_cast<uint32_t>(component.VertexData.size() * sizeof(PBRVertex)), true);
+        IndexBuffer::Create(m_IndexBuffer, component.Indices.data(), static_cast<uint32_t>(component.Indices.size()), true);
     }
 }

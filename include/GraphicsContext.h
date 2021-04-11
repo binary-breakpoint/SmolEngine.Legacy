@@ -83,7 +83,7 @@ namespace Frostium
 	private:
 
 		static GraphicsContext*         s_Instance;
-		Ref<Texture>                    m_DummyTexure = nullptr;
+		Texture*                        m_DummyTexure = nullptr;
 		EditorCamera*                   m_EditorCamera = nullptr;
 		MaterialLibrary*                m_MaterialLibrary = nullptr;
 		bool                            m_Initialized = false;

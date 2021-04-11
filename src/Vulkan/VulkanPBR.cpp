@@ -863,7 +863,8 @@ namespace Frostium
 				 1.0f, -1.0f,  1.0f
 			};
 
-			Ref<VertexBuffer> skyBoxFB = VertexBuffer::Create(skyboxVertices, sizeof(skyboxVertices));
+			VertexBuffer skyBoxFB = {};
+			VertexBuffer::Create(&skyBoxFB, skyboxVertices, sizeof(skyboxVertices));
 
 			VkCommandBuffer cmdBuffer = VulkanCommandBuffer::CreateSingleCommandBuffer();
 			{
@@ -922,7 +923,7 @@ namespace Frostium
 
 						VkDeviceSize offsets[1] = { 0 };
 #ifndef FROSTIUM_OPENGL_IMPL
-						vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &skyBoxFB->GetVulkanVertexBuffer().GetBuffer(), offsets);
+						vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &skyBoxFB.GetVulkanVertexBuffer().GetBuffer(), offsets);
 #endif
 
 						vkCmdDraw(cmdBuffer, 36, 1, 0, 0);
@@ -1487,7 +1488,8 @@ namespace Frostium
 				 1.0f, -1.0f,  1.0f
 			};
 
-			Ref<VertexBuffer> skyBoxFB = VertexBuffer::Create(skyboxVertices, sizeof(skyboxVertices));
+			VertexBuffer skyBoxFB = {};
+			VertexBuffer::Create(&skyBoxFB, skyboxVertices, sizeof(skyboxVertices));
 
 			VkCommandBuffer cmdBuffer = VulkanCommandBuffer::CreateSingleCommandBuffer();
 			{
@@ -1544,7 +1546,7 @@ namespace Frostium
 
 						VkDeviceSize offsets[1] = { 0 };
 #ifndef FROSTIUM_OPENGL_IMPL
-						vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &skyBoxFB->GetVulkanVertexBuffer().GetBuffer(), offsets);
+						vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &skyBoxFB.GetVulkanVertexBuffer().GetBuffer(), offsets);
 #endif
 
 						vkCmdDraw(cmdBuffer, 36, 1, 0, 0);

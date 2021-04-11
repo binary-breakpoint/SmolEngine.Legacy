@@ -1,11 +1,8 @@
 #pragma once
 #include "Common/Core.h"
 #include "Common/Texture.h"
-
-#ifdef FROSTIUM_OPENGL_IMPL
-#else
-#include "Vulkan/VulkanText.h"
-#endif
+#include "Common/VertexBuffer.h"
+#include "Common/IndexBuffer.h"
 
 #include <array>
 #include <string>
@@ -53,16 +50,15 @@ namespace Frostium
 
 		bool                    m_Initialized = false;
 		uint32_t                m_IndexCount = 0;
+		float                   m_Size = 36.0f;
 		glm::vec4               m_Color = glm::vec4(1.0f);
 		glm::vec3               m_Pos = glm::vec3(0.0f);
 		glm::vec3               m_Scale = glm::vec3(1.0f);
 		glm::vec3               m_Rotation = glm::vec3(0.0f);
 		Texture                 m_SDFTexture = {};
+		VertexBuffer            m_VertexBuffer = {};
+		IndexBuffer             m_IndexBuffer = {};
 		std::string             m_Text = "";
-#ifdef FROSTIUM_OPENGL_IMPL
-#else
-		VulkanText              m_VulkanText = {};
-#endif
 		std::array<bmchar, 255> m_FontChars;
 
 	private:

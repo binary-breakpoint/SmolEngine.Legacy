@@ -39,12 +39,11 @@ namespace Frostium
 		void EndCommandBuffer();
 
 		// Draw
-		void DrawIndexed(DrawMode mode = DrawMode::Triangle, uint32_t vertexBufferIndex = 0, 
-			uint32_t indexBufferIndex = 0, uint32_t descriptorSetIndex = 0);
-		void Draw(uint32_t vertextCount, DrawMode mode = DrawMode::Triangle,
-			uint32_t vertexBufferIndex = 0, uint32_t descriptorSetIndex = 0);
-		void DrawMesh(Mesh* mesh, DrawMode mode = DrawMode::Triangle,
-			uint32_t instances = 1, uint32_t descriptorSetIndex = 0);
+		void DrawIndexed(DrawMode mode = DrawMode::Triangle, uint32_t vertexBufferIndex = 0,  uint32_t indexBufferIndex = 0, uint32_t descriptorSetIndex = 0);
+		void DrawIndexed(VertexBuffer* vb, IndexBuffer* ib, DrawMode mode = DrawMode::Triangle, uint32_t descriptorSetIndex = 0);
+		void Draw(uint32_t vertextCount, VertexBuffer* vb, DrawMode mode = DrawMode::Triangle, uint32_t descriptorSetIndex = 0);
+		void Draw(uint32_t vertextCount, DrawMode mode = DrawMode::Triangle, uint32_t vertexBufferIndex = 0, uint32_t descriptorSetIndex = 0);
+		void DrawMesh(Mesh* mesh, DrawMode mode = DrawMode::Triangle, uint32_t instances = 1, uint32_t descriptorSetIndex = 0);
 
 		// Submit
 		void SubmitBuffer(uint32_t bindingPoint, size_t size, const void* data, uint32_t offset = 0);

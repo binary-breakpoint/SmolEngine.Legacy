@@ -100,6 +100,8 @@ namespace Frostium
 			renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 			renderPassBeginInfo.renderPass = vkframebuffer.GetRenderPass();
 			renderPassBeginInfo.framebuffer = framebufferIndex == 0 ? vkframebuffer.GetCurrentVkFramebuffer(): vkframebuffer.GetVkFramebuffer(framebufferIndex);
+			renderPassBeginInfo.renderArea.offset.x = 0;
+			renderPassBeginInfo.renderArea.offset.y = 0;
 			renderPassBeginInfo.renderArea.extent.width = width;
 			renderPassBeginInfo.renderArea.extent.height = height;
 			renderPassBeginInfo.clearValueCount = static_cast<uint32_t>(vkframebuffer.GetClearValues().size());
@@ -246,6 +248,44 @@ namespace Frostium
 			&descriptorSets, 0, nullptr);
 
 		vkCmdDrawIndexed(m_CommandBuffer, m_IndexBuffers[indexBufferIndex]->GetVulkanIndexBuffer().GetCount(), 1, 0, 0, 1);
+#endif
+	}
+
+	void GraphicsPipeline::DrawIndexed(VertexBuffer* vb, IndexBuffer* ib, DrawMode mode, uint32_t descriptorSetIndex)
+	{
+#ifdef FROSTIUM_OPENGL_IMPL
+#else
+		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_VulkanPipeline.GetVkPipeline(mode));
+
+		VkDeviceSize offsets[1] = { 0 };
+		vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &vb->GetVulkanVertexBuffer().GetBuffer(), offsets);
+
+		vkCmdBindIndexBuffer(m_CommandBuffer, ib->GetVulkanIndexBuffer().GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+
+		const auto& descriptorSets = m_VulkanPipeline.GetVkDescriptorSets(descriptorSetIndex);
+		vkCmdBindDescriptorSets(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+			m_VulkanPipeline.GetVkPipelineLayot(), 0, 1,
+			&descriptorSets, 0, nullptr);
+
+		vkCmdDrawIndexed(m_CommandBuffer, ib->GetVulkanIndexBuffer().GetCount(), 1, 0, 0, 1);
+#endif
+	}
+
+	void GraphicsPipeline::Draw(uint32_t vertextCount, VertexBuffer* vb, DrawMode mode, uint32_t descriptorSetIndex)
+	{
+#ifdef FROSTIUM_OPENGL_IMPL
+#else
+		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_VulkanPipeline.GetVkPipeline(mode));
+
+		VkDeviceSize offsets[1] = { 0 };
+		vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &vb->GetVulkanVertexBuffer().GetBuffer(), offsets);
+
+		const auto& descriptorSets = m_VulkanPipeline.GetVkDescriptorSets(descriptorSetIndex);
+		vkCmdBindDescriptorSets(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+			m_VulkanPipeline.GetVkPipelineLayot(), 0, 1,
+			&descriptorSets, 0, nullptr);
+
+		vkCmdDraw(m_CommandBuffer, vertextCount, 1, 0, 0);
 #endif
 	}
 

@@ -22,9 +22,9 @@ namespace Frostium
 		Texture() = default;
 		~Texture() = default;
 
-		// Binding
 		void Bind(uint32_t slot = 0) const;
 		void UnBind() const;
+		bool IsInitialized() const;
 
 		// Getters
 		uint32_t GetHeight() const;
@@ -38,14 +38,8 @@ namespace Frostium
 		void SetData(void* data, uint32_t size);
 
 		// Factory
-		static Ref<Texture> CreateWhiteTexture();
-		static Ref<Texture> Create(const std::string& filePath, TextureFormat format = TextureFormat::R8G8B8A8_UNORM);
-		static Ref<Texture> Create(const TextureLoadedData* data, TextureFormat format = TextureFormat::R8G8B8A8_UNORM);
-		static Ref<Texture> Create(const void* data, uint32_t size, const uint32_t width, const uint32_t height,
-			TextureFormat format = TextureFormat::R8G8B8A8_UNORM);
-
 		static void CreateWhiteTexture(Texture* out_texture);
-		static void Create(const std::string& filePath, Texture* out_texture, TextureFormat format = TextureFormat::R8G8B8A8_UNORM);
+		static void Create(const std::string& filePath, Texture* out_texture, TextureFormat format = TextureFormat::R8G8B8A8_UNORM, bool flip_vertically = true);
 		static void Create(const TextureLoadedData* data, Texture* out_texture, TextureFormat format = TextureFormat::R8G8B8A8_UNORM);
 		static void Create(const void* data, uint32_t size, const uint32_t width, const uint32_t height, Texture* out_texture,
 			TextureFormat format = TextureFormat::R8G8B8A8_UNORM);
@@ -61,6 +55,5 @@ namespace Frostium
 #else
 		VulkanTexture m_VulkanTexture = {};
 #endif
-		bool m_Initialized = false;
 	};
 }
