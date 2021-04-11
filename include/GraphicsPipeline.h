@@ -5,12 +5,12 @@
 #include "Vulkan/VulkanPipeline.h"
 #endif
 
-#include "Common/GraphicsPipelineShaderCreateInfo.h"
+#include "Common/GraphicsPipelineInfos.h"
 #include "Common/VertexArray.h"
 #include "Common/VertexBuffer.h"
 #include "Common/IndexBuffer.h"
 #include "Common/Texture.h"
-#include "Common/Shared.h"
+#include "Common/Common.h"
 #include "Common/Shader.h"
 
 namespace Frostium
@@ -18,46 +18,6 @@ namespace Frostium
 	class Framebuffer;
 	class CubeTexture;
 	class Mesh;
-
-	enum class DrawMode : uint16_t
-	{
-		Triangle,
-		Line,
-		Fan
-	};
-
-	enum class CullMode : uint16_t
-	{
-		None,
-		Back,
-		Front
-	};
-
-	enum class PipelineCreateResult : uint16_t
-	{
-		SUCCESS,
-		ERROR_INVALID_CREATE_INFO,
-		ERROR_PIPELINE_NOT_INVALIDATED,
-		ERROR_PIPELINE_NOT_CREATED,
-		ERROR_SHADER_NOT_RELOADED
-	};
-
-	struct GraphicsPipelineCreateInfo
-	{
-		//TODO: Add flags
-		CullMode                             PipelineCullMode = CullMode::Back;
-		bool                                 bDepthTestEnabled = true;
-		bool                                 bDepthBiasEnabled = false;
-		float                                MinDepth = 0.0f;
-		float                                MaxDepth = 1.0f;
-		int32_t                              DescriptorSets = 1;
-		int32_t                              StageCount = -1;
-		Framebuffer*                         TargetFramebuffer = nullptr;
-		GraphicsPipelineShaderCreateInfo*    ShaderCreateInfo = nullptr;
-		std::string                          PipelineName = "";
-		std::vector<DrawMode>                PipelineDrawModes = { DrawMode::Triangle };
-		std::vector<VertexInputInfo>         VertexInputInfos;
-	};
 
 	class GraphicsPipeline
 	{

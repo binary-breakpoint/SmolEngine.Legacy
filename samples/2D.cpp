@@ -2,6 +2,7 @@
 
 #include <Common/Mesh.h>
 #include <Common/Input.h>
+#include <Common/Text.h>
 #include <Utils/Utils.h>
 #include <GraphicsContext.h>
 #include <Renderer2D.h>
@@ -40,6 +41,10 @@ int main(int argc, char** argv)
 		context = new GraphicsContext(&info);
 	}
 
+	Text text1 = {};
+	Text::CreateSDF("Assets/sdf_fonts/font_1.fnt", "Assets/sdf_fonts/font_1.png", &text1);
+	text1.SetText("Frostium3D!");
+
 	Texture texture = {};
 	Texture texture2 = {};
 	Texture::Create("Assets/Background.png", &texture);
@@ -70,14 +75,15 @@ int main(int argc, char** argv)
 		{
 			ImGui::Begin("Debug Window");
 			{
-				float lastFrameTime = deltaTime.GetTimeSeconds();
-				ImGui::InputFloat("DeltaTime", &lastFrameTime, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
+				float lastFrameTime = deltaTime.GetTimeSeconds() * 100.0f;
+				ImGui::InputFloat("ms", &lastFrameTime, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
 			}
 			ImGui::End();
 
 			Renderer2D::BeginScene(&clearInfo);
-			Renderer2D::SubmitSprite({ 10, 0, 0 }, { 1, 1 }, { 1, 1, 1, 1 }, 0.0f, 0, &texture2);
-			Renderer2D::SubmitSprite({ 0, 0, 0 }, { 1, 1 }, { 1, 1, 1, 1 }, 0.0f, 1, &texture);
+			Renderer2D::SubmitSprite(glm::vec3(10, 0, 0),  glm::vec2(1, 1),  0.0f, 0, &texture2);
+			Renderer2D::SubmitSprite(glm::vec3(0, 0, 0),   glm::vec2(1, 1),  0.0f, 1, &texture);
+			Renderer2D::SubmitSprite(glm::vec3(20, 20, 0), glm::vec2(1, 1),  0.0f, 3, &texture2);
 			Renderer2D::EndScene();
 		}
 		context->SwapBuffers();

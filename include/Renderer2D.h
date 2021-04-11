@@ -4,6 +4,7 @@
 namespace Frostium
 {
 	class GraphicsPipeline;
+	class Text;
 	class Renderer2D
 	{
 	public:
@@ -14,14 +15,12 @@ namespace Frostium
 		static void EndScene();
 
 		// Submit
-		static void SubmitSprite(const glm::vec3& worldPos, const glm::vec2& scale, const glm::vec4& color,
-			float rotation, uint32_t layerIndex, Texture* texture, GraphicsPipeline* material = nullptr);
-		static void SubmitQuad(const glm::vec3& worldPos, const glm::vec2& scale, 
-			const glm::vec4& color, float rotation, uint32_t layerIndex, GraphicsPipeline* material = nullptr);
-		static void SubmitText(const glm::vec3& pos, const glm::vec2& scale,
-			Texture* texture, const glm::vec4& color = glm::vec4(1.0f));
-		static void SubmitLight2D(const glm::vec3& worldPos, const glm::vec4& color, 
-			float radius, float lightIntensity);
+		static void SubmitSprite(const glm::vec3& worldPos, const glm::vec2& scale, float rotation, uint32_t layerIndex, Texture* texture, 
+			const glm::vec4& color = glm::vec4(1.0f), GraphicsPipeline* material = nullptr);
+		static void SubmitQuad(const glm::vec3& worldPos, const glm::vec2& scale, float rotation, uint32_t layerIndex, 
+			const glm::vec4& color = glm::vec4(1.0f), GraphicsPipeline* material = nullptr);
+		static void SubmitLight2D(const glm::vec3& worldPos, const glm::vec4& color, float radius, float lightIntensity);
+		static void SubmitText(Text* text);
 
 	private:
 
@@ -46,6 +45,5 @@ namespace Frostium
 	private:
 
 		inline static Renderer2DStats* Stats = nullptr;
-		inline static bool m_RenderResetted = false;
 	};
 }

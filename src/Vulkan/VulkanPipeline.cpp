@@ -27,7 +27,7 @@ namespace Frostium
 		BuildDescriptors(shader, pipelineSpec->DescriptorSets);
 
 #ifndef FROSTIUM_OPENGL_IMPL
-		m_TargetRenderPass = pipelineSpec->TargetFramebuffer->GetVulkanFramebuffer().GetRenderPass();
+		m_TargetRenderPass = pipelineSpec->pTargetFramebuffer->GetVulkanFramebuffer().GetRenderPass();
 #endif
 		m_SetLayout.clear();
 		m_SetLayout.reserve(m_Descriptors.size());
@@ -84,7 +84,7 @@ namespace Frostium
 		{
 			rasterizationState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 			rasterizationState.polygonMode = GetVkPolygonMode(mode);
-			rasterizationState.cullMode = GetVkCullMode(m_PipelineSpecification->PipelineCullMode);
+			rasterizationState.cullMode = GetVkCullMode(m_PipelineSpecification->eCullMode);
 			rasterizationState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 			rasterizationState.depthClampEnable = VulkanContext::GetDevice().GetDeviceFeatures()->depthClamp;
 			rasterizationState.rasterizerDiscardEnable = VK_FALSE;
@@ -96,12 +96,12 @@ namespace Frostium
 		// We need one blend attachment state per color attachment (even if blending is not used)
 		std::vector<VkPipelineColorBlendAttachmentState> blendAttachmentState;
 		{
-			uint32_t count = static_cast<uint32_t>(m_PipelineSpecification->TargetFramebuffer->GetSpecification().Attachments.size());
+			uint32_t count = static_cast<uint32_t>(m_PipelineSpecification->pTargetFramebuffer->GetSpecification().Attachments.size());
 			blendAttachmentState.resize(count);
 
 			for (uint32_t i = 0; i < count; ++i)
 			{
-				auto& attachment = m_PipelineSpecification->TargetFramebuffer->GetSpecification().Attachments[i];
+				auto& attachment = m_PipelineSpecification->pTargetFramebuffer->GetSpecification().Attachments[i];
 				if (attachment.bAlphaBlending)
 				{
 					blendAttachmentState[i].blendEnable = VK_TRUE;
@@ -174,10 +174,10 @@ namespace Frostium
 			multisampleState.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 			multisampleState.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 
-			if (m_PipelineSpecification->TargetFramebuffer->GetSpecification().bUseMSAA)
+			if (m_PipelineSpecification->pTargetFramebuffer->GetSpecification().bUseMSAA)
 			{
 #ifndef SMOLEGNINE_OPENGL_IMPL
-				multisampleState.rasterizationSamples = m_PipelineSpecification->TargetFramebuffer->GetVulkanFramebuffer().GetMSAASamples();
+				multisampleState.rasterizationSamples = m_PipelineSpecification->pTargetFramebuffer->GetVulkanFramebuffer().GetMSAASamples();
 #endif
 				multisampleState.sampleShadingEnable = VK_TRUE;
 				multisampleState.minSampleShading = 0.2f;

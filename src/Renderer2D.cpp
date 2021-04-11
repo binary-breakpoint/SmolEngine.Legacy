@@ -3,6 +3,7 @@
 #include "GraphicsPipeline.h"
 
 #include "Common/Mesh.h"
+#include "Common/Text.h"
 #include "Utils/Utils.h"
 
 namespace Frostium
@@ -147,8 +148,7 @@ namespace Frostium
 		//s_Data->TextPipeline.EndCommandBuffer();
 	}
 
-	void Renderer2D::SubmitSprite(const glm::vec3& worldPos, const glm::vec2& scale, const glm::vec4& color, float rotation,
-		uint32_t layerIndex, Texture* texture, GraphicsPipeline* material)
+	void Renderer2D::SubmitSprite(const glm::vec3& worldPos, const glm::vec2& scale, float rotation, uint32_t layerIndex, Texture* texture, const glm::vec4& color, GraphicsPipeline* material)
 	{
 		if (s_Data->Frustum->CheckSphere(worldPos, 10.0f))
 		{
@@ -168,18 +168,29 @@ namespace Frostium
 		}
 	}
 
-	void Renderer2D::SubmitQuad(const glm::vec3& worldPos, const glm::vec2& scale, const glm::vec4& color,
-		float rotation, uint32_t layerIndex, GraphicsPipeline* material)
+	void Renderer2D::SubmitQuad(const glm::vec3& worldPos, const glm::vec2& scale, float rotation, uint32_t layerIndex, const glm::vec4& color, GraphicsPipeline* material)
 	{
-		if (s_Data->Frustum->CheckSphere(worldPos))
+		if (s_Data->Frustum->CheckSphere(worldPos, 10.0f))
 		{
+			if (s_Data->InstIndex >= Renderer2DStorage::MaxQuads)
+				StartNewBatch();
 
+			uint32_t index = s_Data->InstIndex;
+
+			s_Data->Instances[index].Layer = layerIndex > Renderer2DStorage::MaxLayers ? Renderer2DStorage::MaxLayers : layerIndex;
+			s_Data->Instances[index].Color = color;
+			s_Data->Instances[index].Position = worldPos;
+			s_Data->Instances[index].Rotation = { rotation, rotation, 0 };
+			s_Data->Instances[index].Scale = { scale, 1 };
+			s_Data->Instances[index].TextureIndex = 0;
+
+			s_Data->InstIndex++;
 		}
 	}
 
-	void Renderer2D::SubmitText(const glm::vec3& worldPos, const glm::vec2& scale, Texture* texture, const glm::vec4& color)
+	void Renderer2D::SubmitText(Text* text)
 	{
-		if (s_Data->Frustum->CheckSphere(worldPos))
+		if (s_Data->Frustum->CheckSphere(text->m_Pos, 10.0f))
 		{
 
 		}
@@ -312,10 +323,10 @@ namespace Frostium
 
 			pipelineCI.PipelineName = "Deferred_2D";
 			pipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(PBRVertex), PBRlayout) };
-			pipelineCI.PipelineCullMode = CullMode::Back;
+			pipelineCI.eCullMode = CullMode::Back;
 			pipelineCI.bDepthTestEnabled = false;
-			pipelineCI.TargetFramebuffer = &s_Data->DeferredFB;
-			pipelineCI.ShaderCreateInfo = &shaderCI;
+			pipelineCI.pTargetFramebuffer = &s_Data->DeferredFB;
+			pipelineCI.pShaderCreateInfo = &shaderCI;
 
 			assert(s_Data->DeferredPipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
 		}
@@ -349,10 +360,10 @@ namespace Frostium
 			};
 
 			pipelineCI.PipelineName = "2D_Combination";
-			pipelineCI.PipelineCullMode = CullMode::Back;
+			pipelineCI.eCullMode = CullMode::Back;
 			pipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(FullscreenVertex), Fullscreenlayout) };
-			pipelineCI.TargetFramebuffer = s_Data->MainFB;
-			pipelineCI.ShaderCreateInfo = &shaderCI;
+			pipelineCI.pTargetFramebuffer = s_Data->MainFB;
+			pipelineCI.pShaderCreateInfo = &shaderCI;
 
 			assert(s_Data->CombinationPipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
 
@@ -361,6 +372,28 @@ namespace Frostium
 			s_Data->CombinationPipeline.UpdateSampler(&s_Data->DeferredFB, 5, "Albedro");
 			s_Data->CombinationPipeline.UpdateSampler(&s_Data->DeferredFB, 6, "Position");
 			s_Data->CombinationPipeline.UpdateSampler(&s_Data->DeferredFB, 7, "Normals");
+		}
+
+		// Text Pipeline
+		{
+			pipelineCI = {};
+			BufferLayout layout =
+			{
+				{ DataTypes::Float3, "aPos" },
+				{ DataTypes::Float2, "aUV" },
+			};
+
+			GraphicsPipelineShaderCreateInfo shaderCI = {};
+			{
+				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/Text.vert";
+				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/Text.frag";
+			};
+
+			pipelineCI.PipelineName = "Text";
+			pipelineCI.eCullMode = CullMode::Back;
+			pipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(TextVertex), layout) };
+			pipelineCI.pTargetFramebuffer = s_Data->MainFB;
+			pipelineCI.pShaderCreateInfo = &shaderCI;
 		}
 	}
 

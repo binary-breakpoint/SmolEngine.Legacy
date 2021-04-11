@@ -28,10 +28,10 @@ namespace Frostium
 		m_GraphicsContext = GraphicsContext::s_Instance;
 		m_Shader = std::make_shared<Shader>();
 
-		if (pipelineInfo->ShaderCreateInfo->UseSingleFile)
-			Shader::Create(m_Shader, pipelineInfo->ShaderCreateInfo->SingleFilePath);
+		if (pipelineInfo->pShaderCreateInfo->UseSingleFile)
+			Shader::Create(m_Shader, pipelineInfo->pShaderCreateInfo->SingleFilePath);
 		else
-			Shader::Create(m_Shader, pipelineInfo->ShaderCreateInfo);
+			Shader::Create(m_Shader, pipelineInfo->pShaderCreateInfo);
 
 		m_PiplineCreateInfo = *pipelineInfo;
 #ifdef FROSTIUM_OPENGL_IMPL
@@ -90,10 +90,10 @@ namespace Frostium
 		m_VextexArray->Bind();
 		m_PiplineCreateInfo.TargetFramebuffer->Bind();
 #else
-		const FramebufferSpecification& specs = m_PiplineCreateInfo.TargetFramebuffer->GetSpecification();
+		const FramebufferSpecification& specs = m_PiplineCreateInfo.pTargetFramebuffer->GetSpecification();
 		uint32_t width = specs.Width;
 		uint32_t height = specs.Height;
-		auto& vkframebuffer = m_PiplineCreateInfo.TargetFramebuffer->GetVulkanFramebuffer();
+		auto& vkframebuffer = m_PiplineCreateInfo.pTargetFramebuffer->GetVulkanFramebuffer();
 
 		VkRenderPassBeginInfo renderPassBeginInfo = {};
 		{
@@ -162,10 +162,10 @@ namespace Frostium
 		clearRect.layerCount = 1;
 		clearRect.baseArrayLayer = 0;
 		clearRect.rect.offset = { 0, 0 };
-		clearRect.rect.extent = { (uint32_t)m_PiplineCreateInfo.TargetFramebuffer->GetSpecification().Width,
-			(uint32_t)m_PiplineCreateInfo.TargetFramebuffer->GetSpecification().Height };
+		clearRect.rect.extent = { (uint32_t)m_PiplineCreateInfo.pTargetFramebuffer->GetSpecification().Width,
+			(uint32_t)m_PiplineCreateInfo.pTargetFramebuffer->GetSpecification().Height };
 
-		auto& framebuffer = m_PiplineCreateInfo.TargetFramebuffer->GetVulkanFramebuffer();
+		auto& framebuffer = m_PiplineCreateInfo.pTargetFramebuffer->GetVulkanFramebuffer();
 		framebuffer.SetClearColors(clearColors);
 
 		vkCmdClearAttachments(m_CommandBuffer, static_cast<uint32_t>(framebuffer.GetClearAttachments().size()),
@@ -411,7 +411,7 @@ namespace Frostium
 
 	bool GraphicsPipeline::IsPipelineCreateInfoValid(const GraphicsPipelineCreateInfo* pipelineInfo)
 	{
-		if (pipelineInfo->DescriptorSets < 1 || !pipelineInfo->ShaderCreateInfo || !pipelineInfo->TargetFramebuffer)
+		if (pipelineInfo->DescriptorSets < 1 || !pipelineInfo->pShaderCreateInfo || !pipelineInfo->pTargetFramebuffer)
 			return false;
 
 		return true;

@@ -15,11 +15,10 @@ using namespace Frostium;
 
 struct Chunk
 {
+	int32_t   MaterialID = 0;
 	glm::vec3 Pos = glm::vec3(1.0f);
 	glm::vec3 Rot = glm::vec3(0.0f);
 	glm::vec3 Scale = glm::vec3(1.0f);
-
-	int32_t   MaterialID = 0;
 } chunk = {};
 
 struct MaterialTextures

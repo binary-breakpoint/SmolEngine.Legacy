@@ -1,7 +1,7 @@
 #pragma once
 #ifndef FROSTIUM_OPENGL_IMPL
 #include "Common/Core.h"
-#include "Common/GraphicsPipelineShaderCreateInfo.h"
+#include "Common/GraphicsPipelineInfos.h"
 
 #include "Vulkan/Vulkan.h"
 #include "Vulkan/VulkanShaderResources.h"

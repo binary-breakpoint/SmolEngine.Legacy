@@ -6,7 +6,7 @@
 #include "Vulkan/VulkanTexture.h"
 #endif
 
-#include "Common/Shared.h"
+#include "Common/Common.h"
 
 #include <glm/glm.hpp>
 #include <string>

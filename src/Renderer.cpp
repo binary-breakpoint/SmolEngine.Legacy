@@ -8,7 +8,7 @@
 #include "Common/VertexBuffer.h"
 #include "Common/IndexBuffer.h"
 #include "Common/Shader.h"
-#include "Common/Shared.h"
+#include "Common/Common.h"
 #include "Common/Mesh.h"
 #include "Common/Texture.h"
 
@@ -516,8 +516,8 @@ namespace Frostium
 			{
 				DynamicPipelineCI.VertexInputInfos = { vertexMain };
 				DynamicPipelineCI.PipelineName = "PBR_Pipeline";
-				DynamicPipelineCI.ShaderCreateInfo = &shaderCI;
-				DynamicPipelineCI.TargetFramebuffer = s_Data->m_Framebuffer;
+				DynamicPipelineCI.pShaderCreateInfo = &shaderCI;
+				DynamicPipelineCI.pTargetFramebuffer = s_Data->m_Framebuffer;
 			}
 
 			auto result = s_Data->m_MainPipeline->Create(&DynamicPipelineCI);
@@ -555,8 +555,8 @@ namespace Frostium
 			{
 				DynamicPipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(SkyBoxData), layout) };
 				DynamicPipelineCI.PipelineName = "Skybox_Pipiline";
-				DynamicPipelineCI.ShaderCreateInfo = &shaderCI;
-				DynamicPipelineCI.TargetFramebuffer = s_Data->m_Framebuffer;
+				DynamicPipelineCI.pShaderCreateInfo = &shaderCI;
+				DynamicPipelineCI.pTargetFramebuffer = s_Data->m_Framebuffer;
 			}
 
 			auto result = s_Data->m_SkyboxPipeline->Create(&DynamicPipelineCI);
@@ -650,9 +650,9 @@ namespace Frostium
 			{
 				DynamicPipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(FullSreenData), FullSreenlayout) };
 				DynamicPipelineCI.PipelineName = "DebugView_Pipeline";
-				DynamicPipelineCI.ShaderCreateInfo = &shaderCI;
-				DynamicPipelineCI.TargetFramebuffer = s_Data->m_Framebuffer;
-				DynamicPipelineCI.PipelineCullMode = CullMode::None;
+				DynamicPipelineCI.pShaderCreateInfo = &shaderCI;
+				DynamicPipelineCI.pTargetFramebuffer = s_Data->m_Framebuffer;
+				DynamicPipelineCI.eCullMode = CullMode::None;
 
 				auto result = s_Data->m_DebugViewPipeline->Create(&DynamicPipelineCI);
 				assert(result == PipelineCreateResult::SUCCESS);
@@ -676,8 +676,8 @@ namespace Frostium
 			{
 				DynamicPipelineCI.VertexInputInfos = { vertexMain };
 				DynamicPipelineCI.PipelineName = "DepthPass_Pipeline";
-				DynamicPipelineCI.ShaderCreateInfo = &shaderCI;
-				DynamicPipelineCI.TargetFramebuffer = s_Data->m_DepthFramebuffer.get();
+				DynamicPipelineCI.pShaderCreateInfo = &shaderCI;
+				DynamicPipelineCI.pTargetFramebuffer = s_Data->m_DepthFramebuffer.get();
 				DynamicPipelineCI.bDepthBiasEnabled = true;
 				DynamicPipelineCI.StageCount = 1;
 
@@ -701,8 +701,8 @@ namespace Frostium
 			{
 				DynamicPipelineCI.VertexInputInfos = { vertexMain };
 				DynamicPipelineCI.PipelineName = "OmniPass_Pipeline";
-				DynamicPipelineCI.ShaderCreateInfo = &shaderCI;
-				DynamicPipelineCI.TargetFramebuffer = s_Data->m_OmniFramebuffer.get();
+				DynamicPipelineCI.pShaderCreateInfo = &shaderCI;
+				DynamicPipelineCI.pTargetFramebuffer = s_Data->m_OmniFramebuffer.get();
 
 				auto result = s_Data->m_OmniPipeline->Create(&DynamicPipelineCI);
 				assert(result == PipelineCreateResult::SUCCESS);

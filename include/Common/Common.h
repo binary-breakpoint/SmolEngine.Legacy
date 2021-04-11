@@ -38,6 +38,12 @@ namespace Frostium
 		glm::vec4          Weight = glm::vec4(0.0f);
 	};
 
+	struct TextVertex
+	{
+		glm::vec3 Pos;
+		glm::vec2 UV;
+	};
+
 	enum class ShaderType : uint32_t
 	{
 		Vertex,

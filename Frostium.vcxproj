@@ -191,7 +191,7 @@
     <ClInclude Include="include\Common\Flags.h" />
     <ClInclude Include="include\Common\Framebuffer.h" />
     <ClInclude Include="include\Common\FramebufferSpecification.h" />
-    <ClInclude Include="include\Common\GraphicsPipelineShaderCreateInfo.h" />
+    <ClInclude Include="include\Common\GraphicsPipelineInfos.h" />
     <ClInclude Include="include\Common\IndexBuffer.h" />
     <ClInclude Include="include\Common\Input.h" />
     <ClInclude Include="include\Common\InputCodes.h" />
@@ -200,7 +200,7 @@
     <ClInclude Include="include\Common\RendererShared.h" />
     <ClInclude Include="include\Common\SLog.h" />
     <ClInclude Include="include\Common\Shader.h" />
-    <ClInclude Include="include\Common\Shared.h" />
+    <ClInclude Include="include\Common\Common.h" />
     <ClInclude Include="include\Common\SubTexture.h" />
     <ClInclude Include="include\Common\Text.h" />
     <ClInclude Include="include\Common\Texture.h" />
@@ -888,6 +888,7 @@
     <ClInclude Include="include\Vulkan\VulkanShaderResources.h" />
     <ClInclude Include="include\Vulkan\VulkanStagingBuffer.h" />
     <ClInclude Include="include\Vulkan\VulkanSwapchain.h" />
+    <ClInclude Include="include\Vulkan\VulkanText.h" />
     <ClInclude Include="include\Vulkan\VulkanTexture.h" />
     <ClInclude Include="include\Vulkan\VulkanUtils.h" />
     <ClInclude Include="include\Vulkan\VulkanVertexBuffer.h" />
@@ -951,6 +952,7 @@
     <ClCompile Include="src\Vulkan\VulkanShader.cpp" />
     <ClCompile Include="src\Vulkan\VulkanStagingBuffer.cpp" />
     <ClCompile Include="src\Vulkan\VulkanSwapchain.cpp" />
+    <ClCompile Include="src\Vulkan\VulkanText.cpp" />
     <ClCompile Include="src\Vulkan\VulkanTexture.cpp" />
     <ClCompile Include="src\Vulkan\VulkanUtils.cpp" />
     <ClCompile Include="src\Vulkan\VulkanVertexBuffer.cpp" />

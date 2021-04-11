@@ -228,7 +228,7 @@
     <ClInclude Include="include\Common\FramebufferSpecification.h">
       <Filter>include\Common</Filter>
     </ClInclude>
-    <ClInclude Include="include\Common\GraphicsPipelineShaderCreateInfo.h">
+    <ClInclude Include="include\Common\GraphicsPipelineInfos.h">
       <Filter>include\Common</Filter>
     </ClInclude>
     <ClInclude Include="include\Common\IndexBuffer.h">
@@ -255,7 +255,7 @@
     <ClInclude Include="include\Common\Shader.h">
       <Filter>include\Common</Filter>
     </ClInclude>
-    <ClInclude Include="include\Common\Shared.h">
+    <ClInclude Include="include\Common\Common.h">
       <Filter>include\Common</Filter>
     </ClInclude>
     <ClInclude Include="include\Common\SubTexture.h">
@@ -2338,6 +2338,7 @@
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
     <ClInclude Include="include\Common\Flags.h" />
+    <ClInclude Include="include\Vulkan\VulkanText.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Common\CubeTexture.cpp">
@@ -2529,5 +2530,6 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
+    <ClCompile Include="src\Vulkan\VulkanText.cpp" />
   </ItemGroup>
 </Project>

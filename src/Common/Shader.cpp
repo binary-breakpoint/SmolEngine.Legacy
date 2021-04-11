@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "Common/Shader.h"
-#include "Common/GraphicsPipelineShaderCreateInfo.h"
 #include "Common/SLog.h"
 
 #include <shaderc/shaderc.hpp>

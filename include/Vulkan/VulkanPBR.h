@@ -1,7 +1,7 @@
 #pragma once
 #ifndef FROSTIUM_OPENGL_IMPL
 #include "Common/Core.h"
-#include "Common/Shared.h"
+#include "Common/Common.h"
 
 #include "Vulkan/Vulkan.h"
 
