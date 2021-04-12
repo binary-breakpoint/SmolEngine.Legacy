@@ -23,11 +23,11 @@
 
 namespace Frostium 
 {
-	void ImGuiContext::OnEvent(Event& event)
+	void ImGuiContext::OnEvent(Event& e)
 	{
 		ImGuiIO& io = ImGui::GetIO();
-		if (io.WantTextInput &&  event.IsCategory(EventCategory::EVENT_KEYBOARD))
-			event.m_Handled = true;
+		if (io.WantTextInput && e.IsCategory(EventCategory::EVENT_KEYBOARD))
+			e.m_Handled = true;
 	}
 
 	void ImGuiContext::OnBegin()

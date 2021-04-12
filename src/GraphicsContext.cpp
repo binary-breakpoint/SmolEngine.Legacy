@@ -24,6 +24,7 @@ namespace Frostium
 		s_Instance = this;
 		// Initialize spdlog
 		SLog::InitLog();
+		m_Flags = info->Flags;
 		m_ResourcesFolderPath = info->ResourcesFolderPath;
 		m_EventHandler.OnEventFn = std::bind(&GraphicsContext::OnEvent, this, std::placeholders::_1);
 		// Creates GLFW window
@@ -217,17 +218,17 @@ namespace Frostium
 		return m_LastFrameTime;
 	}
 
-	void GraphicsContext::OnEvent(Event& event)
+	void GraphicsContext::OnEvent(Event& e)
 	{
 		if (m_UseImGUI)
-			m_ImGuiContext.OnEvent(event);
+			m_ImGuiContext.OnEvent(e);
 
 		if (m_UseEditorCamera)
-			m_EditorCamera->OnEvent(event);
+			m_EditorCamera->OnEvent(e);
 
-		if (event.IsType(EventType::WINDOW_RESIZE))
+		if (e.IsType(EventType::WINDOW_RESIZE))
 		{
-			WindowResizeEvent* resize = event.Cast<WindowResizeEvent>();
+			WindowResizeEvent* resize = e.Cast<WindowResizeEvent>();
 			uint32_t width = resize->GetWidth();
 			uint32_t height = resize->GetHeight();
 
@@ -240,7 +241,7 @@ namespace Frostium
 			}
 		}
 
-		m_EventCallback(std::forward<Event&>(event));
+		m_EventCallback(std::forward<Event&>(e));
 	}
 
 #ifdef FROSTIUM_OPENGL_IMPL

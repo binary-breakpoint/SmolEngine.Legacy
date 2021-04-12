@@ -97,7 +97,9 @@ namespace Frostium
 		Scope<GraphicsPipeline>          m_DebugViewPipeline = nullptr;
 
 		// Framebuffers
-		Framebuffer*                     m_Framebuffer = nullptr;
+		Framebuffer*                     m_MainFramebuffer = nullptr;
+		Framebuffer                      m_HDRFramebuffer = {};
+		Framebuffer                      m_BloomFramebuffer = {};
 		Ref<Framebuffer>                 m_DepthFramebuffer = nullptr;
 		Ref<Framebuffer>                 m_OmniFramebuffer = nullptr;
 
@@ -517,7 +519,7 @@ namespace Frostium
 				DynamicPipelineCI.VertexInputInfos = { vertexMain };
 				DynamicPipelineCI.PipelineName = "PBR_Pipeline";
 				DynamicPipelineCI.pShaderCreateInfo = &shaderCI;
-				DynamicPipelineCI.pTargetFramebuffer = s_Data->m_Framebuffer;
+				DynamicPipelineCI.pTargetFramebuffer = s_Data->m_MainFramebuffer;
 			}
 
 			auto result = s_Data->m_MainPipeline->Create(&DynamicPipelineCI);
@@ -556,7 +558,7 @@ namespace Frostium
 				DynamicPipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(SkyBoxData), layout) };
 				DynamicPipelineCI.PipelineName = "Skybox_Pipiline";
 				DynamicPipelineCI.pShaderCreateInfo = &shaderCI;
-				DynamicPipelineCI.pTargetFramebuffer = s_Data->m_Framebuffer;
+				DynamicPipelineCI.pTargetFramebuffer = s_Data->m_MainFramebuffer;
 			}
 
 			auto result = s_Data->m_SkyboxPipeline->Create(&DynamicPipelineCI);
@@ -654,7 +656,7 @@ namespace Frostium
 				DynamicPipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(FullSreenData), FullSreenlayout) };
 				DynamicPipelineCI.PipelineName = "DebugView_Pipeline";
 				DynamicPipelineCI.pShaderCreateInfo = &shaderCI;
-				DynamicPipelineCI.pTargetFramebuffer = s_Data->m_Framebuffer;
+				DynamicPipelineCI.pTargetFramebuffer = s_Data->m_MainFramebuffer;
 				DynamicPipelineCI.eCullMode = CullMode::None;
 
 				auto result = s_Data->m_DebugViewPipeline->Create(&DynamicPipelineCI);
@@ -716,7 +718,7 @@ namespace Frostium
 	void Renderer::InitFramebuffers()
 	{
 		// Main
-		s_Data->m_Framebuffer = GraphicsContext::GetSingleton()->GetFramebuffer();
+		s_Data->m_MainFramebuffer = GraphicsContext::GetSingleton()->GetFramebuffer();
 
 		// Depth
 		{
@@ -729,6 +731,27 @@ namespace Frostium
 				framebufferCI.eSpecialisation = FramebufferSpecialisation::ShadowMap;
 
 				s_Data->m_DepthFramebuffer = Framebuffer::Create(framebufferCI);
+			}
+		}
+
+		// HDR + Bloom
+		{
+			FramebufferAttachment color_1 = FramebufferAttachment(AttachmentFormat::SFloat4_32, false, "Color_1");
+			FramebufferAttachment color_2 = FramebufferAttachment(AttachmentFormat::SFloat4_32, false, "Color_2");
+			FramebufferAttachment bloom_hdr =   FramebufferAttachment(AttachmentFormat::SFloat4_32, false, "Bloom");
+
+			FramebufferSpecification framebufferCI = {};
+			{
+				framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
+				framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
+				framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
+				framebufferCI.Attachments = { color_1, color_2 };
+
+				// HDR
+				Framebuffer::Create(framebufferCI, &s_Data->m_HDRFramebuffer);
+				// Bloom
+				framebufferCI.Attachments = { bloom_hdr };
+				Framebuffer::Create(framebufferCI, &s_Data->m_BloomFramebuffer);
 			}
 		}
 
@@ -794,7 +817,7 @@ namespace Frostium
 
 	Framebuffer* Renderer::GetFramebuffer()
 	{
-		return s_Data->m_Framebuffer;
+		return s_Data->m_MainFramebuffer;
 	}
 
 	uint32_t Renderer::GetNumObjects()

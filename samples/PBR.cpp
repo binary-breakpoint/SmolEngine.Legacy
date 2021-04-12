@@ -182,7 +182,7 @@ void LoadMaterials(std::vector<int32_t>& materialsIDs)
 		materialCI.SetTexture(MaterialTexture::Roughness, &Materials[0].Roughness, roughnessPath);
 		materialCI.SetTexture(MaterialTexture::AO, &Materials[0].AO, aoPath);
 		materialCI.SetMetalness(0.2f);
-
+		 
 		int32_t id = lib->Add(&materialCI, "Assets/materials/wood.mat");
 		materialsIDs.push_back(id);
 	}

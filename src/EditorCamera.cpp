@@ -112,11 +112,11 @@ namespace Frostium
 		
 	}
 
-	void EditorCamera::OnEvent(Event& event)
+	void EditorCamera::OnEvent(Event& e)
 	{
-		if (event.IsType(EventType::MOUSE_SCROLL))
+		if (e.IsType(EventType::MOUSE_SCROLL))
 		{
-			MouseScrollEvent* scroll = event.Cast<MouseScrollEvent>();
+			MouseScrollEvent* scroll = e.Cast<MouseScrollEvent>();
 
 			switch (m_Type)
 			{
@@ -138,9 +138,9 @@ namespace Frostium
 
 		}
 
-		if (event.IsType(EventType::WINDOW_RESIZE))
+		if (e.IsType(EventType::WINDOW_RESIZE))
 		{
-			WindowResizeEvent* resize = event.Cast<WindowResizeEvent>();
+			WindowResizeEvent* resize = e.Cast<WindowResizeEvent>();
 
 			m_ViewportWidth = static_cast<float>(resize->GetWidth());
 			m_ViewportHeight = static_cast<float>(resize->GetHeight());

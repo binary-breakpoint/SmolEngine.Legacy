@@ -83,6 +83,7 @@ namespace Frostium
 	private:
 
 		static GraphicsContext*         s_Instance;
+		Flags                           m_Flags;
 		Texture*                        m_DummyTexure = nullptr;
 		EditorCamera*                   m_EditorCamera = nullptr;
 		MaterialLibrary*                m_MaterialLibrary = nullptr;
