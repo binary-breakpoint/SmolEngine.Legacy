@@ -10,6 +10,7 @@ Frostium3D
   - SSAO
   - 2D and 3D renderers
   - ImGUI Integration
+  - Text Rendering (SDF)
 ### Usage
 The first step is to initialize graphics context class:
 ```cpp
