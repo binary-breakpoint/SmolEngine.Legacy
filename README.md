@@ -1,6 +1,6 @@
 Frostium3D
 =====
-![SmolEngine](https://i.imgur.com/W81qlzQ.png)
+![PBR](https://i.imgur.com/W81qlzQ.png)
 ### Current State
   - Multiple rendering API backends: Vulkan - 100%, OpenGL - 70%
   - Physically Based Rendering (PBR)
@@ -38,7 +38,7 @@ int main(int argc, char** argv)
 	EditorCameraCreateInfo cameraCI = {}; // default camera
 	GraphicsContextInitInfo info = {};
 	{
-		info.Flags = Features_Renderer_3D_Flags | Features_ImGui_Flags;
+		info.Flags = Features_Renderer_3D_Flags | Features_ImGui_Flags | Features_HDR_Flags;
 		info.eMSAASamples = MSAASamples::SAMPLE_COUNT_MAX_SUPPORTED;
 		info.ResourcesFolderPath = "../resources/";
 		info.pWindowCI = &windoInfo;
@@ -96,6 +96,9 @@ And finally load resources and run main update loop:
 		context->SwapBuffers();
 	}
 ```
+## Result
+![result](https://i.imgur.com/K2HLAsJ.png)
+
 More samples can be found [here.](https://github.com/YellowDummy/Frostium3D/tree/main/samples)
 
 ## Third-Party Libraries
