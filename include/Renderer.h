@@ -6,8 +6,8 @@ namespace Frostium
 {
 	class Mesh;
 	class Framebuffer;
+	enum class ShadowMapSize : uint16_t;
 	struct MeshComponent;
-
 	struct DebugViewInfo
 	{
 		bool           bShowOmniCube = false;
@@ -15,11 +15,18 @@ namespace Frostium
 		uint32_t       mrtAttachmentIndex = 0;
 	};
 
+	struct RendererInitInfo
+	{
+		bool           HDR;
+		ShadowMapSize  sMapSize;
+		std::string    resourcesFilePath;
+	};
+
 	class Renderer
 	{
 	public:
 
-		static void Init(bool HDR);
+		static void Init(RendererInitInfo* info);
 		static void Shutdown();
 		static void BeginScene(const ClearInfo* clearInfo, const BeginSceneInfo* info = nullptr);
 		static void EndScene();

@@ -27,11 +27,20 @@ namespace Frostium
 	class Framebuffer;
 	class MaterialLibrary;
 
+	enum class ShadowMapSize : uint16_t
+	{
+		SIZE_2,
+		SIZE_4,
+		SIZE_8,
+		SIZE_16
+	};
+
 	struct GraphicsContextInitInfo
 	{
-		Flags                    Flags = Features_Renderer_3D_Flags;
-		MSAASamples              eMSAASamples = MSAASamples::SAMPLE_COUNT_MAX_SUPPORTED;
 		bool                     bTargetsSwapchain = true;
+		Flags                    Flags = Features_Renderer_3D_Flags | Features_HDR_Flags;
+		MSAASamples              eMSAASamples = MSAASamples::SAMPLE_COUNT_MAX_SUPPORTED;
+		ShadowMapSize            eShadowMapSize = ShadowMapSize::SIZE_8;
 		EditorCameraCreateInfo*  pEditorCameraCI = nullptr;
 		WindowCreateInfo*        pWindowCI = nullptr;
 		std::string              ResourcesFolderPath = "../resources/";

@@ -59,17 +59,20 @@ namespace Frostium
 
 	struct RendererData
 	{
-		RendererData(bool HDR)
-			:m_HDRPath(HDR)
+		RendererData(RendererInitInfo* info)
+			:m_HDRPath(info->HDR)
 		{
 			m_Frustum = GraphicsContext::GetSingleton()->GetFrustum();
 			m_Packages.reserve(s_MaxPackages);
+			m_MapSize = info->sMapSize;
+			m_Path = info->resourcesFilePath;
 		}
 
 		// States
 		bool                             m_IsInitialized = false;
 		bool                             m_ShowDebugView = false;
 		const bool                       m_HDRPath = false;
+		ShadowMapSize                    m_MapSize = ShadowMapSize::SIZE_8;
 		// Bindings
 		const uint32_t                   m_TexturesBinding = 24;
 		const uint32_t                   m_ShaderDataBinding = 25;
@@ -152,10 +155,9 @@ namespace Frostium
 
 	static RendererData* s_Data = nullptr;
 
-	void Renderer::Init(bool HDR)
+	void Renderer::Init(RendererInitInfo* info)
 	{
-		s_Data = new RendererData(HDR);
-		s_Data->m_Path = GraphicsContext::GetSingleton()->m_ResourcesFolderPath;
+		s_Data = new RendererData(info);
 
 		InitPBR();
 		InitFramebuffers();
@@ -769,8 +771,16 @@ namespace Frostium
 		// Depth
 		{
 			FramebufferSpecification framebufferCI = {};
-			framebufferCI.Width = 4096;
-			framebufferCI.Height = 4096;
+			uint32_t size = 8192;
+			switch (s_Data->m_MapSize)
+			{
+			case ShadowMapSize::SIZE_2: size = 2048; break;
+			case ShadowMapSize::SIZE_4: size = 4096; break;
+			case ShadowMapSize::SIZE_8: size = 8192; break;
+			case ShadowMapSize::SIZE_16: size = 16384; break;
+			}
+			framebufferCI.Width = size;
+			framebufferCI.Height = size;
 			framebufferCI.bResizable = false;
 			framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
 			framebufferCI.eSpecialisation = FramebufferSpecialisation::ShadowMap;

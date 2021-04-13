@@ -75,7 +75,11 @@ namespace Frostium
 
 		if (info->Flags & Features_Renderer_3D_Flags)
 		{
-			Renderer::Init(info->Flags & Features_HDR_Flags);
+			RendererInitInfo initInfo = {};
+			initInfo.sMapSize = info->eShadowMapSize;
+			initInfo.resourcesFilePath = m_ResourcesFolderPath;
+			initInfo.HDR = info->Flags & Features_HDR_Flags;
+			Renderer::Init(&initInfo);
 
 			// Adds default material
 			MaterialCreateInfo materialInfo = {};
