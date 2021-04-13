@@ -78,20 +78,25 @@ And finally load resources and run main update loop:
 
 		context->BeginFrame(deltaTime);
 		{
-			ImGui::Begin("Debug Window");
-			{
-				float lastFrameTime = deltaTime.GetTimeSeconds();
-				std::string str = "DeltaTime: " + std::to_string(lastFrameTime);
-				ImGui::Text(str.c_str());
-			}
-			ImGui::End();
-
+			uint32_t objects = 0;
 			Renderer::BeginScene(&clearInfo);
 			{
 				for (const auto& c : chunks)
 					Renderer::SubmitMesh(c.Pos, c.Rot, c.Scale, &cube);
+					
+				objects = Renderer::GetNumObjects();
 			}
 			Renderer::EndScene();
+			
+			ImGui::Begin("Debug Window");
+			{
+				float lastFrameTime = deltaTime.GetTimeSeconds();
+				std::string str = "DeltaTime: " + std::to_string(lastFrameTime);
+				std::string str2 = "Objects: " + std::to_string(objects);
+				ImGui::Text(str.c_str());
+				ImGui::Text(str2.c_str());
+			}
+			ImGui::End();
 		}
 		context->SwapBuffers();
 	}
