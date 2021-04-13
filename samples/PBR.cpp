@@ -65,7 +65,7 @@ int main(int argc, char** argv)
 	EditorCameraCreateInfo cameraCI = {};
 	GraphicsContextInitInfo info = {};
 	{
-		info.Flags = Features_Renderer_3D_Flags | Features_ImGui_Flags;
+		info.Flags = Features_Renderer_3D_Flags | Features_ImGui_Flags | Features_HDR_Flags;
 		info.eMSAASamples = MSAASamples::SAMPLE_COUNT_MAX_SUPPORTED;
 		info.ResourcesFolderPath = "../resources/";
 		info.pWindowCI = &windoInfo;
@@ -91,7 +91,7 @@ int main(int argc, char** argv)
 	LoadMaterials(materialIDs);
 	GenerateMap(chunks, materialIDs);
 
-	static glm::vec3 lightDir = glm::vec3(0.0f, 53.0f, 2.0f);
+	static glm::vec3 lightDir = glm::vec3(105.0f, 53.0f, 102.0f);
 
 	while (process)
 	{

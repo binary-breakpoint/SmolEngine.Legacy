@@ -19,7 +19,7 @@ namespace Frostium
 	{
 	public:
 
-		static void Init();
+		static void Init(bool HDR);
 		static void Shutdown();
 		static void BeginScene(const ClearInfo* clearInfo, const BeginSceneInfo* info = nullptr);
 		static void EndScene();

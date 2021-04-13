@@ -52,7 +52,7 @@ namespace Frostium
 			framebufferCI.Width = m_VulkanContext.GetSwapchain().GetWidth();
 			framebufferCI.Height = m_VulkanContext.GetSwapchain().GetHeight();
 #endif
-			framebufferCI.eMSAASampels = info->eMSAASamples;
+			framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
 			framebufferCI.bTargetsSwapchain = info->bTargetsSwapchain;
 			framebufferCI.bResizable = true;
 			framebufferCI.bUsedByImGui = m_UseImGUI && !info->bTargetsSwapchain ? true : false;
@@ -75,7 +75,7 @@ namespace Frostium
 
 		if (info->Flags & Features_Renderer_3D_Flags)
 		{
-			Renderer::Init();
+			Renderer::Init(info->Flags & Features_HDR_Flags);
 
 			// Adds default material
 			MaterialCreateInfo materialInfo = {};
