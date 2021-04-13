@@ -93,7 +93,6 @@ namespace Frostium
 		int32_t                                    Width = 0;
 		int32_t                                    Height = 0;
 		int32_t                                    NumSubpassDependencies = 1;
-		FramebufferAttachment                      ResolveAttachment;
 		std::vector<FramebufferAttachment>         Attachments;
 	};
 }

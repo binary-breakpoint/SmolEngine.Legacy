@@ -75,7 +75,6 @@ namespace Frostium
 
 	private:
 
-		Attachment                                       m_ResolveAttachment = {};
 		Attachment                                       m_DepthAttachment = {};
 
 		FramebufferSpecification                         m_Specification = {};
@@ -90,6 +89,7 @@ namespace Frostium
 		std::vector<VkClearAttachment>                   m_ClearAttachments;
 		std::vector<VkClearValue>                        m_ClearValues;
 		std::vector<Attachment>                          m_Attachments;
+		std::vector<Attachment>                          m_ResolveAttachments;
 		std::unordered_map<std::string, uint32_t>        m_AttachmentsMap;
 
 	private:

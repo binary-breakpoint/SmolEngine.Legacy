@@ -60,7 +60,7 @@ namespace Frostium
 #endif
 		bool UpdateSamplers(const std::vector<Texture*>& textures, uint32_t bindingPoint, uint32_t descriptorSetIndex = 0);
 		bool UpdateSampler(Texture* tetxure, uint32_t bindingPoint, uint32_t descriptorSetIndex = 0);
-		bool UpdateSampler(Framebuffer* framebuffer, uint32_t bindingPoint, uint32_t attachmentIndex, uint32_t descriptorSetIndex = 0);
+		bool UpdateSampler(Framebuffer* framebuffer, uint32_t bindingPoint, uint32_t attachmentIndex = 0, uint32_t descriptorSetIndex = 0);
 		bool UpdateSampler(Framebuffer* framebuffer, uint32_t bindingPoint, const std::string& attachmentName, uint32_t descriptorSetIndex = 0);
 		bool UpdateCubeMap(Texture* cubeMap, uint32_t bindingPoint, uint32_t descriptorSetIndex = 0);
 		template<typename T>

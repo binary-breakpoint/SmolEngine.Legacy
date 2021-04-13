@@ -25,6 +25,7 @@ namespace Frostium
 		// Initialize spdlog
 		SLog::InitLog();
 		m_Flags = info->Flags;
+		m_MSAASamples = info->eMSAASamples;
 		m_ResourcesFolderPath = info->ResourcesFolderPath;
 		m_EventHandler.OnEventFn = std::bind(&GraphicsContext::OnEvent, this, std::placeholders::_1);
 		// Creates GLFW window
@@ -158,6 +159,7 @@ namespace Frostium
 		m_VulkanContext.OnResize(width, height);
 #endif
 		m_Framebuffer.OnResize(*width, *height);
+		Renderer::OnResize(*width, *height);
 	}
 
 	void GraphicsContext::SetEventCallback(std::function<void(Event&)> callback)

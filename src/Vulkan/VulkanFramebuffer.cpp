@@ -26,8 +26,7 @@ namespace Frostium
 
 	bool VulkanFramebuffer::Create(uint32_t width, uint32_t height)
 	{
-		if (m_Specification.Attachments.size() > 1 && m_Specification.bTargetsSwapchain || m_Specification.Attachments.size() == 0
-			|| m_Specification.Attachments.size() > 1 && IsUseMSAA())
+		if (m_Specification.Attachments.size() > 1 && m_Specification.bTargetsSwapchain || m_Specification.Attachments.size() == 0)
 			return false;
 
 		m_Specification.Width = width;
@@ -35,7 +34,7 @@ namespace Frostium
 
 		uint32_t lastImageViewIndex = 0;
 		uint32_t bufferSize = static_cast<uint32_t>(m_Specification.Attachments.size());
-		uint32_t attachmentsCount = IsUseMSAA() ? bufferSize + 2 : bufferSize + 1;
+		uint32_t attachmentsCount = IsUseMSAA() ? (bufferSize * 2) + 1 : bufferSize + 1;
 
 		m_Attachments.resize(bufferSize);
 		m_ClearValues.resize(attachmentsCount);
@@ -76,7 +75,7 @@ namespace Frostium
 			m_ClearAttachments[lastImageViewIndex].clearValue.color = { { 0.0f, 0.0f, 0.0f, 1.0f} };
 			m_ClearAttachments[lastImageViewIndex].colorAttachment = lastImageViewIndex;
 			if(info.Name != "")
-				m_AttachmentsMap[info.Name] = lastImageViewIndex;
+				m_AttachmentsMap[info.Name] = i;
 
 			lastImageViewIndex++;
 		}
@@ -88,30 +87,39 @@ namespace Frostium
 		// Create resolve attachment if MSAA enabled and swapchain is not target
 		if (IsUseMSAA() && !m_Specification.bTargetsSwapchain)
 		{
-			VkImageUsageFlags usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-			AddAttachment(width, height, VK_SAMPLE_COUNT_1_BIT, usage, m_ColorFormat,
-				m_ResolveAttachment.AttachmentVkInfo.image, m_ResolveAttachment.AttachmentVkInfo.view,
-				m_ResolveAttachment.AttachmentVkInfo.mem);
+			m_ResolveAttachments.resize(bufferSize);
+			for (uint32_t i = 0; i < bufferSize; ++i)
+			{
+				auto& resolve = m_ResolveAttachments[i];
+				auto& info = m_Specification.Attachments[i];
 
-			m_ResolveAttachment.ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			m_ResolveAttachment.ImageInfo.imageView = m_ResolveAttachment.AttachmentVkInfo.view;
-			m_ResolveAttachment.ImageInfo.sampler = m_Sampler;
+				VkImageUsageFlags usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 
-			auto cmd = VulkanCommandBuffer::CreateSingleCommandBuffer();
-			VulkanTexture::SetImageLayout(cmd, m_ResolveAttachment.AttachmentVkInfo.image,
-				VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-			VulkanCommandBuffer::EndSingleCommandBuffer(cmd);
+				AddAttachment(width, height, VK_SAMPLE_COUNT_1_BIT, usage, GetAttachmentFormat(info.Format),
+					resolve.AttachmentVkInfo.image, resolve.AttachmentVkInfo.view,
+					resolve.AttachmentVkInfo.mem);
 
-			if (m_Specification.bUsedByImGui)
-				m_ResolveAttachment.ImGuiID = ImGui_ImplVulkan_AddTexture(m_ResolveAttachment.ImageInfo);
+				resolve.ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+				resolve.ImageInfo.imageView = resolve.AttachmentVkInfo.view;
+				resolve.ImageInfo.sampler = m_Sampler;
 
-			attachments[lastImageViewIndex] = m_ResolveAttachment.AttachmentVkInfo.view;
-			m_AttachmentsMap["Resolve"] = lastImageViewIndex;
+				auto cmd = VulkanCommandBuffer::CreateSingleCommandBuffer();
+				VulkanTexture::SetImageLayout(cmd, resolve.AttachmentVkInfo.image,
+					VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+				VulkanCommandBuffer::EndSingleCommandBuffer(cmd);
 
-			m_ClearValues[lastImageViewIndex].color = { { 0.0f, 0.0f, 0.0f, 1.0f} };
-			m_ClearAttachments[lastImageViewIndex].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			m_ClearAttachments[lastImageViewIndex].clearValue.color = { { 0.1f, 0.1f, 0.1f, 1.0f} };
-			lastImageViewIndex++;
+				if (m_Specification.bUsedByImGui)
+					resolve.ImGuiID = ImGui_ImplVulkan_AddTexture(resolve.ImageInfo);
+
+				attachments[lastImageViewIndex] = resolve.AttachmentVkInfo.view;
+				m_ClearValues[lastImageViewIndex].color = { { 0.0f, 0.0f, 0.0f, 1.0f} };
+				m_ClearAttachments[lastImageViewIndex].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+				m_ClearAttachments[lastImageViewIndex].clearValue.color = { { 0.1f, 0.1f, 0.1f, 1.0f} };
+				if (info.Name != "")
+					m_AttachmentsMap[info.Name + "_resolve"] = i;
+
+				lastImageViewIndex++;
+			}
 		}
 
 		if (m_Specification.bTargetsSwapchain)
@@ -146,8 +154,8 @@ namespace Frostium
 				renderPassGenInfo.DepthFormat = m_DepthFormat;
 				renderPassGenInfo.MSAASamples = m_MSAASamples;
 				renderPassGenInfo.NumColorAttachments = static_cast<uint32_t>(m_Attachments.size());
+				renderPassGenInfo.NumResolveAttachments = m_Specification.bTargetsSwapchain && IsUseMSAA() ? 1: static_cast<uint32_t>(m_ResolveAttachments.size());
 				renderPassGenInfo.NumDepthAttachments = 1;
-				renderPassGenInfo.NumResolveAttachments = IsUseMSAA() ? 1 : 0;
 			}
 
 			VulkanRenderPass::Create(&m_Specification, &renderPassGenInfo, m_RenderPass);
@@ -610,13 +618,12 @@ namespace Frostium
 
 	void VulkanFramebuffer::FreeResources()
 	{
-		for (auto& color : m_Attachments)
-		{
-			FreeAttachment(color);
-		}
-
-		FreeAttachment(m_ResolveAttachment);
 		FreeAttachment(m_DepthAttachment);
+		for (auto& color : m_Attachments)
+			FreeAttachment(color);
+
+		for(auto& resolve: m_ResolveAttachments)
+			FreeAttachment(resolve);
 
 		if (m_Sampler != VK_NULL_HANDLE)
 		{
@@ -776,7 +783,7 @@ namespace Frostium
 	Attachment* VulkanFramebuffer::GetAttachment(uint32_t index)
 	{
 		if (IsUseMSAA())
-			return &m_ResolveAttachment;
+			return &m_ResolveAttachments[index];
 
 		return &m_Attachments[index];
 	}
@@ -785,6 +792,15 @@ namespace Frostium
 	{
 		if (name == "Depth_Attachment")
 			return &m_DepthAttachment;
+
+		if (IsUseMSAA())
+		{
+			const auto& it = m_AttachmentsMap.find(name + "_resolve");
+			if (it != m_AttachmentsMap.end())
+				return &m_ResolveAttachments[it->second];
+
+			return nullptr;
+		}
 
 		const auto& it = m_AttachmentsMap.find(name);
 		if (it != m_AttachmentsMap.end())

@@ -1,6 +1,8 @@
 #version 450 core
 
-layout(location = 0) out vec4 o_color;
+layout (location = 0) out vec4 outColor0;
+layout (location = 1) out vec4 outColor1;
+
 
 layout(location = 0) in vec3 v_WorldPos;
 layout(location = 1) in float v_Gamma;
@@ -30,6 +32,13 @@ void main()
 	color = color * (1.0f / Uncharted2Tonemap(vec3(11.2f)));	
 	// Gamma correction
 	color = pow(color, vec3(1.0f / v_Gamma));
-	
-	o_color = vec4(color, 1.0);
+
+	// Color with manual exposure into attachment 0
+	outColor0.rgb = vec3(1.0) - exp(-color.rgb * 0.5);
+
+	// Bright parts for bloom into attachment 1
+	float l = dot(outColor0.rgb, vec3(0.2126, 0.7152, 0.0722));
+	float threshold = 0.75;
+	outColor1.rgb = (l > threshold) ? outColor0.rgb : vec3(0.0);
+	outColor1.a = 1.0;
 }

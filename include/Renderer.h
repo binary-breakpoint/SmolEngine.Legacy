@@ -50,6 +50,7 @@ namespace Frostium
 
 	private:
 
+		static void OnResize(uint32_t width, uint32_t height);
 		static void Reset();
 
 	private:

@@ -58,7 +58,7 @@ namespace Frostium
 			if (!framebufferSpec->Attachments[i].bClearOp)
 				loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 
-			attachments[lastAttachmentIndex].format = renderPassInfo->ColorFormat;
+			attachments[lastAttachmentIndex].format = VulkanFramebuffer::GetAttachmentFormat(framebufferSpec->Attachments[i].Format);
 			attachments[lastAttachmentIndex].samples = VK_SAMPLE_COUNT_1_BIT;
 			attachments[lastAttachmentIndex].loadOp = loadOp;
 			attachments[lastAttachmentIndex].storeOp = VK_ATTACHMENT_STORE_OP_STORE;

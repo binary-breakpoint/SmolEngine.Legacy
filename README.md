@@ -8,6 +8,7 @@ Frostium3D
   - Shadow Mapping
   - MSAA / FXAA
   - SSAO
+  - HDR
   - 2D and 3D renderers
   - ImGUI Integration
   - Text Rendering (SDF)

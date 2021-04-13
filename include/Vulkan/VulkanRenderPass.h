@@ -11,8 +11,8 @@ namespace Frostium
 		VkFormat                     DepthFormat;
 		VkSampleCountFlagBits        MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 
-		uint32_t                     NumColorAttachments = 0;
 		uint32_t                     NumDepthAttachments = 0;
+		uint32_t                     NumColorAttachments = 0;
 		uint32_t                     NumResolveAttachments = 0;
 	};
 
