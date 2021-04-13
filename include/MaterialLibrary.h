@@ -26,16 +26,16 @@ namespace Frostium
 		void SetMetalness(float value);
 		void SetRoughness(float value);
 		void SetAlbedro(float value);
-		void SetTexture(MaterialTexture type, Texture* texture, const std::string& filePath);
+		void SetTexture(MaterialTexture type, const std::string& filePath);
 
 	private:
 
 		float                                             Metallic = 1.0f;
 		float                                             Albedro = 1.0f;
 		float                                             Roughness = 1.0f;
+		bool                                              Used = false;
 					                                      
-		std::unordered_map<MaterialTexture, Texture*>     Textures;
-		std::unordered_map<MaterialTexture, std::string>  TexturesFilePaths;
+		std::unordered_map<MaterialTexture, std::string>  Textures;
 
 	private:
 
@@ -45,7 +45,7 @@ namespace Frostium
 		template<typename Archive>
 		void serialize(Archive& archive)
 		{
-			archive(Metallic, Albedro, Roughness, TexturesFilePaths);
+			archive(Metallic, Albedro, Roughness, Textures);
 		}
 	};
 
@@ -61,8 +61,8 @@ namespace Frostium
 		void Reset();
 
 		// Serialization
-		bool Load(std::string& filePath, MaterialCreateInfo& out_info);
-		bool Save(std::string& filePath, MaterialCreateInfo& info);
+		bool Load(const std::string& filePath, MaterialCreateInfo& out_info);
+		bool Save(const std::string& filePath, MaterialCreateInfo& info);
 
 		// Getters
 		static MaterialLibrary* GetSinglenton();
@@ -77,7 +77,8 @@ namespace Frostium
 	private:
 
 		// Helpers
-		int32_t AddTexture(Texture* texture);
+		int32_t AddTexture(const std::string& path);
+		std::string GetCompleteName(MaterialCreateInfo* infoCI);
 
 	private:
 

@@ -1,7 +1,11 @@
 #include "CSharpBinding.h"
 
+#include <Common/Mesh.h>
 #include <GraphicsContext.h>
+#include <MaterialLibrary.h>
 #include <Renderer.h>
+
+#include <ImGUI/ImGuiExtension.h>
 
 #include <mono/metadata/assembly.h>
 #include <mono/jit/jit.h>
@@ -67,7 +71,7 @@ int main(int argc, char** argv)
 	EditorCameraCreateInfo cameraCI = {};
 	GraphicsContextInitInfo info = {};
 	{
-		info.Flags = Features_Renderer_3D_Flags;
+		info.Flags = Features_Renderer_3D_Flags | Features_HDR_Flags | Features_ImGui_Flags;
 		info.ResourcesFolderPath = "../resources/";
 		info.pWindowCI = &windoInfo;
 		info.pEditorCameraCI = &cameraCI;
@@ -84,6 +88,20 @@ int main(int argc, char** argv)
 
 	InitMono();
 
+	Mesh sword = {};
+	Mesh::Create("Assets/sword.fbx", &sword);
+	MaterialCreateInfo swordMat = {};
+	{
+		swordMat.SetTexture(MaterialTexture::Albedro, "Assets/materials/sword/SHD_greatsword_Base_Color.PNG");
+		swordMat.SetTexture(MaterialTexture::Normal, "Assets/materials/sword/SHD_greatsword_Normal_OpenGL.PNG");
+		swordMat.SetTexture(MaterialTexture::Roughness, "Assets/materials/sword/SHD_greatsword_Roughness.PNG");
+		swordMat.SetTexture(MaterialTexture::Metallic, "Assets/materials/sword/SHD_greatsword_Metallic.PNG");
+		swordMat.SetTexture(MaterialTexture::AO, "Assets/materials/sword/SHD_greatsword_Mixed_AO.PNG");
+	}
+	int32_t matID = MaterialLibrary::GetSinglenton()->Add(&swordMat, "Assets/materials/weapon.mat");
+	Renderer::UpdateMaterials();
+	static glm::vec3 lightDir = glm::vec3(105.0f, 53.0f, 102.0f);
+
 	while (process)
 	{
 		context->ProcessEvents();
@@ -95,7 +113,16 @@ int main(int argc, char** argv)
 		context->BeginFrame(deltaTime);
 		{
 			Renderer::BeginScene(&clearInfo);
+			Renderer::SetShadowLightDirection(lightDir);
+			Renderer::SubmitDirectionalLight(lightDir, { 1, 1, 1, 1 });
+			Renderer::SubmitMesh({ 0,0,0 }, { 0,0, 0 }, { 2, 2, 2 }, &sword, matID);
 			Renderer::EndScene();
+
+			ImGui::Begin("Debug Window");
+			{
+				ImGui::DragFloat3("LightDir", glm::value_ptr(lightDir));
+			}
+			ImGui::End();
 		}
 		context->SwapBuffers();
 	}

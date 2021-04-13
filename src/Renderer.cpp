@@ -330,7 +330,7 @@ namespace Frostium
 		}
 		s_Data->m_PBRPipeline.EndRenderPass();
 
-		// Post-Processing: Bloom
+		// Post-Processing: Bloom (vertical)
 		{
 			if (s_Data->m_HDRPath)
 			{
@@ -344,20 +344,10 @@ namespace Frostium
 
 		// Composition => render to swapchain
 		{
-			struct pc
-			{
-				float tone_exposure;
-				float gamma;
-				bool hdr;
-			} data;
-
-			data.tone_exposure = s_Data->m_SceneData.Params.x;
-			data.gamma = s_Data->m_SceneData.Params.y;
-			data.hdr = s_Data->m_HDRPath;
-
+			uint32_t hdr = s_Data->m_HDRPath;
 			s_Data->m_CombinationPipeline.BeginRenderPass();
 			{
-				s_Data->m_CombinationPipeline.SubmitPushConstant(ShaderType::Fragment, sizeof(pc), &data);
+				s_Data->m_CombinationPipeline.SubmitPushConstant(ShaderType::Fragment, sizeof(uint32_t), &hdr);
 				s_Data->m_CombinationPipeline.DrawIndexed();
 			}
 			s_Data->m_CombinationPipeline.EndRenderPass();
@@ -792,7 +782,7 @@ namespace Frostium
 		{
 			// Bloom
 			{
-				FramebufferAttachment bloom = FramebufferAttachment(AttachmentFormat::SFloat4_32, true);
+				FramebufferAttachment bloom = FramebufferAttachment(AttachmentFormat::SFloat4_32, false);
 
 				FramebufferSpecification framebufferCI = {};
 				framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;

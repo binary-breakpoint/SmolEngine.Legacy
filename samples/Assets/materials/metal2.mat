@@ -1,0 +1,27 @@
+{
+    "value0": 1.0,
+    "value1": 1.0,
+    "value2": 1.0,
+    "value3": [
+        {
+            "key": 0,
+            "value": "Assets/materials/metal_2/Metal012_1K_Color.png"
+        },
+        {
+            "key": 1,
+            "value": "Assets/materials/metal_2/Metal012_1K_Normal.png"
+        },
+        {
+            "key": 3,
+            "value": "Assets/materials/metal_2/Metal012_1K_Roughness.png"
+        },
+        {
+            "key": 2,
+            "value": "Assets/materials/metal_2/Metal012_1K_Metalness.png"
+        },
+        {
+            "key": 4,
+            "value": ""
+        }
+    ]
+}

@@ -34,7 +34,7 @@ void main()
 	color = pow(color, vec3(1.0f / v_Gamma));
 
 	// Color with manual exposure into attachment 0
-	outColor0.rgb = vec3(1.0) - exp(-color.rgb * 0.5);
+	outColor0.rgb = vec3(1.0) - exp(-color.rgb * 0.8);
 
 	// Bright parts for bloom into attachment 1
 	float l = dot(outColor0.rgb, vec3(0.2126, 0.7152, 0.0722));

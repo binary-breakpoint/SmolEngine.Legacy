@@ -15,7 +15,6 @@ namespace Frostium
 		~VulkanTexture();
 
 		void LoadTexture(const std::string& filePath, bool flip, TextureFormat format);
-		void LoadTexture(const TextureLoadedData* data, TextureFormat format);
 		void LoadCubeMap(const std::string& filePath, TextureFormat format);
 		void GenTexture(const void* data, uint32_t size, uint32_t width, uint32_t height, TextureFormat format);
 		void GenWhiteTetxure(uint32_t width, uint32_t height);

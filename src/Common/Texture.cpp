@@ -120,21 +120,6 @@ namespace Frostium
 		}
 	}
 
-	void Texture::Create(const TextureLoadedData* data, Texture* out_texture, TextureFormat format)
-	{
-		if (out_texture && data)
-		{
-			if (data->Data == nullptr)
-				return;
-#ifdef  FROSTIUM_OPENGL_IMPL
-			//out_texture->m_OpenglTexture2D.Init(filePath);
-#else
-			out_texture->m_VulkanTexture.LoadTexture(data, format);
-#endif
-			stbi_image_free(data->Data);
-		}
-	}
-
 	void Texture::Create(const void* data, uint32_t size, const uint32_t width, const uint32_t height, Texture* out_texture, TextureFormat format)
 	{
 		if (out_texture)

@@ -8,16 +8,13 @@ layout (location = 0) out vec4 outFragColor;
 
 layout(push_constant) uniform ConstantData
 {
-    float tone_exposure;
-    float gamma;
-    bool hdr;
+    uint hdr;
 };
 
 void main() 
 {
-    if(hdr)
+    if(hdr == 1)
     {
-        
         vec3 hdrColor = texture(colorSampler, inUV).rgb;
         vec3 bloomColor = texture(bloomSampler, inUV).rgb;
         vec3 color = hdrColor + bloomColor; // additive blending

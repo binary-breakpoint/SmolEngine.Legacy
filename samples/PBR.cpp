@@ -21,17 +21,6 @@ struct Chunk
 	glm::vec3 Scale = glm::vec3(1.0f);
 } chunk = {};
 
-struct MaterialTextures
-{
-	Texture Albedro;
-	Texture Normal;
-	Texture Metallic;
-	Texture Roughness;
-	Texture AO;
-};
-
-std::vector<MaterialTextures> Materials;
-
 void GenerateMap(std::vector<Chunk>& map, std::vector<int32_t>& materialIDs)
 {
 	for (uint32_t x = 0; x < 50; x += 2)
@@ -85,7 +74,6 @@ int main(int argc, char** argv)
 			process = false;
 	});
 
-	Materials.resize(4);
 	std::vector<int32_t> materialIDs;
 	std::vector<Chunk> chunks;
 	LoadMaterials(materialIDs);
@@ -172,15 +160,10 @@ void LoadMaterials(std::vector<int32_t>& materialsIDs)
 		roughnessPath = "Assets/materials/wood/WoodFloor041_1K_Roughness.png";
 		aoPath = "Assets/materials/wood/WoodFloor041_1K_AmbientOcclusion.png";
 
-		Texture::Create(albedroPath, &Materials[0].Albedro);
-		Texture::Create(normalPath, &Materials[0].Normal);
-		Texture::Create(roughnessPath, &Materials[0].Roughness);
-		Texture::Create(aoPath, &Materials[0].AO);
-
-		materialCI.SetTexture(MaterialTexture::Albedro, &Materials[0].Albedro, albedroPath);
-		materialCI.SetTexture(MaterialTexture::Normal, &Materials[0].Normal, normalPath);
-		materialCI.SetTexture(MaterialTexture::Roughness, &Materials[0].Roughness, roughnessPath);
-		materialCI.SetTexture(MaterialTexture::AO, &Materials[0].AO, aoPath);
+		materialCI.SetTexture(MaterialTexture::Albedro, albedroPath);
+		materialCI.SetTexture(MaterialTexture::Normal, normalPath);
+		materialCI.SetTexture(MaterialTexture::Roughness, roughnessPath);
+		materialCI.SetTexture(MaterialTexture::AO,aoPath);
 		materialCI.SetMetalness(0.2f);
 		 
 		int32_t id = lib->Add(&materialCI, "Assets/materials/wood.mat");
@@ -196,15 +179,10 @@ void LoadMaterials(std::vector<int32_t>& materialsIDs)
 		roughnessPath = "Assets/materials/stone/Tiles087_1K_Roughness.png";
 		aoPath = "Assets/materials/stone/Tiles087_1K_AmbientOcclusion.png";
 
-		Texture::Create(albedroPath, &Materials[1].Albedro);
-		Texture::Create(normalPath, &Materials[1].Normal);
-		Texture::Create(roughnessPath, &Materials[1].Roughness);
-		Texture::Create(aoPath, &Materials[1].AO);
-
-		materialCI.SetTexture(MaterialTexture::Albedro, &Materials[1].Albedro, albedroPath);
-		materialCI.SetTexture(MaterialTexture::Normal, &Materials[1].Normal, normalPath);
-		materialCI.SetTexture(MaterialTexture::Roughness, &Materials[1].Roughness, roughnessPath);
-		materialCI.SetTexture(MaterialTexture::AO, &Materials[1].AO, aoPath);
+		materialCI.SetTexture(MaterialTexture::Albedro, albedroPath);
+		materialCI.SetTexture(MaterialTexture::Normal, normalPath);
+		materialCI.SetTexture(MaterialTexture::Roughness, roughnessPath);
+		materialCI.SetTexture(MaterialTexture::AO, aoPath);
 		materialCI.SetMetalness(1.0f);
 
 		int32_t id = lib->Add(&materialCI, "Assets/materials/stone.mat");
@@ -220,15 +198,10 @@ void LoadMaterials(std::vector<int32_t>& materialsIDs)
 		roughnessPath = "Assets/materials/metal_1/Metal033_1K_Roughness.png";
 		metalPath = "Assets/materials/metal_1/Metal033_1K_Metalness.png";
 
-		Texture::Create(albedroPath, &Materials[2].Albedro);
-		Texture::Create(normalPath, &Materials[2].Normal);
-		Texture::Create(roughnessPath, &Materials[2].Roughness);
-		Texture::Create(metalPath, &Materials[2].Metallic);
-
-		materialCI.SetTexture(MaterialTexture::Albedro, &Materials[2].Albedro, albedroPath);
-		materialCI.SetTexture(MaterialTexture::Normal, &Materials[2].Normal, normalPath);
-		materialCI.SetTexture(MaterialTexture::Roughness, &Materials[2].Roughness, roughnessPath);
-		materialCI.SetTexture(MaterialTexture::Metallic, &Materials[2].Metallic, metalPath);
+		materialCI.SetTexture(MaterialTexture::Albedro, albedroPath);
+		materialCI.SetTexture(MaterialTexture::Normal, normalPath);
+		materialCI.SetTexture(MaterialTexture::Roughness, roughnessPath);
+		materialCI.SetTexture(MaterialTexture::Metallic, metalPath);
 
 		int32_t id = lib->Add(&materialCI, "Assets/materials/metal1.mat");
 		materialsIDs.push_back(id);
@@ -243,15 +216,10 @@ void LoadMaterials(std::vector<int32_t>& materialsIDs)
 		roughnessPath = "Assets/materials/metal_2/Metal012_1K_Roughness.png";
 		metalPath = "Assets/materials/metal_2/Metal012_1K_Metalness.png";
 
-		Texture::Create(albedroPath, &Materials[3].Albedro);
-		Texture::Create(normalPath, &Materials[3].Normal);
-		Texture::Create(roughnessPath, &Materials[3].Roughness);
-		Texture::Create(metalPath, &Materials[3].Metallic);
-
-		materialCI.SetTexture(MaterialTexture::Albedro, &Materials[3].Albedro, albedroPath);
-		materialCI.SetTexture(MaterialTexture::Normal, &Materials[3].Normal, normalPath);
-		materialCI.SetTexture(MaterialTexture::Roughness, &Materials[3].Roughness, roughnessPath);
-		materialCI.SetTexture(MaterialTexture::Metallic, &Materials[3].Metallic, metalPath);
+		materialCI.SetTexture(MaterialTexture::Albedro, albedroPath);
+		materialCI.SetTexture(MaterialTexture::Normal, normalPath);
+		materialCI.SetTexture(MaterialTexture::Roughness,  roughnessPath);
+		materialCI.SetTexture(MaterialTexture::Metallic,  metalPath);
 
 		int32_t id = lib->Add(&materialCI, "Assets/materials/metal2.mat");
 		materialsIDs.push_back(id);

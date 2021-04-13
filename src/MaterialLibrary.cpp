@@ -2,6 +2,7 @@
 #include "MaterialLibrary.h"
 #include "Common/SLog.h"
 
+#include <filesystem>
 #include <cereal/archives/json.hpp>
 
 namespace Frostium
@@ -23,13 +24,9 @@ namespace Frostium
 	int32_t MaterialLibrary::Add(MaterialCreateInfo* infoCI, const std::string& path)
 	{
 		int32_t materialID = -1;
-		if (path.empty())
-		{
-			NATIVE_ERROR("Material path is empty");
-			return materialID;
-		}
 
-		size_t hashID = m_Hash(path);
+		std::string name = GetCompleteName(infoCI);
+		size_t hashID = m_Hash(name);
 		const auto& name_it = m_MaterialMap.find(hashID);
 		if (name_it != m_MaterialMap.end())
 			return name_it->second;
@@ -57,6 +54,10 @@ namespace Frostium
 		m_Materials.emplace_back(newMaterial);
 		m_MaterialMap[hashID] = materialID;
 		m_MaterialIndex++;
+
+		if(!path.empty())
+			Save(path, *infoCI);
+
 		return materialID;
 	}
 
@@ -70,6 +71,12 @@ namespace Frostium
 		m_MaterialIndex = 0;
 		m_TextureIndex = 0;
 
+		for (const auto& tex : m_Textures)
+		{
+			if(tex)
+				delete tex;
+		}
+
 		m_Textures.clear();
 		m_Textures.resize(maxTextures);
 
@@ -77,7 +84,7 @@ namespace Frostium
 		m_MaterialMap.clear();
 	}
 
-	bool MaterialLibrary::Load(std::string& filePath, MaterialCreateInfo& out_info)
+	bool MaterialLibrary::Load(const std::string& filePath, MaterialCreateInfo& out_info)
 	{
 		std::stringstream storage;
 		std::ifstream file(filePath);
@@ -91,13 +98,13 @@ namespace Frostium
 		{
 			cereal::JSONInputArchive input{ storage };
 			input(out_info.Metallic, out_info.Albedro,
-				out_info.Roughness, out_info.TexturesFilePaths);
+				out_info.Roughness, out_info.Textures);
 		}
 
 		return true;
 	}
 
-	bool MaterialLibrary::Save(std::string& filePath, MaterialCreateInfo& info)
+	bool MaterialLibrary::Save(const std::string& filePath, MaterialCreateInfo& info)
 	{
 		std::stringstream storage;
 		{
@@ -121,19 +128,35 @@ namespace Frostium
 		return s_Instance;
 	}
 
-	int32_t MaterialLibrary::AddTexture(Texture* texture)
+	int32_t MaterialLibrary::AddTexture(const std::string& path)
 	{
 		int32_t index = -1;
-		if (texture)
+		if (!path.empty())
 		{
-			index = m_TextureIndex;
-			m_Textures[index] = texture;
+			Texture* tex = new Texture();
+			Texture::Create(path, tex);
 
+			index = m_TextureIndex;
+			m_Textures[index] = tex;
 			m_TextureIndex++;
 			return index;
 		}
 
 		return index;
+	}
+
+	std::string MaterialLibrary::GetCompleteName(MaterialCreateInfo* infoCI)
+	{
+		std::string result;
+		std::filesystem::path p;
+
+		for (auto& [type, path] : infoCI->Textures)
+		{
+			std::filesystem::path p(path);
+			result += p.filename().stem().string();
+		}
+
+		return result;
 	}
 
 	Material* MaterialLibrary::GetMaterial(int32_t ID)
@@ -203,9 +226,8 @@ namespace Frostium
 		Albedro = value;
 	}
 
-	void MaterialCreateInfo::SetTexture(MaterialTexture type, Texture* texture, const std::string& filePath)
+	void MaterialCreateInfo::SetTexture(MaterialTexture type, const std::string& filePath)
 	{
-		Textures[type] = texture;
-		TexturesFilePaths[type] = filePath;
+		Textures[type] = filePath;
 	}
 }

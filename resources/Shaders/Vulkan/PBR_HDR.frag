@@ -298,7 +298,7 @@ void main()
 	}
 
 	// Color with manual exposure into attachment 0
-	outColor0.rgb = vec3(1.0) - exp(-color.rgb * 0.5);
+	outColor0.rgb = vec3(1.0) - exp(-color.rgb * 1.0);
 
 	// Bright parts for bloom into attachment 1
 	float l = dot(outColor0.rgb, vec3(0.2126, 0.7152, 0.0722));
