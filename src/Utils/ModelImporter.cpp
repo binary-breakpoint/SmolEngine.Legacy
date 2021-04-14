@@ -99,7 +99,7 @@ namespace Frostium
 
                     //Tangents
                     if (mesh->HasTangentsAndBitangents())
-                        data.Tangent = { mesh->mTangents[x].x, mesh->mTangents[x].y, mesh->mTangents[x].z, 1.0f };
+                        data.Tangent = { mesh->mTangents[x].x, mesh->mTangents[x].y, mesh->mTangents[x].z };
 
                     component.VertexData.emplace_back(data);
                 }

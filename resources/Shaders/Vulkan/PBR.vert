@@ -2,7 +2,7 @@
 
 layout(location = 0) in vec3 a_Position;
 layout(location = 1) in vec3 a_Normal;
-layout(location = 2) in vec4 a_Tangent;
+layout(location = 2) in vec3 a_Tangent;
 layout(location = 3) in vec2 a_UV;
 layout(location = 4) in ivec4 a_BoneIDs;
 layout(location = 5) in vec4 a_Weight;
@@ -115,7 +115,7 @@ void main()
 	v_WorldPos = vec4(a_Position, 1.0);
 
 	// TBN matrix
-	vec4 modelTangent = vec4(mat3(model) * a_Tangent.xyz, a_Tangent.w);
+	vec4 modelTangent = vec4(mat3(model) * a_Tangent.xyz, 1.0);
 	vec3 N = normalize(v_Normal);
 	vec3 T = normalize(modelTangent.xyz);
 	vec3 B = normalize(cross(N, T));

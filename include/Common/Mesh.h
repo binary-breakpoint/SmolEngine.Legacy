@@ -4,8 +4,7 @@
 
 namespace Frostium
 {
-	struct ImportedData;
-	struct ImportedComponent;
+	struct ImportedDataGlTF;
 
 	class VertexBuffer;
 	class IndexBuffer;
@@ -39,8 +38,7 @@ namespace Frostium
 
 		void Free();
 		void FindAllMeshes();
-		bool Init(ImportedData* data);
-		void CreateVertexAndIndexBuffers(ImportedComponent& component);
+		bool Init(ImportedDataGlTF* data);
 
 	private:
 

@@ -213,6 +213,9 @@
     <ClInclude Include="include\Common\BufferLayout.h">
       <Filter>include\Common</Filter>
     </ClInclude>
+    <ClInclude Include="include\Common\Common.h">
+      <Filter>include\Common</Filter>
+    </ClInclude>
     <ClInclude Include="include\Common\Core.h">
       <Filter>include\Common</Filter>
     </ClInclude>
@@ -220,6 +223,9 @@
       <Filter>include\Common</Filter>
     </ClInclude>
     <ClInclude Include="include\Common\Events.h">
+      <Filter>include\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Common\Flags.h">
       <Filter>include\Common</Filter>
     </ClInclude>
     <ClInclude Include="include\Common\Framebuffer.h">
@@ -253,9 +259,6 @@
       <Filter>include\Common</Filter>
     </ClInclude>
     <ClInclude Include="include\Common\Shader.h">
-      <Filter>include\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Common\Common.h">
       <Filter>include\Common</Filter>
     </ClInclude>
     <ClInclude Include="include\Common\SubTexture.h">
@@ -2337,7 +2340,6 @@
     <ClInclude Include="vendor\stb_image\stb_image_write.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="include\Common\Flags.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Common\CubeTexture.cpp">

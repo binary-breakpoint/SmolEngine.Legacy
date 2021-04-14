@@ -357,7 +357,7 @@ namespace Frostium
 			{
 				{ DataTypes::Float3, "aPos" },
 				{ DataTypes::Float3, "aNormal" },
-				{ DataTypes::Float4, "aTangent" },
+				{ DataTypes::Float3, "aTangent" },
 				{ DataTypes::Float2, "aUV" },
 				{ DataTypes::Int4,   "aBoneIDs"},
 				{ DataTypes::Float4, "aWeight"}
@@ -373,7 +373,7 @@ namespace Frostium
 
 			pipelineCI.PipelineName = "Deferred_2D";
 			pipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(PBRVertex), PBRlayout) };
-			pipelineCI.eCullMode = CullMode::Back;
+			pipelineCI.eCullMode = CullMode::Front;
 			pipelineCI.bDepthTestEnabled = false;
 			pipelineCI.pTargetFramebuffer = &s_Data->DeferredFB;
 			pipelineCI.pShaderCreateInfo = &shaderCI;
@@ -481,6 +481,6 @@ namespace Frostium
 		s_Data->WhiteTetxure = GraphicsContext::s_Instance->m_DummyTexure;
 		s_Data->Textures[0] = s_Data->WhiteTetxure;
 
-		Mesh::Create(GraphicsContext::s_Instance->m_ResourcesFolderPath + "Models/plane.fbx", &s_Data->PlaneMesh);
+		Mesh::Create(GraphicsContext::s_Instance->m_ResourcesFolderPath + "Models/plane.gltf", &s_Data->PlaneMesh);
 	}
 }

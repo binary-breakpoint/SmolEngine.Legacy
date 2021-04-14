@@ -7,15 +7,13 @@
 
 #include "Utils/Utils.h"
 #include "Utils/ModelImporter.h"
+#include "Utils/glTFImporter.h"
 
 #include <glm/glm.hpp>
 
 namespace Frostium
 {
-    Mesh::Mesh()
-    {
-
-    }
+    Mesh::Mesh() {}
 
     Mesh::~Mesh()
     {
@@ -31,12 +29,13 @@ namespace Frostium
             if (out_mesh->m_Initialized)
                 return;
 
-            ImportedData* data = new ImportedData();
-            if (ModelImporter::Load(filePath, data))
+            ImportedDataGlTF* data = new ImportedDataGlTF();
+            if (glTFImporter::Import(filePath, data))
             {
                 out_mesh->Init(data);
                 out_mesh->m_Initialized = true;
             }
+            delete data;
         }
     }
 
@@ -87,41 +86,18 @@ namespace Frostium
         }
     }
 
-    bool Mesh::Init(ImportedData* data)
+    bool Mesh::Init(ImportedDataGlTF* data)
     {
         Free();
-        if (data->Components.size() > 1)
-            m_SubMeshes.reserve(data->Components.size() - 1);
 
-        for (uint32_t i = 0; i < static_cast<uint32_t>(data->Components.size()); ++i)
-        {
-            auto& component = data->Components[i];
+        m_VertexBuffer = new VertexBuffer();
+        m_IndexBuffer = new IndexBuffer();
+        m_VertexCount = static_cast<uint32_t>(data->VertexBuffer.size());
 
-            // Main
-            if (i == 0)
-            {
-                CreateVertexAndIndexBuffers(component);
-                continue;
-            }
-
-            // Sub
-            Mesh* mesh = new Mesh();
-            mesh->CreateVertexAndIndexBuffers(component);
-            m_SubMeshes.emplace_back(mesh);
-        }
+        VertexBuffer::Create(m_VertexBuffer, data->VertexBuffer.data(), static_cast<uint32_t>(data->VertexBuffer.size() * sizeof(PBRVertex)), true);
+        IndexBuffer::Create(m_IndexBuffer, data->IndexBuffer.data(), static_cast<uint32_t>(data->IndexBuffer.size()), true);
 
         FindAllMeshes();
         return true;
-    }
-
-    void Mesh::CreateVertexAndIndexBuffers(ImportedComponent& component)
-    {
-        m_Name = component.Name;
-        m_VertexBuffer = new VertexBuffer();
-        m_IndexBuffer = new IndexBuffer();
-        m_VertexCount = static_cast<uint32_t>(component.VertexData.size());
-
-        VertexBuffer::Create(m_VertexBuffer, component.VertexData.data(), static_cast<uint32_t>(component.VertexData.size() * sizeof(PBRVertex)), true);
-        IndexBuffer::Create(m_IndexBuffer, component.Indices.data(), static_cast<uint32_t>(component.Indices.size()), true);
     }
 }

@@ -482,7 +482,7 @@ namespace Frostium
 		{
 			{ DataTypes::Float3, "aPos" },
 			{ DataTypes::Float3, "aNormal" },
-			{ DataTypes::Float4, "aTangent" },
+			{ DataTypes::Float3, "aTangent" },
 			{ DataTypes::Float2, "aUV" },
 			{ DataTypes::Int4,   "aBoneIDs"},
 			{ DataTypes::Float4, "aWeight"}

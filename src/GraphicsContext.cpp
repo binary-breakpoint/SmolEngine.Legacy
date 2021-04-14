@@ -163,7 +163,8 @@ namespace Frostium
 		m_VulkanContext.OnResize(width, height);
 #endif
 		m_Framebuffer.OnResize(*width, *height);
-		Renderer::OnResize(*width, *height);
+		if(m_Flags & Features_Renderer_3D_Flags)
+			Renderer::OnResize(*width, *height);
 	}
 
 	void GraphicsContext::SetEventCallback(std::function<void(Event&)> callback)

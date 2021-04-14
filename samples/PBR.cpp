@@ -65,7 +65,7 @@ int main(int argc, char** argv)
 
 	ClearInfo clearInfo = {};
 	Mesh cube = {};
-	Mesh::Create("Assets/cube.glb", &cube);
+	Mesh::Create("Assets/cube.gltf", &cube);
 	bool process = true;
 
 	context->SetEventCallback([&](Event& e) 

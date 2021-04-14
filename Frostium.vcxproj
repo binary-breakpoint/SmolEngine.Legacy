@@ -185,6 +185,7 @@
   <ItemGroup>
     <ClInclude Include="include\Common\BufferElement.h" />
     <ClInclude Include="include\Common\BufferLayout.h" />
+    <ClInclude Include="include\Common\Common.h" />
     <ClInclude Include="include\Common\Core.h" />
     <ClInclude Include="include\Common\CubeTexture.h" />
     <ClInclude Include="include\Common\Events.h" />
@@ -200,7 +201,6 @@
     <ClInclude Include="include\Common\RendererShared.h" />
     <ClInclude Include="include\Common\SLog.h" />
     <ClInclude Include="include\Common\Shader.h" />
-    <ClInclude Include="include\Common\Common.h" />
     <ClInclude Include="include\Common\SubTexture.h" />
     <ClInclude Include="include\Common\Text.h" />
     <ClInclude Include="include\Common\Texture.h" />
