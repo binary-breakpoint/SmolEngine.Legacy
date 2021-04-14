@@ -68,7 +68,6 @@ project "Frostium"
 	{
 		"vendor/",
 		"vendor/icon_font_cpp_headers",
-		"vendor/assimp/include",
 		
 		"include/",
 		"include/Libraries",
@@ -139,10 +138,7 @@ project "Frostium"
 			"vendor/vulkan/libs/machineIndependent_d.lib",
 			"vendor/vulkan/libs/genericCodeGen_d.lib",
 			"vendor/vulkan/libs/OGLCompiler_d.lib",
-			"vendor/vulkan/libs/OSDependent_d.lib",
-
-			"vendor/assimp/libs/assimp-vc142-mtd.lib",
-			"vendor/assimp/libs/zlibstaticd.lib"
+			"vendor/vulkan/libs/OSDependent_d.lib"
 		}
 
 		defines
@@ -168,10 +164,7 @@ project "Frostium"
 		"vendor/vulkan/libs/machineIndependent_d.lib",
 		"vendor/vulkan/libs/genericCodeGen_d.lib",
 		"vendor/vulkan/libs/OGLCompiler_d.lib",
-		"vendor/vulkan/libs/OSDependent_d.lib",
-
-		"vendor/assimp/libs/assimp-vc142-mtd.lib",
-		"vendor/assimp/libs/zlibstaticd.lib"
+		"vendor/vulkan/libs/OSDependent_d.lib"
 	}
 
 	defines
@@ -197,10 +190,7 @@ project "Frostium"
 			"vendor/vulkan/libs/machineIndependent.lib",
 			"vendor/vulkan/libs/genericCodeGen.lib",
 			"vendor/vulkan/libs/OGLCompiler.lib",
-			"vendor/vulkan/libs/OSDependent.lib",
-
-			"vendor/assimp/libs/assimp-vc142-mt.lib",
-			"vendor/assimp/libs/zlibstatic.lib"
+			"vendor/vulkan/libs/OSDependent.lib"
 		}
 
 	filter "configurations:Release_OpenGL"
@@ -221,10 +211,7 @@ project "Frostium"
 		 "vendor/vulkan/libs/machineIndependent.lib",
 		 "vendor/vulkan/libs/genericCodeGen.lib",
 		 "vendor/vulkan/libs/OGLCompiler.lib",
-		 "vendor/vulkan/libs/OSDependent.lib",
-
-		 "vendor/assimp/libs/assimp-vc142-mt.lib",
-		 "vendor/assimp/libs/zlibstatic.lib"
+		 "vendor/vulkan/libs/OSDependent.lib"
 	   }
 
 	    defines

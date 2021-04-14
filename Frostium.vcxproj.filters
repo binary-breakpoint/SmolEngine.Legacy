@@ -2250,9 +2250,6 @@
     <ClInclude Include="include\Utils\GLM.h">
       <Filter>include\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="include\Utils\ModelImporter.h">
-      <Filter>include\Utils</Filter>
-    </ClInclude>
     <ClInclude Include="include\Utils\SSAOGenerator.h">
       <Filter>include\Utils</Filter>
     </ClInclude>
@@ -2442,9 +2439,6 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\Utils\Frustum.cpp">
-      <Filter>src\Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Utils\ModelImporter.cpp">
       <Filter>src\Utils</Filter>
     </ClCompile>
     <ClCompile Include="src\Utils\Utils.cpp">

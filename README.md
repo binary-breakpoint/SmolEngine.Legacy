@@ -12,6 +12,8 @@ Frostium3D
   - 2D and 3D renderers
   - ImGUI Integration
   - Text Rendering (SDF)
+  - glTF 2.0
+
 ### Usage
 The first step is to initialize graphics context class:
 ```cpp
@@ -115,7 +117,6 @@ More samples can be found [here.](https://github.com/YellowDummy/Frostium3D/tree
 - [ktx](https://github.com/KhronosGroup/KTX-Software)
 - [glm](https://github.com/g-truc/glm)
 - [gli](https://github.com/g-truc/gli)
-- [assimp](https://github.com/assimp/assimp)
 - [imgui](https://github.com/ocornut/imgui)
 
 ## Limitations
@@ -128,5 +129,4 @@ More samples can be found [here.](https://github.com/YellowDummy/Frostium3D/tree
 1. Install Vulkan SDK (1.2 or higher)
 2. Run gen-project-vs2019.bat or cmd ```premake5 vs2019```
 3. Extract libs.7z in vendor\vulkan
-4. Extract libs.7z in vendor\assimp
-5. Compile
+4. Compile

@@ -6,7 +6,6 @@
 #include "Common/Material.h"
 
 #include "Utils/Utils.h"
-#include "Utils/ModelImporter.h"
 #include "Utils/glTFImporter.h"
 
 #include <glm/glm.hpp>
