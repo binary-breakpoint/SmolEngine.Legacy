@@ -34,7 +34,8 @@ namespace Frostium
 		inline static VulkanSwapchain& GetSwapchain() { return m_Swapchain; }
 		inline static VulkanInstance& GetInstance() { return m_Instance; }
 		inline static VulkanDevice& GetDevice() { return m_Device; }
-		static VkCommandBuffer GetCurrentVkCmdBuffer() { return m_CurrentVkCmdBuffer; }
+		inline static VkCommandBuffer GetCurrentVkCmdBuffer() { return m_CurrentVkCmdBuffer; }
+		inline static uint64_t GetBufferDeviceAddress(VkBuffer buffer);
 
 
 	private:
@@ -42,6 +43,7 @@ namespace Frostium
 		bool                                m_IsInitialized = false;
 		bool                                m_UseImGUI = false;
 		GLFWwindow*                         m_Window = nullptr;
+
 		inline static VulkanContext*        s_ContextInstance = nullptr;
 		inline static VkCommandBuffer       m_CurrentVkCmdBuffer = nullptr;
 		inline static VulkanCommandBuffer   m_CommandBuffer = {};

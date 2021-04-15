@@ -24,10 +24,18 @@ namespace Frostium
 	{
 		if (SetupPhysicalDevice(instance))
 		{
-			NATIVE_INFO("Vulkan Info:\n\n                   Vulkan API Version: {}\n                   Selected Device: {}\n                   Driver Version: {}\n                   Max push_constant size: {}\n\n",
+			std::stringstream ss;
+			ss << "Vulkan Info:\n\n";
+			ss << "           Vulkan API Version: {}\n";
+			ss << "           Selected Device: {}\n";
+			ss << "           Driver Version: {}\n";
+			ss << "           Raytracing Enabled: {}\n";
+			ss << "           Max push_constant size: {}\n\n";
+
+			NATIVE_INFO(ss.str(),
 				m_VkDeviceProperties.apiVersion,
 				std::string(m_VkDeviceProperties.deviceName),
-				m_VkDeviceProperties.driverVersion,
+				m_VkDeviceProperties.driverVersion, m_RayTracingEnabled,
 				m_VkDeviceProperties.limits.maxPushConstantsSize);
 
 			bool setup_result = SetupLogicalDevice();
@@ -35,6 +43,7 @@ namespace Frostium
 			{
 				vkGetDeviceQueue(m_VkLogicalDevice, m_DeviceQueueFamilyIndex, 0, &m_Queue);
 				FindMaxUsableSampleCount();
+				GetFuncPtrs();
 			}
 			return setup_result;
 		}
@@ -44,14 +53,23 @@ namespace Frostium
 
 	bool VulkanDevice::SetupPhysicalDevice(const VulkanInstance* _instance)
 	{
-		m_ExtensionsList = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 		const VkInstance& instance = _instance->GetInstance();
+		m_ExtensionsList = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+		std::vector<const char*> rayTracingEX = m_ExtensionsList;
+		// Ray tracing related extensions required by this sample
+		rayTracingEX.push_back(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME);
+		rayTracingEX.push_back(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME);
+		// Required by VK_KHR_acceleration_structure
+		rayTracingEX.push_back(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME);
+		rayTracingEX.push_back(VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME);
+		rayTracingEX.push_back(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
+		// Required for VK_KHR_ray_tracing_pipeline
+		rayTracingEX.push_back(VK_KHR_SPIRV_1_4_EXTENSION_NAME);
+		// Required by VK_KHR_spirv_1_4
+		rayTracingEX.push_back(VK_KHR_SHADER_FLOAT_CONTROLS_EXTENSION_NAME);
 
 		uint32_t devicesCount = 0;
 		vkEnumeratePhysicalDevices(instance, &devicesCount, nullptr);
-
-		//
-
 		std::unique_ptr<VkPhysicalDevice[]> devices = std::make_unique<VkPhysicalDevice[]>(devicesCount);
 		vkEnumeratePhysicalDevices(instance, &devicesCount, devices.get());
 
@@ -59,40 +77,16 @@ namespace Frostium
 		{
 			const VkPhysicalDevice& current_device = devices[i];
 
-			if (HasRequiredExtensions(current_device, m_ExtensionsList))
+			if (HasRequiredExtensions(current_device, rayTracingEX)) // RayTracing
 			{
-				uint32_t familyIndex = 0;
-
-				if (GetFamilyQueue(current_device, VkQueueFlagBits::VK_QUEUE_GRAPHICS_BIT, familyIndex))
-				{
-					VkPhysicalDeviceProperties deviceProperties = {};
-					{
-						vkGetPhysicalDeviceProperties(current_device, &deviceProperties);
-					}
-
-					VkPhysicalDeviceFeatures deviceFeatures = {};
-					{
-						vkGetPhysicalDeviceFeatures(current_device, &deviceFeatures);
-					}
-
-					VkPhysicalDeviceMemoryProperties memoryProperties = {};
-					{
-						vkGetPhysicalDeviceMemoryProperties(current_device, &memoryProperties);
-					}
-
-					if (m_VkPhysicalDevice == VK_NULL_HANDLE || deviceProperties.deviceType == VkPhysicalDeviceType::VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
-					{
-						m_VkDeviceProperties = deviceProperties;
-						m_VkDeviceFeatures = deviceFeatures;
-						m_VkMemoryProperties = memoryProperties;
-
-						m_VkDeviceFeatures.shaderSampledImageArrayDynamicIndexing = VK_TRUE;
-
-						m_VkPhysicalDevice = current_device;
-						m_DeviceQueueFamilyIndex = familyIndex;
-					}
-				}
+				SelectDevice(current_device);
+				m_ExtensionsList = rayTracingEX;
+				m_RayTracingEnabled = true;
+				break;
 			}
+
+			if (HasRequiredExtensions(current_device, m_ExtensionsList))
+				SelectDevice(current_device);
 		}
 
 		assert(m_VkPhysicalDevice != VK_NULL_HANDLE);
@@ -123,22 +117,17 @@ namespace Frostium
 			deviceInfo.ppEnabledExtensionNames = m_ExtensionsList.data();
 		}
 
-VkResult result = vkCreateDevice(m_VkPhysicalDevice, &deviceInfo, nullptr, &m_VkLogicalDevice);
-assert(result == VK_SUCCESS);
-
-return result == VK_SUCCESS;
+		VkResult result = vkCreateDevice(m_VkPhysicalDevice, &deviceInfo, nullptr, &m_VkLogicalDevice);
+		assert(result == VK_SUCCESS);
+		return result == VK_SUCCESS;
 	}
 
 	bool VulkanDevice::HasRequiredExtensions(const VkPhysicalDevice& device, const std::vector<const char*>& extensionsList)
 	{
 		uint32_t extCount = 0;
 		vkEnumerateDeviceExtensionProperties(device, nullptr, &extCount, nullptr);
-
-		//
-
 		std::unique_ptr<VkExtensionProperties[]> extensions = std::make_unique<VkExtensionProperties[]>(extCount);
 		vkEnumerateDeviceExtensionProperties(device, nullptr, &extCount, extensions.get());
-
 		for (const auto& name : extensionsList)
 		{
 			bool ext_found = false;
@@ -166,15 +155,10 @@ return result == VK_SUCCESS;
 
 	bool VulkanDevice::GetFamilyQueue(const VkPhysicalDevice& device, VkQueueFlags flags, uint32_t& outQueueIndex)
 	{
-
 		uint32_t queueCount = 0;
 		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueCount, nullptr);
-
-		//
-
 		std::unique_ptr<VkQueueFamilyProperties[]> families = std::make_unique<VkQueueFamilyProperties[]>(queueCount);
 		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueCount, families.get());
-
 		for (uint32_t i = 0; i < queueCount; ++i)
 		{
 			if (families[i].queueCount > 0)
@@ -205,6 +189,52 @@ return result == VK_SUCCESS;
 
 		m_VkDeviceFeatures.sampleRateShading = VK_TRUE;
 		m_MSAASamplesCount = sampleCount;
+	}
+
+	void VulkanDevice::SelectDevice(VkPhysicalDevice device)
+	{
+		uint32_t familyIndex = 0;
+		if (GetFamilyQueue(device, VkQueueFlagBits::VK_QUEUE_GRAPHICS_BIT, familyIndex))
+		{
+			VkPhysicalDeviceProperties2 deviceProperties2{};
+			deviceProperties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+			vkGetPhysicalDeviceProperties2(device, &deviceProperties2);
+			VkPhysicalDeviceFeatures2 deviceFeatures2 = {};
+			deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+			vkGetPhysicalDeviceFeatures2(device, &deviceFeatures2);
+			VkPhysicalDeviceMemoryProperties memoryProperties = {};
+			vkGetPhysicalDeviceMemoryProperties(device, &memoryProperties);
+
+			if (m_VkPhysicalDevice == VK_NULL_HANDLE || deviceProperties2.properties.deviceType == VkPhysicalDeviceType::VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+			{
+				m_VkDeviceProperties = deviceProperties2.properties;
+				m_VkDeviceFeatures = deviceFeatures2.features;
+				m_VkMemoryProperties = memoryProperties;
+
+				m_VkDeviceFeatures.shaderSampledImageArrayDynamicIndexing = VK_TRUE;
+
+				m_VkPhysicalDevice = device;
+				m_DeviceQueueFamilyIndex = familyIndex;
+			}
+		}
+	}
+
+	void VulkanDevice::GetFuncPtrs()
+	{
+		if (m_RayTracingEnabled)
+		{
+			// Get the function pointers required for ray tracing
+			m_vkGetBufferDeviceAddressKHR = reinterpret_cast<PFN_vkGetBufferDeviceAddressKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkGetBufferDeviceAddressKHR"));
+			m_vkCmdBuildAccelerationStructuresKHR = reinterpret_cast<PFN_vkCmdBuildAccelerationStructuresKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkCmdBuildAccelerationStructuresKHR"));
+			m_vkBuildAccelerationStructuresKHR = reinterpret_cast<PFN_vkBuildAccelerationStructuresKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkBuildAccelerationStructuresKHR"));
+			m_vkCreateAccelerationStructureKHR = reinterpret_cast<PFN_vkCreateAccelerationStructureKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkCreateAccelerationStructureKHR"));
+			m_vkDestroyAccelerationStructureKHR = reinterpret_cast<PFN_vkDestroyAccelerationStructureKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkDestroyAccelerationStructureKHR"));
+			m_vkGetAccelerationStructureBuildSizesKHR = reinterpret_cast<PFN_vkGetAccelerationStructureBuildSizesKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkGetAccelerationStructureBuildSizesKHR"));
+			m_vkGetAccelerationStructureDeviceAddressKHR = reinterpret_cast<PFN_vkGetAccelerationStructureDeviceAddressKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkGetAccelerationStructureDeviceAddressKHR"));
+			m_vkCmdTraceRaysKHR = reinterpret_cast<PFN_vkCmdTraceRaysKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkCmdTraceRaysKHR"));
+			m_vkGetRayTracingShaderGroupHandlesKHR = reinterpret_cast<PFN_vkGetRayTracingShaderGroupHandlesKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkGetRayTracingShaderGroupHandlesKHR"));
+			m_vkCreateRayTracingPipelinesKHR = reinterpret_cast<PFN_vkCreateRayTracingPipelinesKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkCreateRayTracingPipelinesKHR"));
+		}
 	}
 
 	const VkPhysicalDeviceMemoryProperties* VulkanDevice::GetMemoryProperties() const
@@ -264,6 +294,11 @@ return result == VK_SUCCESS;
 	const VkQueue VulkanDevice::GetQueue() const
 	{
 		return m_Queue;
+	}
+
+	bool VulkanDevice::GetRaytracingSupport() const
+	{
+		return m_RayTracingEnabled;
 	}
 }
 #endif

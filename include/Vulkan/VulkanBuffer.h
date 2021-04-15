@@ -14,15 +14,17 @@ namespace Frostium
 		VulkanBuffer();
 		virtual ~VulkanBuffer();
 
+		// Create
 		void CreateBuffer(const void* data, size_t size, VkMemoryPropertyFlags memFlags,
 			VkBufferUsageFlags usageFlags, uint32_t offset = 0,
 			VkSharingMode shareMode = VkSharingMode::VK_SHARING_MODE_EXCLUSIVE);
 		void CreateBuffer(size_t size, VkMemoryPropertyFlags memFlags,
 			VkBufferUsageFlags usageFlags, uint32_t offset = 0,
-			VkSharingMode shareMode = VkSharingMode::VK_SHARING_MODE_EXCLUSIVE);
+			VkSharingMode shareMode = VkSharingMode::VK_SHARING_MODE_EXCLUSIVE, VkMemoryAllocateFlagsInfo* allFlagsInfo = nullptr);
 		void CreateStaticBuffer(const void* data, size_t size,
 			VkBufferUsageFlags usageFlags);
 
+		// Data
 		void Flush() const;
 		void Destroy();
 		void SetData(const void* data, size_t size, uint32_t offset = 0);
@@ -32,8 +34,10 @@ namespace Frostium
 		void* MapMemory();
 		void UnMapMemory();
 
+		// Getters
 		size_t GetSize() const;
-		const VkBuffer& GetBuffer() const;
+		const VkBuffer GetBuffer() const;
+		const VkDevice GetDevice() const;
 		const VkDeviceMemory GetDeviceMemory() const;
 
 	private:

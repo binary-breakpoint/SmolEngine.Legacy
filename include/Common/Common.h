@@ -49,7 +49,12 @@ namespace Frostium
 		Vertex,
 		Fragment,
 		Compute,
-		Geometry
+		Geometry,
+
+		//Raytracing
+		RayGen,
+		RayMiss,
+		RayHit
 	};
 
 	enum class TextureFormat

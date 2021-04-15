@@ -193,5 +193,13 @@ namespace Frostium
 
 		VK_CHECK_RESULT(vkWaitForFences(m_Device.GetLogicalDevice(), 1, &m_Semaphore.GetVkFences()[m_Swapchain.GetCurrentBufferIndex()], VK_TRUE, DEFAULT_FENCE_TIME_OUT));
 	}
+
+	inline uint64_t VulkanContext::GetBufferDeviceAddress(VkBuffer buffer)
+	{
+		VkBufferDeviceAddressInfoKHR bufferDeviceAI{};
+		bufferDeviceAI.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+		bufferDeviceAI.buffer = buffer;
+		return vkGetBufferDeviceAddressKHR(m_Device.GetLogicalDevice(), &bufferDeviceAI);
+	}
 }
 #endif

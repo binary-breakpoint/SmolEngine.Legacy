@@ -2235,6 +2235,9 @@
     <ClInclude Include="include\OpenGL\OpenglVertexArray.h">
       <Filter>include\OpenGL</Filter>
     </ClInclude>
+    <ClInclude Include="include\RaytracingPipeline.h">
+      <Filter>include</Filter>
+    </ClInclude>
     <ClInclude Include="include\Renderer.h">
       <Filter>include</Filter>
     </ClInclude>
@@ -2301,6 +2304,9 @@
     <ClInclude Include="include\Vulkan\VulkanPipeline.h">
       <Filter>include\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="include\Vulkan\VulkanRaytracingPipeline.h">
+      <Filter>include\Vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="include\Vulkan\VulkanRenderPass.h">
       <Filter>include\Vulkan</Filter>
     </ClInclude>
@@ -2337,6 +2343,9 @@
     <ClInclude Include="vendor\stb_image\stb_image_write.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
+    <ClInclude Include="include\RayTracer.h" />
+    <ClInclude Include="include\Vulkan\VulkanAccelerationStructure.h" />
+    <ClInclude Include="include\Vulkan\VulkanScratchBuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Common\CubeTexture.cpp">
@@ -2429,6 +2438,9 @@
     <ClCompile Include="src\OpenGL\OpenglVertexArray.cpp">
       <Filter>src\OpenGL</Filter>
     </ClCompile>
+    <ClCompile Include="src\RaytracingPipeline.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="src\Renderer.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -2486,6 +2498,9 @@
     <ClCompile Include="src\Vulkan\VulkanPipeline.cpp">
       <Filter>src\Vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="src\Vulkan\VulkanRaytracingPipeline.cpp">
+      <Filter>src\Vulkan</Filter>
+    </ClCompile>
     <ClCompile Include="src\Vulkan\VulkanRenderPass.cpp">
       <Filter>src\Vulkan</Filter>
     </ClCompile>
@@ -2525,5 +2540,8 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
+    <ClCompile Include="src\RayTracer.cpp" />
+    <ClCompile Include="src\Vulkan\VulkanAccelerationStructure.cpp" />
+    <ClCompile Include="src\Vulkan\VulkanScratchBuffer.cpp" />
   </ItemGroup>
 </Project>

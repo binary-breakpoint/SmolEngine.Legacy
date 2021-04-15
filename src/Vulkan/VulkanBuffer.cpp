@@ -73,7 +73,8 @@ namespace Frostium
 		assert(bind_result == VK_SUCCESS);
 	}
 
-	void VulkanBuffer::CreateBuffer(size_t size, VkMemoryPropertyFlags memFlags, VkBufferUsageFlags usageFlags, uint32_t offset, VkSharingMode shareMode)
+	void VulkanBuffer::CreateBuffer(size_t size, VkMemoryPropertyFlags memFlags, VkBufferUsageFlags usageFlags,
+		uint32_t offset, VkSharingMode shareMode, VkMemoryAllocateFlagsInfo* allFlagsInfo)
 	{
 		const auto& device = m_Device->GetLogicalDevice();
 
@@ -101,6 +102,7 @@ namespace Frostium
 
 		VkMemoryAllocateInfo memAllocateInfo = {};
 		{
+			memAllocateInfo.pNext = allFlagsInfo;
 			memAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 			memAllocateInfo.allocationSize = memoryRequirements.size;
 			memAllocateInfo.memoryTypeIndex = m_MemoryType;
@@ -108,9 +110,9 @@ namespace Frostium
 			VkResult result = vkAllocateMemory(device, &memAllocateInfo, nullptr, &m_DeviceMemory);
 			assert(result == VK_SUCCESS);
 
-#ifdef Frostium_DEBUG
+#ifdef FROSTIUM_DEBUG
 			NATIVE_INFO("VulkanBuffer:: Allocating {} bytes of memory", size);
-#endif // Frostium_DEBUG
+#endif
 
 		}
 
@@ -217,9 +219,14 @@ namespace Frostium
 		return m_Size;
 	}
 
-	const VkBuffer& VulkanBuffer::GetBuffer() const
+	const VkBuffer VulkanBuffer::GetBuffer() const
 	{
 		return m_Buffer;
+	}
+
+	const VkDevice VulkanBuffer::GetDevice() const
+	{
+		return m_Device->GetLogicalDevice();
 	}
 
 	const VkDeviceMemory VulkanBuffer::GetDeviceMemory() const
