@@ -36,7 +36,7 @@ namespace Frostium
 
 		// Getters
 		size_t GetSize() const;
-		const VkBuffer GetBuffer() const;
+		const VkBuffer& GetBuffer() const;
 		const VkDevice GetDevice() const;
 		const VkDeviceMemory GetDeviceMemory() const;
 

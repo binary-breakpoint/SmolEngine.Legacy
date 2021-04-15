@@ -219,7 +219,7 @@ namespace Frostium
 		return m_Size;
 	}
 
-	const VkBuffer VulkanBuffer::GetBuffer() const
+	const VkBuffer& VulkanBuffer::GetBuffer() const
 	{
 		return m_Buffer;
 	}
