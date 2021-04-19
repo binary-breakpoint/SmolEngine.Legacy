@@ -22,8 +22,6 @@ namespace Frostium
 			return;
 
 		s_Instance = this;
-		// Initialize spdlog
-		SLog::InitLog();
 		m_Flags = info->Flags;
 		m_MSAASamples = info->eMSAASamples;
 		m_ResourcesFolderPath = info->ResourcesFolderPath;

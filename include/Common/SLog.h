@@ -12,12 +12,16 @@ namespace Frostium
 	{
 	public:
 
+		SLog();
+		~SLog();
+
 		static void InitLog();
-		inline static std::shared_ptr<spdlog::logger>& GetNativeLogger() { return s_NativeLogger; }
+		static spdlog::logger* GetNativeLogger();
 
 	private:
-
-		static std::shared_ptr<spdlog::logger> s_NativeLogger;
+		
+		static SLog* s_Instance;
+		std::shared_ptr<spdlog::logger> m_NativeLogger = nullptr;
 	};
 }
 

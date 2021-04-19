@@ -168,8 +168,11 @@ namespace Frostium
 
 	void Renderer::Shutdown()
 	{
-		delete s_Data;
-		s_Data->m_IsInitialized = false;
+		if (s_Data != nullptr)
+		{
+			s_Data->m_IsInitialized = false;
+			delete s_Data;
+		}
 	}
 
 	void Renderer::BeginScene(const ClearInfo* clearInfo, const BeginSceneInfo* info)
