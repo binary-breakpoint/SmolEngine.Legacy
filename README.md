@@ -112,6 +112,7 @@ More samples can be found [here.](https://github.com/YellowDummy/Frostium3D/tree
 - [vulkan](https://www.lunarg.com/vulkan-sdk/)
 - [glad](https://glad.dav1d.de/)
 - [glfw](https://github.com/glfw/glfw)
+- [tinygltf](https://github.com/syoyo/tinygltf)
 - [spirv-cross](https://github.com/KhronosGroup/SPIRV-Cross)
 - [stb_image](https://github.com/nothings/stb)
 - [ktx](https://github.com/KhronosGroup/KTX-Software)
