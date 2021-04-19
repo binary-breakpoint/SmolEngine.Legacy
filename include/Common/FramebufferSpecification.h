@@ -55,6 +55,7 @@ namespace Frostium
 	enum class FramebufferSpecialisation : uint16_t
 	{
 		None,
+		RaytracingStorage,
 		ShadowMap,
 		OmniShadow
 	};

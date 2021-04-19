@@ -2235,6 +2235,9 @@
     <ClInclude Include="include\OpenGL\OpenglVertexArray.h">
       <Filter>include\OpenGL</Filter>
     </ClInclude>
+    <ClInclude Include="include\RayTracer.h">
+      <Filter>include</Filter>
+    </ClInclude>
     <ClInclude Include="include\RaytracingPipeline.h">
       <Filter>include</Filter>
     </ClInclude>
@@ -2263,6 +2266,9 @@
       <Filter>include\Utils</Filter>
     </ClInclude>
     <ClInclude Include="include\Vulkan\Vulkan.h">
+      <Filter>include\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Vulkan\VulkanAccelerationStructure.h">
       <Filter>include\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="include\Vulkan\VulkanBuffer.h">
@@ -2310,6 +2316,9 @@
     <ClInclude Include="include\Vulkan\VulkanRenderPass.h">
       <Filter>include\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="include\Vulkan\VulkanScratchBuffer.h">
+      <Filter>include\Vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="include\Vulkan\VulkanSemaphore.h">
       <Filter>include\Vulkan</Filter>
     </ClInclude>
@@ -2343,9 +2352,6 @@
     <ClInclude Include="vendor\stb_image\stb_image_write.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="include\RayTracer.h" />
-    <ClInclude Include="include\Vulkan\VulkanAccelerationStructure.h" />
-    <ClInclude Include="include\Vulkan\VulkanScratchBuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Common\CubeTexture.cpp">
@@ -2438,6 +2444,9 @@
     <ClCompile Include="src\OpenGL\OpenglVertexArray.cpp">
       <Filter>src\OpenGL</Filter>
     </ClCompile>
+    <ClCompile Include="src\RayTracer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="src\RaytracingPipeline.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -2458,6 +2467,9 @@
     </ClCompile>
     <ClCompile Include="src\Utils\glTFImporter.cpp">
       <Filter>src\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Vulkan\VulkanAccelerationStructure.cpp">
+      <Filter>src\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\Vulkan\VulkanBuffer.cpp">
       <Filter>src\Vulkan</Filter>
@@ -2504,6 +2516,9 @@
     <ClCompile Include="src\Vulkan\VulkanRenderPass.cpp">
       <Filter>src\Vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="src\Vulkan\VulkanScratchBuffer.cpp">
+      <Filter>src\Vulkan</Filter>
+    </ClCompile>
     <ClCompile Include="src\Vulkan\VulkanSemaphore.cpp">
       <Filter>src\Vulkan</Filter>
     </ClCompile>
@@ -2540,8 +2555,5 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
-    <ClCompile Include="src\RayTracer.cpp" />
-    <ClCompile Include="src\Vulkan\VulkanAccelerationStructure.cpp" />
-    <ClCompile Include="src\Vulkan\VulkanScratchBuffer.cpp" />
   </ItemGroup>
 </Project>

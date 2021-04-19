@@ -1,7 +1,7 @@
 
 workspace "Frostium"
 	architecture "x64"
-	startproject "Samples"
+	startproject "PBR"
 
 	configurations
 	{
@@ -93,13 +93,13 @@ project "Frostium"
 
 	links 
 	{ 
-		"GLFW",
-		"Glad",
-		"ImGui",
-		"ImGizmo",
-		"SPIRV-Cross",
-		"KTX-Tools",
-		
+		"vendor/libs/" ..outputdir .. "/Glad/Glad.lib",
+		"vendor/libs/" ..outputdir .. "/GLFW/GLFW.lib",
+		"vendor/libs/" ..outputdir .. "/ImGizmo/ImGizmo.lib",
+		"vendor/libs/" ..outputdir .. "/ImGui/ImGui.lib",
+		"vendor/libs/" ..outputdir .. "/KTX-Tools/KTX-Tools.lib",
+		"vendor/libs/" ..outputdir .. "/SPIRV-Cross/SPIRV-Cross.lib",
+
 		"vendor/vulkan/libs/vulkan-1.lib",
 		"vendor/vulkan/libs/VkLayer_utils.lib",
 	}
@@ -251,7 +251,7 @@ project "PBR"
 
 	links
 	{
-		"Frostium"
+		"bin/" ..outputdir .. "/Frostium/Frostium.lib"
 	}
 
 	filter "system:windows"
@@ -302,7 +302,7 @@ project "CSharpBinding"
 
 	links
 	{
-		"Frostium",
+		"bin/" ..outputdir .. "/Frostium/Frostium.lib",
 		"vendor/mono/lib/mono-2.0-sgen.lib"
 	}
 
@@ -353,7 +353,7 @@ project "2D"
 
 	links
 	{
-		"Frostium"
+		"bin/" ..outputdir .. "/Frostium/Frostium.lib"
 	}
 
 	filter "system:windows"
