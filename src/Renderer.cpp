@@ -177,7 +177,7 @@ namespace Frostium
 
 	void Renderer::BeginScene(const ClearInfo* clearInfo, const BeginSceneInfo* info)
 	{
-		if (GraphicsContext::GetSingleton()->m_UseEditorCamera)
+		if (GraphicsContext::GetSingleton()->m_State->UseEditorCamera)
 		{
 			EditorCamera* camera = GraphicsContext::GetSingleton()->GetEditorCamera();
 
@@ -795,22 +795,6 @@ namespace Frostium
 				Framebuffer::Create(framebufferCI, &s_Data->m_BloomFramebuffer);
 			}
 		}
-
-#if 0
-		// Omni
-		{
-			FramebufferSpecification framebufferCI = {};
-			{
-				framebufferCI.Width = 1024;
-				framebufferCI.Height = 1024;
-				framebufferCI.bResizable = false;
-				framebufferCI.eSpecialisation = FramebufferSpecialisation::OmniShadow;
-				framebufferCI.NumSubpassDependencies = 0;
-
-				Framebuffer::Create(framebufferCI, &s_Data->m_OmniFramebuffer);
-			}
-		}
-#endif
 	}
 
 	glm::mat4 Renderer::CalculateDepthMVP(const glm::vec3& lightPos)

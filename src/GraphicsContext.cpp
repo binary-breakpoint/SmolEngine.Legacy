@@ -6,6 +6,7 @@
 
 #include "Common/SLog.h"
 #include "Common/Input.h"
+#include "Common/Common.h"
 
 #include <GLFW/glfw3.h>
 
@@ -14,12 +15,12 @@ namespace Frostium
 	GraphicsContext* GraphicsContext::s_Instance = nullptr;
 
 	GraphicsContext::GraphicsContext(GraphicsContextInitInfo* info)
-		:
-		m_UseImGUI(info->Flags & Features_ImGui_Flags),
-		m_UseEditorCamera(info->pEditorCameraCI != nullptr ? true: false)
 	{
-		if (m_Initialized || !info->pWindowCI)
+		if (m_State != nullptr || !info->pWindowCI)
 			return;
+
+		m_State = new GraphicsContextState(info->pEditorCameraCI != nullptr,
+			info->Flags & Features_ImGui_Flags, info->bTargetsSwapchain);
 
 		s_Instance = this;
 		m_Flags = info->Flags;
@@ -33,13 +34,18 @@ namespace Frostium
 #ifdef  FROSTIUM_OPENGL_IMPL
 		m_OpenglContext.Setup(window);
 #else
-		m_VulkanContext.Setup(window,
+		m_VulkanContext.Setup(window, m_State,
 			&m_Window.GetWindowData()->Width, &m_Window.GetWindowData()->Height);
-		m_VulkanContext.m_UseImGUI = m_UseImGUI;
 #endif
 		// Creates 4x4 white texture
 		m_DummyTexure = new Texture();
 		Texture::CreateWhiteTexture(m_DummyTexure);
+		// Creates editor camera
+		if (m_State->UseEditorCamera)
+			m_EditorCamera = new EditorCamera(info->pEditorCameraCI);
+		// Initialize ImGUI and renderers
+		if (m_State->UseImGUI)
+			m_ImGuiContext.Init();
 		// Creates main framebuffer
 		FramebufferSpecification framebufferCI = {};
 		{
@@ -53,22 +59,10 @@ namespace Frostium
 			framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
 			framebufferCI.bTargetsSwapchain = info->bTargetsSwapchain;
 			framebufferCI.bResizable = true;
-			framebufferCI.bUsedByImGui = m_UseImGUI && !info->bTargetsSwapchain ? true : false;
+			framebufferCI.bUsedByImGui = m_State->UseImGUI && !info->bTargetsSwapchain ? true : false;
 			framebufferCI.Attachments = { FramebufferAttachment(AttachmentFormat::Color) };
 
 			Framebuffer::Create(framebufferCI, &m_Framebuffer);
-		}
-
-		// Creates editor camera
-		if (m_UseEditorCamera)
-		{
-			m_EditorCamera = new EditorCamera(info->pEditorCameraCI);
-		}
-
-		// Initialize ImGUI and renderers
-		if (m_UseImGUI)
-		{
-			m_ImGuiContext.Init();
 		}
 
 		if (info->Flags & Features_Renderer_3D_Flags)
@@ -94,7 +88,6 @@ namespace Frostium
 #ifdef  FROSTIUM_OPENGL_IMPL
 		GetOpenglRendererAPI()->Init();
 #endif
-		m_Initialized = true;
 	}
 
 	GraphicsContext::~GraphicsContext()
@@ -105,7 +98,7 @@ namespace Frostium
 
 	void GraphicsContext::SwapBuffers()
 	{
-		if (m_UseImGUI)
+		if (m_State->UseImGUI)
 			m_ImGuiContext.OnEnd();
 #ifdef  FROSTIUM_OPENGL_IMPL
 		m_OpenglContext.SwapBuffers();
@@ -121,25 +114,21 @@ namespace Frostium
 
 	void GraphicsContext::BeginFrame(DeltaTime time)
 	{
-		if (m_UseEditorCamera)
+		if (m_State->UseEditorCamera)
 			m_EditorCamera->OnUpdate(time);
 #ifdef  FROSTIUM_OPENGL_IMPL
 #else
 		m_VulkanContext.BeginFrame();
 #endif
-		if (m_UseImGUI)
+		if (m_State->UseImGUI)
 			m_ImGuiContext.OnBegin();
 	}
 
 	void GraphicsContext::ShutDown()
 	{
-		if (m_Initialized)
+		if (m_State != nullptr)
 		{
-			delete m_MaterialLibrary, m_DummyTexure;
-			if(m_UseEditorCamera)
-				delete m_EditorCamera;
-
-			if (m_UseImGUI)
+			if (m_State->UseImGUI)
 				m_ImGuiContext.ShutDown();
 
 			Renderer::Shutdown();
@@ -150,7 +139,10 @@ namespace Frostium
 #else
 			m_VulkanContext.~VulkanContext();
 #endif
-			m_Initialized = false;
+			if (m_State->UseEditorCamera)
+				delete m_EditorCamera;
+
+			delete m_MaterialLibrary, m_DummyTexure, m_State;
 	    }
 }
 
@@ -205,7 +197,7 @@ namespace Frostium
 
 	bool GraphicsContext::IsWindowMinimized() const
 	{
-		return m_WindowMinimized;
+		return m_State->WindowMinimized;
 	}
 
 	Window* GraphicsContext::GetWindow()
@@ -225,10 +217,10 @@ namespace Frostium
 
 	void GraphicsContext::OnEvent(Event& e)
 	{
-		if (m_UseImGUI)
+		if (m_State->UseImGUI)
 			m_ImGuiContext.OnEvent(e);
 
-		if (m_UseEditorCamera)
+		if (m_State->UseEditorCamera)
 			m_EditorCamera->OnEvent(e);
 
 		if (e.IsType(EventType::WINDOW_RESIZE))
@@ -238,10 +230,10 @@ namespace Frostium
 			uint32_t height = resize->GetHeight();
 
 			if (width == 0 || height == 0)
-				m_WindowMinimized = true;
+				m_State->WindowMinimized = true;
 			else
 			{
-				m_WindowMinimized = false;
+				m_State->WindowMinimized = false;
 				OnResize(&width, &height);
 			}
 		}

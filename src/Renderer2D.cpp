@@ -128,7 +128,7 @@ namespace Frostium
 
 	void Renderer2D::BeginScene(const ClearInfo* clearInfo, const BeginSceneInfo* info)
 	{
-		if (GraphicsContext::GetSingleton()->m_UseEditorCamera)
+		if (GraphicsContext::GetSingleton()->m_State->UseEditorCamera)
 		{
 			EditorCamera* camera = GraphicsContext::GetSingleton()->GetEditorCamera();
 			s_Data->SceneData.View = camera->GetViewMatrix();

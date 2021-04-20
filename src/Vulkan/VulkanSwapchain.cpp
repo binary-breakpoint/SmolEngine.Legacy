@@ -39,7 +39,7 @@ namespace Frostium
 		//}
     }
 
-    bool VulkanSwapchain::Init(VulkanInstance* instance, VulkanDevice* device, GLFWwindow* window)
+    bool VulkanSwapchain::Init(VulkanInstance* instance, VulkanDevice* device, GLFWwindow* window, bool clearOP)
     {
         m_Instance = instance;
 		m_Device = device;
@@ -48,7 +48,7 @@ namespace Frostium
 		FindDepthStencilFormat();
 		if (InitSurface(window) == VK_SUCCESS)
 		{
-			return CreateRenderPass() == VK_SUCCESS;
+			return CreateRenderPass(clearOP) == VK_SUCCESS;
 		}
 
 		return false;
@@ -247,7 +247,6 @@ namespace Frostium
 				colorAttachmentView.flags = 0;
 
 				m_Buffers[i].Image = m_Images[i];
-
 				colorAttachmentView.image = m_Buffers[i].Image;
 			}
 
@@ -366,7 +365,7 @@ namespace Frostium
 		return result;
     }
 
-	VkResult VulkanSwapchain::CreateRenderPass()
+	VkResult VulkanSwapchain::CreateRenderPass(bool clearOP)
 	{
 		VkResult result = VK_ERROR_UNKNOWN;
 		std::array<VkAttachmentDescription, 2> attachments = {};
@@ -375,7 +374,7 @@ namespace Frostium
 		{
 			attachments[0].format = m_ColorFormat;
 			attachments[0].samples = VK_SAMPLE_COUNT_1_BIT;
-			attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			attachments[0].loadOp = clearOP ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 			attachments[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			attachments[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;

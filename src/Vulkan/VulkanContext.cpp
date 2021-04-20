@@ -2,6 +2,7 @@
 #ifndef FROSTIUM_OPENGL_IMPL
 #include "Vulkan/VulkanContext.h"
 #include "Vulkan/VulkanRenderPass.h"
+#include "Common/Common.h"
 
 #include <GLFW/glfw3.h>
 #include <imgui/examples/imgui_impl_vulkan.h>
@@ -20,49 +21,36 @@ namespace Frostium
 
 	void VulkanContext::OnResize(uint32_t* width, uint32_t* height)
 	{
-		if (m_IsInitialized == false)
-		{
-			return;
-		}
-
 		m_Swapchain.OnResize(width, height, &m_CommandBuffer);
 	}
 
-	void VulkanContext::Setup(GLFWwindow* window, uint32_t* width, uint32_t* height)
+	void VulkanContext::Setup(GLFWwindow* window, GraphicsContextState* state, uint32_t* width, uint32_t* height)
 	{
 		assert(glfwVulkanSupported() == GLFW_TRUE);
-
-		// Vulkan Initialization
-
 		bool swapchain_initialized = false;
 		{
 			m_Instance.Init();
 			m_Device.Init(&m_Instance);
 			m_CommandPool.Init(&m_Device);
-
-			swapchain_initialized = m_Swapchain.Init(&m_Instance, &m_Device, window);
+			swapchain_initialized = m_Swapchain.Init(&m_Instance, &m_Device, window, state->UseSwapchain ? false: true);
 			if (swapchain_initialized)
 			{
 				m_Swapchain.Create(width, height);
-
 				m_CommandBuffer.Init(&m_Device, &m_CommandPool, &m_Swapchain);
 				m_Semaphore.Init(&m_Device, &m_CommandBuffer);
-
 				m_Swapchain.Prepare(*width, *height);
 			}
 		}
 
 		if (swapchain_initialized)
 		{
-			m_IsInitialized = true;
 			s_ContextInstance = this;
 			m_Window = window;
-
+			m_ContextState = state;
 			return;
 		}
 
-		NATIVE_ERROR("Couldn't create Vulkan Context!");
-		abort();
+		std::runtime_error("Couldn't create Vulkan context!");
 	}
 
 	void VulkanContext::BeginFrame()
@@ -84,17 +72,17 @@ namespace Frostium
 	{
 		// ImGUI pass
 		{
-			if (m_UseImGUI)
+			if (m_ContextState->UseImGUI)
 			{
 				if (ImGui::GetDrawData()->CmdListsCount > 0)
 				{
-					auto framebuffer = m_Swapchain.GetCurrentFramebuffer();
 					uint32_t width = m_Swapchain.GetWidth();
 					uint32_t height = m_Swapchain.GetHeight();
 
 					// Set clear values for all framebuffer attachments with loadOp set to clear
 					// We use two attachments (color and depth) that are cleared at the start of the subpass and as such we need to set clear values for both
 					VkClearValue clearValues[2];
+					clearValues[0].color = { 0.1f, 0.1f, 0.1f, 1.0f };
 					clearValues[1].depthStencil = { 1.0f, 0 };
 
 					VkRenderPassBeginInfo renderPassBeginInfo = {};
@@ -107,9 +95,8 @@ namespace Frostium
 					renderPassBeginInfo.renderArea.extent.height = height;
 					renderPassBeginInfo.clearValueCount = 2;
 					renderPassBeginInfo.pClearValues = clearValues;
-
 					// Set target frame buffer
-					renderPassBeginInfo.framebuffer = framebuffer;
+					renderPassBeginInfo.framebuffer = m_Swapchain.GetCurrentFramebuffer();
 
 					// Start the first sub pass specified in our default render pass setup by the base class
 					// This will clear the color and depth attachment
@@ -135,7 +122,6 @@ namespace Frostium
 
 					// Draw Imgui
 					ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), m_CurrentVkCmdBuffer);
-
 					vkCmdEndRenderPass(m_CurrentVkCmdBuffer);
 				}
 			}
