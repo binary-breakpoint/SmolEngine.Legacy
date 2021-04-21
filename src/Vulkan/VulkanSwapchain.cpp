@@ -218,7 +218,6 @@ namespace Frostium
 		}
 
 		VK_CHECK_RESULT(fpGetSwapchainImagesKHR(m_Device->GetLogicalDevice(), m_Swapchain, &m_ImageCount, NULL));
-
 		// Get the swap chain images
 		m_Images.resize(m_ImageCount);
 		VK_CHECK_RESULT(fpGetSwapchainImagesKHR(m_Device->GetLogicalDevice(), m_Swapchain, &m_ImageCount, m_Images.data()));
@@ -259,25 +258,19 @@ namespace Frostium
 		const auto& device = m_Device->GetLogicalDevice();
 
 		vkDeviceWaitIdle(device);
-
 		{
 			Create(width, height);
 			Prepare(*width, *height);
 
 			assert(commandBuffer->Recrate() == true);
 		}
-
 		vkDeviceWaitIdle(device);
 	}
 
 	void VulkanSwapchain::CleanUp()
 	{
-		if (m_Device == nullptr || m_Instance == nullptr)
-		{
-			NATIVE_ERROR("VulkanDevice or VulkanInstance is nullptr");
-			assert(m_Device != nullptr || m_Instance != nullptr);
-			return;
-		}
+		if (!m_Device || !m_Instance)
+			std::runtime_error("VulkanDevice or VulkanInstance is nullptr");
 
 		if (m_Swapchain != VK_NULL_HANDLE)
 		{
@@ -326,11 +319,7 @@ namespace Frostium
 	VkResult VulkanSwapchain::QueuePresent(VkQueue queue, VkSemaphore waitSemaphore)
 	{
 		if (m_Device == nullptr || m_Instance == nullptr)
-		{
-			NATIVE_ERROR("VulkanDevice or VulkanInstance is nullptr");
-			assert(m_Device != nullptr || m_Instance != nullptr);
-			return VK_ERROR_UNKNOWN;
-		}
+			std::runtime_error("VulkanDevice or VulkanInstance is nullptr");
 
 		VkPresentInfoKHR presentInfo = {};
 		{

@@ -56,7 +56,6 @@ namespace Frostium
 			AddAttachment(width, height, m_MSAASamples, usage, GetAttachmentFormat(info.Format),
 				vkInfo.AttachmentVkInfo.image, vkInfo.AttachmentVkInfo.view, vkInfo.AttachmentVkInfo.mem);
 
-
 			if (!IsUseMSAA())
 			{
 				vkInfo.ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -67,6 +66,11 @@ namespace Frostium
 				{
 					vkInfo.ImGuiID = ImGui_ImplVulkan_AddTexture(vkInfo.ImageInfo);
 				}
+
+				auto cmd = VulkanCommandBuffer::CreateSingleCommandBuffer();
+				VulkanTexture::SetImageLayout(cmd, vkInfo.AttachmentVkInfo.image,
+					VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+				VulkanCommandBuffer::EndSingleCommandBuffer(cmd);
 			}
 
 			attachments[lastImageViewIndex] = vkInfo.AttachmentVkInfo.view;
@@ -75,7 +79,7 @@ namespace Frostium
 			m_ClearAttachments[lastImageViewIndex].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 			m_ClearAttachments[lastImageViewIndex].clearValue.color = { { 0.0f, 0.0f, 0.0f, 1.0f} };
 			m_ClearAttachments[lastImageViewIndex].colorAttachment = lastImageViewIndex;
-			if(info.Name != "")
+			if(!info.Name.empty())
 				m_AttachmentsMap[info.Name] = i;
 
 			lastImageViewIndex++;
@@ -93,7 +97,6 @@ namespace Frostium
 			{
 				auto& resolve = m_ResolveAttachments[i];
 				auto& info = m_Specification.Attachments[i];
-
 				VkImageUsageFlags usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 
 				AddAttachment(width, height, VK_SAMPLE_COUNT_1_BIT, usage, GetAttachmentFormat(info.Format),
@@ -116,7 +119,7 @@ namespace Frostium
 				m_ClearValues[lastImageViewIndex].color = { { 0.0f, 0.0f, 0.0f, 1.0f} };
 				m_ClearAttachments[lastImageViewIndex].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 				m_ClearAttachments[lastImageViewIndex].clearValue.color = { { 0.1f, 0.1f, 0.1f, 1.0f} };
-				if (info.Name != "")
+				if (!info.Name.empty())
 					m_AttachmentsMap[info.Name + "_resolve"] = i;
 
 				lastImageViewIndex++;

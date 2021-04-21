@@ -8,6 +8,15 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 
+#ifdef WIN32
+#include <commdlg.h>
+#include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
+#endif // WIN32
+
+#include <GLFW/glfw3.h>
+
 namespace Frostium
 {
 	bool Utils::DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale)
@@ -100,6 +109,59 @@ namespace Frostium
 			rot * glm::scale(glm::mat4(1.0f), { scale });
 
 		return true;
+	}
+
+	std::optional<std::string> Utils::OpenFile(const char* filter)
+	{
+		OPENFILENAMEA ofn;
+		CHAR szFile[260] = { 0 };
+		CHAR currentDir[256] = { 0 };
+		ZeroMemory(&ofn, sizeof(OPENFILENAME));
+		ofn.lStructSize = sizeof(OPENFILENAME);
+		ofn.hwndOwner = glfwGetWin32Window((GLFWwindow*)GraphicsContext::GetSingleton()->GetWindow());
+		ofn.lpstrFile = szFile;
+		ofn.nMaxFile = sizeof(szFile);
+		if (GetCurrentDirectoryA(256, currentDir))
+			ofn.lpstrInitialDir = currentDir;
+		ofn.lpstrFilter = filter;
+		ofn.nFilterIndex = 1;
+		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+
+		if (GetOpenFileNameA(&ofn) == TRUE)
+			return ofn.lpstrFile;
+		return std::nullopt;
+	}
+
+	std::optional<std::string> Utils::SaveFile(const char* filter, const std::string& initialName)
+	{
+		OPENFILENAMEA ofn;
+		CHAR szFile[260] = { 0 };
+		if (!initialName.empty())
+		{
+			for (uint32_t i = 0; i < static_cast<uint32_t>(initialName.size()); ++i)
+			{
+				szFile[i] = initialName[i];
+			}
+		}
+
+		CHAR currentDir[256] = { 0 };
+		ZeroMemory(&ofn, sizeof(OPENFILENAME));
+		ofn.lStructSize = sizeof(OPENFILENAME);
+		ofn.hwndOwner = glfwGetWin32Window((GLFWwindow*)GraphicsContext::GetSingleton()->GetWindow());
+		ofn.lpstrFile = szFile;
+		ofn.nMaxFile = sizeof(szFile);
+		if (GetCurrentDirectoryA(256, currentDir))
+			ofn.lpstrInitialDir = currentDir;
+		ofn.lpstrFilter = filter;
+		ofn.nFilterIndex = 1;
+		ofn.Flags = OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR;
+
+		// Sets the default extension by extracting it from the filter
+		ofn.lpstrDefExt = strchr(filter, '\0') + 1;
+
+		if (GetSaveFileNameA(&ofn) == TRUE)
+			return ofn.lpstrFile;
+		return std::nullopt;
 	}
 
 	bool Utils::IsPathValid(const std::string& path)

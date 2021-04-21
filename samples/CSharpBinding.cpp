@@ -71,7 +71,7 @@ int main(int argc, char** argv)
 	EditorCameraCreateInfo cameraCI = {};
 	GraphicsContextInitInfo info = {};
 	{
-		info.Flags = Features_Renderer_3D_Flags | Features_HDR_Flags | Features_ImGui_Flags;
+		info.Flags = Features_Renderer_3D_Flags | Features_ImGui_Flags;
 		info.ResourcesFolderPath = "../resources/";
 		info.pWindowCI = &windoInfo;
 		info.pEditorCameraCI = &cameraCI;

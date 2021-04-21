@@ -60,7 +60,6 @@ namespace Frostium
 	struct RendererData
 	{
 		RendererData(RendererInitInfo* info)
-			:m_HDRPath(info->HDR)
 		{
 			m_Frustum = GraphicsContext::GetSingleton()->GetFrustum();
 			m_Packages.reserve(s_MaxPackages);
@@ -71,7 +70,8 @@ namespace Frostium
 		// States
 		bool                             m_IsInitialized = false;
 		bool                             m_ShowDebugView = false;
-		const bool                       m_HDRPath = false;
+		bool                             m_IsBloomPassActive = true;
+		bool                             m_IsBlurPassActive = false;
 		ShadowMapSize                    m_MapSize = ShadowMapSize::SIZE_8;
 		// Bindings
 		const uint32_t                   m_TexturesBinding = 24;
@@ -89,6 +89,7 @@ namespace Frostium
 		// Pipelines
 		GraphicsPipeline                 m_PBRPipeline = {};
 		GraphicsPipeline                 m_BloomPipeline = {};
+		GraphicsPipeline                 m_BlurPipeline = {};
 		GraphicsPipeline                 m_CombinationPipeline = {};
 		GraphicsPipeline                 m_SkyboxPipeline = {};
 		GraphicsPipeline                 m_OmniPipeline = {};
@@ -98,8 +99,8 @@ namespace Frostium
 		Framebuffer*                     m_MainFramebuffer = nullptr;
 		Framebuffer                      m_PBRFramebuffer = {};
 		Framebuffer                      m_BloomFramebuffer = {};
+		Framebuffer                      m_BlurFramebuffer = {};
 		Framebuffer                      m_DepthFramebuffer = {};
-		Framebuffer                      m_OmniFramebuffer = {};
 		// Buffers
 		Mesh*                            m_UsedMeshes[s_MaxPackages];
 		InstanceData                     m_InstancesData[s_InstanceDataMaxCount];
@@ -333,24 +334,55 @@ namespace Frostium
 		}
 		s_Data->m_PBRPipeline.EndRenderPass();
 
-		// Post-Processing: Bloom (vertical)
+		// Post-Processing: Bloom, Blur
 		{
-			if (s_Data->m_HDRPath)
+			if (s_Data->m_IsBloomPassActive)
 			{
 				s_Data->m_BloomPipeline.BeginCommandBuffer(true);
-				s_Data->m_BloomPipeline.BeginRenderPass();
-				s_Data->m_BloomPipeline.DrawIndexed();
-				s_Data->m_BloomPipeline.EndRenderPass();
+				{
+					s_Data->m_BloomPipeline.BeginRenderPass();
+					{
+						uint32_t dir = 1;
+						s_Data->m_BloomPipeline.SubmitPushConstant(ShaderType::Fragment, sizeof(uint32_t), &dir);
+						s_Data->m_BloomPipeline.DrawIndexed();
+					}
+					s_Data->m_BloomPipeline.EndRenderPass();
+				}
 				s_Data->m_BloomPipeline.EndCommandBuffer();
+			}
+
+			if (s_Data->m_IsBlurPassActive)
+			{
+				s_Data->m_BlurPipeline.BeginCommandBuffer(true);
+				{
+					struct Info
+					{
+						uint32_t dir = 0;
+						float blurScale = 1.0f;
+						float blurStrength = 0.5f;
+					} data = {};
+
+					s_Data->m_BlurPipeline.BeginRenderPass();
+					{
+						data.dir = 1;
+						s_Data->m_BlurPipeline.SubmitPushConstant(ShaderType::Fragment, sizeof(Info), &data);
+						s_Data->m_BlurPipeline.DrawIndexed();
+						data.dir = 0;
+						s_Data->m_BlurPipeline.SubmitPushConstant(ShaderType::Fragment, sizeof(Info), &data);
+						s_Data->m_BlurPipeline.DrawIndexed();
+					}
+					s_Data->m_BlurPipeline.EndRenderPass();
+				}
+				s_Data->m_BlurPipeline.EndCommandBuffer();
 			}
 		}
 
 		// Composition => render to swapchain
 		{
-			uint32_t hdr = s_Data->m_HDRPath;
+			uint32_t state = s_Data->m_IsBloomPassActive + s_Data->m_IsBlurPassActive;
 			s_Data->m_CombinationPipeline.BeginRenderPass();
 			{
-				s_Data->m_CombinationPipeline.SubmitPushConstant(ShaderType::Fragment, sizeof(uint32_t), &hdr);
+				s_Data->m_CombinationPipeline.SubmitPushConstant(ShaderType::Fragment, sizeof(uint32_t), &state);
 				s_Data->m_CombinationPipeline.DrawIndexed();
 			}
 			s_Data->m_CombinationPipeline.EndRenderPass();
@@ -466,9 +498,19 @@ namespace Frostium
 		s_Data->m_SceneData.Params.x = value;
 	}
 
-	void Renderer::SetActiveDebugView(bool value)
+	void Renderer::SetActiveDebugView(bool active)
 	{
-		s_Data->m_ShowDebugView = value;
+		s_Data->m_ShowDebugView = active;
+	}
+
+	void Renderer::SetActiveBloomPass(bool active)
+	{
+		s_Data->m_IsBloomPassActive = active;
+	}
+
+	void Renderer::SetActiveBlurPass(bool active)
+	{
+		s_Data->m_IsBlurPassActive = active;
 	}
 
 	void Renderer::InitPBR()
@@ -498,7 +540,7 @@ namespace Frostium
 			GraphicsPipelineShaderCreateInfo shaderCI = {};
 			{
 				shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/Vulkan/PBR.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_HDRPath ? s_Data->m_Path + "Shaders/Vulkan/PBR_HDR.frag" : s_Data->m_Path + "Shaders/Vulkan/PBR.frag";
+				shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Vulkan/PBR.frag";
 
 				shaderCI.StorageBuffersSizes[25] = { sizeof(InstanceData) * s_InstanceDataMaxCount };
 				shaderCI.StorageBuffersSizes[26] = { sizeof(Material) * 1000 };
@@ -531,7 +573,7 @@ namespace Frostium
 			GraphicsPipelineShaderCreateInfo shaderCI = {};
 			{
 				shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/Vulkan/Skybox.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_HDRPath ? s_Data->m_Path + "Shaders/Vulkan/Skybox_HDR.frag" : s_Data->m_Path + "Shaders/Vulkan/Skybox.frag";
+				shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Vulkan/Skybox.frag";
 			};
 
 			struct SkyBoxData
@@ -631,7 +673,7 @@ namespace Frostium
 			}
 		}
 
-		// Debug/Combination/Bloom Pipelines
+		// Debug/Combination/Bloom/Blur Pipelines
 		{
 			GraphicsPipelineShaderCreateInfo shaderCI = {};
 			{
@@ -693,50 +735,37 @@ namespace Frostium
 					s_Data->m_CombinationPipeline.SetVertexBuffers({ vb });
 					s_Data->m_CombinationPipeline.SetIndexBuffers({ ib });
 					s_Data->m_CombinationPipeline.UpdateSampler(&s_Data->m_PBRFramebuffer,  0);
-					if (s_Data->m_HDRPath)
-						s_Data->m_CombinationPipeline.UpdateSampler(&s_Data->m_BloomFramebuffer, 1);
+					s_Data->m_CombinationPipeline.UpdateSampler(&s_Data->m_BloomFramebuffer, 1);
+					s_Data->m_CombinationPipeline.UpdateSampler(&s_Data->m_BlurFramebuffer, 2);
 				}
 
-				if (s_Data->m_HDRPath)
+				// Bloom
 				{
-					// Bloom
-					{
-						shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Vulkan/Bloom.frag";
-						DynamicPipelineCI.PipelineName = "Bloom";
-						DynamicPipelineCI.pTargetFramebuffer = &s_Data->m_BloomFramebuffer;
+					shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Vulkan/Bloom.frag";
+					DynamicPipelineCI.PipelineName = "Bloom";
+					DynamicPipelineCI.pTargetFramebuffer = &s_Data->m_BloomFramebuffer;
 
-						auto result = s_Data->m_BloomPipeline.Create(&DynamicPipelineCI);
-						assert(result == PipelineCreateResult::SUCCESS);
-						s_Data->m_BloomPipeline.SetVertexBuffers({ vb });
-						s_Data->m_BloomPipeline.SetIndexBuffers({ ib });
-						s_Data->m_BloomPipeline.UpdateSampler(&s_Data->m_PBRFramebuffer, 0, "color_1");
-					}
+					auto result = s_Data->m_BloomPipeline.Create(&DynamicPipelineCI);
+					assert(result == PipelineCreateResult::SUCCESS);
+					s_Data->m_BloomPipeline.SetVertexBuffers({ vb });
+					s_Data->m_BloomPipeline.SetIndexBuffers({ ib });
+					s_Data->m_BloomPipeline.UpdateSampler(&s_Data->m_PBRFramebuffer, 0, "color_1");
 				}
 
+				// Blur
+				{
+					shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Vulkan/Blur.frag";
+					DynamicPipelineCI.PipelineName = "Blur";
+					DynamicPipelineCI.pTargetFramebuffer = &s_Data->m_BlurFramebuffer;
+
+					auto result = s_Data->m_BlurPipeline.Create(&DynamicPipelineCI);
+					assert(result == PipelineCreateResult::SUCCESS);
+					s_Data->m_BlurPipeline.SetVertexBuffers({ vb });
+					s_Data->m_BlurPipeline.SetIndexBuffers({ ib });
+					s_Data->m_BlurPipeline.UpdateSampler(&s_Data->m_PBRFramebuffer, 0, "color_1");
+				}
 			}
 		}
-
-#if 0
-		// Omni Pass
-		{
-			GraphicsPipelineShaderCreateInfo shaderCI = {};
-			{
-				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/OmniShadow.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/OmniShadow.frag";
-			};
-
-			GraphicsPipelineCreateInfo DynamicPipelineCI = {};
-			{
-				DynamicPipelineCI.VertexInputInfos = { vertexMain };
-				DynamicPipelineCI.PipelineName = "OmniPass_Pipeline";
-				DynamicPipelineCI.pShaderCreateInfo = &shaderCI;
-				DynamicPipelineCI.pTargetFramebuffer = &s_Data->m_OmniFramebuffer;
-
-				auto result = s_Data->m_OmniPipeline.Create(&DynamicPipelineCI);
-				assert(result == PipelineCreateResult::SUCCESS);
-			}
-		}
-#endif
 	}
 
 	void Renderer::InitFramebuffers()
@@ -746,17 +775,14 @@ namespace Frostium
 
 		// PBR
 		{
+			FramebufferAttachment color_1 = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "color_1");
+			FramebufferAttachment color_2 = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "color_2");
+
 			FramebufferSpecification framebufferCI = {};
 			framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
 			framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
 			framebufferCI.eMSAASampels = GraphicsContext::GetSingleton()->m_MSAASamples;
-			framebufferCI.Attachments = { FramebufferAttachment(AttachmentFormat::Color, true, "color_1") };
-			if (s_Data->m_HDRPath)
-			{
-				FramebufferAttachment color_1 = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "color_1");
-				FramebufferAttachment color_2 = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "color_2");
-				framebufferCI.Attachments = { color_1, color_2 };
-			}
+			framebufferCI.Attachments = { color_1, color_2 };
 
 			Framebuffer::Create(framebufferCI, &s_Data->m_PBRFramebuffer);
 		}
@@ -781,20 +807,19 @@ namespace Frostium
 			Framebuffer::Create(framebufferCI, &s_Data->m_DepthFramebuffer);
 		}
 
-		if (s_Data->m_HDRPath)
+		// Bloom + Blur
 		{
-			// Bloom
-			{
-				FramebufferAttachment bloom = FramebufferAttachment(AttachmentFormat::SFloat4_32, false);
+			FramebufferAttachment bloom = FramebufferAttachment(AttachmentFormat::SFloat4_32, false);
 
-				FramebufferSpecification framebufferCI = {};
-				framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
-				framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
-				framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
-				framebufferCI.Attachments = { bloom };
-				Framebuffer::Create(framebufferCI, &s_Data->m_BloomFramebuffer);
-			}
+			FramebufferSpecification framebufferCI = {};
+			framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
+			framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
+			framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
+			framebufferCI.Attachments = { bloom };
+			Framebuffer::Create(framebufferCI, &s_Data->m_BloomFramebuffer);
+			Framebuffer::Create(framebufferCI, &s_Data->m_BlurFramebuffer);
 		}
+
 	}
 
 	glm::mat4 Renderer::CalculateDepthMVP(const glm::vec3& lightPos)
@@ -835,11 +860,18 @@ namespace Frostium
 		s_Data->m_PBRFramebuffer.OnResize(width, height);
 		s_Data->m_CombinationPipeline.UpdateSampler(&s_Data->m_PBRFramebuffer, 0);
 
-		if (s_Data->m_HDRPath)
+		if (s_Data->m_IsBloomPassActive)
 		{
 			s_Data->m_BloomFramebuffer.OnResize(width, height);
 			s_Data->m_BloomPipeline.UpdateSampler(&s_Data->m_PBRFramebuffer, 0);
 			s_Data->m_CombinationPipeline.UpdateSampler(&s_Data->m_BloomFramebuffer, 1);
+		}
+
+		if (s_Data->m_IsBlurPassActive)
+		{
+			s_Data->m_BlurFramebuffer.OnResize(width, height);
+			s_Data->m_BlurPipeline.UpdateSampler(&s_Data->m_PBRFramebuffer, 0);
+			s_Data->m_CombinationPipeline.UpdateSampler(&s_Data->m_BlurFramebuffer, 2);
 		}
 	}
 

@@ -70,7 +70,6 @@ namespace Frostium
 			RendererInitInfo initInfo = {};
 			initInfo.sMapSize = info->eShadowMapSize;
 			initInfo.resourcesFilePath = m_ResourcesFolderPath;
-			initInfo.HDR = info->Flags & Features_HDR_Flags;
 			Renderer::Init(&initInfo);
 
 			// Adds default material
@@ -238,7 +237,8 @@ namespace Frostium
 			}
 		}
 
-		m_EventCallback(std::forward<Event&>(e));
+		if(m_EventCallback != nullptr)
+			m_EventCallback(std::forward<Event&>(e));
 	}
 
 #ifdef FROSTIUM_OPENGL_IMPL
