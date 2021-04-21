@@ -1,7 +1,7 @@
 Frostium3D
 =====
 ![PBR](https://i.imgur.com/W81qlzQ.png)
-### Current State
+## Core Features
   - Multiple rendering API backends: Vulkan - 100%, OpenGL - 70%
   - Physically Based Rendering (PBR)
   - Deferred Shading
@@ -14,7 +14,7 @@ Frostium3D
   - Text Rendering (SDF)
   - glTF 2.0
 
-### Usage
+## Usage
 The first step is to initialize graphics context class:
 ```cpp
 #include <Common/Mesh.h>
@@ -40,7 +40,7 @@ int main(int argc, char** argv)
 	EditorCameraCreateInfo cameraCI = {}; // default camera
 	GraphicsContextInitInfo info = {};
 	{
-		info.Flags = Features_Renderer_3D_Flags | Features_ImGui_Flags | Features_HDR_Flags;
+		info.Flags = Features_Renderer_3D_Flags | Features_ImGui_Flags;
 		info.eMSAASamples = MSAASamples::SAMPLE_COUNT_MAX_SUPPORTED;
 		info.ResourcesFolderPath = "../resources/";
 		info.pWindowCI = &windoInfo;
