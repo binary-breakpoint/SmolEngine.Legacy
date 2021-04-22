@@ -65,9 +65,9 @@ namespace Frostium
 		static const uint32_t     MaxLayers = 12;
 		// Count tracking
 		uint32_t                  InstIndex = 0;
-		uint32_t                  TextIndex = 1; //
+		uint32_t                  TextIndex = 1; 
 		uint32_t                  SampleIndex = 1; // 0 - white dummy texture
-		uint32_t                  FontSampleIndex = 0; //
+		uint32_t                  FontSampleIndex = 0; 
 		// Framebuffers
 		Framebuffer               DeferredFB = {};
 		Framebuffer*              MainFB = nullptr;
@@ -130,7 +130,7 @@ namespace Frostium
 	{
 		if (GraphicsContext::GetSingleton()->m_State->UseEditorCamera)
 		{
-			EditorCamera* camera = GraphicsContext::GetSingleton()->GetEditorCamera();
+			Camera* camera = GraphicsContext::GetSingleton()->GetDefaultCamera();
 			s_Data->SceneData.View = camera->GetViewMatrix();
 			s_Data->SceneData.Projection = camera->GetProjection();
 		}

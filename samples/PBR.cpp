@@ -51,14 +51,19 @@ int main(int argc, char** argv)
 		windoInfo.Title = "Frostium Example";
 	}
 
-	EditorCameraCreateInfo cameraCI = {};
+	Camera* camera = nullptr;
+	{
+		EditorCameraCreateInfo cameraCI = {};
+		camera = new EditorCamera(&cameraCI);
+	}
+
 	GraphicsContextInitInfo info = {};
 	{
 		info.Flags = Features_Renderer_3D_Flags | Features_ImGui_Flags;
 		info.eMSAASamples = MSAASamples::SAMPLE_COUNT_MAX_SUPPORTED;
 		info.ResourcesFolderPath = "../resources/";
 		info.pWindowCI = &windoInfo;
-		info.pEditorCameraCI = &cameraCI;
+		info.pDefaultCamera = camera;
 	}
 
 	context = new GraphicsContext(&info);
@@ -94,8 +99,8 @@ int main(int argc, char** argv)
 			float rayDistance = 50.0f;
 			float y = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 6));
 
-			glm::vec3 startPos = context->GetEditorCamera()->GetPosition();
-			glm::mat4 viewProj = context->GetEditorCamera()->GetViewProjection();
+			glm::vec3 startPos = context->GetDefaultCamera()->GetPosition();
+			glm::mat4 viewProj = context->GetDefaultCamera()->GetViewProjection();
 
 			{
 				glm::vec3 pos = Utils::CastRay(startPos, rayDistance, viewProj);

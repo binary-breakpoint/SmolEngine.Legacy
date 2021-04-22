@@ -185,6 +185,7 @@
   <ItemGroup>
     <ClInclude Include="include\Common\BufferElement.h" />
     <ClInclude Include="include\Common\BufferLayout.h" />
+    <ClInclude Include="include\Common\Camera.h" />
     <ClInclude Include="include\Common\Common.h" />
     <ClInclude Include="include\Common\Core.h" />
     <ClInclude Include="include\Common\CubeTexture.h" />

@@ -180,7 +180,7 @@ namespace Frostium
 	{
 		if (GraphicsContext::GetSingleton()->m_State->UseEditorCamera)
 		{
-			EditorCamera* camera = GraphicsContext::GetSingleton()->GetEditorCamera();
+			Camera* camera = GraphicsContext::GetSingleton()->GetDefaultCamera();
 
 			s_Data->m_SceneData.View = camera->GetViewMatrix();
 			s_Data->m_SceneData.Projection = camera->GetProjection();
@@ -301,7 +301,6 @@ namespace Frostium
 				} static pc;
 
 				pc.depthMVP = s_Data->m_MainPushConstant.DepthMVP;
-
 				for (uint32_t i = 0; i < s_Data->m_DrawListIndex; ++i)
 				{
 					auto& cmd = s_Data->m_DrawList[i];

@@ -14,6 +14,7 @@
 #include "Common/Events.h"
 #include "Common/Texture.h"
 #include "Common/Flags.h"
+#include "Common/Camera.h"
 
 #include "Utils/Frustum.h"
 #include "ImGUI/ImGuiContext.h"
@@ -42,7 +43,7 @@ namespace Frostium
 		Flags                    Flags = Features_Renderer_3D_Flags | Features_Renderer_2D_Flags | Features_ImGui_Flags;
 		MSAASamples              eMSAASamples = MSAASamples::SAMPLE_COUNT_MAX_SUPPORTED;
 		ShadowMapSize            eShadowMapSize = ShadowMapSize::SIZE_8;
-		EditorCameraCreateInfo*  pEditorCameraCI = nullptr;
+		Camera*                  pDefaultCamera = nullptr;
 		WindowCreateInfo*        pWindowCI = nullptr;
 		std::string              ResourcesFolderPath = "../resources/";
 	};
@@ -64,7 +65,7 @@ namespace Frostium
 		// Getters
 		static GraphicsContext* GetSingleton();
 		Framebuffer* GetFramebuffer();
-	    EditorCamera* GetEditorCamera();
+	    Camera* GetDefaultCamera();
 		GLFWwindow* GetNativeWindow();
 		Window* GetWindow();
 	    WindowData* GetWindowData();
@@ -88,7 +89,7 @@ namespace Frostium
 		MSAASamples                     m_MSAASamples;
 		Flags                           m_Flags;
 		Texture*                        m_DummyTexure = nullptr;
-		EditorCamera*                   m_EditorCamera = nullptr;
+		Camera*                         m_DefaultCamera = nullptr;
 		MaterialLibrary*                m_MaterialLibrary = nullptr;
 		GraphicsContextState*           m_State = nullptr;
 		float                           m_LastFrameTime = 1.0f;

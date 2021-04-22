@@ -37,14 +37,19 @@ int main(int argc, char** argv)
 		windowCI.Title = "Frostium Example";
 	}
 
-	EditorCameraCreateInfo cameraCI = {}; // default camera
+	Camera* camera = nullptr; // default camera
+	{
+		EditorCameraCreateInfo cameraCI = {};
+		camera = new EditorCamera(&cameraCI);
+	}
+
 	GraphicsContextInitInfo info = {};
 	{
-		info.Flags = Features_Renderer_3D_Flags | Features_ImGui_Flags;
+		info.Flags = Features_Renderer_3D_Flags | Features_ImGui_Flags | Features_HDR_Flags;
 		info.eMSAASamples = MSAASamples::SAMPLE_COUNT_MAX_SUPPORTED;
 		info.ResourcesFolderPath = "../resources/";
 		info.pWindowCI = &windoInfo;
-		info.pEditorCameraCI = &cameraCI;
+		info.pDefaultCamera = camera;
 	}
 
 	context = new GraphicsContext(&info);
@@ -115,10 +120,14 @@ More samples can be found [here.](https://github.com/YellowDummy/Frostium3D/tree
 - [tinygltf](https://github.com/syoyo/tinygltf)
 - [spirv-cross](https://github.com/KhronosGroup/SPIRV-Cross)
 - [stb_image](https://github.com/nothings/stb)
+- [spdlog](https://github.com/gabime/spdlog)
+- [cereal](https://github.com/USCiLab/cereal)
 - [ktx](https://github.com/KhronosGroup/KTX-Software)
 - [glm](https://github.com/g-truc/glm)
 - [gli](https://github.com/g-truc/gli)
 - [imgui](https://github.com/ocornut/imgui)
+- [implot](https://github.com/epezent/implot)
+- [imgizmo](https://github.com/CedricGuillemet/ImGuizmo)
 
 ## Limitations
 - Developed by one person for learning purposes
@@ -129,5 +138,5 @@ More samples can be found [here.](https://github.com/YellowDummy/Frostium3D/tree
 ### Windows
 1. Install Vulkan SDK (1.2 or higher)
 2. Run gen-project-vs2019.bat or cmd ```premake5 vs2019```
-3. Extract libs.7z in vendor\vulkan
+3. Extract libs.7z from vendor\vulkan
 4. Compile

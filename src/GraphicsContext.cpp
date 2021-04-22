@@ -19,13 +19,14 @@ namespace Frostium
 		if (m_State != nullptr || !info->pWindowCI)
 			return;
 
-		m_State = new GraphicsContextState(info->pEditorCameraCI != nullptr,
+		m_State = new GraphicsContextState(info->pDefaultCamera != nullptr,
 			info->Flags & Features_ImGui_Flags, info->bTargetsSwapchain);
 
 		s_Instance = this;
 		m_Flags = info->Flags;
 		m_MSAASamples = info->eMSAASamples;
 		m_ResourcesFolderPath = info->ResourcesFolderPath;
+		m_DefaultCamera = info->pDefaultCamera;
 		m_EventHandler.OnEventFn = std::bind(&GraphicsContext::OnEvent, this, std::placeholders::_1);
 		// Creates GLFW window
 		m_Window.Init(info->pWindowCI, &m_EventHandler);
@@ -40,9 +41,6 @@ namespace Frostium
 		// Creates 4x4 white texture
 		m_DummyTexure = new Texture();
 		Texture::CreateWhiteTexture(m_DummyTexure);
-		// Creates editor camera
-		if (m_State->UseEditorCamera)
-			m_EditorCamera = new EditorCamera(info->pEditorCameraCI);
 		// Initialize ImGUI and renderers
 		if (m_State->UseImGUI)
 			m_ImGuiContext.Init();
@@ -114,7 +112,7 @@ namespace Frostium
 	void GraphicsContext::BeginFrame(DeltaTime time)
 	{
 		if (m_State->UseEditorCamera)
-			m_EditorCamera->OnUpdate(time);
+			m_DefaultCamera->OnUpdate(time);
 #ifdef  FROSTIUM_OPENGL_IMPL
 #else
 		m_VulkanContext.BeginFrame();
@@ -138,8 +136,6 @@ namespace Frostium
 #else
 			m_VulkanContext.~VulkanContext();
 #endif
-			if (m_State->UseEditorCamera)
-				delete m_EditorCamera;
 
 			delete m_MaterialLibrary, m_DummyTexure, m_State;
 	    }
@@ -174,9 +170,9 @@ namespace Frostium
 		return &m_Framebuffer;
 	}
 
-	EditorCamera* GraphicsContext::GetEditorCamera()
+	Camera* GraphicsContext::GetDefaultCamera()
 	{
-		return m_EditorCamera;
+		return m_DefaultCamera;
 	}
 
 	GLFWwindow* GraphicsContext::GetNativeWindow()
@@ -220,7 +216,7 @@ namespace Frostium
 			m_ImGuiContext.OnEvent(e);
 
 		if (m_State->UseEditorCamera)
-			m_EditorCamera->OnEvent(e);
+			m_DefaultCamera->OnEvent(e);
 
 		if (e.IsType(EventType::WINDOW_RESIZE))
 		{

@@ -2352,6 +2352,7 @@
     <ClInclude Include="vendor\stb_image\stb_image_write.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
+    <ClInclude Include="include\Common\Camera.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Common\CubeTexture.cpp">

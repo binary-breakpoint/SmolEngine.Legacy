@@ -25,9 +25,13 @@ int main(int argc, char** argv)
 			windoInfo.Title = "Frostium Example";
 		}
 
-		EditorCameraCreateInfo cameraCI = {};
-		cameraCI.Type = CameraType::Ortho;
-		cameraCI.Speed = 55.5;
+		EditorCamera* camera = nullptr;
+		{
+			EditorCameraCreateInfo cameraCI = {};
+			cameraCI.Type = CameraType::Ortho;
+			cameraCI.Speed = 55.5;
+			camera = new EditorCamera(&cameraCI);
+		}
 
 		GraphicsContextInitInfo info = {};
 		{
@@ -35,7 +39,7 @@ int main(int argc, char** argv)
 			info.eMSAASamples = MSAASamples::SAMPLE_COUNT_1;
 			info.ResourcesFolderPath = "../resources/";
 			info.pWindowCI = &windoInfo;
-			info.pEditorCameraCI = &cameraCI;
+			info.pDefaultCamera = camera;
 		}
 
 		context = new GraphicsContext(&info);
