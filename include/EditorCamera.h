@@ -32,6 +32,8 @@ namespace Frostium
 		// Evenst
 		void OnUpdate(DeltaTime delta) override;
 		void OnEvent(Event& event) override;
+		void OnResize(uint32_t width, uint32_t height);
+		void OnMouseScroll(float x, float y);
 
 		// Setters
 		void SetDistance(float distance) { m_Distance = distance; }

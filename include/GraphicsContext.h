@@ -80,9 +80,9 @@ namespace Frostium
 		// Helpers
 		DeltaTime CalculateDeltaTime();
 		bool IsWindowMinimized() const;
-	private:
 		// Events
 		void OnResize(uint32_t* width, uint32_t* height);
+	private:
 		void OnEvent(Event& event);
 	private:
 		static GraphicsContext*         s_Instance;

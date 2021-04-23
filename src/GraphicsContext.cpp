@@ -148,7 +148,7 @@ namespace Frostium
 		m_VulkanContext.OnResize(width, height);
 #endif
 		m_Framebuffer.OnResize(*width, *height);
-		if(m_Flags & Features_Renderer_3D_Flags)
+		if (m_Flags & Features_Renderer_3D_Flags)
 			Renderer::OnResize(*width, *height);
 	}
 
