@@ -14,7 +14,7 @@ project "SPIRV-Cross"
 
 	includedirs
 	{
-		"include/"
+		"../../include/Libraries/spir_v_cross/include"
 	}
 
 	filter "system:windows"

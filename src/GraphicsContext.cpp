@@ -8,6 +8,9 @@
 #include "Common/Input.h"
 #include "Common/Common.h"
 
+#include "Common/Renderer2DStorage.h"
+#include "Common/RendererStorage.h"
+
 #include <GLFW/glfw3.h>
 
 namespace Frostium
@@ -65,10 +68,18 @@ namespace Frostium
 
 		if (info->Flags & Features_Renderer_3D_Flags)
 		{
-			RendererInitInfo initInfo = {};
-			initInfo.sMapSize = info->eShadowMapSize;
-			initInfo.resourcesFilePath = m_ResourcesFolderPath;
-			Renderer::Init(&initInfo);
+			if (info->pRendererStorage != nullptr)
+			{
+				m_RendererStorage = info->pRendererStorage;
+				m_State->IsStoragePreAlloc = true;
+			}
+			else
+			{
+				m_RendererStorage = new RendererStorage();
+			}
+
+			InitRendererStorage(m_RendererStorage, info->eShadowMapSize);
+			Renderer::Init(m_RendererStorage);
 
 			// Adds default material
 			MaterialCreateInfo materialInfo = {};
@@ -80,7 +91,20 @@ namespace Frostium
 		}
 
 		if (info->Flags & Features_Renderer_2D_Flags)
-			Renderer2D::Init();
+		{
+			if (info->pRenderer2DStorage != nullptr)
+			{
+				m_Renderer2DStorage = info->pRenderer2DStorage;
+				m_State->Is2DStoragePreAlloc = true;
+			}
+			else
+			{
+				m_Renderer2DStorage = new Renderer2DStorage();
+			}
+
+			InitRenderer2DStorage(m_Renderer2DStorage);
+			Renderer2D::Init(m_Renderer2DStorage);
+		}
 
 #ifdef  FROSTIUM_OPENGL_IMPL
 		GetOpenglRendererAPI()->Init();
@@ -89,7 +113,6 @@ namespace Frostium
 
 	GraphicsContext::~GraphicsContext()
 	{
-		ShutDown();
 		s_Instance = nullptr;
 	}
 
@@ -130,6 +153,13 @@ namespace Frostium
 
 			Renderer::Shutdown();
 			Renderer2D::Shutdown();
+
+			if (!m_State->Is2DStoragePreAlloc)
+				delete m_Renderer2DStorage;
+
+			if (!m_State->IsStoragePreAlloc)
+				delete m_RendererStorage;
+
 			m_Framebuffer.~Framebuffer();
 			m_Window.ShutDown();
 #ifdef FROSTIUM_OPENGL_IMPL
@@ -193,6 +223,26 @@ namespace Frostium
 	bool GraphicsContext::IsWindowMinimized() const
 	{
 		return m_State->WindowMinimized;
+	}
+
+	bool GraphicsContext::InitRenderer2DStorage(Renderer2DStorage* storage)
+	{
+		if (!storage) {
+			return false;
+		}
+		storage->Frustum = &m_Frustum;
+		return true;
+	}
+
+	bool GraphicsContext::InitRendererStorage(RendererStorage* storage, ShadowMapSize shadow_map_size)
+	{
+		if (!storage) {
+			return false;
+		}
+		storage->m_MapSize = shadow_map_size;
+		storage->m_Path = m_ResourcesFolderPath;
+		storage->m_Frustum = &m_Frustum;
+		return true;
 	}
 
 	Window* GraphicsContext::GetWindow()

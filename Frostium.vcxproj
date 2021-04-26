@@ -199,7 +199,9 @@
     <ClInclude Include="include\Common\InputCodes.h" />
     <ClInclude Include="include\Common\Material.h" />
     <ClInclude Include="include\Common\Mesh.h" />
+    <ClInclude Include="include\Common\Renderer2DStorage.h" />
     <ClInclude Include="include\Common\RendererShared.h" />
+    <ClInclude Include="include\Common\RendererStorage.h" />
     <ClInclude Include="include\Common\SLog.h" />
     <ClInclude Include="include\Common\Shader.h" />
     <ClInclude Include="include\Common\SubTexture.h" />
@@ -806,6 +808,7 @@
     <ClInclude Include="include\Libraries\spdlog\include\spdlog\spdlog.h" />
     <ClInclude Include="include\Libraries\spdlog\include\spdlog\tweakme.h" />
     <ClInclude Include="include\Libraries\spdlog\include\spdlog\version.h" />
+    <ClInclude Include="include\Libraries\spir_v_cross\include\spirv_cross\external_interface.h" />
     <ClInclude Include="include\Libraries\vulkan\include\glslang\Include\BaseTypes.h" />
     <ClInclude Include="include\Libraries\vulkan\include\glslang\Include\Common.h" />
     <ClInclude Include="include\Libraries\vulkan\include\glslang\Include\ConstantUnion.h" />

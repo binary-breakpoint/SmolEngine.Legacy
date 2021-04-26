@@ -133,6 +133,15 @@
     <Filter Include="include\Libraries\spdlog\include\spdlog\sinks">
       <UniqueIdentifier>{EF38635F-5BA9-65D8-24C8-DF6090F79DD9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\Libraries\spir_v_cross">
+      <UniqueIdentifier>{C0DF2F5B-AC05-FAC1-954B-7F8D81101F8E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Libraries\spir_v_cross\include">
+      <UniqueIdentifier>{33C780D8-1F19-58C8-0838-95D8F42871B1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Libraries\spir_v_cross\include\spirv_cross">
+      <UniqueIdentifier>{FF59524F-EBED-47F7-54B2-A1AB406582E9}</UniqueIdentifier>
+    </Filter>
     <Filter Include="include\Libraries\vulkan">
       <UniqueIdentifier>{35D6529D-21FB-A11D-4A46-87AD36CAA03B}</UniqueIdentifier>
     </Filter>
@@ -213,6 +222,9 @@
     <ClInclude Include="include\Common\BufferLayout.h">
       <Filter>include\Common</Filter>
     </ClInclude>
+    <ClInclude Include="include\Common\Camera.h">
+      <Filter>include\Common</Filter>
+    </ClInclude>
     <ClInclude Include="include\Common\Common.h">
       <Filter>include\Common</Filter>
     </ClInclude>
@@ -252,7 +264,13 @@
     <ClInclude Include="include\Common\Mesh.h">
       <Filter>include\Common</Filter>
     </ClInclude>
+    <ClInclude Include="include\Common\Renderer2DStorage.h">
+      <Filter>include\Common</Filter>
+    </ClInclude>
     <ClInclude Include="include\Common\RendererShared.h">
+      <Filter>include\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Common\RendererStorage.h">
       <Filter>include\Common</Filter>
     </ClInclude>
     <ClInclude Include="include\Common\SLog.h">
@@ -2073,6 +2091,9 @@
     <ClInclude Include="include\Libraries\spdlog\include\spdlog\version.h">
       <Filter>include\Libraries\spdlog\include\spdlog</Filter>
     </ClInclude>
+    <ClInclude Include="include\Libraries\spir_v_cross\include\spirv_cross\external_interface.h">
+      <Filter>include\Libraries\spir_v_cross\include\spirv_cross</Filter>
+    </ClInclude>
     <ClInclude Include="include\Libraries\vulkan\include\glslang\Include\BaseTypes.h">
       <Filter>include\Libraries\vulkan\include\glslang\Include</Filter>
     </ClInclude>
@@ -2352,7 +2373,6 @@
     <ClInclude Include="vendor\stb_image\stb_image_write.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="include\Common\Camera.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Common\CubeTexture.cpp">
