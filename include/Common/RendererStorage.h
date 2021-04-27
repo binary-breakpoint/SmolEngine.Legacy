@@ -36,9 +36,9 @@ namespace Frostium
 		struct Package
 		{
 			int32_t                      MaterialID = 0;
-			glm::vec3                    WorldPos = glm::vec3(0.0f);
-			glm::vec3                    Rotation = glm::vec3(0.0f);
-			glm::vec3                    Scale = glm::vec3(0.0f);
+			glm::vec3*                   WorldPos = nullptr;
+			glm::vec3*                   Rotation = nullptr;
+			glm::vec3*                   Scale = nullptr;
 		};
 
 		uint32_t                         CurrentIndex = 0;

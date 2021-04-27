@@ -79,7 +79,7 @@ namespace Frostium
 		s_Data->TextPipeline.EndCommandBuffer();
 	}
 
-	void Renderer2D::SubmitSprite(const glm::vec2& worldPos, const glm::vec2& scale, float rotation, uint32_t layerIndex, Texture* texture, const glm::vec4& color, GraphicsPipeline* material)
+	void Renderer2D::SubmitSprite(const glm::vec2& worldPos, const glm::vec2& scale, const glm::vec2& rotation, uint32_t layerIndex, Texture* texture, const glm::vec4& color, GraphicsPipeline* material)
 	{
 		if (s_Data->Frustum->CheckSphere(glm::vec3(worldPos, 0.0f), 10.0f))
 		{
@@ -87,19 +87,20 @@ namespace Frostium
 				StartNewBatch();
 
 			uint32_t index = s_Data->InstIndex;
+			s_Data->Instances[index].Layer = layerIndex > Renderer2DStorage::MaxLayers ?
+				const_cast<uint32_t*>(&Renderer2DStorage::MaxLayers) : &layerIndex;
 
-			s_Data->Instances[index].Layer = layerIndex > Renderer2DStorage::MaxLayers ? Renderer2DStorage::MaxLayers : layerIndex;
-			s_Data->Instances[index].Color = color;
-			s_Data->Instances[index].Position = { worldPos, 0.0f };
-			s_Data->Instances[index].Rotation = { rotation, rotation, 0 };
-			s_Data->Instances[index].Scale = { scale, 1 };
+			s_Data->Instances[index].Color = const_cast<glm::vec4*>(&color);
+			s_Data->Instances[index].Position = const_cast<glm::vec2*>(&worldPos);
+			s_Data->Instances[index].Rotation = const_cast<glm::vec2*>(&rotation);
+			s_Data->Instances[index].Scale = const_cast<glm::vec2*>(&scale);
 			s_Data->Instances[index].TextureIndex = AddTexture(texture);
 
 			s_Data->InstIndex++;
 		}
 	}
 
-	void Renderer2D::SubmitQuad(const glm::vec2& worldPos, const glm::vec2& scale, float rotation, uint32_t layerIndex, const glm::vec4& color, GraphicsPipeline* material)
+	void Renderer2D::SubmitQuad(const glm::vec2& worldPos, const glm::vec2& scale, const glm::vec2& rotation, uint32_t layerIndex, const glm::vec4& color, GraphicsPipeline* material)
 	{
 		if (s_Data->Frustum->CheckSphere(glm::vec3(worldPos, 0.0f), 10.0f))
 		{
@@ -108,11 +109,12 @@ namespace Frostium
 
 			uint32_t index = s_Data->InstIndex;
 
-			s_Data->Instances[index].Layer = layerIndex > Renderer2DStorage::MaxLayers ? Renderer2DStorage::MaxLayers : layerIndex;
-			s_Data->Instances[index].Color = color;
-			s_Data->Instances[index].Position = { worldPos, 0.0f };
-			s_Data->Instances[index].Rotation = { rotation, rotation, 0 };
-			s_Data->Instances[index].Scale = { scale, 1 };
+			s_Data->Instances[index].Layer = layerIndex > Renderer2DStorage::MaxLayers ?
+				const_cast<uint32_t*>(&Renderer2DStorage::MaxLayers) : &layerIndex;
+			s_Data->Instances[index].Color = const_cast<glm::vec4*>(&color);
+			s_Data->Instances[index].Position = const_cast<glm::vec2*>(&worldPos);
+			s_Data->Instances[index].Rotation = const_cast<glm::vec2*>(&rotation);
+			s_Data->Instances[index].Scale = const_cast<glm::vec2*>(&scale);
 			s_Data->Instances[index].TextureIndex = 0;
 
 			s_Data->InstIndex++;
@@ -125,7 +127,7 @@ namespace Frostium
 		msg.Obj = text;
 		msg.TextureIndex = 0;
 		s_Data->FontTextures[0] = &text->m_SDFTexture;
-		Utils::ComposeTransform(text->m_Pos, text->m_Rotation, text->m_Scale, false, msg.Model);
+		Utils::ComposeTransform(text->m_Pos, text->m_Rotation, text->m_Scale, msg.Model);
 
 		s_Data->TextIndex++;
 	}
@@ -146,7 +148,7 @@ namespace Frostium
 			for (uint32_t l = 0; l < Renderer2DStorage::MaxLayers; ++l)
 			{
 				Instance& inst = s_Data->Instances[i];
-				if (l == inst.Layer)
+				if (l == *inst.Layer)
 				{
 					auto& cmd = s_Data->CommandBuffer[l];
 					if (cmd.OffsetApplied == false)
@@ -156,10 +158,10 @@ namespace Frostium
 					}
 
 					cmd.Instances++;
-					s_Data->ShaderInstances[i].Color = inst.Color;
+					s_Data->ShaderInstances[i].Color = *inst.Color;
+					s_Data->ShaderInstances[i].Params.w = *inst.Layer;
 					s_Data->ShaderInstances[i].Params.x = inst.TextureIndex;
-					s_Data->ShaderInstances[i].Params.w = inst.Layer;
-					Utils::ComposeTransform(inst.Position, inst.Rotation, inst.Scale, false, s_Data->ShaderInstances[i].Model);
+					Utils::ComposeTransform2D(*inst.Position, *inst.Rotation, *inst.Scale, s_Data->ShaderInstances[i].Model);
 				}
 			}
 		}

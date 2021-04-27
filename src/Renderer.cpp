@@ -104,7 +104,7 @@ namespace Frostium
 				auto& shaderData = s_Data->m_InstancesData[s_Data->m_InstanceDataIndex];
 
 				shaderData.Params.x = static_cast<float>(package.MaterialID);
-				Utils::ComposeTransform(package.WorldPos, package.Rotation, package.Scale, true, shaderData.ModelView);
+				Utils::ComposeTransform(*package.WorldPos, *package.Rotation, *package.Scale, shaderData.ModelView);
 				s_Data->m_InstanceDataIndex++;
 			}
 
@@ -269,9 +269,9 @@ namespace Frostium
 			auto& package = instance.Data[instance.CurrentIndex];
 
 			package.MaterialID = materialID;
-			package.WorldPos = pos;
-			package.Rotation = rotation;
-			package.Scale = scale;
+			package.WorldPos = const_cast<glm::vec3*>(&pos);
+			package.Rotation = const_cast<glm::vec3*>(&rotation);
+			package.Scale = const_cast<glm::vec3*>(&scale);
 			instance.CurrentIndex++;
 
 			bool found = false;

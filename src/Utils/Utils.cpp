@@ -91,22 +91,22 @@ namespace Frostium
 		return true;
 	}
 
-	bool Utils::ComposeTransform(const glm::vec3& translation, const glm::vec3& rotation, const glm::vec3& scale, bool is3D, glm::mat4& out_transform)
+	bool Utils::ComposeTransform(const glm::vec3& translation, const glm::vec3& rotation, const glm::vec3& scale, glm::mat4& out_transform)
 	{
-		glm::mat4 rot;
-		if (is3D)
-		{
-			rot = rotate(glm::mat4(1.0f), rotation.x, { 1, 0, 0 }) *
-				rotate(glm::mat4(1.0f), rotation.y, { 0, 1, 0 }) *
-				rotate(glm::mat4(1.0f), rotation.z, { 0, 0, 1 });
-		}
-		else
-		{
-			rot = rotate(glm::mat4(1.0f), rotation.x, { 0, 0, 1.0f });
-		}
+		glm::mat4 rot = rotate(glm::mat4(1.0f), rotation.x, { 1, 0, 0 }) *
+			rotate(glm::mat4(1.0f), rotation.y, { 0, 1, 0 }) *
+			rotate(glm::mat4(1.0f), rotation.z, { 0, 0, 1 });
 
 		out_transform = glm::translate(glm::mat4(1.0f), translation) *
 			rot * glm::scale(glm::mat4(1.0f), { scale });
+		return true;
+	}
+
+	bool Utils::ComposeTransform2D(const glm::vec2& translation, const glm::vec2& rotation, const glm::vec2& scale, glm::mat4& out_transform)
+	{
+		glm::mat4 rot = rot = rotate(glm::mat4(1.0f), rotation.x, { 0, 0, 1.0f });
+		out_transform = glm::translate(glm::mat4(1.0f), { translation, 0 }) *
+			rot * glm::scale(glm::mat4(1.0f), { scale, 0 });
 
 		return true;
 	}

@@ -91,9 +91,9 @@ int main(int argc, char** argv)
 			ImGui::End();
 
 			Renderer2D::BeginScene(&clearInfo);
-			Renderer2D::SubmitSprite(glm::vec2(10, 0),  glm::vec2(10, 10),  0.0f, 0, &texture2);
-			Renderer2D::SubmitSprite(glm::vec2(0, 0 ),  glm::vec2(10, 10),  0.0f, 1, &texture);
-			Renderer2D::SubmitSprite(glm::vec2(20, 20), glm::vec2(10, 10),  0.0f, 3, &texture2);
+			Renderer2D::SubmitSprite(glm::vec2(10, 0),  glm::vec2(10, 10), { 0,0 }, 0, &texture2);
+			Renderer2D::SubmitSprite(glm::vec2(0, 0 ),  glm::vec2(10, 10), { 0,0 }, 1, &texture);
+			Renderer2D::SubmitSprite(glm::vec2(20, 20), glm::vec2(10, 10), { 0,0 }, 3, &texture2);
 			Renderer2D::SubmitText(&text1);
 			Renderer2D::EndScene();
 

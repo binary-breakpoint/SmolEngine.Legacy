@@ -13,13 +13,13 @@ namespace Frostium
 
 	struct Instance
 	{
-		uint32_t  Layer = 0;
-		uint32_t  TextureIndex = 0;
+		uint32_t*  Layer = 0;
+		glm::vec2* Position = nullptr;
+		glm::vec2* Rotation = nullptr;
+		glm::vec2* Scale = nullptr;
+		glm::vec4* Color = nullptr;
 
-		glm::vec3 Position = glm::vec3(1.0f);
-		glm::vec3 Rotation = glm::vec3(0.0f);
-		glm::vec3 Scale = glm::vec3(1.0f);
-		glm::vec4 Color = glm::vec4(1.0f);
+		uint32_t   TextureIndex = 0;
 	};
 
 	struct CmdBuffer
