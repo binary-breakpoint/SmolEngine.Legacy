@@ -103,7 +103,7 @@ namespace Frostium
 				auto& package = instance.Data[x];
 				auto& shaderData = s_Data->m_InstancesData[s_Data->m_InstanceDataIndex];
 
-				shaderData.Params.x = static_cast<float>(package.MaterialID);
+				shaderData.Params.x = *package.MaterialID;
 				Utils::ComposeTransform(*package.WorldPos, *package.Rotation, *package.Scale, shaderData.ModelView);
 				s_Data->m_InstanceDataIndex++;
 			}
@@ -255,7 +255,7 @@ namespace Frostium
 	}
 
 	void Renderer::SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation,
-		const glm::vec3& scale, Mesh* mesh, int32_t materialID)
+		const glm::vec3& scale, Mesh* mesh, const int32_t& materialID)
 	{
 		if (s_Data->m_Frustum->CheckSphere(pos, 3.0f))
 		{
@@ -268,7 +268,7 @@ namespace Frostium
 
 			auto& package = instance.Data[instance.CurrentIndex];
 
-			package.MaterialID = materialID;
+			package.MaterialID = const_cast<int32_t*>(&materialID);
 			package.WorldPos = const_cast<glm::vec3*>(&pos);
 			package.Rotation = const_cast<glm::vec3*>(&rotation);
 			package.Scale = const_cast<glm::vec3*>(&scale);

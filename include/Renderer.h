@@ -21,7 +21,7 @@ namespace Frostium
 
 		// Submit
 		static void SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation,
-			const glm::vec3& scale, Mesh* mesh, int32_t materialID = 0);
+			const glm::vec3& scale, Mesh* mesh, const int32_t& materialID = 0);
 		static void SubmitDirectionalLight(const glm::vec3& dir, const glm::vec4& color);
 		static void SubmitPointLight(const glm::vec3& pos, const glm::vec4& color, 
 			float constant, float linear, float exp);

@@ -21,7 +21,7 @@ struct MaterialData
 struct ShaderData
 {
 	mat4 model;
-	vec4 data;
+	ivec4 params; // x - material ID
 };
 
 struct SceneData
@@ -100,7 +100,7 @@ layout (location = 24) out mat3 v_TBN;
 void main()
 {
 	mat4 model = shaderDataBuffer.data[dataOffset + gl_InstanceIndex].model;
-	int materialIndex = int(shaderDataBuffer.data[dataOffset + gl_InstanceIndex].data.x);
+	int materialIndex = int(shaderDataBuffer.data[dataOffset + gl_InstanceIndex].params.x);
 
 	v_ModelPos = vec3(model * vec4(a_Position, 1.0));
 	v_Normal =  mat3(model) * a_Normal;
