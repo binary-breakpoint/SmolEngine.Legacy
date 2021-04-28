@@ -2,10 +2,15 @@
 #include "Common/Core.h"
 #include "Common/Common.h"
 
+#include "Common/VertexBuffer.h"
+#include "Common/IndexBuffer.h"
+
+#include <memory>
+
 namespace Frostium
 {
 	struct ImportedDataGlTF;
-
+	struct Primitive;
 	class VertexBuffer;
 	class IndexBuffer;
 	class BufferLayout;
@@ -15,43 +20,37 @@ namespace Frostium
 	class Mesh
 	{
 	public:
-
-		Mesh();
-		~Mesh();
-
 		// Factory
-		static void Create(const std::string& filePath, Mesh* out_mesh);
+		static void Create(const std::string& filePath, Mesh* mesh);
 
-		// Find
-		Mesh* FindSubMeshByIndex(uint32_t index);
-		Mesh* FindSubMeshByName(const std::string& name);
+		// Materials
+		void SetMaterialID(int32_t materialID, uint32_t meshIndex);
+		void SetMaterialID(int32_t materialID, const std::string& meshName);
+
+		// Animations
 
 		// Getters
-		VertexBuffer* GetVertexBuffer() { return m_VertexBuffer; }
-		IndexBuffer* GetIndexBuffer() { return m_IndexBuffer; }
+		VertexBuffer* GetVertexBuffer() { return m_VertexBuffer.get(); }
+		IndexBuffer* GetIndexBuffer() { return m_IndexBuffer.get(); }
 		const uint32_t GetVertexCount() const { return m_VertexCount; }
-		const std::vector<Mesh*>& GetSubMeshes() const { return m_SubMeshes; }
-		const std::vector<Mesh*>& GetAllMeshes() const { return m_Meshes; }
-		const std::string& GetName() const;
 
 	private:
 
-		void Free();
-		void FindAllMeshes();
-		bool Init(ImportedDataGlTF* data);
+		static bool Init(Mesh* mesh, Primitive* primitive);
 
 	private:
 
-		bool                     m_Initialized = false;
-		uint32_t                 m_VertexCount = 0;
-		VertexBuffer*            m_VertexBuffer = nullptr;
-		IndexBuffer*             m_IndexBuffer = nullptr;
-		std::string              m_Name = "";
-		std::vector<Mesh*>       m_SubMeshes;
-		std::vector<Mesh*>       m_Meshes;
+		bool                      m_Initialized = false;
+		uint32_t                  m_MaterialID = 0;
+		uint32_t                  m_VertexCount = 0;
+		Scope<VertexBuffer>       m_VertexBuffer = nullptr;
+		Scope<IndexBuffer>        m_IndexBuffer = nullptr;
+		ImportedDataGlTF*         m_ImportedData = nullptr;
+		std::vector<Mesh>         m_Meshes;
 
 	private:
 
 		friend class Renderer;
+		friend class GraphicsPipeline;
 	};
 }

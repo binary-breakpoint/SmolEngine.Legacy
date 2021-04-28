@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Utils/glTFImporter.h"
+#include "Utils/Utils.h"
 
 #define TINYGLTF_IMPLEMENTATION
 #define TINYGLTF_NO_STB_IMAGE_WRITE
@@ -216,10 +217,17 @@ namespace Frostium
 			for (size_t i = 0; i < mesh.primitives.size(); i++)
 			{
 				const tinygltf::Primitive& glTFPrimitive = mesh.primitives[i];
-				uint32_t                   firstIndex = static_cast<uint32_t>(out_data->IndexBuffer.size());
-				uint32_t                   vertexStart = static_cast<uint32_t>(out_data->VertexBuffer.size());
+				Primitive                  primitive{};
+				uint32_t                   firstIndex = 0;
+				uint32_t                   vertexStart = 0;
 				uint32_t                   indexCount = 0;
 				bool                       hasSkin = false;
+
+				if (out_data->Primitives.size() > 0)
+				{
+					firstIndex = static_cast<uint32_t>(out_data->Primitives.back().IndexBuffer.size());
+					vertexStart = static_cast<uint32_t>(out_data->Primitives.back().VertexBuffer.size());
+				}
 
 				// Vertices
 				{
@@ -281,18 +289,22 @@ namespace Frostium
 
 					hasSkin = (jointIndicesBuffer && jointWeightsBuffer);
 
+					glm::mat4 model = glm::mat4(1.0f);
+					glm::vec3 rot = glm::eulerAngles(node->Rotation);
+					Utils::ComposeTransform(node->Translation, rot, node->Scale, model);
+
 					// Append data to model's vertex buffer
 					for (size_t v = 0; v < vertexCount; v++)
 					{
 						PBRVertex vert = {};
-						vert.Pos = glm::vec4(glm::make_vec3(&positionBuffer[v * 3]), 1.0f);
+						vert.Pos = model * glm::vec4(glm::make_vec3(&positionBuffer[v * 3]), 1.0f);
 						vert.Normals = glm::normalize(glm::vec3(normalsBuffer ? glm::make_vec3(&normalsBuffer[v * 3]) : glm::vec3(0.0f)));
-						vert.Tangent = glm::vec4(tangentsBuffer ? glm::make_vec3(&tangentsBuffer[v * 3]): glm::vec3(1.0f), 1.0f);
+						vert.Tangent = glm::vec4(tangentsBuffer ? glm::make_vec3(&tangentsBuffer[v * 3]) : glm::vec3(1.0f), 1.0f);
 						vert.UVs = texCoordsBuffer ? glm::make_vec2(&texCoordsBuffer[v * 2]) : glm::vec3(0.0f);
 						vert.jointIndices = hasSkin ? glm::vec4(glm::make_vec4(&jointIndicesBuffer[v * 4])) : glm::vec4(0.0f);
 						vert.jointWeight = hasSkin ? glm::make_vec4(&jointWeightsBuffer[v * 4]) : glm::vec4(0.0f);
 
-						out_data->VertexBuffer.emplace_back(vert);
+						primitive.VertexBuffer.emplace_back(vert);
 					}
 				}
 				// Indices
@@ -311,7 +323,7 @@ namespace Frostium
 						memcpy(buf, &buffer.data[accessor.byteOffset + bufferView.byteOffset], accessor.count * sizeof(uint32_t));
 						for (size_t index = 0; index < accessor.count; index++)
 						{
-							out_data->IndexBuffer.push_back(buf[index] + vertexStart);
+							primitive.IndexBuffer.push_back(buf[index]);
 						}
 						break;
 					}
@@ -320,7 +332,7 @@ namespace Frostium
 						memcpy(buf, &buffer.data[accessor.byteOffset + bufferView.byteOffset], accessor.count * sizeof(uint16_t));
 						for (size_t index = 0; index < accessor.count; index++)
 						{
-							out_data->IndexBuffer.push_back(buf[index] + vertexStart);
+							primitive.IndexBuffer.push_back(buf[index]);
 						}
 						break;
 					}
@@ -329,7 +341,7 @@ namespace Frostium
 						memcpy(buf, &buffer.data[accessor.byteOffset + bufferView.byteOffset], accessor.count * sizeof(uint8_t));
 						for (size_t index = 0; index < accessor.count; index++)
 						{
-							out_data->IndexBuffer.push_back(buf[index] + vertexStart);
+							primitive.IndexBuffer.push_back(buf[index]);
 						}
 						break;
 					}
@@ -339,10 +351,6 @@ namespace Frostium
 					}
 				}
 
-				Primitive primitive{};
-				primitive.FirstIndex = firstIndex;
-				primitive.IndexCount = indexCount;
-				primitive.MaterialIndex = glTFPrimitive.material;
 				out_data->Primitives.push_back(primitive);
 			}
 		}

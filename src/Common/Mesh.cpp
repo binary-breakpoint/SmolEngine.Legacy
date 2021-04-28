@@ -8,95 +8,50 @@
 #include "Utils/Utils.h"
 #include "Utils/glTFImporter.h"
 
-#include <glm/glm.hpp>
-
 namespace Frostium
 {
-    Mesh::Mesh() {}
-
-    Mesh::~Mesh()
+    void Mesh::Create(const std::string& filePath, Mesh* obj)
     {
-        Free();
-        for (auto& s : m_SubMeshes)
-            s->Free();
-    }
-
-    void Mesh::Create(const std::string& filePath, Mesh* out_mesh)
-    {
-        if (out_mesh)
+        if (obj)
         {
-            if (out_mesh->m_Initialized)
+            if (obj->m_Initialized)
                 return;
 
-            ImportedDataGlTF* data = new ImportedDataGlTF();
-            if (glTFImporter::Import(filePath, data))
+            obj->m_ImportedData = new ImportedDataGlTF();
+            if (glTFImporter::Import(filePath, obj->m_ImportedData))
             {
-                out_mesh->Init(data);
-                out_mesh->m_Initialized = true;
+                Init(obj, &obj->m_ImportedData->Primitives[0]);
+
+                obj->m_Meshes.resize(obj->m_ImportedData->Primitives.size() - 1);
+                for (uint32_t i = 0; i < static_cast<uint32_t>(obj->m_ImportedData->Primitives.size() - 1); ++i)
+                {
+                    Primitive& primitve = obj->m_ImportedData->Primitives[i + 1];
+                    Init(&obj->m_Meshes[i], &primitve);
+                }
             }
-            delete data;
+            delete obj->m_ImportedData;
         }
     }
 
-    Mesh* Mesh::FindSubMeshByIndex(uint32_t index)
+    void Mesh::SetMaterialID(int32_t materialID, uint32_t meshIndex)
     {
-        if (index >= m_SubMeshes.size())
-            return nullptr;
 
-        return m_SubMeshes[index];
     }
 
-    Mesh* Mesh::FindSubMeshByName(const std::string& name)
+    void Mesh::SetMaterialID(int32_t materialID, const std::string& meshName)
     {
-        for (auto& sub : m_SubMeshes)
-        {
-            if (sub->m_Name == name)
-                return sub;
-        }
 
-        return nullptr;
     }
 
-    const std::string& Mesh::GetName() const
+    bool Mesh::Init(Mesh* mesh, Primitive* primitive)
     {
-        return m_Name;
-    }
+        mesh->m_VertexBuffer = std::make_unique<VertexBuffer>();
+        mesh->m_IndexBuffer =  std::make_unique<IndexBuffer>();
+        mesh->m_VertexCount =  static_cast<uint32_t>(primitive->VertexBuffer.size());
 
-    void Mesh::Free()
-    {
-        if (m_IndexBuffer)
-            delete m_IndexBuffer;
-
-        if (m_VertexBuffer)
-            delete m_VertexBuffer;
-    }
-
-    void Mesh::FindAllMeshes()
-    {
-        m_Meshes.resize(m_SubMeshes.size() + 1);
-        uint32_t index = 0;
-        m_Meshes[index] = this;
-        index++;
-
-        for (auto& sub : m_SubMeshes)
-        {
-            m_Meshes[index] = sub;
-            index++;
-        }
-    }
-
-    bool Mesh::Init(ImportedDataGlTF* data)
-    {
-        Free();
-
-        m_VertexBuffer = new VertexBuffer();
-        m_IndexBuffer = new IndexBuffer();
-        m_VertexCount = static_cast<uint32_t>(data->VertexBuffer.size());
-
-        VertexBuffer::Create(m_VertexBuffer, data->VertexBuffer.data(), static_cast<uint32_t>(data->VertexBuffer.size() * sizeof(PBRVertex)), true);
-        IndexBuffer::Create(m_IndexBuffer, data->IndexBuffer.data(), static_cast<uint32_t>(data->IndexBuffer.size()), true);
-
-        FindAllMeshes();
+        VertexBuffer::Create(mesh->m_VertexBuffer.get(), primitive->VertexBuffer.data(), static_cast<uint32_t>(primitive->VertexBuffer.size() * sizeof(PBRVertex)), true);
+        IndexBuffer::Create(mesh->m_IndexBuffer.get(), primitive->IndexBuffer.data(), static_cast<uint32_t>(primitive->IndexBuffer.size()), true);
+        mesh->m_Initialized = true;
         return true;
     }
 }

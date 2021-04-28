@@ -6,9 +6,9 @@ namespace Frostium
 {
 	class Mesh;
 	class Framebuffer;
-	enum class ShadowMapSize : uint16_t;
 	struct MeshComponent;
 	struct RendererStorage;
+	enum class ShadowMapSize : uint16_t;
 
 	class Renderer
 	{
@@ -61,6 +61,8 @@ namespace Frostium
 		static void InitPipelines();
 		static void InitFramebuffers();
 		static glm::mat4 CalculateDepthMVP(const glm::vec3& lightPos);
+		static void AddMesh(const glm::vec3& pos, const glm::vec3& rotation,
+			const glm::vec3& scale, Mesh* mesh, const int32_t& materialID);
 
 	private:
 

@@ -93,6 +93,16 @@ int main(int argc, char** argv)
 
 	InitMono();
 	static glm::vec3 lightDir = glm::vec3(105.0f, 53.0f, 102.0f);
+	// Load assets
+	Mesh knight = {};
+	Mesh::Create("Assets/knight.gltf", &knight);
+	MaterialCreateInfo materialCI = {};
+	materialCI.SetTexture(MaterialTexture::Albedro, "Assets/materials/metal_1/Metal033_1K_Color.png");
+	materialCI.SetTexture(MaterialTexture::Normal, "Assets/materials/metal_1/Metal033_1K_Normal.png");
+	materialCI.SetTexture(MaterialTexture::Roughness, "Assets/materials/metal_1/Metal033_1K_Roughness.png");
+	materialCI.SetTexture(MaterialTexture::AO, "Assets/materials/metal_1/Metal033_1K_Metalness.png");
+	int32_t materialID  = MaterialLibrary::GetSinglenton()->Add(&materialCI);
+	Renderer::UpdateMaterials();
 
 	while (process)
 	{
@@ -107,6 +117,7 @@ int main(int argc, char** argv)
 			Renderer::BeginScene(&clearInfo);
 			Renderer::SetShadowLightDirection(lightDir);
 			Renderer::SubmitDirectionalLight(lightDir, { 1, 1, 1, 1 });
+			Renderer::SubmitMesh({ 0, 0, 0 }, { 0, 0, 0 }, { 1, 1, 1, }, &knight, materialID);
 			Renderer::EndScene();
 
 			ImGui::Begin("Debug Window");

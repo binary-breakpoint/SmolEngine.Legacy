@@ -22,13 +22,13 @@ namespace Frostium
 	{
 		uint32_t                         InstancesCount = 0;
 		uint32_t                         Offset = 0;
-		Mesh* Mesh = nullptr;
+		Mesh*                            Mesh = nullptr;
 	};
 
 	struct InstanceData
 	{
 		glm::mat4                        ModelView = glm::mat4(0.0f);
-		glm::ivec4                       Params = glm::vec4(0);
+		glm::ivec4                       MaterialIDs = glm::ivec4(0.0);
 	};
 
 	struct InstancePackage
@@ -61,6 +61,9 @@ namespace Frostium
 		const uint32_t                   m_ShaderDataBinding = 25;
 		const uint32_t                   m_MaterialsBinding = 26;
 		const uint32_t                   m_SceneDataBinding = 27;
+		const uint32_t                   m_DirLightBinding = 30;
+		const uint32_t                   m_PointLightBinding = 31;
+		const uint32_t                   m_AmbientLightBinding = 32;
 		// Instance Data
 		uint32_t                         m_Objects = 0;
 		uint32_t                         m_InstanceDataIndex = 0;

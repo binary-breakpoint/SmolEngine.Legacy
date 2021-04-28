@@ -8,6 +8,7 @@
 #include "Common/Shader.h"
 #include "Common/Common.h"
 
+#include "Utils/glTFImporter.h"
 #include "Utils/Utils.h"
 
 #ifdef FROSTIUM_OPENGL_IMPL
@@ -90,8 +91,8 @@ namespace Frostium
 		{
 			// Getting values
 			Mesh* mesh = s_Data->m_UsedMeshes[i];
-			auto& instance = s_Data->m_Packages[mesh];
-			auto& cmd = s_Data->m_DrawList[s_Data->m_DrawListIndex];
+			InstancePackage& instance = s_Data->m_Packages[mesh];
+			CommandBuffer& cmd = s_Data->m_DrawList[s_Data->m_DrawListIndex];
 
 			// Setting draw list command
 			cmd.Offset = s_Data->m_InstanceDataIndex;
@@ -100,11 +101,12 @@ namespace Frostium
 
 			for (uint32_t x = 0; x < instance.CurrentIndex; ++x)
 			{
-				auto& package = instance.Data[x];
-				auto& shaderData = s_Data->m_InstancesData[s_Data->m_InstanceDataIndex];
+				InstancePackage::Package& package = instance.Data[x];
+				InstanceData& shaderData = s_Data->m_InstancesData[s_Data->m_InstanceDataIndex];
 
-				shaderData.Params.x = *package.MaterialID;
 				Utils::ComposeTransform(*package.WorldPos, *package.Rotation, *package.Scale, shaderData.ModelView);
+				shaderData.MaterialIDs.x = static_cast<uint32_t>(*package.MaterialID);
+
 				s_Data->m_InstanceDataIndex++;
 			}
 
@@ -120,7 +122,7 @@ namespace Frostium
 			if (s_Data->m_DirectionalLightIndex > 0)
 			{
 				// Updates Directional Lights
-				s_Data->m_PBRPipeline.SubmitBuffer(28, sizeof(DirectionalLightBuffer) * s_Data->m_DirectionalLightIndex, &s_Data->m_DirectionalLights);
+				s_Data->m_PBRPipeline.SubmitBuffer(s_Data->m_DirLightBinding, sizeof(DirectionalLightBuffer) * s_Data->m_DirectionalLightIndex, &s_Data->m_DirectionalLights);
 				// Calculate Depth
 				s_Data->m_MainPushConstant.DepthMVP = CalculateDepthMVP(s_Data->m_ShadowLightDirection);
 			}
@@ -128,13 +130,12 @@ namespace Frostium
 			if (s_Data->m_PointLightIndex > 0)
 			{
 				// Updates Point Lights
-				s_Data->m_PBRPipeline.SubmitBuffer(29, sizeof(PointLightBuffer) * s_Data->m_PointLightIndex, &s_Data->m_PointLights);
+				s_Data->m_PBRPipeline.SubmitBuffer(s_Data->m_PointLightBinding, sizeof(PointLightBuffer) * s_Data->m_PointLightIndex, &s_Data->m_PointLights);
 			}
 
 			// Updates Ambient Lighting
-			s_Data->m_PBRPipeline.SubmitBuffer(30, s_Data->m_AmbientLightingSize, &s_Data->m_AmbientLighting);
-
-			// Updates model views and material indexes
+			s_Data->m_PBRPipeline.SubmitBuffer(s_Data->m_AmbientLightBinding, s_Data->m_AmbientLightingSize, &s_Data->m_AmbientLighting);
+			// Updates model views
 			s_Data->m_PBRPipeline.SubmitBuffer(s_Data->m_ShaderDataBinding, sizeof(InstanceData) * s_Data->m_InstanceDataIndex, &s_Data->m_InstancesData);
 		}
 
@@ -167,7 +168,7 @@ namespace Frostium
 					pc.offset = cmd.Offset;
 
 					s_Data->m_DepthPassPipeline.SubmitPushConstant(ShaderType::Vertex, sizeof(PushConstant), &pc);
-					s_Data->m_DepthPassPipeline.DrawMesh(cmd.Mesh, cmd.InstancesCount);
+					s_Data->m_DepthPassPipeline.DrawMeshIndexed(cmd.Mesh, cmd.InstancesCount);
 				}
 			}
 			s_Data->m_DepthPassPipeline.EndRenderPass();
@@ -188,7 +189,7 @@ namespace Frostium
 				s_Data->m_MainPushConstant.PointLights = s_Data->m_PointLightIndex;
 
 				s_Data->m_PBRPipeline.SubmitPushConstant(ShaderType::Vertex, s_Data->m_PushConstantSize, &s_Data->m_MainPushConstant);
-				s_Data->m_PBRPipeline.DrawMesh(cmd.Mesh, cmd.InstancesCount);
+				s_Data->m_PBRPipeline.DrawMeshIndexed(cmd.Mesh, cmd.InstancesCount);
 			}
 		}
 		s_Data->m_PBRPipeline.EndRenderPass();
@@ -259,40 +260,7 @@ namespace Frostium
 	{
 		if (s_Data->m_Frustum->CheckSphere(pos, 3.0f))
 		{
-			if (s_Data->m_Objects >= s_Data->m_MaxObjects)
-				StartNewBacth();
-
-			auto& instance = s_Data->m_Packages[mesh];
-			if (instance.CurrentIndex >= s_MaxInstances)
-				StartNewBacth();
-
-			auto& package = instance.Data[instance.CurrentIndex];
-
-			package.MaterialID = const_cast<int32_t*>(&materialID);
-			package.WorldPos = const_cast<glm::vec3*>(&pos);
-			package.Rotation = const_cast<glm::vec3*>(&rotation);
-			package.Scale = const_cast<glm::vec3*>(&scale);
-			instance.CurrentIndex++;
-
-			bool found = false;
-			for (uint32_t i = 0; i < s_Data->m_UsedMeshesIndex; ++i)
-			{
-				if (s_Data->m_UsedMeshes[i] == mesh)
-				{
-					found = true;
-					break;
-				}
-			}
-
-			if (found == false)
-			{
-				s_Data->m_UsedMeshes[s_Data->m_UsedMeshesIndex] = mesh;
-				s_Data->m_UsedMeshesIndex++;
-			}
-			s_Data->m_Objects++;
-
-			for (auto& sub : mesh->GetSubMeshes())
-				SubmitMesh(pos, rotation, scale, sub);
+			AddMesh(pos, rotation, scale, mesh, materialID);
 		}
 	}
 
@@ -401,10 +369,13 @@ namespace Frostium
 				shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/Vulkan/PBR.vert";
 				shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Vulkan/PBR.frag";
 
-				shaderCI.StorageBuffersSizes[25] = { sizeof(InstanceData) * s_InstanceDataMaxCount };
-				shaderCI.StorageBuffersSizes[26] = { sizeof(Material) * 1000 };
-				shaderCI.StorageBuffersSizes[28] = { sizeof(DirectionalLightBuffer) * s_MaxDirectionalLights };
-				shaderCI.StorageBuffersSizes[29] = { sizeof(PointLightBuffer) * s_MaxPointLights };
+				// Vertex
+				shaderCI.StorageBuffersSizes[s_Data->m_ShaderDataBinding] = { sizeof(InstanceData) * s_InstanceDataMaxCount };
+				shaderCI.StorageBuffersSizes[s_Data->m_MaterialsBinding] = { sizeof(Material) * 1000 };
+
+				// Fragment
+				shaderCI.StorageBuffersSizes[s_Data->m_DirLightBinding] = { sizeof(DirectionalLightBuffer) * s_MaxDirectionalLights };
+				shaderCI.StorageBuffersSizes[s_Data->m_PointLightBinding] = { sizeof(PointLightBuffer) * s_MaxPointLights };
 			};
 
 			GraphicsPipelineCreateInfo DynamicPipelineCI = {};
@@ -695,6 +666,44 @@ namespace Frostium
 		glm::mat4 depthModelMatrix = glm::mat4(1.0f);
 
 		return depthProjectionMatrix * depthViewMatrix * depthModelMatrix;
+	}
+
+	void Renderer::AddMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Mesh* mesh, const int32_t& materialID)
+	{
+		if (s_Data->m_Objects >= s_Data->m_MaxObjects)
+			StartNewBacth();
+
+		auto& instance = s_Data->m_Packages[mesh];
+		if (instance.CurrentIndex >= s_MaxInstances)
+			StartNewBacth();
+
+		auto& package = instance.Data[instance.CurrentIndex];
+
+		package.MaterialID = const_cast<int32_t*>(&materialID);
+		package.WorldPos = const_cast<glm::vec3*>(&pos);
+		package.Rotation = const_cast<glm::vec3*>(&rotation);
+		package.Scale = const_cast<glm::vec3*>(&scale);
+		instance.CurrentIndex++;
+
+		bool found = false;
+		for (uint32_t i = 0; i < s_Data->m_UsedMeshesIndex; ++i)
+		{
+			if (s_Data->m_UsedMeshes[i] == mesh)
+			{
+				found = true;
+				break;
+			}
+		}
+
+		if (found == false)
+		{
+			s_Data->m_UsedMeshes[s_Data->m_UsedMeshesIndex] = mesh;
+			s_Data->m_UsedMeshesIndex++;
+		}
+		s_Data->m_Objects++;
+
+		for (auto& sub : mesh->m_Meshes)
+			AddMesh(pos, rotation, scale, &sub, sub.m_MaterialID);
 	}
 
 	bool Renderer::UpdateMaterials()

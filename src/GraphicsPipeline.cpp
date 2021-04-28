@@ -326,7 +326,7 @@ namespace Frostium
 #endif
 	}
 
-	void GraphicsPipeline::DrawMesh(Mesh* mesh, uint32_t instances, DrawMode mode, uint32_t descriptorSetIndex)
+	void GraphicsPipeline::DrawMeshIndexed(Mesh* mesh, uint32_t instances, DrawMode mode, uint32_t descriptorSetIndex)
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
 #else
@@ -342,6 +342,25 @@ namespace Frostium
 			&descriptorSets, 0, nullptr);
 
 		vkCmdDrawIndexed(m_CommandBuffer, mesh->GetIndexBuffer()->GetCount(), instances, 0, 0, 0);
+#endif
+	}
+
+	void GraphicsPipeline::DrawMesh(Mesh* mesh, uint32_t instances, DrawMode mode, uint32_t descriptorSetIndex)
+	{
+#ifdef FROSTIUM_OPENGL_IMPL
+#else
+		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_VulkanPipeline.GetVkPipeline(mode));
+
+		VkDeviceSize offsets[1] = { 0 };
+		vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &mesh->GetVertexBuffer()->GetVulkanVertexBuffer().GetBuffer(), offsets);
+		vkCmdBindIndexBuffer(m_CommandBuffer, mesh->GetIndexBuffer()->GetVulkanIndexBuffer().GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+
+		const auto& descriptorSets = m_VulkanPipeline.GetVkDescriptorSets(descriptorSetIndex);
+		vkCmdBindDescriptorSets(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+			m_VulkanPipeline.GetVkPipelineLayot(), 0, 1,
+			&descriptorSets, 0, nullptr);
+
+		vkCmdDraw(m_CommandBuffer, mesh->m_VertexCount, instances, 0, 0);
 #endif
 	}
 

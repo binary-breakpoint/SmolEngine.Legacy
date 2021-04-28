@@ -84,7 +84,7 @@ int main(int argc, char** argv)
 	LoadMaterials(materialIDs);
 	GenerateMap(chunks, materialIDs);
 
-	static glm::vec3 lightDir = glm::vec3(105.0f, 53.0f, 102.0f);
+	glm::vec3 lightDir = glm::vec3(105.0f, 53.0f, 102.0f);
 
 	while (process)
 	{

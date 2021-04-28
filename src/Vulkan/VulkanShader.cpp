@@ -32,6 +32,7 @@ namespace Frostium
         const auto& vexrtex =  shaderCI->FilePaths[ShaderType::Vertex];
         const auto& frag = shaderCI->FilePaths[ShaderType::Fragment];
         const auto& compute = shaderCI->FilePaths[ShaderType::Compute];
+        const auto& geometry = shaderCI->FilePaths[ShaderType::Geometry];
 
         // temp
         bool precompiledBinaries = false;
@@ -42,11 +43,13 @@ namespace Frostium
         // Fragment
         assert(LoadOrCompile(compiler, options, frag, shaderc_shader_kind::shaderc_fragment_shader, precompiledBinaries, binaryData) == true);
 
+        // Geometry
+        if (!geometry.empty())
+            assert(LoadOrCompile(compiler, options, geometry, shaderc_shader_kind::shaderc_geometry_shader, precompiledBinaries, binaryData) == true);
+
         // Compute 
         if (!compute.empty())
-        {
             assert(LoadOrCompile(compiler, options, compute, shaderc_shader_kind::shaderc_compute_shader, precompiledBinaries, binaryData) == true);
-        }
 
         m_Info = *shaderCI;
         return true;
@@ -372,26 +375,11 @@ namespace Frostium
     {
         switch (type)
         {
-        case Frostium::ShaderType::Vertex:
-        {
-            return VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT;
-        }
-        case Frostium::ShaderType::Fragment:
-        {
-            return VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT;
-        }
-        case Frostium::ShaderType::Compute:
-        {
-            return VkShaderStageFlagBits::VK_SHADER_STAGE_COMPUTE_BIT;
-        }
-        case Frostium::ShaderType::Geometry:
-        {
-            return VkShaderStageFlagBits::VK_SHADER_STAGE_GEOMETRY_BIT;
-        }
-        default:
-        {
-            return VkShaderStageFlagBits::VK_SHADER_STAGE_ALL;
-        }
+        case Frostium::ShaderType::Vertex:      return VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT;
+        case Frostium::ShaderType::Fragment:    return VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT;
+        case Frostium::ShaderType::Compute:     return VkShaderStageFlagBits::VK_SHADER_STAGE_COMPUTE_BIT;
+        case Frostium::ShaderType::Geometry:    return VkShaderStageFlagBits::VK_SHADER_STAGE_GEOMETRY_BIT;
+        default:                                return VkShaderStageFlagBits::VK_SHADER_STAGE_ALL;
 
         }
     }

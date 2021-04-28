@@ -1,10 +1,11 @@
 #pragma once
 #include "Common/Core.h"
 #include "Common/Common.h"
+#include "Utils/GLM.h"
 
-#include <glm/glm.hpp>
 #include <vector>
 #include <string>
+#include <limits>
 
 namespace Frostium
 {
@@ -57,9 +58,8 @@ namespace Frostium
 
 	struct Primitive
 	{
-		uint32_t                         FirstIndex;
-		uint32_t                         IndexCount;
-		int32_t                          MaterialIndex;
+		std::vector<PBRVertex>           VertexBuffer;
+		std::vector<uint32_t>            IndexBuffer;
 	};
 
 	struct ImportedDataGlTF
@@ -76,8 +76,6 @@ namespace Frostium
 		std::vector<Skin>                Skins;
 		std::vector<glTFNode*>           Nodes;
 		std::vector<Animation>           Animations;
-		std::vector<PBRVertex>           VertexBuffer;
-		std::vector<uint32_t>            IndexBuffer;
 		std::vector<Primitive>           Primitives;
 	};
 

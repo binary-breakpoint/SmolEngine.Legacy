@@ -44,6 +44,7 @@ namespace Frostium
 		void DrawIndexed(VertexBuffer* vb, IndexBuffer* ib, DrawMode mode = DrawMode::Triangle, uint32_t descriptorSetIndex = 0);
 		void Draw(VertexBuffer* vb, uint32_t vertextCount, DrawMode mode = DrawMode::Triangle, uint32_t descriptorSetIndex = 0);
 		void Draw(uint32_t vertextCount, DrawMode mode = DrawMode::Triangle, uint32_t vertexBufferIndex = 0, uint32_t descriptorSetIndex = 0);
+		void DrawMeshIndexed(Mesh* mesh, uint32_t instances = 1, DrawMode mode = DrawMode::Triangle, uint32_t descriptorSetIndex = 0);
 		void DrawMesh(Mesh* mesh, uint32_t instances = 1, DrawMode mode = DrawMode::Triangle, uint32_t descriptorSetIndex = 0);
 
 		// Resources
