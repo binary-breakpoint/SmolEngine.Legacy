@@ -21,9 +21,9 @@ namespace Frostium
 		s_Instance = nullptr;
 	}
 
-	int32_t MaterialLibrary::Add(MaterialCreateInfo* infoCI, const std::string& path)
+	uint32_t MaterialLibrary::Add(MaterialCreateInfo* infoCI, const std::string& path)
 	{
-		int32_t materialID = -1;
+		uint32_t materialID = 0;
 
 		std::string name = GetCompleteName(infoCI);
 		size_t hashID = m_Hash(name);
@@ -31,23 +31,18 @@ namespace Frostium
 		if (name_it != m_MaterialMap.end())
 			return name_it->second;
 
-		Material newMaterial = {};
+		PBRMaterial newMaterial = {};
 		{
-			newMaterial.m_MaterialProperties.PBRValues.x = infoCI->Metallic;
-			newMaterial.m_MaterialProperties.PBRValues.y = infoCI->Roughness;
-			newMaterial.m_MaterialProperties.PBRValues.z = infoCI->Albedro;
+			newMaterial.AlbedroTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Albedro], newMaterial.UseAlbedroTex);
+			newMaterial.NormalTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Normal], newMaterial.UseNormalTex);
+			newMaterial.MetallicTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Metallic], newMaterial.UseMetallicTex);
+			newMaterial.RoughnessTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Roughness], newMaterial.UseRoughnessTex);
+			newMaterial.AOTexIndex = AddTexture(infoCI->Textures[MaterialTexture::AO], newMaterial.UseAOTex);
 
-			newMaterial.m_MaterialProperties.Indexes_1.x = AddTexture(infoCI->Textures[MaterialTexture::Albedro]);
-			newMaterial.m_MaterialProperties.Indexes_1.y = AddTexture(infoCI->Textures[MaterialTexture::Normal]);
-			newMaterial.m_MaterialProperties.Indexes_1.z = AddTexture(infoCI->Textures[MaterialTexture::Metallic]);
-			newMaterial.m_MaterialProperties.Indexes_1.w = AddTexture(infoCI->Textures[MaterialTexture::Roughness]);
-			newMaterial.m_MaterialProperties.Indexes_2.x = AddTexture(infoCI->Textures[MaterialTexture::AO]);
-
-			newMaterial.m_MaterialProperties.States_1.x = newMaterial.m_MaterialProperties.Indexes_1.x > -1 ? true : false;
-			newMaterial.m_MaterialProperties.States_1.y = newMaterial.m_MaterialProperties.Indexes_1.y > -1 ? true : false;
-			newMaterial.m_MaterialProperties.States_1.z = newMaterial.m_MaterialProperties.Indexes_1.z > -1 ? true : false;
-			newMaterial.m_MaterialProperties.States_1.w = newMaterial.m_MaterialProperties.Indexes_1.w > -1 ? true : false;
-			newMaterial.m_MaterialProperties.States_2.x = newMaterial.m_MaterialProperties.Indexes_2.x > -1 ? true : false;
+			// x - Metallic, y - Roughness, z - Albedro
+			newMaterial.PBRValues.x = infoCI->Metallic;
+			newMaterial.PBRValues.y = infoCI->Roughness;
+			newMaterial.PBRValues.z = infoCI->Albedro;
 		}
 
 		materialID = m_MaterialIndex;
@@ -128,9 +123,9 @@ namespace Frostium
 		return s_Instance;
 	}
 
-	int32_t MaterialLibrary::AddTexture(const std::string& path)
+	uint32_t MaterialLibrary::AddTexture(const std::string& path, uint32_t& useTetxure)
 	{
-		int32_t index = -1;
+		uint32_t index = 0;
 		if (!path.empty())
 		{
 			Texture* tex = new Texture();
@@ -139,9 +134,11 @@ namespace Frostium
 			index = m_TextureIndex;
 			m_Textures[index] = tex;
 			m_TextureIndex++;
+			useTetxure = true;
 			return index;
 		}
 
+		useTetxure = false;
 		return index;
 	}
 
@@ -159,7 +156,7 @@ namespace Frostium
 		return result;
 	}
 
-	Material* MaterialLibrary::GetMaterial(int32_t ID)
+	PBRMaterial* MaterialLibrary::GetMaterial(uint32_t ID)
 	{
 		if (ID > m_MaterialIndex)
 			return nullptr;
@@ -167,7 +164,7 @@ namespace Frostium
 		return &m_Materials[ID];
 	}
 
-	Material* MaterialLibrary::GetMaterial(std::string& path)
+	PBRMaterial* MaterialLibrary::GetMaterial(std::string& path)
 	{
 		size_t hashID = m_Hash(path);
 		const auto& it = m_MaterialMap.find(hashID);
@@ -196,14 +193,14 @@ namespace Frostium
 		return it->second;
 	}
 
-	std::vector<Material>& MaterialLibrary::GetMaterials()
+	std::vector<PBRMaterial>& MaterialLibrary::GetMaterials()
 	{
 		return m_Materials;
 	}
 	void MaterialLibrary::GetMaterialsPtr(void*& data, uint32_t& size)
 	{
 		data = m_Materials.data();
-		size = static_cast<uint32_t>(sizeof(Material) * m_Materials.size());
+		size = static_cast<uint32_t>(sizeof(PBRMaterial) * m_Materials.size());
 	}
 
 	void MaterialLibrary::GetTextures(std::vector<Texture*>& out_textures) const

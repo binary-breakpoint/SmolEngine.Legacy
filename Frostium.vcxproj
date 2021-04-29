@@ -197,7 +197,6 @@
     <ClInclude Include="include\Common\IndexBuffer.h" />
     <ClInclude Include="include\Common\Input.h" />
     <ClInclude Include="include\Common\InputCodes.h" />
-    <ClInclude Include="include\Common\Material.h" />
     <ClInclude Include="include\Common\Mesh.h" />
     <ClInclude Include="include\Common\Renderer2DStorage.h" />
     <ClInclude Include="include\Common\RendererShared.h" />

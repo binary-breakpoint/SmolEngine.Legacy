@@ -258,9 +258,6 @@
     <ClInclude Include="include\Common\InputCodes.h">
       <Filter>include\Common</Filter>
     </ClInclude>
-    <ClInclude Include="include\Common\Material.h">
-      <Filter>include\Common</Filter>
-    </ClInclude>
     <ClInclude Include="include\Common\Mesh.h">
       <Filter>include\Common</Filter>
     </ClInclude>

@@ -9,19 +9,26 @@ layout(location = 5) in vec4 a_Weight;
 
 struct MaterialData
 {
-   ivec4 TextureStates;
-   ivec4 TextureStates_2;
+	vec4 PBR;
 
-   ivec4 TextureIndexes;
-   ivec4 TextureIndexes_2;
+	uint UseAlbedroTex;
+	uint UseNormalTex;
+	uint UseMetallicTex;
+	uint UseRoughnessTex;
 
-   vec4  PBRValues;
+	uint UseAOTex;
+	uint AlbedroTexIndex;
+	uint NormalTexIndex;
+	uint MetallicTexIndex;
+
+	uint RoughnessTexIndex;
+	uint AOTexIndex;
 };
 
 struct ModelInstanceBuffer
 {
+	uint matIDs;
 	mat4 model;
-	ivec4 matIDs;
 };
 
 struct SceneData
@@ -97,7 +104,7 @@ layout (location = 24) out mat3 v_TBN;
 
 void main()
 {
-	uint materialIndex = instances[dataOffset + gl_InstanceIndex].matIDs.x;
+	uint materialIndex = instances[dataOffset + gl_InstanceIndex].matIDs;
 	mat4 model = instances[dataOffset + gl_InstanceIndex].model;
 
 	v_ModelPos = vec3(model * vec4(a_Position, 1.0));
@@ -120,24 +127,24 @@ void main()
 	v_TBN = mat3(T, B, N);
 
 	// PBR Params
-	v_Metallic = materials[materialIndex].PBRValues.x;
-	v_Roughness = materials[materialIndex].PBRValues.y;
-	float c =  materials[materialIndex].PBRValues.z;
+	v_Metallic = materials[materialIndex].PBR.x;
+	v_Roughness = materials[materialIndex].PBR.y;
+	float c =  materials[materialIndex].PBR.z;
 	v_Color = vec4(c, c, c, 1);
 
 	// states
-	v_UseAlbedroMap = materials[materialIndex].TextureStates.x;
-	v_UseNormalMap = materials[materialIndex].TextureStates.y;
-	v_UseMetallicMap = materials[materialIndex].TextureStates.z;
-	v_UseRoughnessMap = materials[materialIndex].TextureStates.w;
-	v_UseAOMap = materials[materialIndex].TextureStates_2.x;
+	v_UseAlbedroMap = materials[materialIndex].UseAlbedroTex;
+	v_UseNormalMap = materials[materialIndex].UseNormalTex;
+	v_UseMetallicMap = materials[materialIndex].UseMetallicTex;
+	v_UseRoughnessMap = materials[materialIndex].UseRoughnessTex;
+	v_UseAOMap = materials[materialIndex].UseAOTex;
 
 	// index
-	v_AlbedroMapIndex = materials[materialIndex].TextureIndexes.x;
-	v_NormalMapIndex = materials[materialIndex].TextureIndexes.y;
-	v_MetallicMapIndex = materials[materialIndex].TextureIndexes.z;
-	v_RoughnessMapIndex = materials[materialIndex].TextureIndexes.w;
-	v_AOMapIndex = materials[materialIndex].TextureIndexes_2.x;
+	v_AlbedroMapIndex = materials[materialIndex].AlbedroTexIndex;
+	v_NormalMapIndex = materials[materialIndex].NormalTexIndex;
+	v_MetallicMapIndex = materials[materialIndex].MetallicTexIndex;
+	v_RoughnessMapIndex = materials[materialIndex].RoughnessTexIndex;
+	v_AOMapIndex = materials[materialIndex].AOTexIndex;
 
 	gl_Position =  sceneData.projection * sceneData.view * vec4(v_ModelPos, 1.0);
 }

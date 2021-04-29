@@ -27,15 +27,15 @@ namespace Frostium
 
 	struct InstanceData
 	{
-		glm::mat4                        ModelView = glm::mat4(0.0f);
-		glm::ivec4                       MaterialIDs = glm::ivec4(0.0);
+		alignas(4) uint32_t              MaterialIDs = 0;
+		alignas(16) glm::mat4            ModelView = glm::mat4(0.0f);
 	};
 
 	struct InstancePackage
 	{
 		struct Package
 		{
-			int32_t*                     MaterialID = nullptr;
+			uint32_t                     MaterialID;
 			glm::vec3*                   WorldPos = nullptr;
 			glm::vec3*                   Rotation = nullptr;
 			glm::vec3*                   Scale = nullptr;

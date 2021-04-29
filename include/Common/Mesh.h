@@ -26,6 +26,7 @@ namespace Frostium
 		// Materials
 		void SetMaterialID(int32_t materialID, uint32_t meshIndex);
 		void SetMaterialID(int32_t materialID, const std::string& meshName);
+		void SetMaterialID(int32_t materialID);
 
 		// Animations
 

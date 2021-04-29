@@ -105,7 +105,7 @@ namespace Frostium
 				InstanceData& shaderData = s_Data->m_InstancesData[s_Data->m_InstanceDataIndex];
 
 				Utils::ComposeTransform(*package.WorldPos, *package.Rotation, *package.Scale, shaderData.ModelView);
-				shaderData.MaterialIDs.x = static_cast<uint32_t>(*package.MaterialID);
+				shaderData.MaterialIDs = package.MaterialID;
 
 				s_Data->m_InstanceDataIndex++;
 			}
@@ -256,12 +256,10 @@ namespace Frostium
 	}
 
 	void Renderer::SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation,
-		const glm::vec3& scale, Mesh* mesh, const int32_t& materialID)
+		const glm::vec3& scale, Mesh* mesh, const uint32_t& materialID)
 	{
 		if (s_Data->m_Frustum->CheckSphere(pos, 3.0f))
-		{
 			AddMesh(pos, rotation, scale, mesh, materialID);
-		}
 	}
 
 	void Renderer::SubmitDirectionalLight(const glm::vec3& dir, const glm::vec4& color)
@@ -371,7 +369,7 @@ namespace Frostium
 
 				// Vertex
 				shaderCI.StorageBuffersSizes[s_Data->m_ShaderDataBinding] = { sizeof(InstanceData) * s_InstanceDataMaxCount };
-				shaderCI.StorageBuffersSizes[s_Data->m_MaterialsBinding] = { sizeof(Material) * 1000 };
+				shaderCI.StorageBuffersSizes[s_Data->m_MaterialsBinding] = { sizeof(PBRMaterial) * 1000 };
 
 				// Fragment
 				shaderCI.StorageBuffersSizes[s_Data->m_DirLightBinding] = { sizeof(DirectionalLightBuffer) * s_MaxDirectionalLights };
@@ -668,7 +666,7 @@ namespace Frostium
 		return depthProjectionMatrix * depthViewMatrix * depthModelMatrix;
 	}
 
-	void Renderer::AddMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Mesh* mesh, const int32_t& materialID)
+	void Renderer::AddMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Mesh* mesh, const uint32_t& materialID)
 	{
 		if (s_Data->m_Objects >= s_Data->m_MaxObjects)
 			StartNewBacth();
@@ -679,7 +677,7 @@ namespace Frostium
 
 		auto& package = instance.Data[instance.CurrentIndex];
 
-		package.MaterialID = const_cast<int32_t*>(&materialID);
+		package.MaterialID = materialID;
 		package.WorldPos = const_cast<glm::vec3*>(&pos);
 		package.Rotation = const_cast<glm::vec3*>(&rotation);
 		package.Scale = const_cast<glm::vec3*>(&scale);

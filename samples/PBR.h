@@ -4,5 +4,4 @@
 
 int main(int argc, char** argv);
 
-void LoadMaterials(std::vector<int32_t>& materialsIDs);
-
+void LoadMaterials(std::vector<uint32_t>& materialsIDs);

@@ -15,13 +15,13 @@ using namespace Frostium;
 
 struct Chunk
 {
-	int32_t   MaterialID = 0;
+	uint32_t   MaterialID = 0;
 	glm::vec3 Pos = glm::vec3(1.0f);
 	glm::vec3 Rot = glm::vec3(0.0f);
 	glm::vec3 Scale = glm::vec3(1.0f);
 } chunk = {};
 
-void GenerateMap(std::vector<Chunk>& map, std::vector<int32_t>& materialIDs)
+void GenerateMap(std::vector<Chunk>& map, std::vector<uint32_t>& materialIDs)
 {
 	for (uint32_t x = 0; x < 50; x += 2)
 	{
@@ -79,7 +79,7 @@ int main(int argc, char** argv)
 			process = false;
 	});
 
-	std::vector<int32_t> materialIDs;
+	std::vector<uint32_t> materialIDs;
 	std::vector<Chunk> chunks;
 	LoadMaterials(materialIDs);
 	GenerateMap(chunks, materialIDs);
@@ -146,7 +146,7 @@ int main(int argc, char** argv)
 	}
 }
 
-void LoadMaterials(std::vector<int32_t>& materialsIDs)
+void LoadMaterials(std::vector<uint32_t>& materialsIDs)
 {
 	MaterialLibrary* lib = MaterialLibrary::GetSinglenton();
 
@@ -171,7 +171,7 @@ void LoadMaterials(std::vector<int32_t>& materialsIDs)
 		materialCI.SetTexture(MaterialTexture::AO,aoPath);
 		materialCI.SetMetalness(0.2f);
 		 
-		int32_t id = lib->Add(&materialCI, "Assets/materials/wood.mat");
+		uint32_t id = lib->Add(&materialCI, "Assets/materials/wood.mat");
 		materialsIDs.push_back(id);
 	}
 
@@ -190,7 +190,7 @@ void LoadMaterials(std::vector<int32_t>& materialsIDs)
 		materialCI.SetTexture(MaterialTexture::AO, aoPath);
 		materialCI.SetMetalness(1.0f);
 
-		int32_t id = lib->Add(&materialCI, "Assets/materials/stone.mat");
+		uint32_t id = lib->Add(&materialCI, "Assets/materials/stone.mat");
 		materialsIDs.push_back(id);
 	}
 
@@ -208,7 +208,7 @@ void LoadMaterials(std::vector<int32_t>& materialsIDs)
 		materialCI.SetTexture(MaterialTexture::Roughness, roughnessPath);
 		materialCI.SetTexture(MaterialTexture::Metallic, metalPath);
 
-		int32_t id = lib->Add(&materialCI, "Assets/materials/metal1.mat");
+		uint32_t id = lib->Add(&materialCI, "Assets/materials/metal1.mat");
 		materialsIDs.push_back(id);
 	}
 
@@ -226,7 +226,7 @@ void LoadMaterials(std::vector<int32_t>& materialsIDs)
 		materialCI.SetTexture(MaterialTexture::Roughness,  roughnessPath);
 		materialCI.SetTexture(MaterialTexture::Metallic,  metalPath);
 
-		int32_t id = lib->Add(&materialCI, "Assets/materials/metal2.mat");
+		uint32_t id = lib->Add(&materialCI, "Assets/materials/metal2.mat");
 		materialsIDs.push_back(id);
 	}
 

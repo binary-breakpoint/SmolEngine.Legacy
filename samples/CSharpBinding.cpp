@@ -101,8 +101,10 @@ int main(int argc, char** argv)
 	materialCI.SetTexture(MaterialTexture::Normal, "Assets/materials/metal_1/Metal033_1K_Normal.png");
 	materialCI.SetTexture(MaterialTexture::Roughness, "Assets/materials/metal_1/Metal033_1K_Roughness.png");
 	materialCI.SetTexture(MaterialTexture::AO, "Assets/materials/metal_1/Metal033_1K_Metalness.png");
-	int32_t materialID  = MaterialLibrary::GetSinglenton()->Add(&materialCI);
+	uint32_t materialID  = MaterialLibrary::GetSinglenton()->Add(&materialCI);
 	Renderer::UpdateMaterials();
+
+	knight.SetMaterialID(materialID);
 
 	while (process)
 	{

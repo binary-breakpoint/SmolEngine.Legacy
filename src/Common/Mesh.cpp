@@ -35,12 +35,20 @@ namespace Frostium
 
     void Mesh::SetMaterialID(int32_t materialID, uint32_t meshIndex)
     {
-
+        if (m_Meshes.size() < meshIndex)
+            m_Meshes[meshIndex].m_MaterialID = materialID;
     }
 
     void Mesh::SetMaterialID(int32_t materialID, const std::string& meshName)
     {
 
+    }
+
+    void Mesh::SetMaterialID(int32_t materialID)
+    {
+        m_MaterialID = materialID;
+        for (Mesh& mesh : m_Meshes)
+            mesh.m_MaterialID = materialID;
     }
 
     bool Mesh::Init(Mesh* mesh, Primitive* primitive)
