@@ -183,6 +183,8 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\Animator.h" />
+    <ClInclude Include="include\Common\Animation.h" />
     <ClInclude Include="include\Common\BufferElement.h" />
     <ClInclude Include="include\Common\BufferLayout.h" />
     <ClInclude Include="include\Common\Camera.h" />
@@ -903,6 +905,7 @@
     <ClInclude Include="vendor\stb_image\stb_image_write.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Animator.cpp" />
     <ClCompile Include="src\Common\CubeTexture.cpp" />
     <ClCompile Include="src\Common\Events.cpp" />
     <ClCompile Include="src\Common\Framebuffer.cpp" />

@@ -110,6 +110,7 @@ namespace Frostium
 			uint32_t                     DataOffset = 0;
 			uint32_t                     DirectionalLights = 0;
 			uint32_t                     PointLights = 0;
+			uint32_t                     AnimTest = 0;
 		};
 		struct DebugView
 		{

@@ -13,6 +13,7 @@ Frostium3D
   - ImGUI Integration
   - Text Rendering (SDF)
   - glTF 2.0
+  - Skinning
 
 ## Usage
 The first step is to initialize graphics context class:

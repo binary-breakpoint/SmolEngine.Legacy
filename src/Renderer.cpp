@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Renderer.h"
 #include "MaterialLibrary.h"
+#include "Animator.h"
 
 #include "Common/VertexArray.h"
 #include "Common/VertexBuffer.h"
@@ -19,6 +20,7 @@
 #endif
 
 #include "Common/RendererStorage.h"
+#include "Utils/glTFImporter.h"
 
 namespace Frostium
 {
@@ -61,6 +63,7 @@ namespace Frostium
 			s_Data->m_FarClip = info->farClip;
 		}
 
+		Animator::EndSubmit();
 		s_Data->m_Frustum->Update(s_Data->m_SceneData.Projection * s_Data->m_SceneData.View);
 
 		s_Data->m_PBRPipeline.BeginCommandBuffer(true);
@@ -259,7 +262,15 @@ namespace Frostium
 		const glm::vec3& scale, Mesh* mesh, const uint32_t& materialID)
 	{
 		if (s_Data->m_Frustum->CheckSphere(pos, 3.0f))
+		{
+			if (mesh->m_ImportedData->Skins.size() > 0)
+			{
+				auto& vec = mesh->m_ImportedData->Animations[mesh->m_ImportedData->ActiveAnimation].Joints;
+				s_Data->m_PBRPipeline.SubmitBuffer(28, sizeof(glm::mat4) * vec.size(), vec.data());
+				s_Data->m_MainPushConstant.AnimTest = true;
+			}
 			AddMesh(pos, rotation, scale, mesh, materialID);
+		}
 	}
 
 	void Renderer::SubmitDirectionalLight(const glm::vec3& dir, const glm::vec4& color)
@@ -370,6 +381,7 @@ namespace Frostium
 				// Vertex
 				shaderCI.StorageBuffersSizes[s_Data->m_ShaderDataBinding] = { sizeof(InstanceData) * s_InstanceDataMaxCount };
 				shaderCI.StorageBuffersSizes[s_Data->m_MaterialsBinding] = { sizeof(PBRMaterial) * 1000 };
+				shaderCI.StorageBuffersSizes[28] = { sizeof(glm::mat4) * 100 };
 
 				// Fragment
 				shaderCI.StorageBuffersSizes[s_Data->m_DirLightBinding] = { sizeof(DirectionalLightBuffer) * s_MaxDirectionalLights };

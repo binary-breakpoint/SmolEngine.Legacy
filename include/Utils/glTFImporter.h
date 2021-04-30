@@ -1,6 +1,7 @@
 #pragma once
 #include "Common/Core.h"
 #include "Common/Common.h"
+#include "Common/Animation.h"
 #include "Utils/GLM.h"
 
 #include <vector>
@@ -46,18 +47,19 @@ namespace Frostium
 		uint32_t                         SamplerIndex;
 	};								     
 									     
-	struct Animation				     
+	struct glTFAnimation
 	{								     
+		float                            CurrentTime = 0.0f;
 		std::string                      Name;
+		Animation                        Animation{};
 		std::vector<AnimationSampler>    Samplers;
 		std::vector<AnimationChannel>    Channels;
-		float                            Start = std::numeric_limits<float>::max();
-		float                            End = std::numeric_limits<float>::min();
-		float                            CurrentTime = 0.0f;
+		std::vector<glm::mat4>           Joints;
 	};
 
 	struct Primitive
 	{
+		std::string                      MeshName = "";
 		std::vector<PBRVertex>           VertexBuffer;
 		std::vector<uint32_t>            IndexBuffer;
 	};
@@ -66,16 +68,16 @@ namespace Frostium
 	{
 		ImportedDataGlTF() = default;
 		~ImportedDataGlTF();
-		// TEMP
-		void UpdateJoints(glTFNode* node);
+
+		void UpdateJoints(glTFNode* node, glTFAnimation* anim);
 		void UpdateAnimation(float deltaTime);
 		glm::mat4 GetNodeMatrix(glTFNode* node);
 
+	public:
 		uint32_t                         ActiveAnimation = 0;
-
 		std::vector<Skin>                Skins;
 		std::vector<glTFNode*>           Nodes;
-		std::vector<Animation>           Animations;
+		std::vector<glTFAnimation>       Animations;
 		std::vector<Primitive>           Primitives;
 	};
 

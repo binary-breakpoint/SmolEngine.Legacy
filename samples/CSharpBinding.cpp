@@ -1,7 +1,9 @@
 #include "CSharpBinding.h"
 
 #include <Common/Mesh.h>
+#include <Common/Input.h>
 #include <GraphicsContext.h>
+#include <Animator.h>
 #include <MaterialLibrary.h>
 #include <Renderer.h>
 
@@ -9,6 +11,7 @@
 
 #include <mono/metadata/assembly.h>
 #include <mono/jit/jit.h>
+
 
 using namespace Frostium;
 
@@ -95,7 +98,7 @@ int main(int argc, char** argv)
 	static glm::vec3 lightDir = glm::vec3(105.0f, 53.0f, 102.0f);
 	// Load assets
 	Mesh knight = {};
-	Mesh::Create("Assets/knight.gltf", &knight);
+	Mesh::Create("Assets/CesiumMan.gltf", &knight);
 	MaterialCreateInfo materialCI = {};
 	materialCI.SetTexture(MaterialTexture::Albedro, "Assets/materials/metal_1/Metal033_1K_Color.png");
 	materialCI.SetTexture(MaterialTexture::Normal, "Assets/materials/metal_1/Metal033_1K_Normal.png");
@@ -105,6 +108,8 @@ int main(int argc, char** argv)
 	Renderer::UpdateMaterials();
 
 	knight.SetMaterialID(materialID);
+	knight.StopActiveAnimation();
+	knight.GetCurrentAnim()->SetSpeed(2.0);
 
 	while (process)
 	{
@@ -114,8 +119,18 @@ int main(int argc, char** argv)
 		if (context->IsWindowMinimized())
 			continue;
 
+		{
+			if (Input::IsMouseButtonPressed(MouseCode::Button0))
+				knight.PlayActiveAnimation();
+
+			if (Input::IsMouseButtonPressed(MouseCode::Button1))
+				knight.StopActiveAnimation();
+		}
+
 		context->BeginFrame(deltaTime);
 		{
+			Animator::SubmitAnimaton(&knight);
+
 			Renderer::BeginScene(&clearInfo);
 			Renderer::SetShadowLightDirection(lightDir);
 			Renderer::SubmitDirectionalLight(lightDir, { 1, 1, 1, 1 });

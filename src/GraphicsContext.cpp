@@ -3,6 +3,7 @@
 #include "Renderer.h"
 #include "Renderer2D.h"
 #include "MaterialLibrary.h"
+#include "Animator.h"
 
 #include "Common/SLog.h"
 #include "Common/Input.h"
@@ -142,6 +143,8 @@ namespace Frostium
 #endif
 		if (m_State->UseImGUI)
 			m_ImGuiContext.OnBegin();
+
+		Animator::BeginSubmit(time);
 	}
 
 	void GraphicsContext::ShutDown()

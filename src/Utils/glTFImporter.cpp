@@ -112,13 +112,13 @@ namespace Frostium
 					// Adjust animation's start and end times
 					for (auto input : animations[i].Samplers[j].Inputs)
 					{
-						if (input < animations[i].Start)
+						if (input < animations[i].Animation.GetStartTime())
 						{
-							animations[i].Start = input;
+							animations[i].Animation.SetStartTime(input);
 						};
-						if (input > animations[i].End)
+						if (input > animations[i].Animation.GetEndTime())
 						{
-							animations[i].End = input;
+							animations[i].Animation.SetEndTime(input);
 						}
 					}
 				}
@@ -374,25 +374,27 @@ namespace Frostium
 			delete n;
 	}
 
-	void ImportedDataGlTF::UpdateJoints(glTFNode* node)
+	void ImportedDataGlTF::UpdateJoints(glTFNode* node, glTFAnimation* anim)
 	{
-		if (node->Skin > -1)
+		if (node->Skin> -1 && anim)
 		{
 			// Update the joint matrices
 			glm::mat4              inverseTransform = glm::inverse(GetNodeMatrix(node));
 			Skin                   skin = Skins[node->Skin];
 			size_t                 numJoints = (uint32_t)skin.Joints.size();
-			std::vector<glm::mat4> jointMatrices(numJoints);
+
+			anim->Joints.clear();
+			anim->Joints.resize(numJoints);
 			for (size_t i = 0; i < numJoints; i++)
 			{
-				jointMatrices[i] = GetNodeMatrix(skin.Joints[i]) * skin.InverseBindMatrices[i];
-				jointMatrices[i] = inverseTransform * jointMatrices[i];
+				anim->Joints[i] = GetNodeMatrix(skin.Joints[i]) * skin.InverseBindMatrices[i];
+				anim->Joints[i] = inverseTransform * anim->Joints[i];
 			}
 		}
 
 		for (auto& child : node->Children)
 		{
-			UpdateJoints(child);
+			UpdateJoints(child, anim);
 		}
 	}
 
@@ -404,11 +406,11 @@ namespace Frostium
 			return;
 		}
 
-		Animation& animation = Animations[ActiveAnimation];
-		animation.CurrentTime += deltaTime;
-		if (animation.CurrentTime > animation.End)
+		glTFAnimation& animation = Animations[ActiveAnimation];
+		animation.CurrentTime += deltaTime * animation.Animation.GetSpeed();
+		if (animation.CurrentTime > animation.Animation.GetEndTime())
 		{
-			animation.CurrentTime -= animation.End;
+			animation.CurrentTime -= animation.Animation.GetEndTime();
 		}
 
 		for (auto& channel : animation.Channels)
@@ -456,7 +458,7 @@ namespace Frostium
 
 		for (auto& node : Nodes)
 		{
-			UpdateJoints(node);
+			UpdateJoints(node, &animation);
 		}
 	}
 
@@ -490,10 +492,15 @@ namespace Frostium
 			}
 			LoadSkins(glTFInput, out_data);
 			LoadAnimations(glTFInput, out_data);
+
+			glTFAnimation* activeAnim = nullptr;
+			if (out_data->Animations.size() > 0)
+				activeAnim = &out_data->Animations[out_data->ActiveAnimation];
+
 			// Calculate initial pose
 			for (auto node : out_data->Nodes)
 			{
-				out_data->UpdateJoints(node);
+				out_data->UpdateJoints(node, activeAnim);
 			}
 		}
 

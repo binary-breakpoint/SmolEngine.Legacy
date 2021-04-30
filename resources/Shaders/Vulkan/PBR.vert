@@ -55,6 +55,11 @@ layout (std140, binding = 27) uniform SceneDataBuffer
     SceneData sceneData;
 };
 
+layout(std430, binding = 28) readonly buffer JointMatrices
+ {
+	mat4 jointMatrices[];
+};
+
 layout(push_constant) uniform ConstantData
 {
 	mat4 lightSpace;
@@ -62,6 +67,7 @@ layout(push_constant) uniform ConstantData
 	uint dataOffset;
 	uint directionalLights;
 	uint pointLights;
+	uint animTest;
 };
 
 const mat4 biasMat = mat4( 
@@ -107,7 +113,17 @@ void main()
 	uint materialIndex = instances[dataOffset + gl_InstanceIndex].matIDs;
 	mat4 model = instances[dataOffset + gl_InstanceIndex].model;
 
-	v_ModelPos = vec3(model * vec4(a_Position, 1.0));
+	mat4 skinMat = mat4(1.0);
+	if(animTest == 1)
+	{
+		skinMat = 
+		a_Weight.x * jointMatrices[int(a_BoneIDs.x)] +
+		a_Weight.y * jointMatrices[int(a_BoneIDs.y)] +
+		a_Weight.z * jointMatrices[int(a_BoneIDs.z)] +
+		a_Weight.w * jointMatrices[int(a_BoneIDs.w)];
+	}
+
+	v_ModelPos = vec3(model * skinMat *  vec4(a_Position, 1.0));
 	v_Normal =  mat3(model) * a_Normal;
 	v_CameraPos = sceneData.camPos.rgb;
 	v_Exposure = sceneData.params.x;
@@ -146,5 +162,5 @@ void main()
 	v_RoughnessMapIndex = materials[materialIndex].RoughnessTexIndex;
 	v_AOMapIndex = materials[materialIndex].AOTexIndex;
 
-	gl_Position =  sceneData.projection * sceneData.view * vec4(v_ModelPos, 1.0);
+	gl_Position =  sceneData.projection * sceneData.view * model * skinMat * vec4(a_Position, 1.0);
 }
