@@ -2343,9 +2343,6 @@
     <ClInclude Include="include\Vulkan\VulkanShader.h">
       <Filter>include\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="include\Vulkan\VulkanShaderResources.h">
-      <Filter>include\Vulkan</Filter>
-    </ClInclude>
     <ClInclude Include="include\Vulkan\VulkanStagingBuffer.h">
       <Filter>include\Vulkan</Filter>
     </ClInclude>
@@ -2372,6 +2369,7 @@
     </ClInclude>
     <ClInclude Include="include\Animator.h" />
     <ClInclude Include="include\Common\Animation.h" />
+    <ClInclude Include="include\Common\SPIRVReflection.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Common\CubeTexture.cpp">

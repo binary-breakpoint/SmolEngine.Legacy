@@ -421,15 +421,16 @@ namespace Frostium
 			vkDestroyDescriptorPool(m_Device, m_DescriptorPool, nullptr);
 		}
 
+		ReflectionData* refData = shader->m_ReflectionData;
 		std::vector< VkDescriptorPoolSize> DescriptorPoolSizes;
-		if ((shader->m_Buffers.size() > 0))
+		if (refData->Buffers.size() > 0)
 		{
 			uint32_t UBOcount = 0;
 			uint32_t SSBOcount = 0;
 
-			for (auto& [binding, buffer] : shader->m_Buffers)
+			for (auto& [binding, buffer] : refData->Buffers)
 			{
-				if (buffer.Type == ShaderBufferType::Uniform)
+				if (buffer.Type == BufferType::Uniform)
 					UBOcount++;
 				else
 					SSBOcount++;
@@ -459,19 +460,19 @@ namespace Frostium
 		}
 
 		// Samplers
-		if(shader->m_UniformResources.size())
+		if(refData->Resources.size())
 		{
 			VkDescriptorPoolSize poolSize = {};
 			{
-				poolSize.descriptorCount = static_cast<uint32_t>(shader->m_UniformResources.size());
+				poolSize.descriptorCount = static_cast<uint32_t>(refData->Resources.size());
 				poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 			}
 
 			DescriptorPoolSizes.push_back(poolSize);
 		}
 
-		if (shader->m_UniformResources.size() == 0 && 
-			shader->m_Buffers.size() == 0)
+		if (refData->Resources.size() == 0 &&
+			refData->Buffers.size() == 0)
 		{
 			// dummy
 			VkDescriptorPoolSize poolSize = {};

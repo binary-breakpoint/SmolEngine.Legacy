@@ -186,7 +186,7 @@ namespace Frostium
 						if (cmd.Instances > 0)
 						{
 							s_Data->DeferredPipeline.SubmitPushConstant(ShaderType::Vertex, sizeof(uint32_t), &cmd.DataOffset);
-							s_Data->DeferredPipeline.DrawMesh(&s_Data->PlaneMesh, cmd.Instances);
+							s_Data->DeferredPipeline.DrawMeshIndexed(&s_Data->PlaneMesh, cmd.Instances);
 
 							cmd.Reset();
 						}
@@ -282,7 +282,7 @@ namespace Frostium
 
 			pipelineCI.PipelineName = "Deferred_2D";
 			pipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(PBRVertex), PBRlayout) };
-			pipelineCI.eCullMode = CullMode::Front;
+			pipelineCI.eCullMode = CullMode::None;
 			pipelineCI.bDepthTestEnabled = false;
 			pipelineCI.pTargetFramebuffer = &s_Data->DeferredFB;
 			pipelineCI.pShaderCreateInfo = &shaderCI;

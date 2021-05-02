@@ -27,11 +27,7 @@ namespace Frostium
 
 		m_GraphicsContext = GraphicsContext::s_Instance;
 		m_Shader = std::make_shared<Shader>();
-
-		if (pipelineInfo->pShaderCreateInfo->UseSingleFile)
-			Shader::Create(m_Shader, pipelineInfo->pShaderCreateInfo->SingleFilePath);
-		else
-			Shader::Create(m_Shader, pipelineInfo->pShaderCreateInfo);
+		Shader::Create(pipelineInfo->pShaderCreateInfo, m_Shader.get());
 
 		m_PiplineCreateInfo = *pipelineInfo;
 #ifdef FROSTIUM_OPENGL_IMPL

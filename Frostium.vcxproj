@@ -205,6 +205,7 @@
     <ClInclude Include="include\Common\RendererStorage.h" />
     <ClInclude Include="include\Common\SLog.h" />
     <ClInclude Include="include\Common\Shader.h" />
+    <ClInclude Include="include\Common\SPIRVReflection.h" />
     <ClInclude Include="include\Common\SubTexture.h" />
     <ClInclude Include="include\Common\Text.h" />
     <ClInclude Include="include\Common\Texture.h" />
@@ -894,7 +895,6 @@
     <ClInclude Include="include\Vulkan\VulkanScratchBuffer.h" />
     <ClInclude Include="include\Vulkan\VulkanSemaphore.h" />
     <ClInclude Include="include\Vulkan\VulkanShader.h" />
-    <ClInclude Include="include\Vulkan\VulkanShaderResources.h" />
     <ClInclude Include="include\Vulkan\VulkanStagingBuffer.h" />
     <ClInclude Include="include\Vulkan\VulkanSwapchain.h" />
     <ClInclude Include="include\Vulkan\VulkanTexture.h" />

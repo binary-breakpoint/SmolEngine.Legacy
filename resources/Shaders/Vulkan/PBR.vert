@@ -25,9 +25,9 @@ struct MaterialData
 	uint AOTexIndex;
 };
 
-struct ModelInstanceBuffer
+struct InstanceData
 {
-	uint matIDs;
+	uint matID;
 	mat4 model;
 };
 
@@ -40,17 +40,17 @@ struct SceneData
 	vec4 params;
 };
 
-layout(std140, binding = 25) readonly buffer ModelInstances
+layout(std140, binding = 25) readonly buffer InstancesBuffer
 {   
-	ModelInstanceBuffer instances[];
+	InstanceData instances[];
 };
 
-layout(std140, binding = 26) readonly buffer ObjectBuffer
+layout(std140, binding = 26) readonly buffer MaterialsBuffer
 {   
 	MaterialData materials[];
 };
 
-layout (std140, binding = 27) uniform SceneDataBuffer
+layout (std140, binding = 27) uniform SceneBuffer
 {
     SceneData sceneData;
 };
@@ -110,7 +110,7 @@ layout (location = 24) out mat3 v_TBN;
 
 void main()
 {
-	uint materialIndex = instances[dataOffset + gl_InstanceIndex].matIDs;
+	uint materialIndex = instances[dataOffset + gl_InstanceIndex].matID;
 	mat4 model = instances[dataOffset + gl_InstanceIndex].model;
 
 	mat4 skinMat = mat4(1.0);

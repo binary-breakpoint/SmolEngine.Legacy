@@ -100,10 +100,12 @@ int main(int argc, char** argv)
 	Mesh knight = {};
 	Mesh::Create("Assets/CesiumMan.gltf", &knight);
 	MaterialCreateInfo materialCI = {};
-	materialCI.SetTexture(MaterialTexture::Albedro, "Assets/materials/metal_1/Metal033_1K_Color.png");
-	materialCI.SetTexture(MaterialTexture::Normal, "Assets/materials/metal_1/Metal033_1K_Normal.png");
-	materialCI.SetTexture(MaterialTexture::Roughness, "Assets/materials/metal_1/Metal033_1K_Roughness.png");
-	materialCI.SetTexture(MaterialTexture::AO, "Assets/materials/metal_1/Metal033_1K_Metalness.png");
+	materialCI.SetTexture(MaterialTexture::Albedro, "Assets/materials/stone/Tiles087_1K_Color.png");
+	materialCI.SetTexture(MaterialTexture::Normal, "Assets/materials/stone/Tiles087_1K_Normal.png");
+	materialCI.SetTexture(MaterialTexture::Roughness, "Assets/materials/stone/Tiles087_1K_Roughness.png");
+	materialCI.SetTexture(MaterialTexture::AO, "Assets/materials/stone/Tiles087_1K_AmbientOcclusion.png");
+	materialCI.SetMetalness(0.1f);
+
 	uint32_t materialID  = MaterialLibrary::GetSinglenton()->Add(&materialCI);
 	Renderer::UpdateMaterials();
 
@@ -133,7 +135,7 @@ int main(int argc, char** argv)
 
 			Renderer::BeginScene(&clearInfo);
 			Renderer::SetShadowLightDirection(lightDir);
-			Renderer::SubmitDirectionalLight(lightDir, { 1, 1, 1, 1 });
+			//Renderer::SubmitDirectionalLight(lightDir, { 1, 1, 1, 1 });
 			Renderer::SubmitMesh({ 0, 0, 0 }, { 0, 0, 0 }, { 1, 1, 1, }, &knight, materialID);
 			Renderer::EndScene();
 

@@ -5,7 +5,6 @@
 #include "Vulkan/VulkanContext.h"
 #include "Vulkan/VulkanDevice.h"
 #include "Vulkan/VulkanMemoryAllocator.h"
-#include "Vulkan/VulkanShader.h"
 #include "Vulkan/VulkanCommandBuffer.h"
 
 #include "GraphicsContext.h"
@@ -14,6 +13,7 @@
 #include "Common/VertexBuffer.h"
 #include "Common/IndexBuffer.h"
 #include "Common/CubeTexture.h"
+#include "Common/Shader.h"
 
 #include <glm/glm.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
@@ -162,13 +162,12 @@ namespace Frostium
 			VK_CHECK_RESULT(vkCreateFramebuffer(device, &framebufferCI, nullptr, &framebuffer));
 
 			// Shader
-			VulkanShader shader = {};
+			Shader shader = {};
 			{
 				GraphicsPipelineShaderCreateInfo shaderCI;
 				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/GenBRDflut.frag";
 				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/GenBRDflut.vert";
-
-				assert(shader.Init(&shaderCI) == true);
+				Shader::Create(&shaderCI, &shader);
 			}
 
 			// Descriptors
@@ -222,8 +221,8 @@ namespace Frostium
 					pipelineLayoutCI.pNext = nullptr;
 					pipelineLayoutCI.setLayoutCount = 1;
 					pipelineLayoutCI.pSetLayouts = &descriptorsetlayout;
-					pipelineLayoutCI.pushConstantRangeCount = static_cast<uint32_t>(shader.m_VkPushConstantRanges.size());
-					pipelineLayoutCI.pPushConstantRanges = shader.m_VkPushConstantRanges.data();
+					pipelineLayoutCI.pushConstantRangeCount = static_cast<uint32_t>(shader.GetVulkanShader()->m_VkPushConstantRanges.size());
+					pipelineLayoutCI.pPushConstantRanges = shader.GetVulkanShader()->m_VkPushConstantRanges.data();
 
 					VK_CHECK_RESULT(vkCreatePipelineLayout(device, &pipelineLayoutCI, nullptr, &pipelinelayout));
 				}
@@ -285,8 +284,8 @@ namespace Frostium
 				VkPipelineVertexInputStateCreateInfo vertexInputState = {};
 				vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
-				pipelineCreateInfo.stageCount = static_cast<uint32_t>(shader.GetVkPipelineShaderStages().size());
-				pipelineCreateInfo.pStages = shader.GetVkPipelineShaderStages().data();
+				pipelineCreateInfo.stageCount = static_cast<uint32_t>(shader.GetVulkanShader()->GetVkPipelineShaderStages().size());
+				pipelineCreateInfo.pStages = shader.GetVulkanShader()->GetVkPipelineShaderStages().data();
 
 				// Assign the pipeline states to the pipeline creation info structure
 
@@ -639,13 +638,13 @@ namespace Frostium
 
 
 			// Shader
-			VulkanShader shader = {};
+			Shader shader = {};
 			{
 				GraphicsPipelineShaderCreateInfo shaderCI;
 				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/IrradianceCube.frag";
 				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/FilterCube.vert";
 
-				assert(shader.Init(&shaderCI) == true);
+				Shader::Create(&shaderCI, &shader);
 			}
 
 			// Pipeline Layout
@@ -760,8 +759,8 @@ namespace Frostium
 				vertexInputState.vertexAttributeDescriptionCount = static_cast<uint32_t>(vertexInputAttributs.size());
 				vertexInputState.pVertexAttributeDescriptions = vertexInputAttributs.data();
 
-				pipelineCreateInfo.stageCount = static_cast<uint32_t>(shader.GetVkPipelineShaderStages().size());
-				pipelineCreateInfo.pStages = shader.GetVkPipelineShaderStages().data();
+				pipelineCreateInfo.stageCount = static_cast<uint32_t>(shader.GetVulkanShader()->GetVkPipelineShaderStages().size());
+				pipelineCreateInfo.pStages = shader.GetVulkanShader()->GetVkPipelineShaderStages().data();
 
 				// Assign the pipeline states to the pipeline creation info structure
 
@@ -1265,13 +1264,13 @@ namespace Frostium
 			} pushBlock;
 
 			// Shader
-			VulkanShader shader = {};
+			Shader shader = {};
 			{
 				GraphicsPipelineShaderCreateInfo shaderCI;
 				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/PreFilterenvMap.frag";
 				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/FilterCube.vert";
 
-				assert(shader.Init(&shaderCI) == true);
+				Shader::Create(&shaderCI, &shader);
 			}
 
 			// Pipeline Layout
@@ -1386,8 +1385,8 @@ namespace Frostium
 				vertexInputState.vertexAttributeDescriptionCount = static_cast<uint32_t>(vertexInputAttributs.size());
 				vertexInputState.pVertexAttributeDescriptions = vertexInputAttributs.data();
 
-				pipelineCreateInfo.stageCount = static_cast<uint32_t>(shader.GetVkPipelineShaderStages().size());
-				pipelineCreateInfo.pStages = shader.GetVkPipelineShaderStages().data();
+				pipelineCreateInfo.stageCount = static_cast<uint32_t>(shader.GetVulkanShader()->GetVkPipelineShaderStages().size());
+				pipelineCreateInfo.pStages = shader.GetVulkanShader()->GetVkPipelineShaderStages().data();
 
 				// Assign the pipeline states to the pipeline creation info structure
 

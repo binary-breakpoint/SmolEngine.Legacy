@@ -24,7 +24,9 @@ namespace Frostium
 			return;
 		}
 
+#ifdef FROSTIUM_DEBUG
 		NATIVE_INFO("UBO/SSBO with binding {} is reused", binding);
+#endif
 		outDescriptorBufferInfo = it->second->DesriptorBufferInfo;
 	}
 

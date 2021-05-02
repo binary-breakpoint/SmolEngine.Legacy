@@ -34,25 +34,26 @@ namespace Frostium
 	void VulkanDescriptor::GenDescriptorSet(VulkanShader* shader, VkDescriptorPool pool)
 	{
 		std::vector< VkDescriptorSetLayoutBinding> layouts;
-		layouts.reserve(shader->m_Buffers.size() + shader->m_UniformResources.size());
+		ReflectionData* refData = shader->m_ReflectionData;
+		layouts.reserve(refData->Buffers.size() + refData->Resources.size());
 
-		for (auto& [bindingPoint, buffer] : shader->m_Buffers)
+		for (auto& [bindingPoint, buffer] : refData->Buffers)
 		{
-			VkDescriptorType type = buffer.Type == ShaderBufferType::Uniform ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+			VkDescriptorType type = buffer.Type == BufferType::Uniform ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 
 			VkDescriptorSetLayoutBinding layoutBinding = {};
 			{
 				layoutBinding.binding = buffer.BindingPoint;
 				layoutBinding.descriptorType = type;
 				layoutBinding.descriptorCount = static_cast<uint32_t>(buffer.Uniforms.size());
-				layoutBinding.stageFlags = buffer.StageFlags;
+				layoutBinding.stageFlags = VulkanShader::GetVkShaderStage(buffer.Stage);
 			}
 
 			layouts.push_back(layoutBinding);
 		}
 
 		// Samplers
-		for (auto& info : shader->m_UniformResources)
+		for (auto& info : refData->Resources)
 		{
 			auto& [bindingPoint, res] = info;
 			VkDescriptorSetLayoutBinding layoutBinding = {};
@@ -60,7 +61,7 @@ namespace Frostium
 				layoutBinding.binding = res.BindingPoint;
 				layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 				res.ArraySize > 0 ? layoutBinding.descriptorCount = res.ArraySize : layoutBinding.descriptorCount = 1;
-				layoutBinding.stageFlags = res.StageFlags;
+				layoutBinding.stageFlags = VulkanShader::GetVkShaderStage(res.Stage);
 			}
 
 			layouts.push_back(layoutBinding);
@@ -88,7 +89,8 @@ namespace Frostium
 
 	void VulkanDescriptor::GenBuffersDescriptors(VulkanShader* shader)
 	{
-		for (auto& [key, buffer] : shader->m_Buffers)
+		ReflectionData* refData = shader->m_ReflectionData;
+		for (auto& [key, buffer] : refData->Buffers)
 		{
 			VkDescriptorBufferInfo descriptorBufferInfo = {};
 			size_t dataSize = buffer.Size;
@@ -96,13 +98,13 @@ namespace Frostium
 			VkBufferUsageFlags usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
 			VkMemoryPropertyFlags mem = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
-			if (buffer.Type == ShaderBufferType::Storage)
+			if (buffer.Type == BufferType::Storage)
 			{
 				type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 				usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
 
-				const auto& it = shader->m_Info.StorageBuffersSizes.find(buffer.BindingPoint);
-				if (it != shader->m_Info.StorageBuffersSizes.end())
+				const auto& it = shader->m_CreateInfo->StorageBuffersSizes.find(buffer.BindingPoint);
+				if (it != shader->m_CreateInfo->StorageBuffersSizes.end())
 					dataSize = it->second;
 				else
 				{
@@ -123,17 +125,20 @@ namespace Frostium
 
 			vkUpdateDescriptorSets(m_Device, 1, &m_WriteSets.back(), 0, nullptr);
 
+#ifdef FROSTIUM_DEBUG
 			NATIVE_WARN("Created " + buffer.ObjectName + " {}: Members Count: {}, Binding Point: {}",
 				buffer.Name, buffer.Uniforms.size(), buffer.BindingPoint);
+#endif
 		}
 	}
 
 	void VulkanDescriptor::GenSamplersDescriptors(VulkanShader* shader)
 	{
+		ReflectionData* refData = shader->m_ReflectionData;
 #ifndef FROSTIUM_OPENGL_IMPL
 		m_ImageInfo = GraphicsContext::s_Instance->m_DummyTexure->GetVulkanTexture()->m_DescriptorImageInfo;
 #endif
-		for (auto& [bindingPoint, res] : shader->m_UniformResources)
+		for (auto& [bindingPoint, res] : refData->Resources)
 		{
 			if (res.Dimension == 3) // cubeMap
 			{

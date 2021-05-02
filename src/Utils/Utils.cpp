@@ -204,13 +204,11 @@ namespace Frostium
 		switch (type)
 		{
 		case Frostium::CachedPathType::Shader:
-			path = p.parent_path() / "Cached" / (p.filename().string() + ".shader_cached");
+			path = p.parent_path() / "SPIRV" / (p.filename().string() + ".spirv");
 			break;
 		case Frostium::CachedPathType::Pipeline:
 			path = p.parent_path() / "Cached" / (p.filename().string() + ".pipeline_cached");
 			break;
-		default:
-			path = p.parent_path() / "Cached" / (p.filename().string() + ".shader_cached");
 			break;
 		}
 
