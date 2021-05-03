@@ -28,16 +28,10 @@ struct MaterialData
 struct InstanceData
 {
 	uint matID;
+	uint isAnimated;
+	uint animOffset;
+	uint entityID;
 	mat4 model;
-};
-
-struct SceneData
-{
-	mat4 projection;
-	mat4 view;
-	mat4 skyBoxMatrix;
-	vec4 camPos;
-	vec4 params;
 };
 
 layout(std140, binding = 25) readonly buffer InstancesBuffer
@@ -52,12 +46,17 @@ layout(std140, binding = 26) readonly buffer MaterialsBuffer
 
 layout (std140, binding = 27) uniform SceneBuffer
 {
-    SceneData sceneData;
-};
+	mat4 projection;
+	mat4 view;
+	mat4 skyBoxMatrix;
+	vec4 camPos;
+	vec4 params;
+
+} sceneData;
 
 layout(std430, binding = 28) readonly buffer JointMatrices
- {
-	mat4 jointMatrices[];
+{
+	mat4 joints[];
 };
 
 layout(push_constant) uniform ConstantData
@@ -67,7 +66,6 @@ layout(push_constant) uniform ConstantData
 	uint dataOffset;
 	uint directionalLights;
 	uint pointLights;
-	uint animTest;
 };
 
 const mat4 biasMat = mat4( 
@@ -110,33 +108,37 @@ layout (location = 24) out mat3 v_TBN;
 
 void main()
 {
-	uint materialIndex = instances[dataOffset + gl_InstanceIndex].matID;
-	mat4 model = instances[dataOffset + gl_InstanceIndex].model;
+	const uint instanceID = dataOffset + gl_InstanceIndex;
+
+	const mat4 model = instances[instanceID].model;
+	const uint materialIndex = instances[instanceID].matID;
+	const uint animOffset = instances[instanceID].animOffset;
+	const bool isAnimated = bool(instances[instanceID].isAnimated);
 
 	mat4 skinMat = mat4(1.0);
-	if(animTest == 1)
+	if(isAnimated)
 	{
 		skinMat = 
-		a_Weight.x * jointMatrices[int(a_BoneIDs.x)] +
-		a_Weight.y * jointMatrices[int(a_BoneIDs.y)] +
-		a_Weight.z * jointMatrices[int(a_BoneIDs.z)] +
-		a_Weight.w * jointMatrices[int(a_BoneIDs.w)];
+		a_Weight.x * joints[animOffset + uint(a_BoneIDs.x)] +
+		a_Weight.y * joints[animOffset + uint(a_BoneIDs.y)] +
+		a_Weight.z * joints[animOffset + uint(a_BoneIDs.z)] +
+		a_Weight.w * joints[animOffset + uint(a_BoneIDs.w)];
 	}
 
 	v_ModelPos = vec3(model * skinMat *  vec4(a_Position, 1.0));
-	v_Normal =  mat3(model) * a_Normal;
+	v_Normal =  mat3(model * skinMat) * a_Normal;
 	v_CameraPos = sceneData.camPos.rgb;
 	v_Exposure = sceneData.params.x;
 	v_Gamma = sceneData.params.y;
 	v_Ambient = sceneData.params.z;
 	v_DirectionalLightCount = directionalLights;
 	v_PointLightCount = pointLights;
-	v_ShadowCoord = ( biasMat * lightSpace * model ) * vec4(a_Position, 1.0);	
+	v_ShadowCoord = ( biasMat * lightSpace * model * skinMat) * vec4(a_Position, 1.0);	
 	v_WorldPos = vec4(a_Position, 1.0);
 	v_UV = a_UV;
 
 	// TBN matrix
-	vec4 modelTangent = vec4(mat3(model) * a_Tangent.xyz, 1.0);
+	vec4 modelTangent = vec4(mat3(model * skinMat) * a_Tangent.xyz, 1.0);
 	vec3 N = normalize(v_Normal);
 	vec3 T = normalize(modelTangent.xyz);
 	vec3 B = normalize(cross(N, T));

@@ -24,38 +24,35 @@ namespace Frostium
 		Mesh() = default;
 		~Mesh();
 
-		// Factory
-		static void Create(const std::string& filePath, Mesh* mesh);
-
-		// Materials
 		void SetMaterialID(int32_t materialID, bool apply_to_children = false);
-
-		// Animations
-		void PlayActiveAnimation();
-		void StopActiveAnimation();
-		void SetActiveAnimByIndex(uint32_t index);
+		void SetActiveAnimation(uint32_t index);
 
 		// Getters
 		const std::vector<Mesh>& GetMeshes() const;
-		const uint32_t GetVertexCount() const;
+		uint32_t GetVertexCount() const;
+		uint32_t GetAnimationsCount() const;
 		VertexBuffer* GetVertexBuffer();
 		IndexBuffer* GetIndexBuffer();
-		Animation* GetCurrentAnim();
-		Animation* GetAnimationByIndex(uint32_t index);
 		Mesh* GetMeshByName(const std::string& name);
 		Mesh* GetMeshByIndex(uint32_t index);
+		AnimationProperties* GetAnimationProperties(uint32_t index) const;
+
+		//Helpers
+		bool IsAnimated() const;
+		void ResetAnimation(uint32_t index);
+		static void Create(const std::string& filePath, Mesh* mesh);
 
 	private:
 
-		static bool Init(Mesh* mesh, Primitive* primitive);
-		void UpdateAnimations(float deltaTime);
+		static bool Init(Mesh* mesh, Mesh* parent, Primitive* primitive);
+		void UpdateAnimations();
 
 	private:
 
 		bool                                        m_Initialized = false;
-		bool                                        m_PlayAnimations = true;
 		uint32_t                                    m_MaterialID = 0;
 		uint32_t                                    m_VertexCount = 0;
+		Mesh*                                       m_Root = nullptr;
 		Ref<VertexBuffer>                           m_VertexBuffer = nullptr;
 		Ref<IndexBuffer>                            m_IndexBuffer = nullptr;
 		ImportedDataGlTF*                           m_ImportedData = nullptr;

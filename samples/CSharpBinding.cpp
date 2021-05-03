@@ -3,7 +3,6 @@
 #include <Common/Mesh.h>
 #include <Common/Input.h>
 #include <GraphicsContext.h>
-#include <Animator.h>
 #include <MaterialLibrary.h>
 #include <Renderer.h>
 
@@ -83,6 +82,7 @@ int main(int argc, char** argv)
 		info.ResourcesFolderPath = "../resources/";
 		info.pWindowCI = &windoInfo;
 		info.pDefaultCamera = camera;
+		info.eShadowMapSize = ShadowMapSize::SIZE_16;
 	}
 
 	bool process = true;
@@ -98,7 +98,11 @@ int main(int argc, char** argv)
 	static glm::vec3 lightDir = glm::vec3(105.0f, 53.0f, 102.0f);
 	// Load assets
 	Mesh knight = {};
+	Mesh knight2 = {};
+	Mesh cube = {};
 	Mesh::Create("Assets/CesiumMan.gltf", &knight);
+	Mesh::Create("Assets/CesiumMan.gltf", &knight2);
+	Mesh::Create("Assets/cube.gltf", &cube);
 	MaterialCreateInfo materialCI = {};
 	materialCI.SetTexture(MaterialTexture::Albedro, "Assets/materials/stone/Tiles087_1K_Color.png");
 	materialCI.SetTexture(MaterialTexture::Normal, "Assets/materials/stone/Tiles087_1K_Normal.png");
@@ -110,8 +114,14 @@ int main(int argc, char** argv)
 	Renderer::UpdateMaterials();
 
 	knight.SetMaterialID(materialID);
-	knight.StopActiveAnimation();
-	knight.GetCurrentAnim()->SetSpeed(2.0);
+	AnimationProperties* defaultProp = knight.GetAnimationProperties(0);
+	AnimationProperties* defaultProp2 = knight2.GetAnimationProperties(0);
+
+	defaultProp2->SetActive(true);
+	defaultProp2->SetSpeed(5.0f);
+
+	bool playAnim = false;
+	bool reset = false;
 
 	while (process)
 	{
@@ -121,29 +131,39 @@ int main(int argc, char** argv)
 		if (context->IsWindowMinimized())
 			continue;
 
-		{
-			if (Input::IsMouseButtonPressed(MouseCode::Button0))
-				knight.PlayActiveAnimation();
-
-			if (Input::IsMouseButtonPressed(MouseCode::Button1))
-				knight.StopActiveAnimation();
-		}
-
 		context->BeginFrame(deltaTime);
 		{
-			Animator::SubmitAnimaton(&knight);
+			ImGui::Begin("Debug Window");
+			{
+				if (ImGui::Checkbox("Play", &playAnim))
+				{
+					defaultProp->SetActive(true);
+					reset = false;
+				}
+
+				if (ImGui::Checkbox("Reset", &reset))
+				{
+					knight.ResetAnimation(0);
+					playAnim = false;
+				}
+
+				if (!playAnim && defaultProp->IsActive())
+				{
+					defaultProp->SetActive(false);
+				}
+
+				ImGui::DragFloat3("LightDir", glm::value_ptr(lightDir));
+
+			}
+			ImGui::End();
 
 			Renderer::BeginScene(&clearInfo);
 			Renderer::SetShadowLightDirection(lightDir);
-			//Renderer::SubmitDirectionalLight(lightDir, { 1, 1, 1, 1 });
+			Renderer::SubmitDirectionalLight(lightDir, { 1, 1, 1, 1 });
+			Renderer::SubmitMesh({ 0, -1, 0 }, { 0, 0, 0 }, { 10, 1, 10, }, &cube, 0);
 			Renderer::SubmitMesh({ 0, 0, 0 }, { 0, 0, 0 }, { 1, 1, 1, }, &knight, materialID);
+			Renderer::SubmitMesh({ 3, 0, 0 }, { 0, 0, 0 }, { 1, 1, 1, }, &knight2, materialID);
 			Renderer::EndScene();
-
-			ImGui::Begin("Debug Window");
-			{
-				ImGui::DragFloat3("LightDir", glm::value_ptr(lightDir));
-			}
-			ImGui::End();
 		}
 		context->SwapBuffers();
 	}

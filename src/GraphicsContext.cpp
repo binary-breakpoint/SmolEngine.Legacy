@@ -3,7 +3,6 @@
 #include "Renderer.h"
 #include "Renderer2D.h"
 #include "MaterialLibrary.h"
-#include "Animator.h"
 
 #include "Common/SLog.h"
 #include "Common/Input.h"
@@ -135,16 +134,16 @@ namespace Frostium
 
 	void GraphicsContext::BeginFrame(DeltaTime time)
 	{
+		m_DeltaTime = time;
+
 		if (m_State->UseEditorCamera)
-			m_DefaultCamera->OnUpdate(time);
+			m_DefaultCamera->OnUpdate(m_DeltaTime);
 #ifdef  FROSTIUM_OPENGL_IMPL
 #else
 		m_VulkanContext.BeginFrame();
 #endif
 		if (m_State->UseImGUI)
 			m_ImGuiContext.OnBegin();
-
-		Animator::BeginSubmit(time);
 	}
 
 	void GraphicsContext::ShutDown()
@@ -253,9 +252,14 @@ namespace Frostium
 		return &m_Window;
 	}
 
-	float GraphicsContext::GetTime() const
+	float GraphicsContext::GetGltfTime() const
 	{
 		return (float)glfwGetTime();
+	}
+
+	float GraphicsContext::GetDeltaTime() const
+	{
+		return m_DeltaTime;
 	}
 
 	float GraphicsContext::GetLastFrameTime() const

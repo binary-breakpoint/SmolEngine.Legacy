@@ -31,7 +31,7 @@ namespace Frostium
                 {
                     Primitive* primitve = &data->Primitives[0];
                     obj->m_MeshMap[primitve->MeshName] = obj;
-                    Init(obj, primitve);
+                    Init(obj, nullptr,  primitve);
                 }
 
                 // Children
@@ -43,7 +43,7 @@ namespace Frostium
                     Primitive* primitve = &data->Primitives[i + 1];
 
                     obj->m_MeshMap[primitve->MeshName] = mesh;
-                    Init(mesh, primitve);
+                    Init(mesh, obj, primitve);
                 }
             }
 
@@ -61,26 +61,16 @@ namespace Frostium
         }
     }
 
-    void Mesh::PlayActiveAnimation()
-    {
-        m_PlayAnimations = true;
-    }
-
-    void Mesh::StopActiveAnimation()
-    {
-        m_PlayAnimations = false;
-    }
-
-    void Mesh::SetActiveAnimByIndex(uint32_t index)
+    void Mesh::SetActiveAnimation(uint32_t index)
     {
         if (index < m_ImportedData->Animations.size())
             m_ImportedData->ActiveAnimation = index;
     }
 
-    void Mesh::UpdateAnimations(float deltaTime)
+    void Mesh::UpdateAnimations()
     {
         if (m_ImportedData->Animations.size() > 0)
-            m_ImportedData->UpdateAnimation(deltaTime);
+            m_ImportedData->UpdateAnimation();
     }
 
     const std::vector<Mesh>& Mesh::GetMeshes() const
@@ -88,9 +78,17 @@ namespace Frostium
         return m_Meshes;
     }
 
-    const uint32_t Mesh::GetVertexCount() const
+    uint32_t Mesh::GetVertexCount() const
     {
         return m_VertexCount;
+    }
+
+    uint32_t Mesh::GetAnimationsCount() const
+    {
+        if (m_Root != nullptr)
+            return m_Root->GetAnimationsCount();
+
+        return static_cast<uint32_t>(m_ImportedData->Animations.size());
     }
 
     VertexBuffer* Mesh::GetVertexBuffer()
@@ -101,19 +99,6 @@ namespace Frostium
     IndexBuffer* Mesh::GetIndexBuffer()
     {
         return m_IndexBuffer.get();
-    }
-
-    Animation* Mesh::GetCurrentAnim()
-    {
-        return &m_ImportedData->Animations[m_ImportedData->ActiveAnimation].Animation;
-    }
-
-    Animation* Mesh::GetAnimationByIndex(uint32_t index)
-    {
-        if (index < m_ImportedData->Animations.size())
-            return &m_ImportedData->Animations[index].Animation;
-
-        return nullptr;
     }
 
     Mesh* Mesh::GetMeshByName(const std::string& name)
@@ -133,11 +118,39 @@ namespace Frostium
         return nullptr;
     }
 
-    bool Mesh::Init(Mesh* mesh, Primitive* primitive)
+    AnimationProperties* Mesh::GetAnimationProperties(uint32_t index) const
+    {
+        if (m_Root != nullptr)
+            return m_Root->GetAnimationProperties(index);
+
+        if (index < m_ImportedData->Animations.size())
+            return &m_ImportedData->Animations[index].Properties;
+
+        return nullptr;
+    }
+
+    bool Mesh::IsAnimated() const
+    {
+        if (m_ImportedData == nullptr)
+            return false;
+
+        return m_ImportedData->Animations.size() > 0;
+    }
+
+    void Mesh::ResetAnimation(uint32_t index)
+    {
+        if (m_Root != nullptr)
+            m_Root->ResetAnimation(index);
+
+        m_ImportedData->ResetAnimation(index);
+    }
+
+    bool Mesh::Init(Mesh* mesh, Mesh* parent, Primitive* primitive)
     {
         mesh->m_VertexBuffer = std::make_shared<VertexBuffer>();
         mesh->m_IndexBuffer =  std::make_shared<IndexBuffer>();
         mesh->m_VertexCount =  static_cast<uint32_t>(primitive->VertexBuffer.size());
+        mesh->m_Root = parent;
 
         VertexBuffer::Create(mesh->m_VertexBuffer.get(), primitive->VertexBuffer.data(), static_cast<uint32_t>(primitive->VertexBuffer.size() * sizeof(PBRVertex)), true);
         IndexBuffer::Create(mesh->m_IndexBuffer.get(), primitive->IndexBuffer.data(), static_cast<uint32_t>(primitive->IndexBuffer.size()), true);

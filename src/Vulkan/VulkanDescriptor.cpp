@@ -45,7 +45,7 @@ namespace Frostium
 			{
 				layoutBinding.binding = buffer.BindingPoint;
 				layoutBinding.descriptorType = type;
-				layoutBinding.descriptorCount = static_cast<uint32_t>(buffer.Uniforms.size());
+				layoutBinding.descriptorCount = 1;
 				layoutBinding.stageFlags = VulkanShader::GetVkShaderStage(buffer.Stage);
 			}
 

@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "Renderer.h"
 #include "MaterialLibrary.h"
-#include "Animator.h"
 
 #include "Common/VertexArray.h"
 #include "Common/VertexBuffer.h"
@@ -41,6 +40,8 @@ namespace Frostium
 
 	void Renderer::BeginScene(const ClearInfo* clearInfo, const BeginSceneInfo* info)
 	{
+		s_Data->m_Frustum->Update(s_Data->m_SceneData.Projection * s_Data->m_SceneData.View);
+
 		if (GraphicsContext::GetSingleton()->m_State->UseEditorCamera)
 		{
 			Camera* camera = GraphicsContext::GetSingleton()->GetDefaultCamera();
@@ -62,9 +63,6 @@ namespace Frostium
 			s_Data->m_NearClip = info->nearClip;
 			s_Data->m_FarClip = info->farClip;
 		}
-
-		Animator::EndSubmit();
-		s_Data->m_Frustum->Update(s_Data->m_SceneData.Projection * s_Data->m_SceneData.View);
 
 		s_Data->m_PBRPipeline.BeginCommandBuffer(true);
 		s_Data->m_CombinationPipeline.BeginCommandBuffer(true);
@@ -106,9 +104,43 @@ namespace Frostium
 			{
 				InstancePackage::Package& package = instance.Data[x];
 				InstanceData& shaderData = s_Data->m_InstancesData[s_Data->m_InstanceDataIndex];
+				AnimationProperties* props = nullptr;
+				uint32_t animStartOffset = 0;
+				bool animActive = false;
+
+				for (uint32_t y = 0; y < mesh->GetAnimationsCount(); ++y)
+				{
+					props = mesh->GetAnimationProperties(y);
+					if (props->IsActive())
+					{
+						animActive = true;
+						break;
+					}
+				}
+
+				const bool animated = mesh->IsAnimated();
+				if (animated)
+				{
+					ImportedDataGlTF* imported = mesh->m_ImportedData;
+					glTFAnimation* activeAnim = &imported->Animations[imported->ActiveAnimation];
+					animStartOffset = s_Data->m_LastAnimationOffset;
+
+					if (animActive)
+						mesh->UpdateAnimations();
+
+					uint32_t jointCount = static_cast<uint32_t>(props->Joints.size());
+					for (uint32_t x = 0; x < jointCount; ++x)
+					{
+						s_Data->m_AnimationJoints[s_Data->m_LastAnimationOffset] = props->Joints[x];
+						s_Data->m_LastAnimationOffset++;
+					}
+				}
 
 				Utils::ComposeTransform(*package.WorldPos, *package.Rotation, *package.Scale, shaderData.ModelView);
-				shaderData.MaterialIDs = package.MaterialID;
+				shaderData.MaterialID = package.MaterialID;
+				shaderData.IsAnimated = animated;
+				shaderData.AnimOffset = animStartOffset;
+				shaderData.EntityID = 0; // temp
 
 				s_Data->m_InstanceDataIndex++;
 			}
@@ -134,6 +166,12 @@ namespace Frostium
 			{
 				// Updates Point Lights
 				s_Data->m_PBRPipeline.SubmitBuffer(s_Data->m_PointLightBinding, sizeof(PointLightBuffer) * s_Data->m_PointLightIndex, &s_Data->m_PointLights);
+			}
+
+			// Updates animation joints
+			if (s_Data->m_LastAnimationOffset > 0)
+			{
+				s_Data->m_PBRPipeline.SubmitBuffer(s_Data->m_AnimBinding, sizeof(glm::mat4) * s_Data->m_LastAnimationOffset, &s_Data->m_AnimationJoints);
 			}
 
 			// Updates Ambient Lighting
@@ -261,14 +299,8 @@ namespace Frostium
 	void Renderer::SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation,
 		const glm::vec3& scale, Mesh* mesh, const uint32_t& materialID)
 	{
-		if (s_Data->m_Frustum->CheckSphere(pos, 3.0f))
+		if (s_Data->m_Frustum->CheckSphere(pos, 3.0f) && mesh != nullptr)
 		{
-			if (mesh->m_ImportedData->Skins.size() > 0)
-			{
-				auto& vec = mesh->m_ImportedData->Animations[mesh->m_ImportedData->ActiveAnimation].Joints;
-				s_Data->m_PBRPipeline.SubmitBuffer(28, sizeof(glm::mat4) * vec.size(), vec.data());
-				s_Data->m_MainPushConstant.AnimTest = true;
-			}
 			AddMesh(pos, rotation, scale, mesh, materialID);
 		}
 	}
@@ -381,7 +413,7 @@ namespace Frostium
 				// Vertex
 				shaderCI.StorageBuffersSizes[s_Data->m_ShaderDataBinding] = { sizeof(InstanceData) * s_InstanceDataMaxCount };
 				shaderCI.StorageBuffersSizes[s_Data->m_MaterialsBinding] = { sizeof(PBRMaterial) * 1000 };
-				shaderCI.StorageBuffersSizes[28] = { sizeof(glm::mat4) * 100 };
+				shaderCI.StorageBuffersSizes[s_Data->m_AnimBinding] = { sizeof(glm::mat4) * s_MaxAnimationJoints};
 
 				// Fragment
 				shaderCI.StorageBuffersSizes[s_Data->m_DirLightBinding] = { sizeof(DirectionalLightBuffer) * s_MaxDirectionalLights };
@@ -761,6 +793,7 @@ namespace Frostium
 		s_Data->m_PointLightIndex = 0;
 		s_Data->m_DrawListIndex = 0;
 		s_Data->m_UsedMeshesIndex = 0;
+		s_Data->m_LastAnimationOffset = 0;
 	}
 
 	void Renderer::Shutdown()

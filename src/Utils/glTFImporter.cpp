@@ -112,13 +112,13 @@ namespace Frostium
 					// Adjust animation's start and end times
 					for (auto input : animations[i].Samplers[j].Inputs)
 					{
-						if (input < animations[i].Animation.GetStartTime())
+						if (input < animations[i].Properties.GetStart())
 						{
-							animations[i].Animation.SetStartTime(input);
+							animations[i].Properties.SetStart(input);
 						};
-						if (input > animations[i].Animation.GetEndTime())
+						if (input > animations[i].Properties.GetEnd())
 						{
-							animations[i].Animation.SetEndTime(input);
+							animations[i].Properties.SetEnd(input);
 						}
 					}
 				}
@@ -374,32 +374,34 @@ namespace Frostium
 			delete n;
 	}
 
-	void ImportedDataGlTF::UpdateJoints(glTFNode* node, glTFAnimation* anim)
+	void ImportedDataGlTF::UpdateJoints(glTFNode* node, AnimationProperties* data)
 	{
-		if (node->Skin> -1 && anim)
+		if (node->Skin> -1 && data)
 		{
 			// Update the joint matrices
 			glm::mat4              inverseTransform = glm::inverse(GetNodeMatrix(node));
 			Skin                   skin = Skins[node->Skin];
 			size_t                 numJoints = (uint32_t)skin.Joints.size();
 
-			anim->Joints.clear();
-			anim->Joints.resize(numJoints);
+
+			std::vector<glm::mat4>& joints = data->Joints;
+			joints.resize(numJoints);
 			for (size_t i = 0; i < numJoints; i++)
 			{
-				anim->Joints[i] = GetNodeMatrix(skin.Joints[i]) * skin.InverseBindMatrices[i];
-				anim->Joints[i] = inverseTransform * anim->Joints[i];
+				joints[i] = GetNodeMatrix(skin.Joints[i]) * skin.InverseBindMatrices[i];
+				joints[i] = inverseTransform * joints[i];
 			}
 		}
 
 		for (auto& child : node->Children)
 		{
-			UpdateJoints(child, anim);
+			UpdateJoints(child, data);
 		}
 	}
 
-	void ImportedDataGlTF::UpdateAnimation(float deltaTime)
+	void ImportedDataGlTF::UpdateAnimation()
 	{
+		float deltaTime = GraphicsContext::GetSingleton()->GetDeltaTime();
 		if (ActiveAnimation > static_cast<uint32_t>(Animations.size()) - 1)
 		{
 			NATIVE_INFO("No animation with index {}", ActiveAnimation);
@@ -407,10 +409,12 @@ namespace Frostium
 		}
 
 		glTFAnimation& animation = Animations[ActiveAnimation];
-		animation.CurrentTime += deltaTime * animation.Animation.GetSpeed();
-		if (animation.CurrentTime > animation.Animation.GetEndTime())
+		AnimationProperties* selectedProperties = &animation.Properties;
+
+		selectedProperties->CurrentTime += deltaTime * selectedProperties->Speed;
+		if (selectedProperties->CurrentTime > selectedProperties->End)
 		{
-			animation.CurrentTime -= animation.Animation.GetEndTime();
+			selectedProperties->CurrentTime -= selectedProperties->End;
 		}
 
 		for (auto& channel : animation.Channels)
@@ -425,9 +429,9 @@ namespace Frostium
 				}
 
 				// Get the input keyframe values for the current time stamp
-				if ((animation.CurrentTime >= sampler.Inputs[i]) && (animation.CurrentTime <= sampler.Inputs[i + 1]))
+				if ((selectedProperties->CurrentTime >= sampler.Inputs[i]) && (selectedProperties->CurrentTime <= sampler.Inputs[i + 1]))
 				{
-					float a = (animation.CurrentTime - sampler.Inputs[i]) / (sampler.Inputs[i + 1] - sampler.Inputs[i]);
+					float a = (selectedProperties->CurrentTime - sampler.Inputs[i]) / (sampler.Inputs[i + 1] - sampler.Inputs[i]);
 					if (channel.Path == "translation")
 					{
 						channel.Node->Translation = glm::mix(sampler.OutputsVec4[i], sampler.OutputsVec4[i + 1], a);
@@ -458,8 +462,16 @@ namespace Frostium
 
 		for (auto& node : Nodes)
 		{
-			UpdateJoints(node, &animation);
+			UpdateJoints(node, selectedProperties);
 		}
+	}
+
+	void ImportedDataGlTF::ResetAnimation(uint32_t index)
+	{
+		glTFAnimation& animation = Animations[index];
+		animation.Properties.Active = false;
+		animation.Properties.CurrentTime = animation.Properties.Start;
+		UpdateAnimation();
 	}
 
 	glm::mat4 ImportedDataGlTF::GetNodeMatrix(glTFNode* node)
@@ -500,7 +512,7 @@ namespace Frostium
 			// Calculate initial pose
 			for (auto node : out_data->Nodes)
 			{
-				out_data->UpdateJoints(node, activeAnim);
+				out_data->UpdateJoints(node, &activeAnim->Properties);
 			}
 		}
 

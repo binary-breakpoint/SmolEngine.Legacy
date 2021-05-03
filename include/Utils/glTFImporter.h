@@ -49,12 +49,10 @@ namespace Frostium
 									     
 	struct glTFAnimation
 	{								     
-		float                            CurrentTime = 0.0f;
 		std::string                      Name;
-		Animation                        Animation{};
+		AnimationProperties              Properties{};
 		std::vector<AnimationSampler>    Samplers;
 		std::vector<AnimationChannel>    Channels;
-		std::vector<glm::mat4>           Joints;
 	};
 
 	struct Primitive
@@ -69,8 +67,10 @@ namespace Frostium
 		ImportedDataGlTF() = default;
 		~ImportedDataGlTF();
 
-		void UpdateJoints(glTFNode* node, glTFAnimation* anim);
-		void UpdateAnimation(float deltaTime);
+		void UpdateJoints(glTFNode* node, AnimationProperties* data);
+		void UpdateAnimation();
+		void ResetAnimation(uint32_t index);
+
 		glm::mat4 GetNodeMatrix(glTFNode* node);
 
 	public:
