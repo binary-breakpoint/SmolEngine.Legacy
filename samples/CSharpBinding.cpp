@@ -67,7 +67,7 @@ int main(int argc, char** argv)
 		windoInfo.bVSync = false;
 		windoInfo.Height = 480;
 		windoInfo.Width = 720;
-		windoInfo.Title = "Frostium Example";
+		windoInfo.Title = "Frostium Skinning";
 	}
 
 	EditorCamera* camera = nullptr;
@@ -97,11 +97,7 @@ int main(int argc, char** argv)
 	InitMono();
 	static glm::vec3 lightDir = glm::vec3(105.0f, 53.0f, 102.0f);
 	// Load assets
-	Mesh knight = {};
-	Mesh knight2 = {};
 	Mesh cube = {};
-	Mesh::Create("Assets/CesiumMan.gltf", &knight);
-	Mesh::Create("Assets/CesiumMan.gltf", &knight2);
 	Mesh::Create("Assets/cube.gltf", &cube);
 	MaterialCreateInfo materialCI = {};
 	materialCI.SetTexture(MaterialTexture::Albedro, "Assets/materials/stone/Tiles087_1K_Color.png");
@@ -109,19 +105,8 @@ int main(int argc, char** argv)
 	materialCI.SetTexture(MaterialTexture::Roughness, "Assets/materials/stone/Tiles087_1K_Roughness.png");
 	materialCI.SetTexture(MaterialTexture::AO, "Assets/materials/stone/Tiles087_1K_AmbientOcclusion.png");
 	materialCI.SetMetalness(0.1f);
-
-	uint32_t materialID  = MaterialLibrary::GetSinglenton()->Add(&materialCI);
+	uint32_t stoneMat = MaterialLibrary::GetSinglenton()->Add(&materialCI);
 	Renderer::UpdateMaterials();
-
-	knight.SetMaterialID(materialID);
-	AnimationProperties* defaultProp = knight.GetAnimationProperties(0);
-	AnimationProperties* defaultProp2 = knight2.GetAnimationProperties(0);
-
-	defaultProp2->SetActive(true);
-	defaultProp2->SetSpeed(5.0f);
-
-	bool playAnim = false;
-	bool reset = false;
 
 	while (process)
 	{
@@ -135,24 +120,6 @@ int main(int argc, char** argv)
 		{
 			ImGui::Begin("Debug Window");
 			{
-				if (ImGui::Checkbox("Play", &playAnim))
-				{
-					defaultProp->SetActive(true);
-					reset = false;
-				}
-
-				if (ImGui::Checkbox("Reset", &reset))
-				{
-					knight.ResetAnimation(0);
-					playAnim = false;
-				}
-
-				if (!playAnim && defaultProp->IsActive())
-				{
-					defaultProp->SetActive(false);
-				}
-
-				ImGui::DragFloat3("LightDir", glm::value_ptr(lightDir));
 
 			}
 			ImGui::End();
@@ -160,9 +127,7 @@ int main(int argc, char** argv)
 			Renderer::BeginScene(&clearInfo);
 			Renderer::SetShadowLightDirection(lightDir);
 			Renderer::SubmitDirectionalLight(lightDir, { 1, 1, 1, 1 });
-			Renderer::SubmitMesh({ 0, -1, 0 }, { 0, 0, 0 }, { 10, 1, 10, }, &cube, 0);
-			Renderer::SubmitMesh({ 0, 0, 0 }, { 0, 0, 0 }, { 1, 1, 1, }, &knight, materialID);
-			Renderer::SubmitMesh({ 3, 0, 0 }, { 0, 0, 0 }, { 1, 1, 1, }, &knight2, materialID);
+			Renderer::SubmitMesh({ 0, -5.0, 0 }, { 0, 0, 0 }, { 10, 1, 10, }, &cube, stoneMat);
 			Renderer::EndScene();
 		}
 		context->SwapBuffers();

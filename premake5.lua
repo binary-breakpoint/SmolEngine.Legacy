@@ -374,4 +374,54 @@ project "2D"
 		buildoptions "/MD"
 		optimize "on"
 
+	------------------------------------------------- 3D Animations
+
+	project "Skinning"
+	kind "ConsoleApp"
+	location "samples"
+	language "C++"
+	cppdialect "C++17"
+	staticruntime "on"
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("vendor/libs/bin-int/" .. outputdir .. "/%{prj.name}")
+
+	files
+	{
+		"samples/Skinning.h",
+		"samples/Skinning.cpp",
+	}
+
+	includedirs
+	{
+		"include/",
+		"include/Libraries",
+		"include/Libraries/spdlog/include",
+		"include/Libraries/cereal/include",
+		"include/Libraries/glm/"
+	}
+
+	links
+	{
+		"bin/" ..outputdir .. "/Frostium/Frostium.lib"
+	}
+
+	filter "system:windows"
+		systemversion "latest"
+
+		defines
+		{
+			"_CRT_SECURE_NO_WARNINGS",
+			"PLATFORM_WIN"
+		}
+
+	filter "configurations:Debug_Vulkan"
+	buildoptions "/MDd"
+	buildoptions "/bigobj"
+	symbols "on"
+
+	filter "configurations:Release_Vulkan"
+		buildoptions "/MD"
+		optimize "on"
+
 	group ""

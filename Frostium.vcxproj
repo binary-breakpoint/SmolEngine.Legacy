@@ -203,8 +203,8 @@
     <ClInclude Include="include\Common\RendererShared.h" />
     <ClInclude Include="include\Common\RendererStorage.h" />
     <ClInclude Include="include\Common\SLog.h" />
-    <ClInclude Include="include\Common\Shader.h" />
     <ClInclude Include="include\Common\SPIRVReflection.h" />
+    <ClInclude Include="include\Common\Shader.h" />
     <ClInclude Include="include\Common\SubTexture.h" />
     <ClInclude Include="include\Common\Text.h" />
     <ClInclude Include="include\Common\Texture.h" />

@@ -216,6 +216,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\Common\Animation.h">
+      <Filter>include\Common</Filter>
+    </ClInclude>
     <ClInclude Include="include\Common\BufferElement.h">
       <Filter>include\Common</Filter>
     </ClInclude>
@@ -271,6 +274,9 @@
       <Filter>include\Common</Filter>
     </ClInclude>
     <ClInclude Include="include\Common\SLog.h">
+      <Filter>include\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Common\SPIRVReflection.h">
       <Filter>include\Common</Filter>
     </ClInclude>
     <ClInclude Include="include\Common\Shader.h">
@@ -2367,8 +2373,6 @@
     <ClInclude Include="vendor\stb_image\stb_image_write.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="include\Common\Animation.h" />
-    <ClInclude Include="include\Common\SPIRVReflection.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Common\CubeTexture.cpp">

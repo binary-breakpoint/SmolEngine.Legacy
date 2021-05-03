@@ -131,10 +131,15 @@ namespace Frostium
 
     bool Mesh::IsAnimated() const
     {
-        if (m_ImportedData == nullptr)
-            return false;
+        if (m_Root != nullptr)
+            return m_Root->IsAnimated();
 
         return m_ImportedData->Animations.size() > 0;
+    }
+
+    bool Mesh::IsRootNode() const
+    {
+        return m_Root == nullptr;
     }
 
     void Mesh::ResetAnimation(uint32_t index)

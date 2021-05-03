@@ -105,6 +105,8 @@ namespace Frostium
 		glm::mat4                        m_AnimationJoints[s_MaxAnimationJoints];
 		std::unordered_map<Mesh*,
 			InstancePackage>             m_Packages;
+		std::unordered_map<Mesh*,
+			uint32_t>                    m_RootOffsets;
 		// UBO's & Push Constants
 		struct AmbientLighting
 		{

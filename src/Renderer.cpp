@@ -123,16 +123,27 @@ namespace Frostium
 				{
 					ImportedDataGlTF* imported = mesh->m_ImportedData;
 					glTFAnimation* activeAnim = &imported->Animations[imported->ActiveAnimation];
-					animStartOffset = s_Data->m_LastAnimationOffset;
-
-					if (animActive)
-						mesh->UpdateAnimations();
-
-					uint32_t jointCount = static_cast<uint32_t>(props->Joints.size());
-					for (uint32_t x = 0; x < jointCount; ++x)
+					if (mesh->IsRootNode())
 					{
-						s_Data->m_AnimationJoints[s_Data->m_LastAnimationOffset] = props->Joints[x];
-						s_Data->m_LastAnimationOffset++;
+						animStartOffset = s_Data->m_LastAnimationOffset;
+						s_Data->m_RootOffsets[mesh] = animStartOffset;
+
+						if (animActive)
+							mesh->UpdateAnimations();
+
+						uint32_t jointCount = static_cast<uint32_t>(props->Joints.size());
+						for (uint32_t x = 0; x < jointCount; ++x)
+						{
+							s_Data->m_AnimationJoints[s_Data->m_LastAnimationOffset] = props->Joints[x];
+							s_Data->m_LastAnimationOffset++;
+						}
+					}
+
+					if (animated && !mesh->IsRootNode())
+					{
+						auto& it = s_Data->m_RootOffsets.find(mesh->m_Root);
+						if (it != s_Data->m_RootOffsets.end())
+							animStartOffset = it->second;
 					}
 				}
 
@@ -794,6 +805,7 @@ namespace Frostium
 		s_Data->m_DrawListIndex = 0;
 		s_Data->m_UsedMeshesIndex = 0;
 		s_Data->m_LastAnimationOffset = 0;
+		s_Data->m_RootOffsets.clear();
 	}
 
 	void Renderer::Shutdown()

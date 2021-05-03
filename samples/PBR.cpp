@@ -48,7 +48,7 @@ int main(int argc, char** argv)
 		windoInfo.bVSync = false;
 		windoInfo.Height = 480;
 		windoInfo.Width = 720;
-		windoInfo.Title = "Frostium Example";
+		windoInfo.Title = "Frostium PBR";
 	}
 
 	Camera* camera = nullptr;

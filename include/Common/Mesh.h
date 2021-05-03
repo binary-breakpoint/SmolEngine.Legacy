@@ -39,6 +39,7 @@ namespace Frostium
 
 		//Helpers
 		bool IsAnimated() const;
+		bool IsRootNode() const;
 		void ResetAnimation(uint32_t index);
 		static void Create(const std::string& filePath, Mesh* mesh);
 
