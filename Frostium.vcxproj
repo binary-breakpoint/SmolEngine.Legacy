@@ -868,7 +868,7 @@
     <ClInclude Include="include\RaytracingPipeline.h" />
     <ClInclude Include="include\Renderer.h" />
     <ClInclude Include="include\Renderer2D.h" />
-    <ClInclude Include="include\RendererDebug.h" />
+    <ClInclude Include="include\DebugRenderer.h" />
     <ClInclude Include="include\Utils\Frustum.h" />
     <ClInclude Include="include\Utils\GLM.h" />
     <ClInclude Include="include\Utils\SSAOGenerator.h" />
@@ -938,7 +938,7 @@
     <ClCompile Include="src\RaytracingPipeline.cpp" />
     <ClCompile Include="src\Renderer.cpp" />
     <ClCompile Include="src\Renderer2D.cpp" />
-    <ClCompile Include="src\RendererDebug.cpp" />
+    <ClCompile Include="src\DebugRenderer.cpp" />
     <ClCompile Include="src\Utils\Frustum.cpp" />
     <ClCompile Include="src\Utils\Utils.cpp" />
     <ClCompile Include="src\Utils\glTFImporter.cpp" />

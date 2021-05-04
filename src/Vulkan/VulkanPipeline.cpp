@@ -84,7 +84,7 @@ namespace Frostium
 		VkPipelineRasterizationStateCreateInfo rasterizationState = {};
 		{
 			rasterizationState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-			rasterizationState.polygonMode = GetVkPolygonMode(mode);
+			rasterizationState.polygonMode = GetVkPolygonMode(m_PipelineSpecification->ePolygonMode);
 			rasterizationState.cullMode = GetVkCullMode(m_PipelineSpecification->eCullMode);
 			rasterizationState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 			rasterizationState.depthClampEnable = VulkanContext::GetDevice().GetDeviceFeatures()->depthClamp;
@@ -531,18 +531,8 @@ namespace Frostium
 		case Frostium::DrawMode::Triangle:	                        return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 		case Frostium::DrawMode::Line:			                    return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
 		case Frostium::DrawMode::Fan:			                    return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY;
+		case Frostium::DrawMode::Triangle_Strip:                    return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
 		default:			                                        return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-		}
-	}
-
-	VkPolygonMode VulkanPipeline::GetVkPolygonMode(DrawMode mode)
-	{
-		switch (mode)
-		{
-		case Frostium::DrawMode::Triangle:		                    return VkPolygonMode::VK_POLYGON_MODE_FILL;
-		case Frostium::DrawMode::Line:			                    return VkPolygonMode::VK_POLYGON_MODE_LINE;
-		case Frostium::DrawMode::Fan:			                    return VkPolygonMode::VK_POLYGON_MODE_LINE;
-		default:			                                        return VkPolygonMode::VK_POLYGON_MODE_FILL;
 		}
 	}
 
@@ -554,6 +544,17 @@ namespace Frostium
 		case Frostium::CullMode::Front: 		                    return VK_CULL_MODE_FRONT_BIT;
 		case Frostium::CullMode::None: 			                    return VK_CULL_MODE_NONE;
 		default:			                                        return VK_CULL_MODE_BACK_BIT;
+		}
+	}
+
+	VkPolygonMode VulkanPipeline::GetVkPolygonMode(PolygonMode mode)
+	{
+		switch (mode)
+		{
+		case Frostium::PolygonMode::Fill:		                    return VkPolygonMode::VK_POLYGON_MODE_FILL;
+		case Frostium::PolygonMode::Line:				            return VkPolygonMode::VK_POLYGON_MODE_LINE;
+		case Frostium::PolygonMode::Point:			                return VkPolygonMode::VK_POLYGON_MODE_POINT;
+		default:			                                        return VkPolygonMode::VK_POLYGON_MODE_FILL;
 		}
 	}
 

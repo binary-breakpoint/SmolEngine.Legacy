@@ -4,6 +4,7 @@
 #include <Common/Input.h>
 #include <GraphicsContext.h>
 #include <MaterialLibrary.h>
+#include <DebugRenderer.h>
 #include <Renderer.h>
 
 #include <ImGUI/ImGuiExtension.h>
@@ -48,40 +49,50 @@ int main(int argc, char** argv)
 		});
 
 	static glm::vec3 lightDir = glm::vec3(105.0f, 53.0f, 102.0f);
-	// Load assets
+
+	// Load models
 	Mesh plane = {};
 	Mesh knight2 = {};
 	Mesh cube = {};
 	Mesh::Create("Assets/plane.gltf", &plane);
 	Mesh::Create("Assets/CesiumMan.gltf", &knight2);
 	Mesh::Create("Assets/cube.gltf", &cube);
-	MaterialCreateInfo materialCI = {};
-	materialCI.SetTexture(MaterialTexture::Albedro, "Assets/materials/stone/Tiles087_1K_Color.png");
-	materialCI.SetTexture(MaterialTexture::Normal, "Assets/materials/stone/Tiles087_1K_Normal.png");
-	materialCI.SetTexture(MaterialTexture::Roughness, "Assets/materials/stone/Tiles087_1K_Roughness.png");
-	materialCI.SetTexture(MaterialTexture::AO, "Assets/materials/stone/Tiles087_1K_AmbientOcclusion.png");
-	materialCI.SetMetalness(0.1f);
-	uint32_t stoneMat = MaterialLibrary::GetSinglenton()->Add(&materialCI);
 
-	materialCI = {};
-	materialCI.SetTexture(MaterialTexture::Albedro, "Assets/materials/plane/Metal021_2K_Color.png");
-	materialCI.SetTexture(MaterialTexture::Normal, "Assets/materials/plane/Metal021_2K_Normal.png");
-	materialCI.SetTexture(MaterialTexture::Roughness, "Assets/materials/plane/Metal021_2K_Roughness.png");
-	materialCI.SetTexture(MaterialTexture::Metallic, "Assets/materials/plane/Metal021_2K_Metalness.png");
-	uint32_t planeMat = MaterialLibrary::GetSinglenton()->Add(&materialCI);
+	// Load Materials
+	uint32_t stoneMat;
+	uint32_t planeMat;
+	{
+		MaterialCreateInfo materialCI = {};
+		materialCI.SetTexture(MaterialTexture::Albedro, "Assets/materials/stone/Tiles087_1K_Color.png");
+		materialCI.SetTexture(MaterialTexture::Normal, "Assets/materials/stone/Tiles087_1K_Normal.png");
+		materialCI.SetTexture(MaterialTexture::Roughness, "Assets/materials/stone/Tiles087_1K_Roughness.png");
+		materialCI.SetTexture(MaterialTexture::AO, "Assets/materials/stone/Tiles087_1K_AmbientOcclusion.png");
+		materialCI.SetMetalness(0.1f);
+
+		stoneMat = MaterialLibrary::GetSinglenton()->Add(&materialCI);
+
+		materialCI.SetTexture(MaterialTexture::Albedro, "Assets/materials/plane/Metal021_2K_Color.png");
+		materialCI.SetTexture(MaterialTexture::Normal, "Assets/materials/plane/Metal021_2K_Normal.png");
+		materialCI.SetTexture(MaterialTexture::Roughness, "Assets/materials/plane/Metal021_2K_Roughness.png");
+		materialCI.SetTexture(MaterialTexture::Metallic, "Assets/materials/plane/Metal021_2K_Metalness.png");
+
+		planeMat = MaterialLibrary::GetSinglenton()->Add(&materialCI);
+	}
 
 	Renderer::UpdateMaterials();
-
 	plane.SetMaterialID(stoneMat, true);
+
 	AnimationProperties* defaultProp = plane.GetAnimationProperties(0);
 	AnimationProperties* defaultProp2 = knight2.GetAnimationProperties(0);
 
 	defaultProp2->SetActive(true);
-	defaultProp2->SetSpeed(5.0f);
 
 	bool playAnim = false;
 	bool reset = false;
+	bool wireframes = false;
+	float animSpeed = 1.0f;
 
+	RendererState state = {};
 	glm::vec3 rot = glm::vec3(-90.0f, 0.0f, 0.0f);
 
 	while (process)
@@ -92,16 +103,22 @@ int main(int argc, char** argv)
 		if (context->IsWindowMinimized())
 			continue;
 
+		context->UpdateSceneData(); // uses default camera - updates automatically
 		context->BeginFrame(deltaTime);
 		{
 			ImGui::Begin("Debug Window");
 			{
+				ImGui::Checkbox("Grid", &state.bDrawGrid);
+				ImGui::Checkbox("Skybox", &state.bDrawSkyBox);
+				ImGui::Checkbox("Wireframes", &wireframes);
+
 				if (ImGui::Checkbox("Play", &playAnim))
 				{
 					defaultProp->SetActive(true);
 					reset = false;
 				}
 
+				ImGui::SameLine();
 				if (ImGui::Checkbox("Reset", &reset))
 				{
 					plane.ResetAnimation(0);
@@ -113,19 +130,33 @@ int main(int argc, char** argv)
 					defaultProp->SetActive(false);
 				}
 
+				if (ImGui::InputFloat("Anim Speed", &animSpeed))
+				{
+					defaultProp2->SetSpeed(animSpeed);
+				}
 				ImGui::DragFloat3("LightDir", glm::value_ptr(lightDir));
 				ImGui::DragFloat3("Plane rot", glm::value_ptr(rot));
 
 			}
 			ImGui::End();
 
+			Renderer::SetRendererState(&state);
+
 			Renderer::BeginScene(&clearInfo);
 			Renderer::SetShadowLightDirection(lightDir);
 			Renderer::SubmitDirectionalLight(lightDir, { 1, 1, 1, 1 });
-			Renderer::SubmitMesh({ 0, -1, 0 }, { 0, 0, 0 }, { 50, 1, 50, }, &cube, 0);
-			Renderer::SubmitMesh({ 0, 1.9f, -3 }, glm::radians(rot), { 1, 1, 1, }, &plane, planeMat);
-			Renderer::SubmitMesh({ 3, 0, 0 }, { 0, 0, 0 }, { 1, 1, 1, }, &knight2, stoneMat);
+			Renderer::SubmitMesh({ 0, 1, 0 }, { 0, 0, 0 }, { 50, 1, 50, }, &cube, 0);
+			Renderer::SubmitMesh({ 0, 3.9f, -3 }, glm::radians(rot), { 1, 1, 1, }, &plane, planeMat);
+			Renderer::SubmitMesh({ 3, 2, 0 }, { 0, 0, 0 }, { 1, 1, 1, }, &knight2, stoneMat);
 			Renderer::EndScene();
+
+			if (wireframes)
+			{
+				DebugRenderer::BeginDebug();
+				DebugRenderer::DrawMesh({ 0, 1, 0 }, { 0, 0, 0 }, { 50, 1, 50, }, &cube);
+				DebugRenderer::EndDebug();
+			}
+
 		}
 		context->SwapBuffers();
 	}

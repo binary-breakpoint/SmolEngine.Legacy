@@ -5,7 +5,6 @@
 #include <GraphicsContext.h>
 #include <MaterialLibrary.h>
 #include <Renderer.h>
-
 #include <ImGUI/ImGuiExtension.h>
 
 #include <mono/metadata/assembly.h>
@@ -116,6 +115,7 @@ int main(int argc, char** argv)
 		if (context->IsWindowMinimized())
 			continue;
 
+		context->UpdateSceneData(); // uses default camera - updates automatically
 		context->BeginFrame(deltaTime);
 		{
 			ImGui::Begin("Debug Window");

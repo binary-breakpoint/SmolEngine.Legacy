@@ -46,11 +46,17 @@ layout(std140, binding = 26) readonly buffer MaterialsBuffer
 
 layout (std140, binding = 27) uniform SceneBuffer
 {
+	float nearClip;
+    float farClip;
+    float exoposure;
+    float pad;
+
+
 	mat4 projection;
 	mat4 view;
 	mat4 skyBoxMatrix;
 	vec4 camPos;
-	vec4 params;
+	vec4 ambientColor;
 
 } sceneData;
 
@@ -128,14 +134,16 @@ void main()
 	v_ModelPos = vec3(model * skinMat *  vec4(a_Position, 1.0));
 	v_Normal =  mat3(model * skinMat) * a_Normal;
 	v_CameraPos = sceneData.camPos.rgb;
-	v_Exposure = sceneData.params.x;
-	v_Gamma = sceneData.params.y;
-	v_Ambient = sceneData.params.z;
 	v_DirectionalLightCount = directionalLights;
 	v_PointLightCount = pointLights;
 	v_ShadowCoord = ( biasMat * lightSpace * model * skinMat) * vec4(a_Position, 1.0);	
 	v_WorldPos = vec4(a_Position, 1.0);
 	v_UV = a_UV;
+
+	// temp
+	v_Exposure = 1.0;
+	v_Gamma = 1.0;
+	v_Ambient = 1.0;
 
 	// TBN matrix
 	vec4 modelTangent = vec4(mat3(model * skinMat) * a_Tangent.xyz, 1.0);

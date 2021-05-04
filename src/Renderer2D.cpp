@@ -19,6 +19,7 @@ namespace Frostium
 
 		Stats = new Renderer2DStats();
 		s_Data = storage;
+		s_Data->SceneData = &GraphicsContext::GetSingleton()->m_SceneData;
 
 		CreateFramebuffers();
 		CreatePipelines();
@@ -33,22 +34,8 @@ namespace Frostium
 		}
 	}
 
-	void Renderer2D::BeginScene(const ClearInfo* clearInfo, const BeginSceneInfo* info)
+	void Renderer2D::BeginScene(const ClearInfo* clearInfo)
 	{
-		if (GraphicsContext::GetSingleton()->m_State->UseEditorCamera)
-		{
-			Camera* camera = GraphicsContext::GetSingleton()->GetDefaultCamera();
-			s_Data->SceneData.View = camera->GetViewMatrix();
-			s_Data->SceneData.Projection = camera->GetProjection();
-		}
-
-		if (info)
-		{
-			s_Data->SceneData.View = info->view;
-			s_Data->SceneData.Projection = info->proj;
-		}
-
-		s_Data->Frustum->Update(s_Data->SceneData.Projection * s_Data->SceneData.View);
 		s_Data->CombinationPipeline.BeginCommandBuffer(true);
 		s_Data->DeferredPipeline.BeginCommandBuffer(true);
 		s_Data->TextPipeline.BeginCommandBuffer(true);
@@ -167,7 +154,7 @@ namespace Frostium
 		}
 
 		// Update Scene data
-		s_Data->DeferredPipeline.SubmitBuffer(s_Data->SceneDataBP, sizeof(SceneData), &s_Data->SceneData);
+		s_Data->DeferredPipeline.SubmitBuffer(s_Data->SceneDataBP, sizeof(SceneData), s_Data->SceneData);
 
 		if (s_Data->InstIndex > 0)
 		{

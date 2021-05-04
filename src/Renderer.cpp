@@ -24,6 +24,7 @@
 namespace Frostium
 {
 	static RendererStorage* s_Data = nullptr;
+
 	void Renderer::Init(RendererStorage* storage)
 	{
 		if (storage == nullptr)
@@ -35,35 +36,13 @@ namespace Frostium
 			InitFramebuffers();
 			InitPipelines();
 		}
+
+		s_Data->m_SceneData = &GraphicsContext::GetSingleton()->m_SceneData;
 		s_Data->m_IsInitialized = true;
 	}
 
-	void Renderer::BeginScene(const ClearInfo* clearInfo, const BeginSceneInfo* info)
+	void Renderer::BeginScene(const ClearInfo* clearInfo)
 	{
-		s_Data->m_Frustum->Update(s_Data->m_SceneData.Projection * s_Data->m_SceneData.View);
-
-		if (GraphicsContext::GetSingleton()->m_State->UseEditorCamera)
-		{
-			Camera* camera = GraphicsContext::GetSingleton()->GetDefaultCamera();
-
-			s_Data->m_SceneData.View = camera->GetViewMatrix();
-			s_Data->m_SceneData.Projection = camera->GetProjection();
-			s_Data->m_SceneData.CamPos = glm::vec4(camera->GetPosition(), 1.0f);
-			s_Data->m_SceneData.SkyBoxMatrix = glm::mat4(glm::mat3(camera->GetViewMatrix()));
-			s_Data->m_NearClip = camera->GetNearClip();
-			s_Data->m_FarClip = camera->GetFarClip();
-		}
-
-		if (info)
-		{
-			s_Data->m_SceneData.View = info->view;
-			s_Data->m_SceneData.Projection = info->proj;
-			s_Data->m_SceneData.CamPos = glm::vec4(info->pos, 1);
-			s_Data->m_SceneData.SkyBoxMatrix = glm::mat4(glm::mat3(info->view));
-			s_Data->m_NearClip = info->nearClip;
-			s_Data->m_FarClip = info->farClip;
-		}
-
 		s_Data->m_PBRPipeline.BeginCommandBuffer(true);
 		s_Data->m_CombinationPipeline.BeginCommandBuffer(true);
 		s_Data->m_SkyboxPipeline.BeginCommandBuffer(true);
@@ -163,19 +142,19 @@ namespace Frostium
 		// Updates UBOs and SSBOs 
 		{
 			// Updates scene data
-			s_Data->m_PBRPipeline.SubmitBuffer(s_Data->m_SceneDataBinding, s_Data->m_SceneDataSize, &s_Data->m_SceneData);
+			s_Data->m_PBRPipeline.SubmitBuffer(s_Data->m_SceneDataBinding, sizeof(SceneData), s_Data->m_SceneData);
 
+			// Updates Directional Lights
 			if (s_Data->m_DirectionalLightIndex > 0)
 			{
-				// Updates Directional Lights
 				s_Data->m_PBRPipeline.SubmitBuffer(s_Data->m_DirLightBinding, sizeof(DirectionalLightBuffer) * s_Data->m_DirectionalLightIndex, &s_Data->m_DirectionalLights);
 				// Calculate Depth
 				s_Data->m_MainPushConstant.DepthMVP = CalculateDepthMVP(s_Data->m_ShadowLightDirection);
 			}
 
+			// Updates Point Lights
 			if (s_Data->m_PointLightIndex > 0)
 			{
-				// Updates Point Lights
 				s_Data->m_PBRPipeline.SubmitBuffer(s_Data->m_PointLightBinding, sizeof(PointLightBuffer) * s_Data->m_PointLightIndex, &s_Data->m_PointLights);
 			}
 
@@ -185,10 +164,14 @@ namespace Frostium
 				s_Data->m_PBRPipeline.SubmitBuffer(s_Data->m_AnimBinding, sizeof(glm::mat4) * s_Data->m_LastAnimationOffset, &s_Data->m_AnimationJoints);
 			}
 
+			// Updates model views
+			if (s_Data->m_InstanceDataIndex > 0)
+			{
+				s_Data->m_PBRPipeline.SubmitBuffer(s_Data->m_ShaderDataBinding, sizeof(InstanceData) * s_Data->m_InstanceDataIndex, &s_Data->m_InstancesData);
+			}
+
 			// Updates Ambient Lighting
 			s_Data->m_PBRPipeline.SubmitBuffer(s_Data->m_AmbientLightBinding, s_Data->m_AmbientLightingSize, &s_Data->m_AmbientLighting);
-			// Updates model views
-			s_Data->m_PBRPipeline.SubmitBuffer(s_Data->m_ShaderDataBinding, sizeof(InstanceData) * s_Data->m_InstanceDataIndex, &s_Data->m_InstancesData);
 		}
 
 		// Depth Pass
@@ -230,7 +213,18 @@ namespace Frostium
 		// Geometry + SkyBox + Ligting (temp)
 		s_Data->m_PBRPipeline.BeginRenderPass();
 		{
-			s_Data->m_SkyboxPipeline.Draw(36);
+			// SkyBox
+			if (s_Data->m_State.bDrawSkyBox)
+			{
+				s_Data->m_SkyboxPipeline.Draw(36);
+			}
+
+			if (s_Data->m_State.bDrawGrid)
+			{
+				s_Data->m_GridPipeline.BeginCommandBuffer(true);
+				s_Data->m_GridPipeline.SubmitPushConstant(ShaderType::Vertex, sizeof(glm::mat4), &s_Data->m_GridModel);
+				s_Data->m_GridPipeline.DrawMeshIndexed(&s_Data->m_PlaneMesh);
+			}
 
 			for (uint32_t i = 0; i < s_Data->m_DrawListIndex; ++i)
 			{
@@ -248,7 +242,7 @@ namespace Frostium
 
 		// Post-Processing: Bloom, Blur
 		{
-			if (s_Data->m_IsBloomPassActive)
+			if (s_Data->m_State.bBloomPass)
 			{
 				s_Data->m_BloomPipeline.BeginCommandBuffer(true);
 				{
@@ -263,7 +257,7 @@ namespace Frostium
 				s_Data->m_BloomPipeline.EndCommandBuffer();
 			}
 
-			if (s_Data->m_IsBlurPassActive)
+			if (s_Data->m_State.bBlurPass)
 			{
 				s_Data->m_BlurPipeline.BeginCommandBuffer(true);
 				{
@@ -291,7 +285,7 @@ namespace Frostium
 
 		// Composition => render to swapchain
 		{
-			uint32_t state = s_Data->m_IsBloomPassActive + s_Data->m_IsBlurPassActive;
+			uint32_t state = s_Data->m_State.bBloomPass + s_Data->m_State.bBlurPass;
 			s_Data->m_CombinationPipeline.BeginRenderPass();
 			{
 				s_Data->m_CombinationPipeline.SubmitPushConstant(ShaderType::Fragment, sizeof(uint32_t), &state);
@@ -335,17 +329,12 @@ namespace Frostium
 
 		s_Data->m_PointLights[index].Color = color;
 		s_Data->m_PointLights[index].Position = glm::normalize(glm::vec4(pos, 1.0f));
-		s_Data->m_PointLights[index].Params.x = constant;
-		s_Data->m_PointLights[index].Params.y = linear;
-		s_Data->m_PointLights[index].Params.z = exp;
 		s_Data->m_PointLightIndex++;
 	}
 
-	void Renderer::SetDebugViewParams(DebugViewInfo& info)
+	void Renderer::SetRendererState(RendererState* state)
 	{
-		s_Data->m_DebugView.ShowOmniCube = info.bShowOmniCube;
-		s_Data->m_DebugView.ShowMRT = info.bShowMRT;
-		s_Data->m_DebugView.MRTattachmentIndex = info.mrtAttachmentIndex;
+		s_Data->m_State = *state;
 	}
 
 	void Renderer::SetAmbientLighting(const glm::vec3& diffuseColor, glm::vec3& specularColor, float IBLscale, bool enableIBL, glm::vec3& ambient)
@@ -360,36 +349,6 @@ namespace Frostium
 	void Renderer::SetShadowLightDirection(const glm::vec3& dir)
 	{
 		s_Data->m_ShadowLightDirection = dir;
-	}
-
-	void Renderer::SetAmbientMixer(float value)
-	{
-		s_Data->m_SceneData.Params.z = value;
-	}
-
-	void Renderer::SetGamma(float value)
-	{
-		s_Data->m_SceneData.Params.y = value;
-	}
-
-	void Renderer::SetExposure(float value)
-	{
-		s_Data->m_SceneData.Params.x = value;
-	}
-
-	void Renderer::SetActiveDebugView(bool active)
-	{
-		s_Data->m_ShowDebugView = active;
-	}
-
-	void Renderer::SetActiveBloomPass(bool active)
-	{
-		s_Data->m_IsBloomPassActive = active;
-	}
-
-	void Renderer::SetActiveBlurPass(bool active)
-	{
-		s_Data->m_IsBlurPassActive = active;
 	}
 
 	void Renderer::InitPBR()
@@ -449,6 +408,40 @@ namespace Frostium
 			s_Data->m_PBRPipeline.UpdateVulkanImageDescriptor(3, VulkanPBR::GetBRDFLUTImageInfo());
 			s_Data->m_PBRPipeline.UpdateVulkanImageDescriptor(4, VulkanPBR::GetPrefilteredCubeImageInfo());
 #endif
+		}
+
+		// Grid
+		{
+			Utils::ComposeTransform(glm::vec3(0), glm::vec3(0), { 100, 1, 100 }, s_Data->m_GridModel);
+			Mesh::Create(GraphicsContext::GetSingleton()->m_ResourcesFolderPath + "Models/plane_v2.gltf", &s_Data->m_PlaneMesh);
+
+			// Grid
+			{
+				BufferLayout PBRlayout =
+				{
+					{ DataTypes::Float3, "aPos" },
+					{ DataTypes::Float3, "aNormal" },
+					{ DataTypes::Float3, "aTangent" },
+					{ DataTypes::Float2, "aUV" },
+					{ DataTypes::Int4,   "aBoneIDs"},
+					{ DataTypes::Float4, "aWeight"}
+				};
+
+				GraphicsPipelineCreateInfo pipelineCI = {};
+				GraphicsPipelineShaderCreateInfo shaderCI = {};
+				{
+					shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::GetSingleton()->m_ResourcesFolderPath + "Shaders/Vulkan/Grid.vert";
+					shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::GetSingleton()->m_ResourcesFolderPath + "Shaders/Vulkan/Grid.frag";
+				};
+
+				pipelineCI.PipelineName = "Grid";
+				pipelineCI.eCullMode = CullMode::None;
+				pipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(PBRVertex), PBRlayout) };
+				pipelineCI.pTargetFramebuffer = &s_Data->m_PBRFramebuffer;
+				pipelineCI.pShaderCreateInfo = &shaderCI;
+
+				assert(s_Data->m_GridPipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
+			}
 		}
 
 		// Sky Box
@@ -781,14 +774,14 @@ namespace Frostium
 		s_Data->m_PBRFramebuffer.OnResize(width, height);
 		s_Data->m_CombinationPipeline.UpdateSampler(&s_Data->m_PBRFramebuffer, 0);
 
-		if (s_Data->m_IsBloomPassActive)
+		if (s_Data->m_State.bBloomPass)
 		{
 			s_Data->m_BloomFramebuffer.OnResize(width, height);
 			s_Data->m_BloomPipeline.UpdateSampler(&s_Data->m_PBRFramebuffer, 0);
 			s_Data->m_CombinationPipeline.UpdateSampler(&s_Data->m_BloomFramebuffer, 1);
 		}
 
-		if (s_Data->m_IsBlurPassActive)
+		if (s_Data->m_State.bBlurPass)
 		{
 			s_Data->m_BlurFramebuffer.OnResize(width, height);
 			s_Data->m_BlurPipeline.UpdateSampler(&s_Data->m_PBRFramebuffer, 0);

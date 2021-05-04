@@ -2,6 +2,7 @@
 #include "GraphicsContext.h"
 #include "Renderer.h"
 #include "Renderer2D.h"
+#include "DebugRenderer.h"
 #include "MaterialLibrary.h"
 
 #include "Common/SLog.h"
@@ -106,6 +107,8 @@ namespace Frostium
 			Renderer2D::Init(m_Renderer2DStorage);
 		}
 
+		DebugRenderer::Init(); // temp
+
 #ifdef  FROSTIUM_OPENGL_IMPL
 		GetOpenglRendererAPI()->Init();
 #endif
@@ -144,6 +147,33 @@ namespace Frostium
 #endif
 		if (m_State->UseImGUI)
 			m_ImGuiContext.OnBegin();
+	}
+
+	void GraphicsContext::UpdateSceneData(BeginSceneInfo* info)
+	{
+		if (m_State->UseEditorCamera && info == nullptr)
+		{
+			Camera* camera = m_DefaultCamera;
+
+			m_SceneData.View = camera->GetViewMatrix();
+			m_SceneData.Projection = camera->GetProjection();
+			m_SceneData.CamPos = glm::vec4(camera->GetPosition(), 1.0f);
+			m_SceneData.SkyBoxMatrix = glm::mat4(glm::mat3(camera->GetViewMatrix()));
+			m_SceneData.NearClip = camera->GetNearClip();
+			m_SceneData.FarClip = camera->GetFarClip();
+		}
+
+		if (info)
+		{
+			m_SceneData.View = info->View;
+			m_SceneData.Projection = info->Proj;
+			m_SceneData.CamPos = glm::vec4(info->Pos, 1);
+			m_SceneData.SkyBoxMatrix = glm::mat4(glm::mat3(info->View));
+			m_SceneData.NearClip = info->NearClip;
+			m_SceneData.FarClip = info->FarClip;
+		}
+
+		m_Frustum.Update(m_SceneData.Projection * m_SceneData.View);
 	}
 
 	void GraphicsContext::ShutDown()

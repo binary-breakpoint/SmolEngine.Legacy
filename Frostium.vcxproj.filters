@@ -2271,7 +2271,7 @@
     <ClInclude Include="include\Renderer2D.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="include\RendererDebug.h">
+    <ClInclude Include="include\DebugRenderer.h">
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="include\Utils\Frustum.h">
@@ -2477,7 +2477,7 @@
     <ClCompile Include="src\Renderer2D.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\RendererDebug.cpp">
+    <ClCompile Include="src\DebugRenderer.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\Utils\Frustum.cpp">

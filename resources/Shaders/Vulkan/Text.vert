@@ -3,19 +3,21 @@
 layout (location = 0) in vec3 inPos;
 layout (location = 1) in vec2 inUV;
 
-struct SceneData
+layout (std140, binding = 27) uniform SceneBuffer
 {
+	float nearClip;
+    float farClip;
+    float exoposure;
+    float pad;
+
+
 	mat4 projection;
 	mat4 view;
 	mat4 skyBoxMatrix;
 	vec4 camPos;
-	vec4 params;
-};
+	vec4 ambientColor;
 
-layout (std140, binding = 27) uniform SceneDataBuffer
-{
-    SceneData sceneData;
-};
+} sceneData;
 
 layout(push_constant) uniform pc
 {

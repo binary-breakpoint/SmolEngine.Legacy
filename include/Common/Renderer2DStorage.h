@@ -84,7 +84,7 @@ namespace Frostium
 		// Meshes
 		Mesh                      PlaneMesh = {};
 		// UBO's and SSBO's
-		SceneData                 SceneData = {};
+		SceneData*                SceneData = nullptr;
 		ShaderInstance            ShaderInstances[MaxQuads];
 		TextBuffer                TextMessages[MaxTextMessages];
 		// Buffers

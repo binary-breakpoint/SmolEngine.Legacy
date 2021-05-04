@@ -116,6 +116,10 @@ int main(int argc, char** argv)
 		   @Calculate physics, process script, etc
 		*/
 
+		BeginSceneInfo info = {};
+		info.Update(camera);
+		context->UpdateSceneData(&info);
+
 		context->BeginFrame(deltaTime);
 		{
 			uint32_t objects = 0;

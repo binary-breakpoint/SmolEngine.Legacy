@@ -3,7 +3,7 @@ Frostium3D
 ![PBR](https://i.imgur.com/W81qlzQ.png)
 ## Core Features
   - Multiple rendering API backends: Vulkan - 100%, OpenGL - 70%
-  - Physically Based Rendering (PBR)
+  - Physically Based Rendering (Metal/Roughness)
   - Deferred Shading
   - Shadow Mapping
   - MSAA / FXAA
@@ -13,7 +13,7 @@ Frostium3D
   - ImGUI Integration
   - Text Rendering (SDF)
   - glTF 2.0
-  - Skinning
+  - Skeleton Animations
 
 ## Usage
 The first step is to initialize graphics context class:
@@ -48,6 +48,7 @@ int main(int argc, char** argv)
 	{
 		info.Flags = Features_Renderer_3D_Flags | Features_ImGui_Flags;
 		info.eMSAASamples = MSAASamples::SAMPLE_COUNT_MAX_SUPPORTED;
+		info.eShadowMapSize = ShadowMapSize::SIZE_8;
 		info.ResourcesFolderPath = "../resources/";
 		info.pWindowCI = &windoInfo;
 		info.pDefaultCamera = camera;
@@ -70,7 +71,7 @@ And finally load resources and run main update loop:
 
 	ClearInfo clearInfo = {};
 	Mesh cube = {};
-	Mesh::Create("Assets/cube.glb", &cube);
+	Mesh::Create("Assets/cube.gltf", &cube);
   
 	while (process)
 	{
@@ -83,6 +84,10 @@ And finally load resources and run main update loop:
 		/* 
 		   @Calculate physics, process script, etc
 		*/
+
+		BeginSceneInfo info = {};
+		info.Update(camera);
+		context->UpdateSceneData(&info);
 
 		context->BeginFrame(deltaTime);
 		{
@@ -110,7 +115,7 @@ And finally load resources and run main update loop:
 	}
 ```
 ## Result
-![result](https://i.imgur.com/K2HLAsJ.png)
+![result](https://i.imgur.com/cu9Ib8P.png)
 
 More samples can be found [here.](https://github.com/YellowDummy/Frostium3D/tree/main/samples)
 
