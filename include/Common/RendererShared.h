@@ -66,7 +66,7 @@ namespace Frostium
 
 	struct ClearInfo
 	{
-		bool                               bClear = false;
+		bool                               bClear = true;
 		glm::vec4                          color = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f);
 	};
 

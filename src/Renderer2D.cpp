@@ -36,22 +36,14 @@ namespace Frostium
 
 	void Renderer2D::BeginScene(const ClearInfo* clearInfo)
 	{
-		s_Data->CombinationPipeline.BeginCommandBuffer(true);
-		s_Data->DeferredPipeline.BeginCommandBuffer(true);
+		s_Data->MainPipeline.BeginCommandBuffer(true);
 		s_Data->TextPipeline.BeginCommandBuffer(true);
 
 		if (clearInfo->bClear)
 		{
-			s_Data->CombinationPipeline.BeginRenderPass();
-			s_Data->CombinationPipeline.ClearColors(clearInfo->color);
-			s_Data->CombinationPipeline.EndRenderPass();
-		}
-
-		if (s_Data->InstIndex > 0)
-		{
-			s_Data->DeferredPipeline.BeginRenderPass();
-			s_Data->DeferredPipeline.ClearColors(clearInfo->color);
-			s_Data->DeferredPipeline.EndRenderPass();
+			s_Data->MainPipeline.BeginRenderPass();
+			s_Data->MainPipeline.ClearColors(clearInfo->color);
+			s_Data->MainPipeline.EndRenderPass();
 		}
 
 		StartNewBatch();
@@ -61,14 +53,13 @@ namespace Frostium
 	void Renderer2D::EndScene()
 	{
 		Flush();
-		s_Data->CombinationPipeline.EndCommandBuffer();
-		s_Data->DeferredPipeline.EndCommandBuffer();
+		s_Data->MainPipeline.EndCommandBuffer();
 		s_Data->TextPipeline.EndCommandBuffer();
 	}
 
-	void Renderer2D::SubmitSprite(const glm::vec2& worldPos, const glm::vec2& scale, const glm::vec2& rotation, uint32_t layerIndex, Texture* texture, const glm::vec4& color, GraphicsPipeline* material)
+	void Renderer2D::SubmitSprite(const glm::vec3& worldPos, const glm::vec3& scale, const glm::vec3& rotation, uint32_t layerIndex, Texture* texture, const glm::vec4& color, GraphicsPipeline* material)
 	{
-		if (s_Data->Frustum->CheckSphere(glm::vec3(worldPos, 0.0f), 10.0f))
+		if (s_Data->Frustum->CheckSphere(worldPos, 10.0f))
 		{
 			if (s_Data->InstIndex >= Renderer2DStorage::MaxQuads)
 				StartNewBatch();
@@ -78,18 +69,18 @@ namespace Frostium
 				const_cast<uint32_t*>(&Renderer2DStorage::MaxLayers) : &layerIndex;
 
 			s_Data->Instances[index].Color = const_cast<glm::vec4*>(&color);
-			s_Data->Instances[index].Position = const_cast<glm::vec2*>(&worldPos);
-			s_Data->Instances[index].Rotation = const_cast<glm::vec2*>(&rotation);
-			s_Data->Instances[index].Scale = const_cast<glm::vec2*>(&scale);
+			s_Data->Instances[index].Position = const_cast<glm::vec3*>(&worldPos);
+			s_Data->Instances[index].Rotation = const_cast<glm::vec3*>(&rotation);
+			s_Data->Instances[index].Scale = const_cast<glm::vec3*>(&scale);
 			s_Data->Instances[index].TextureIndex = AddTexture(texture);
 
 			s_Data->InstIndex++;
 		}
 	}
 
-	void Renderer2D::SubmitQuad(const glm::vec2& worldPos, const glm::vec2& scale, const glm::vec2& rotation, uint32_t layerIndex, const glm::vec4& color, GraphicsPipeline* material)
+	void Renderer2D::SubmitQuad(const glm::vec3& worldPos, const glm::vec3& scale, const glm::vec3& rotation, uint32_t layerIndex, const glm::vec4& color, GraphicsPipeline* material)
 	{
-		if (s_Data->Frustum->CheckSphere(glm::vec3(worldPos, 0.0f), 10.0f))
+		if (s_Data->Frustum->CheckSphere(worldPos, 10.0f))
 		{
 			if (s_Data->InstIndex >= Renderer2DStorage::MaxQuads)
 				StartNewBatch();
@@ -99,9 +90,9 @@ namespace Frostium
 			s_Data->Instances[index].Layer = layerIndex > Renderer2DStorage::MaxLayers ?
 				const_cast<uint32_t*>(&Renderer2DStorage::MaxLayers) : &layerIndex;
 			s_Data->Instances[index].Color = const_cast<glm::vec4*>(&color);
-			s_Data->Instances[index].Position = const_cast<glm::vec2*>(&worldPos);
-			s_Data->Instances[index].Rotation = const_cast<glm::vec2*>(&rotation);
-			s_Data->Instances[index].Scale = const_cast<glm::vec2*>(&scale);
+			s_Data->Instances[index].Position = const_cast<glm::vec3*>(&worldPos);
+			s_Data->Instances[index].Rotation = const_cast<glm::vec3*>(&rotation);
+			s_Data->Instances[index].Scale = const_cast<glm::vec3*>(&scale);
 			s_Data->Instances[index].TextureIndex = 0;
 
 			s_Data->InstIndex++;
@@ -112,16 +103,16 @@ namespace Frostium
 	{
 		auto& msg = s_Data->TextMessages[s_Data->TextIndex];
 		msg.Obj = text;
-		msg.TextureIndex = 0;
-		s_Data->FontTextures[0] = &text->m_SDFTexture;
+		msg.TextureIndex = s_Data->TextIndex;
+		s_Data->FontTextures[s_Data->TextIndex] = &text->m_SDFTexture;
 		Utils::ComposeTransform(text->m_Pos, text->m_Rotation, text->m_Scale, msg.Model);
 
 		s_Data->TextIndex++;
 	}
 
-	void Renderer2D::SubmitLight2D(const glm::vec2& worldPos, const glm::vec4& color, float radius, float lightIntensity)
+	void Renderer2D::SubmitLight2D(const glm::vec3& worldPos, const glm::vec4& color, float radius, float lightIntensity)
 	{
-		if (s_Data->Frustum->CheckSphere(glm::vec3(worldPos, 0.0f), 15.0f))
+		if (s_Data->Frustum->CheckSphere(worldPos, 15.0f))
 		{
 
 		}
@@ -153,50 +144,33 @@ namespace Frostium
 			}
 		}
 
-		// Update Scene data
-		s_Data->DeferredPipeline.SubmitBuffer(s_Data->SceneDataBP, sizeof(SceneData), s_Data->SceneData);
-
-		if (s_Data->InstIndex > 0)
+		if (s_Data->InstIndex > 0 || s_Data->TextIndex > 0)
 		{
+			// Update Scene data
+			s_Data->MainPipeline.SubmitBuffer(s_Data->SceneDataBP, sizeof(SceneData), s_Data->SceneData);
 			// Update instances data
-			s_Data->DeferredPipeline.SubmitBuffer(s_Data->InstancesBP, s_Data->ShaderInstanceSize * s_Data->InstIndex, s_Data->ShaderInstances);
+			s_Data->MainPipeline.SubmitBuffer(s_Data->InstancesBP, s_Data->ShaderInstanceSize * s_Data->InstIndex, s_Data->ShaderInstances);
 			// Updates tetxures
-			s_Data->DeferredPipeline.UpdateSamplers(s_Data->Textures, 0);
+			s_Data->MainPipeline.UpdateSamplers(s_Data->Textures, 0);
+			// Updates font tetxures
+			s_Data->TextPipeline.UpdateSamplers(s_Data->FontTextures, 1);
 
-			// Deferred Pass
+			s_Data->MainPipeline.BeginRenderPass();
 			{
-				s_Data->DeferredPipeline.BeginRenderPass();
+				// Sprites
+				for (uint32_t i = 0; i < Renderer2DStorage::MaxLayers; ++i)
 				{
-					for (uint32_t i = 0; i < Renderer2DStorage::MaxLayers; ++i)
+					auto& cmd = s_Data->CommandBuffer[i];
+					if (cmd.Instances > 0)
 					{
-						auto& cmd = s_Data->CommandBuffer[i];
-						if (cmd.Instances > 0)
-						{
-							s_Data->DeferredPipeline.SubmitPushConstant(ShaderType::Vertex, sizeof(uint32_t), &cmd.DataOffset);
-							s_Data->DeferredPipeline.DrawMeshIndexed(&s_Data->PlaneMesh, cmd.Instances);
+						s_Data->MainPipeline.SubmitPushConstant(ShaderType::Vertex, sizeof(uint32_t), &cmd.DataOffset);
+						s_Data->MainPipeline.DrawMeshIndexed(&s_Data->PlaneMesh, cmd.Instances);
 
-							cmd.Reset();
-						}
+						cmd.Reset();
 					}
 				}
-				s_Data->DeferredPipeline.EndRenderPass();
-			}
 
-			// Combination Pass (Lighting + Post-Processing)
-			{
-				s_Data->CombinationPipeline.BeginRenderPass();
-				{
-					s_Data->CombinationPipeline.DrawIndexed();
-				}
-				s_Data->CombinationPipeline.EndRenderPass();
-			}
-		}
-
-		if (s_Data->TextIndex > 0)
-		{
-			s_Data->TextPipeline.UpdateSamplers(s_Data->FontTextures, 1);
-			s_Data->TextPipeline.BeginRenderPass();
-			{
+				// Text
 				for (uint32_t i = 0; i < s_Data->TextIndex; ++i)
 				{
 					auto& msg = s_Data->TextMessages[i];
@@ -209,7 +183,7 @@ namespace Frostium
 					s_Data->TextPipeline.DrawIndexed(&msg.Obj->m_VertexBuffer, &msg.Obj->m_IndexBuffer);
 				}
 			}
-			s_Data->TextPipeline.EndRenderPass();
+			s_Data->MainPipeline.EndRenderPass();
 		}
 	}
 
@@ -247,7 +221,7 @@ namespace Frostium
 	{
 		GraphicsPipelineCreateInfo pipelineCI = {};
 
-		// Deferred pipeline
+		// Main pipeline
 		{
 			BufferLayout PBRlayout =
 			{
@@ -261,8 +235,8 @@ namespace Frostium
 
 			GraphicsPipelineShaderCreateInfo shaderCI = {};
 			{
-				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/2D_MRT.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/2D_MRT.frag";
+				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/2D.vert";
+				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/2D.frag";
 
 				shaderCI.StorageBuffersSizes[1] = { sizeof(s_Data->ShaderInstanceSize) * Renderer2DStorage::MaxQuads };
 			};
@@ -271,55 +245,15 @@ namespace Frostium
 			pipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(PBRVertex), PBRlayout) };
 			pipelineCI.eCullMode = CullMode::None;
 			pipelineCI.bDepthTestEnabled = false;
-			pipelineCI.pTargetFramebuffer = &s_Data->DeferredFB;
-			pipelineCI.pShaderCreateInfo = &shaderCI;
-
-			assert(s_Data->DeferredPipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
-		}
-
-		// Combination pipeline
-		{
-			float quadVertices[] = {
-				// positions   // texCoords
-				-1.0f, -1.0f,  0.0f, 1.0f,
-				 1.0f, -1.0f,  1.0f, 1.0f,
-				 1.0f,  1.0f,  1.0f, 0.0f,
-				-1.0f,  1.0f,  0.0f, 0.0f
-			};
-
-			BufferLayout Fullscreenlayout =
-			{
-				{ DataTypes::Float2, "aPos" },
-				{ DataTypes::Float2, "aUV" },
-			};
-
-			uint32_t squareIndices[6] = { 0, 1, 2, 2, 3, 0 };
-			Ref<VertexBuffer> vb = std::make_shared<VertexBuffer>();
-			Ref<IndexBuffer> ib = std::make_shared<IndexBuffer>();
-			VertexBuffer::Create(vb.get(), quadVertices, sizeof(quadVertices));
-			IndexBuffer::Create(ib.get(), squareIndices, 6);
-
-			GraphicsPipelineShaderCreateInfo shaderCI = {};
-			{
-				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/GenVertex.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/2D_Combination.frag";
-
-				shaderCI.StorageBuffersSizes[2] = { sizeof(PointLightBuffer) * Renderer2DStorage::Light2DBufferMaxSize };
-			};
-
-			pipelineCI.PipelineName = "2D_Combination";
-			pipelineCI.eCullMode = CullMode::Back;
-			pipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(FullscreenVertex), Fullscreenlayout) };
+			pipelineCI.eSrcColorBlendFactor = BlendFactor::SRC_ALPHA;
+			pipelineCI.eDstColorBlendFactor = BlendFactor::ONE_MINUS_SRC_ALPHA;
+			pipelineCI.eSrcAlphaBlendFactor = BlendFactor::ONE;
+			pipelineCI.eDstAlphaBlendFactor = BlendFactor::ZERO;
+			pipelineCI.bDepthTestEnabled = false;
 			pipelineCI.pTargetFramebuffer = s_Data->MainFB;
 			pipelineCI.pShaderCreateInfo = &shaderCI;
 
-			assert(s_Data->CombinationPipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
-
-			s_Data->CombinationPipeline.SetVertexBuffers({ vb });
-			s_Data->CombinationPipeline.SetIndexBuffers({ ib });
-			s_Data->CombinationPipeline.UpdateSampler(&s_Data->DeferredFB, 5, "Albedro");
-			s_Data->CombinationPipeline.UpdateSampler(&s_Data->DeferredFB, 6, "Position");
-			s_Data->CombinationPipeline.UpdateSampler(&s_Data->DeferredFB, 7, "Normals");
+			assert(s_Data->MainPipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
 		}
 
 		// Text Pipeline
@@ -333,12 +267,13 @@ namespace Frostium
 
 			GraphicsPipelineShaderCreateInfo shaderCI = {};
 			{
-				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/Text.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Vulkan/Text.frag";
+				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Text.vert";
+				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Text.frag";
 			};
 
 			pipelineCI.PipelineName = "Text";
 			pipelineCI.eCullMode = CullMode::None;
+			pipelineCI.bDepthTestEnabled = false;
 			pipelineCI.eSrcColorBlendFactor = BlendFactor::ONE;
 			pipelineCI.eDstColorBlendFactor = BlendFactor::ONE_MINUS_SRC_ALPHA;
 			pipelineCI.eSrcAlphaBlendFactor = BlendFactor::ONE;
@@ -355,21 +290,6 @@ namespace Frostium
 	{
 		// Main framebuffer
 		s_Data->MainFB = GraphicsContext::GetSingleton()->GetFramebuffer();
-		// Deferred framebuffer
-		FramebufferSpecification framebufferCI = {};
-		{
-			framebufferCI.Width = 2048;
-			framebufferCI.Height = 2048;
-			framebufferCI.bResizable = false;
-			framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
-
-			framebufferCI.Attachments.resize(3);
-			framebufferCI.Attachments[0] = FramebufferAttachment(AttachmentFormat::Color, false, "Albedro");
-			framebufferCI.Attachments[1] = FramebufferAttachment(AttachmentFormat::SFloat4_32, false, "Position");
-			framebufferCI.Attachments[2] = FramebufferAttachment(AttachmentFormat::SFloat4_32, false, "Normals");
-
-			Framebuffer::Create(framebufferCI, &s_Data->DeferredFB);
-		}
 	}
 
 	void Renderer2D::Prepare()

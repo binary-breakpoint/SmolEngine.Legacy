@@ -105,7 +105,7 @@ namespace Frostium
 		return GetID() == other.GetID();
 	}
 
-	void Texture::Create(const std::string& filePath, Texture* out_texture, TextureFormat format, bool flip_vertically)
+	void Texture::Create(const std::string& filePath, Texture* out_texture, TextureFormat format, bool flip,  bool imgui_handler)
 	{
 		if (out_texture)
 		{
@@ -115,7 +115,7 @@ namespace Frostium
 #ifdef  FROSTIUM_OPENGL_IMPL
 			out_texture->m_OpenglTexture2D.Init(filePath);
 #else
-			out_texture->m_VulkanTexture.LoadTexture(filePath, flip_vertically, format);
+			out_texture->m_VulkanTexture.LoadTexture(filePath, format, flip, imgui_handler);
 #endif
 		}
 	}

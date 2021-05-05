@@ -40,7 +40,6 @@ namespace Frostium
 	{
 		m_Format = GetImageFormat(format);
 		CreateFromBuffer(data, size, width, height);
-		m_IsCreated = true;
 	}
 
 	void VulkanTexture::GenWhiteTetxure(uint32_t width, uint32_t height)
@@ -51,10 +50,9 @@ namespace Frostium
 
 		m_Width = width;
 		m_Height = height;
-		m_IsCreated = true;
 	}
 
-	void VulkanTexture::LoadTexture(const std::string& filePath, bool flip, TextureFormat format)
+	void VulkanTexture::LoadTexture(const std::string& filePath, TextureFormat format, bool flip, bool imgui_handler)
 	{
 		int height, width, channels;
 		if(flip)
@@ -74,14 +72,14 @@ namespace Frostium
 		m_Format = GetImageFormat(format);
 
 		CreateTexture(width, height, mipLevels, data);
+		stbi_image_free(data);
+
 		m_Width = width;
 		m_Height = height;
-		m_FilePath = filePath;
-		m_IsCreated = true;
-
-		stbi_image_free(data);
 		std::hash<std::string> hasher;
 		m_ID = hasher(filePath);
+		if (imgui_handler)
+			m_ImGuiTextureID = ImGui_ImplVulkan_AddTexture(m_DescriptorImageInfo);
 	}
 
 	void VulkanTexture::LoadCubeMap(const std::string& filePath, TextureFormat format)
@@ -245,8 +243,6 @@ namespace Frostium
 
 		m_Width = width;
 		m_Height = height;
-		m_FilePath = filePath;
-		m_IsCreated = true;
 
 		ktxTexture_Destroy(ktxTexture);
 	}
@@ -346,12 +342,6 @@ namespace Frostium
 		GenerateMipMaps(m_Image, width, height, mipMaps, subresourceRange);
 		m_ImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		CreateSamplerAndImageView(mipMaps);
-
-#ifdef Frostium_EDITOR
-#ifndef FROSTIUM_OPENGL_IMPL
-		m_ImGuiTextureID = ImGui_ImplVulkan_AddTexture(m_DescriptorImageInfo);
-#endif
-#endif
 	}
 
 	void VulkanTexture::CreateFromBuffer(const void* data, VkDeviceSize size, uint32_t width, uint32_t height)
@@ -751,7 +741,7 @@ namespace Frostium
 
 	bool VulkanTexture::IsActive() const
 	{
-		return m_IsCreated;
+		return m_Samper != nullptr;
 	}
 }
 #endif

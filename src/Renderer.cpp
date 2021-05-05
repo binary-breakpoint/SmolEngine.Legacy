@@ -47,13 +47,9 @@ namespace Frostium
 		s_Data->m_CombinationPipeline.BeginCommandBuffer(true);
 		s_Data->m_SkyboxPipeline.BeginCommandBuffer(true);
 
-		if (clearInfo->bClear)
-		{
-			s_Data->m_CombinationPipeline.BeginRenderPass();
-			s_Data->m_CombinationPipeline.ClearColors(clearInfo->color);
-			s_Data->m_CombinationPipeline.EndRenderPass();
-		}
-
+		s_Data->m_CombinationPipeline.BeginRenderPass();
+		s_Data->m_CombinationPipeline.ClearColors(clearInfo->color);
+		s_Data->m_CombinationPipeline.EndRenderPass();
 		Reset();
 	}
 
@@ -377,8 +373,8 @@ namespace Frostium
 		{
 			GraphicsPipelineShaderCreateInfo shaderCI = {};
 			{
-				shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/Vulkan/PBR.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Vulkan/PBR.frag";
+				shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/PBR.vert";
+				shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/PBR.frag";
 
 				// Vertex
 				shaderCI.StorageBuffersSizes[s_Data->m_ShaderDataBinding] = { sizeof(InstanceData) * s_InstanceDataMaxCount };
@@ -430,8 +426,8 @@ namespace Frostium
 				GraphicsPipelineCreateInfo pipelineCI = {};
 				GraphicsPipelineShaderCreateInfo shaderCI = {};
 				{
-					shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::GetSingleton()->m_ResourcesFolderPath + "Shaders/Vulkan/Grid.vert";
-					shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::GetSingleton()->m_ResourcesFolderPath + "Shaders/Vulkan/Grid.frag";
+					shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::GetSingleton()->m_ResourcesFolderPath + "Shaders/Grid.vert";
+					shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::GetSingleton()->m_ResourcesFolderPath + "Shaders/Grid.frag";
 				};
 
 				pipelineCI.PipelineName = "Grid";
@@ -448,8 +444,8 @@ namespace Frostium
 		{
 			GraphicsPipelineShaderCreateInfo shaderCI = {};
 			{
-				shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/Vulkan/Skybox.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Vulkan/Skybox.frag";
+				shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/Skybox.vert";
+				shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Skybox.frag";
 			};
 
 			struct SkyBoxData
@@ -531,8 +527,8 @@ namespace Frostium
 		{
 			GraphicsPipelineShaderCreateInfo shaderCI = {};
 			{
-				shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/Vulkan/DepthPass.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Vulkan/DepthPass.frag";
+				shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/DepthPass.vert";
+				shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/DepthPass.frag";
 			};
 
 			GraphicsPipelineCreateInfo DynamicPipelineCI = {};
@@ -553,7 +549,7 @@ namespace Frostium
 		{
 			GraphicsPipelineShaderCreateInfo shaderCI = {};
 			{
-				shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/Vulkan/GenVertex.vert";
+				shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/GenVertex.vert";
 			};
 
 			float quadVertices[] = {
@@ -591,7 +587,7 @@ namespace Frostium
 
 				// Debug
 				{
-					shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Vulkan/DebugView.frag";
+					shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/DebugView.frag";
 					DynamicPipelineCI.PipelineName = "Debug";
 
 					auto result = s_Data->m_DebugPipeline.Create(&DynamicPipelineCI);
@@ -603,7 +599,7 @@ namespace Frostium
 
 				// Combination
 				{
-					shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Vulkan/Combination.frag";
+					shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Combination.frag";
 					DynamicPipelineCI.PipelineName = "Combination";
 
 					auto result = s_Data->m_CombinationPipeline.Create(&DynamicPipelineCI);
@@ -617,7 +613,7 @@ namespace Frostium
 
 				// Bloom
 				{
-					shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Vulkan/Bloom.frag";
+					shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Bloom.frag";
 					DynamicPipelineCI.PipelineName = "Bloom";
 					DynamicPipelineCI.pTargetFramebuffer = &s_Data->m_BloomFramebuffer;
 
@@ -630,7 +626,7 @@ namespace Frostium
 
 				// Blur
 				{
-					shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Vulkan/Blur.frag";
+					shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Blur.frag";
 					DynamicPipelineCI.PipelineName = "Blur";
 					DynamicPipelineCI.pTargetFramebuffer = &s_Data->m_BlurFramebuffer;
 
@@ -690,6 +686,7 @@ namespace Frostium
 			FramebufferSpecification framebufferCI = {};
 			framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
 			framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
+			framebufferCI.bResizable = false;
 			framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
 			framebufferCI.Attachments = { bloom };
 			Framebuffer::Create(framebufferCI, &s_Data->m_BloomFramebuffer);
@@ -748,7 +745,7 @@ namespace Frostium
 		}
 		s_Data->m_Objects++;
 
-		for (auto& sub : mesh->m_Meshes)
+		for (auto& sub : mesh->m_Childs)
 			AddMesh(pos, rotation, scale, &sub, sub.m_MaterialID);
 	}
 

@@ -21,6 +21,7 @@ namespace Frostium
 			m_Type = createInfo->Type;
 			m_Yaw = createInfo->Yaw;
 			m_Pitch = createInfo->Pitch;
+			m_FocalPoint = createInfo->WorldPos;
 			m_Position = createInfo->WorldPos;
 		}
 

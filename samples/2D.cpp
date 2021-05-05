@@ -7,6 +7,9 @@
 #include <Utils/Utils.h>
 #include <GraphicsContext.h>
 #include <Renderer2D.h>
+#include <Renderer.h>
+
+#include <DebugRenderer.h>
 
 #include <imgui/imgui.h>
 
@@ -28,8 +31,8 @@ int main(int argc, char** argv)
 		EditorCamera* camera = nullptr;
 		{
 			EditorCameraCreateInfo cameraCI = {};
+			cameraCI.Speed = 55.0f;
 			cameraCI.Type = CameraType::Ortho;
-			cameraCI.Speed = 55.5;
 			camera = new EditorCamera(&cameraCI);
 		}
 
@@ -59,6 +62,7 @@ int main(int argc, char** argv)
 	Texture::Create("Assets/Bricks.png", &texture2);
 
 	ClearInfo clearInfo = {};
+	clearInfo.bClear = true;
 	bool process = true;
 
 	context->SetEventCallback([&](Event& e) 
@@ -92,12 +96,11 @@ int main(int argc, char** argv)
 			ImGui::End();
 
 			Renderer2D::BeginScene(&clearInfo);
-			Renderer2D::SubmitSprite(glm::vec2(10, 0),  glm::vec2(10, 10), { 0,0 }, 1, &texture2);
-			Renderer2D::SubmitSprite(glm::vec2(0, 0 ),  glm::vec2(10, 10), { 0,0 }, 0, &texture);
-			Renderer2D::SubmitSprite(glm::vec2(20, 20), glm::vec2(10, 10), { 0,0 }, 3, &texture2);
+			Renderer2D::SubmitSprite(glm::vec3(10, 0, 0),  glm::vec3(10, 10, 0), { 0,0,0 }, 1, &texture2);
+			Renderer2D::SubmitSprite(glm::vec3(0, 0, 0),  glm::vec3(10, 10, 0), { 0,0,0 }, 0, &texture);
+			Renderer2D::SubmitSprite(glm::vec3(20, 20, 0), glm::vec3(10, 10, 0), { 0,0, 0 }, 3, &texture2);
 			Renderer2D::SubmitText(&text1);
 			Renderer2D::EndScene();
-
 		}
 		context->SwapBuffers();
 	}

@@ -36,10 +36,10 @@ namespace Frostium
 
                 // Children
                 uint32_t childCount = static_cast<uint32_t>(data->Primitives.size() - 1);
-                obj->m_Meshes.resize(childCount);
+                obj->m_Childs.resize(childCount);
                 for (uint32_t i = 0; i < childCount; ++i)
                 {
-                    Mesh* mesh = &obj->m_Meshes[i];
+                    Mesh* mesh = &obj->m_Childs[i];
                     Primitive* primitve = &data->Primitives[i + 1];
 
                     obj->m_MeshMap[primitve->MeshName] = mesh;
@@ -56,7 +56,7 @@ namespace Frostium
         m_MaterialID = materialID;
         if (apply_to_children)
         {
-            for (Mesh& mesh : m_Meshes)
+            for (Mesh& mesh : m_Childs)
                 mesh.m_MaterialID = materialID;
         }
     }
@@ -73,9 +73,9 @@ namespace Frostium
             m_ImportedData->UpdateAnimation();
     }
 
-    const std::vector<Mesh>& Mesh::GetMeshes() const
+    std::vector<Mesh>& Mesh::GetChilds()
     {
-        return m_Meshes;
+        return m_Childs;
     }
 
     uint32_t Mesh::GetVertexCount() const
@@ -89,6 +89,21 @@ namespace Frostium
             return m_Root->GetAnimationsCount();
 
         return static_cast<uint32_t>(m_ImportedData->Animations.size());
+    }
+
+    uint32_t Mesh::GetChildCount() const
+    {
+        return static_cast<uint32_t>(m_Childs.size());
+    }
+
+    uint32_t Mesh::GetMaterialID() const
+    {
+        return m_MaterialID;
+    }
+
+    std::string_view Mesh::GetName() const
+    {
+        return std::string_view();
     }
 
     VertexBuffer* Mesh::GetVertexBuffer()
@@ -112,8 +127,8 @@ namespace Frostium
 
     Mesh* Mesh::GetMeshByIndex(uint32_t index)
     {
-        if (index < m_Meshes.size())
-            return &m_Meshes[index];
+        if (index < m_Childs.size())
+            return &m_Childs[index];
 
         return nullptr;
     }
