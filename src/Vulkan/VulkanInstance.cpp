@@ -48,15 +48,16 @@ namespace Frostium
 
 	bool VulkanInstance::CreateInstance(const VkApplicationInfo& appInfo)
 	{
-		std::vector<const char*> instanceLayers = { "VK_LAYER_KHRONOS_validation" };
+		std::vector<const char*> instanceLayers = {};
 		std::vector<const char*> instanceExt = { VK_KHR_SURFACE_EXTENSION_NAME };
-#ifdef Frostium_DEBUG
+#ifdef FROSTIUM_DEBUG
+		instanceLayers.push_back("VK_LAYER_KHRONOS_validation");
 		instanceExt.push_back("VK_EXT_debug_report");
 #endif
 
 #ifdef _WIN32
 		instanceExt.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-#endif // _WIN32
+#endif 
 
 		VkInstanceCreateInfo instanceInfo = {};
 		{

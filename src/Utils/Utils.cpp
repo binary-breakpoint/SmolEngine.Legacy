@@ -207,7 +207,7 @@ namespace Frostium
 			path = p.parent_path() / "SPIRV" / (p.filename().string() + ".spirv");
 			break;
 		case Frostium::CachedPathType::Pipeline:
-			path = p.parent_path() / "Cached" / (p.filename().string() + ".pipeline_cached");
+			path = p.parent_path() / "PipelineCache" / (p.filename().string() + ".pipeline_cached");
 			break;
 			break;
 		}

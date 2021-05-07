@@ -48,7 +48,7 @@ namespace Frostium
 			VK_CHECK_RESULT(vkCreatePipelineLayout(m_Device, &pipelineLayoutCI, nullptr, &m_PipelineLayout));
 		}
 
-		m_FilePath = "../Resources/Cached/" + pipelineSpec->PipelineName;
+		m_FilePath = "../resources/PipelineCache/" + pipelineSpec->PipelineName;
 		return true;
 	}
 
