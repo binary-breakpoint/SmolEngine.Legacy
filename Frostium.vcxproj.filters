@@ -303,6 +303,9 @@
     <ClInclude Include="include\Common\Window.h">
       <Filter>include\Common</Filter>
     </ClInclude>
+    <ClInclude Include="include\DebugRenderer.h">
+      <Filter>include</Filter>
+    </ClInclude>
     <ClInclude Include="include\EditorCamera.h">
       <Filter>include</Filter>
     </ClInclude>
@@ -2271,9 +2274,6 @@
     <ClInclude Include="include\Renderer2D.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="include\DebugRenderer.h">
-      <Filter>include</Filter>
-    </ClInclude>
     <ClInclude Include="include\Utils\Frustum.h">
       <Filter>include\Utils</Filter>
     </ClInclude>
@@ -2420,6 +2420,9 @@
     <ClCompile Include="src\Common\Window.cpp">
       <Filter>src\Common</Filter>
     </ClCompile>
+    <ClCompile Include="src\DebugRenderer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="src\EditorCamera.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -2475,9 +2478,6 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\Renderer2D.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\DebugRenderer.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\Utils\Frustum.cpp">

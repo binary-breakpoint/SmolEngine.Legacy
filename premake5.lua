@@ -101,7 +101,6 @@ project "Frostium"
 		"vendor/libs/" ..outputdir .. "/SPIRV-Cross/SPIRV-Cross.lib",
 
 		"vendor/vulkan/libs/vulkan-1.lib",
-		"vendor/vulkan/libs/VkLayer_utils.lib"
 	}
 
 	defines
@@ -129,6 +128,7 @@ project "Frostium"
 
 		links 
 		{ 
+			"vendor/vulkan/libs/VkLayer_utils.lib",
 			"vendor/vulkan/libs/shaderc_d.lib",
 			"vendor/vulkan/libs/shaderc_util_d.lib",
 			"vendor/vulkan/libs/glslang_d.lib",

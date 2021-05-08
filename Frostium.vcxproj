@@ -133,7 +133,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>vendor\libs\Release_Vulkan-windows-x86_64\Glad\Glad.lib;vendor\libs\Release_Vulkan-windows-x86_64\GLFW\GLFW.lib;vendor\libs\Release_Vulkan-windows-x86_64\ImGizmo\ImGizmo.lib;vendor\libs\Release_Vulkan-windows-x86_64\ImGui\ImGui.lib;vendor\libs\Release_Vulkan-windows-x86_64\KTX-Tools\KTX-Tools.lib;vendor\libs\Release_Vulkan-windows-x86_64\SPIRV-Cross\SPIRV-Cross.lib;vendor\vulkan\libs\vulkan-1.lib;vendor\vulkan\libs\VkLayer_utils.lib;vendor\vulkan\libs\shaderc.lib;vendor\vulkan\libs\shaderc_util.lib;vendor\vulkan\libs\glslang.lib;vendor\vulkan\libs\SPIRV.lib;vendor\vulkan\libs\SPIRV-Tools.lib;vendor\vulkan\libs\SPIRV-Tools-opt.lib;vendor\vulkan\libs\machineIndependent.lib;vendor\vulkan\libs\genericCodeGen.lib;vendor\vulkan\libs\OGLCompiler.lib;vendor\vulkan\libs\OSDependent.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vendor\libs\Release_Vulkan-windows-x86_64\Glad\Glad.lib;vendor\libs\Release_Vulkan-windows-x86_64\GLFW\GLFW.lib;vendor\libs\Release_Vulkan-windows-x86_64\ImGizmo\ImGizmo.lib;vendor\libs\Release_Vulkan-windows-x86_64\ImGui\ImGui.lib;vendor\libs\Release_Vulkan-windows-x86_64\KTX-Tools\KTX-Tools.lib;vendor\libs\Release_Vulkan-windows-x86_64\SPIRV-Cross\SPIRV-Cross.lib;vendor\vulkan\libs\vulkan-1.lib;vendor\vulkan\libs\shaderc.lib;vendor\vulkan\libs\shaderc_util.lib;vendor\vulkan\libs\glslang.lib;vendor\vulkan\libs\SPIRV.lib;vendor\vulkan\libs\SPIRV-Tools.lib;vendor\vulkan\libs\SPIRV-Tools-opt.lib;vendor\vulkan\libs\machineIndependent.lib;vendor\vulkan\libs\genericCodeGen.lib;vendor\vulkan\libs\OGLCompiler.lib;vendor\vulkan\libs\OSDependent.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_OpenGL|x64'">
@@ -154,7 +154,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>vendor\libs\Debug_OpenGL-windows-x86_64\Glad\Glad.lib;vendor\libs\Debug_OpenGL-windows-x86_64\GLFW\GLFW.lib;vendor\libs\Debug_OpenGL-windows-x86_64\ImGizmo\ImGizmo.lib;vendor\libs\Debug_OpenGL-windows-x86_64\ImGui\ImGui.lib;vendor\libs\Debug_OpenGL-windows-x86_64\KTX-Tools\KTX-Tools.lib;vendor\libs\Debug_OpenGL-windows-x86_64\SPIRV-Cross\SPIRV-Cross.lib;vendor\vulkan\libs\vulkan-1.lib;vendor\vulkan\libs\VkLayer_utils.lib;opengl32.lib;vendor\vulkan\libs\shaderc_d.lib;vendor\vulkan\libs\shaderc_util_d.lib;vendor\vulkan\libs\glslang_d.lib;vendor\vulkan\libs\SPIRV_d.lib;vendor\vulkan\libs\SPIRV-Tools_d.lib;vendor\vulkan\libs\SPIRV-Tools-opt_d.lib;vendor\vulkan\libs\machineIndependent_d.lib;vendor\vulkan\libs\genericCodeGen_d.lib;vendor\vulkan\libs\OGLCompiler_d.lib;vendor\vulkan\libs\OSDependent_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vendor\libs\Debug_OpenGL-windows-x86_64\Glad\Glad.lib;vendor\libs\Debug_OpenGL-windows-x86_64\GLFW\GLFW.lib;vendor\libs\Debug_OpenGL-windows-x86_64\ImGizmo\ImGizmo.lib;vendor\libs\Debug_OpenGL-windows-x86_64\ImGui\ImGui.lib;vendor\libs\Debug_OpenGL-windows-x86_64\KTX-Tools\KTX-Tools.lib;vendor\libs\Debug_OpenGL-windows-x86_64\SPIRV-Cross\SPIRV-Cross.lib;vendor\vulkan\libs\vulkan-1.lib;opengl32.lib;vendor\vulkan\libs\shaderc_d.lib;vendor\vulkan\libs\shaderc_util_d.lib;vendor\vulkan\libs\glslang_d.lib;vendor\vulkan\libs\SPIRV_d.lib;vendor\vulkan\libs\SPIRV-Tools_d.lib;vendor\vulkan\libs\SPIRV-Tools-opt_d.lib;vendor\vulkan\libs\machineIndependent_d.lib;vendor\vulkan\libs\genericCodeGen_d.lib;vendor\vulkan\libs\OGLCompiler_d.lib;vendor\vulkan\libs\OSDependent_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_OpenGL|x64'">
@@ -179,7 +179,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>vendor\libs\Release_OpenGL-windows-x86_64\Glad\Glad.lib;vendor\libs\Release_OpenGL-windows-x86_64\GLFW\GLFW.lib;vendor\libs\Release_OpenGL-windows-x86_64\ImGizmo\ImGizmo.lib;vendor\libs\Release_OpenGL-windows-x86_64\ImGui\ImGui.lib;vendor\libs\Release_OpenGL-windows-x86_64\KTX-Tools\KTX-Tools.lib;vendor\libs\Release_OpenGL-windows-x86_64\SPIRV-Cross\SPIRV-Cross.lib;vendor\vulkan\libs\vulkan-1.lib;vendor\vulkan\libs\VkLayer_utils.lib;opengl32.lib;vendor\vulkan\libs\shaderc.lib;vendor\vulkan\libs\shaderc_util.lib;vendor\vulkan\libs\glslang.lib;vendor\vulkan\libs\SPIRV.lib;vendor\vulkan\libs\SPIRV-Tools.lib;vendor\vulkan\libs\SPIRV-Tools-opt.lib;vendor\vulkan\libs\machineIndependent.lib;vendor\vulkan\libs\genericCodeGen.lib;vendor\vulkan\libs\OGLCompiler.lib;vendor\vulkan\libs\OSDependent.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vendor\libs\Release_OpenGL-windows-x86_64\Glad\Glad.lib;vendor\libs\Release_OpenGL-windows-x86_64\GLFW\GLFW.lib;vendor\libs\Release_OpenGL-windows-x86_64\ImGizmo\ImGizmo.lib;vendor\libs\Release_OpenGL-windows-x86_64\ImGui\ImGui.lib;vendor\libs\Release_OpenGL-windows-x86_64\KTX-Tools\KTX-Tools.lib;vendor\libs\Release_OpenGL-windows-x86_64\SPIRV-Cross\SPIRV-Cross.lib;vendor\vulkan\libs\vulkan-1.lib;opengl32.lib;vendor\vulkan\libs\shaderc.lib;vendor\vulkan\libs\shaderc_util.lib;vendor\vulkan\libs\glslang.lib;vendor\vulkan\libs\SPIRV.lib;vendor\vulkan\libs\SPIRV-Tools.lib;vendor\vulkan\libs\SPIRV-Tools-opt.lib;vendor\vulkan\libs\machineIndependent.lib;vendor\vulkan\libs\genericCodeGen.lib;vendor\vulkan\libs\OGLCompiler.lib;vendor\vulkan\libs\OSDependent.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -212,6 +212,7 @@
     <ClInclude Include="include\Common\VertexArray.h" />
     <ClInclude Include="include\Common\VertexBuffer.h" />
     <ClInclude Include="include\Common\Window.h" />
+    <ClInclude Include="include\DebugRenderer.h" />
     <ClInclude Include="include\EditorCamera.h" />
     <ClInclude Include="include\GraphicsContext.h" />
     <ClInclude Include="include\GraphicsPipeline.h" />
@@ -868,7 +869,6 @@
     <ClInclude Include="include\RaytracingPipeline.h" />
     <ClInclude Include="include\Renderer.h" />
     <ClInclude Include="include\Renderer2D.h" />
-    <ClInclude Include="include\DebugRenderer.h" />
     <ClInclude Include="include\Utils\Frustum.h" />
     <ClInclude Include="include\Utils\GLM.h" />
     <ClInclude Include="include\Utils\SSAOGenerator.h" />
@@ -919,6 +919,7 @@
     <ClCompile Include="src\Common\VertexArray.cpp" />
     <ClCompile Include="src\Common\VertexBuffer.cpp" />
     <ClCompile Include="src\Common\Window.cpp" />
+    <ClCompile Include="src\DebugRenderer.cpp" />
     <ClCompile Include="src\EditorCamera.cpp" />
     <ClCompile Include="src\GraphicsContext.cpp" />
     <ClCompile Include="src\GraphicsPipeline.cpp" />
@@ -938,7 +939,6 @@
     <ClCompile Include="src\RaytracingPipeline.cpp" />
     <ClCompile Include="src\Renderer.cpp" />
     <ClCompile Include="src\Renderer2D.cpp" />
-    <ClCompile Include="src\DebugRenderer.cpp" />
     <ClCompile Include="src\Utils\Frustum.cpp" />
     <ClCompile Include="src\Utils\Utils.cpp" />
     <ClCompile Include="src\Utils\glTFImporter.cpp" />
