@@ -2,6 +2,7 @@
 #include "EditorCamera.h"
 #include "Common/Input.h"
 #include "Common/Framebuffer.h"
+#include "Utils/Utils.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>

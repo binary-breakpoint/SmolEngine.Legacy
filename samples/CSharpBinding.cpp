@@ -125,8 +125,6 @@ int main(int argc, char** argv)
 			ImGui::End();
 
 			Renderer::BeginScene(&clearInfo);
-			Renderer::SetShadowLightDirection(lightDir);
-			Renderer::SubmitDirectionalLight(lightDir, { 1, 1, 1, 1 });
 			Renderer::SubmitMesh({ 0, -5.0, 0 }, { 0, 0, 0 }, { 10, 1, 10, }, &cube, stoneMat);
 			Renderer::EndScene();
 		}

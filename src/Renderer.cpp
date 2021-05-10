@@ -94,7 +94,7 @@ namespace Frostium
 				}
 
 				const bool animated = mesh->IsAnimated();
-				if (animated)
+				if (animated && mesh->m_ImportedData)
 				{
 					ImportedDataGlTF* imported = mesh->m_ImportedData;
 					glTFAnimation* activeAnim = &imported->Animations[imported->ActiveAnimation];
@@ -139,39 +139,51 @@ namespace Frostium
 		{
 			// Updates scene data
 			s_Data->m_PBRPipeline.SubmitBuffer(s_Data->m_SceneDataBinding, sizeof(SceneData), s_Data->m_SceneData);
+			// Updates scene state
+			{
+				s_Data->m_SceneState.NumPointsLights = s_Data->m_PointLightIndex;
+				s_Data->m_SceneState.NumSpotLights = s_Data->m_SpotLightIndex;
+				s_Data->m_PBRPipeline.SubmitBuffer(s_Data->m_SceneStateBinding, sizeof(SceneState), &s_Data->m_SceneState);
+			}
 
 			// Updates Directional Lights
-			if (s_Data->m_DirectionalLightIndex > 0)
+			if (s_Data->m_DirLight.IsActive)
 			{
-				s_Data->m_PBRPipeline.SubmitBuffer(s_Data->m_DirLightBinding, sizeof(DirectionalLightBuffer) * s_Data->m_DirectionalLightIndex, &s_Data->m_DirectionalLights);
-				// Calculate Depth
-				s_Data->m_MainPushConstant.DepthMVP = CalculateDepthMVP(s_Data->m_ShadowLightDirection);
+				s_Data->m_PBRPipeline.SubmitBuffer(s_Data->m_DirLightBinding, sizeof(DirectionalLight), &s_Data->m_DirLight);
+				if (s_Data->m_DirLight.IsCastShadows)
+				{
+					// Calculate Depth
+					CalculateDepthMVP(s_Data->m_MainPushConstant.DepthMVP);
+				}
 			}
 
 			// Updates Point Lights
 			if (s_Data->m_PointLightIndex > 0)
 			{
-				s_Data->m_PBRPipeline.SubmitBuffer(s_Data->m_PointLightBinding, sizeof(PointLightBuffer) * s_Data->m_PointLightIndex, &s_Data->m_PointLights);
+				s_Data->m_PBRPipeline.SubmitBuffer(s_Data->m_PointLightBinding, sizeof(PointLight) * s_Data->m_PointLightIndex, s_Data->m_PointLights.data());
 			}
 
-			// Updates animation joints
+			// Updates Spot Lights
+			if (s_Data->m_SpotLightIndex > 0)
+			{
+				s_Data->m_PBRPipeline.SubmitBuffer(s_Data->m_SpotLightBinding, sizeof(SpotLight) * s_Data->m_SpotLightIndex, s_Data->m_SpotLights.data());
+			}
+
+			// Updates Animation joints
 			if (s_Data->m_LastAnimationOffset > 0)
 			{
-				s_Data->m_PBRPipeline.SubmitBuffer(s_Data->m_AnimBinding, sizeof(glm::mat4) * s_Data->m_LastAnimationOffset, &s_Data->m_AnimationJoints);
+				s_Data->m_PBRPipeline.SubmitBuffer(s_Data->m_AnimBinding, sizeof(glm::mat4) * s_Data->m_LastAnimationOffset, s_Data->m_AnimationJoints.data());
 			}
 
-			// Updates model views
+			// Updates Batch Data
 			if (s_Data->m_InstanceDataIndex > 0)
 			{
-				s_Data->m_PBRPipeline.SubmitBuffer(s_Data->m_ShaderDataBinding, sizeof(InstanceData) * s_Data->m_InstanceDataIndex, &s_Data->m_InstancesData);
+				s_Data->m_PBRPipeline.SubmitBuffer(s_Data->m_ShaderDataBinding, sizeof(InstanceData) * s_Data->m_InstanceDataIndex, s_Data->m_InstancesData.data());
 			}
-
-			// Updates Ambient Lighting
-			s_Data->m_PBRPipeline.SubmitBuffer(s_Data->m_AmbientLightBinding, s_Data->m_AmbientLightingSize, &s_Data->m_AmbientLighting);
 		}
 
 		// Depth Pass
-		if (s_Data->m_DirectionalLightIndex > 0)
+		if (s_Data->m_DirLight.IsActive && s_Data->m_DirLight.IsCastShadows)
 		{
 			s_Data->m_DepthPassPipeline.BeginCommandBuffer(true);
 #ifndef FROSTIUM_OPENGL_IMPL
@@ -227,9 +239,6 @@ namespace Frostium
 				auto& cmd = s_Data->m_DrawList[i];
 
 				s_Data->m_MainPushConstant.DataOffset = cmd.Offset;
-				s_Data->m_MainPushConstant.DirectionalLights = s_Data->m_DirectionalLightIndex;
-				s_Data->m_MainPushConstant.PointLights = s_Data->m_PointLightIndex;
-
 				s_Data->m_PBRPipeline.SubmitPushConstant(ShaderType::Vertex, s_Data->m_PushConstantSize, &s_Data->m_MainPushConstant);
 				s_Data->m_PBRPipeline.DrawMeshIndexed(cmd.Mesh, cmd.InstancesCount);
 			}
@@ -300,51 +309,56 @@ namespace Frostium
 	void Renderer::SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation,
 		const glm::vec3& scale, Mesh* mesh, const uint32_t& materialID)
 	{
-		if (s_Data->m_Frustum->CheckSphere(pos, 3.0f) && mesh != nullptr)
+		if (s_Data->m_Frustum->CheckSphere(pos, 10.0f) && mesh != nullptr)
 		{
-			AddMesh(pos, rotation, scale, mesh, materialID);
+			AddMesh(pos, rotation, scale, mesh, materialID == 0 ? mesh->m_MaterialID: materialID);
 		}
 	}
 
-	void Renderer::SubmitDirectionalLight(const glm::vec3& dir, const glm::vec4& color)
+	void Renderer::SubmitDirLight(DirectionalLight* light)
 	{
-		uint32_t index = s_Data->m_DirectionalLightIndex;
-		if (index >= s_MaxDirectionalLights)
-			return; // temp;
-
-		s_Data->m_DirectionalLights[index].Color = color;
-		s_Data->m_DirectionalLights[index].Position = glm::normalize(glm::vec4(dir, 1.0f));
-		s_Data->m_DirectionalLightIndex++;
+		if (light != nullptr)
+		{
+			s_Data->m_DirLight = *light;
+		}
 	}
 
-	void Renderer::SubmitPointLight(const glm::vec3& pos, const glm::vec4& color, float constant, float linear, float exp)
+	void Renderer::SubmitPointLight(PointLight* light)
 	{
 		uint32_t index = s_Data->m_PointLightIndex;
-		if (index >= s_MaxPointLights)
-			return; // temp;
+		if (index >= s_MaxLights || light == nullptr)
+			return;
 
-		s_Data->m_PointLights[index].Color = color;
-		s_Data->m_PointLights[index].Position = glm::normalize(glm::vec4(pos, 1.0f));
+		s_Data->m_PointLights[index] = *light;
 		s_Data->m_PointLightIndex++;
+	}
+
+	void Renderer::SubmitSpotLight(SpotLight* light)
+	{
+		uint32_t index = s_Data->m_SpotLightIndex;
+		if (index >= s_MaxLights || light == nullptr)
+			return;
+
+		s_Data->m_SpotLights[index] = *light;
+		s_Data->m_SpotLightIndex++;
 	}
 
 	void Renderer::SetRendererState(RendererState* state)
 	{
-		s_Data->m_State = *state;
+		if (state != nullptr)
+		{
+			s_Data->m_State = *state;
+			if (state->pSceneState)
+				s_Data->m_SceneState = *state->pSceneState;
+		}
 	}
 
-	void Renderer::SetAmbientLighting(const glm::vec3& diffuseColor, glm::vec3& specularColor, float IBLscale, bool enableIBL, glm::vec3& ambient)
+	void Renderer::SetDepthPassProperties(DepthPassProperties* properties)
 	{
-		s_Data->m_AmbientLighting.DiffuseColor = glm::vec4(diffuseColor, 0.0f);
-		s_Data->m_AmbientLighting.SpecularColor = glm::vec4(specularColor, 0.0f);
-		s_Data->m_AmbientLighting.Ambient = glm::vec4(ambient, 0.0f);
-		s_Data->m_AmbientLighting.Params.x = IBLscale;
-		s_Data->m_AmbientLighting.Params.y = enableIBL ? 1.0f : 0.0f;
-	}
-
-	void Renderer::SetShadowLightDirection(const glm::vec3& dir)
-	{
-		s_Data->m_ShadowLightDirection = dir;
+		if (properties != nullptr)
+		{
+			s_Data->m_DepthPassProperties = *properties;
+		}
 	}
 
 	void Renderer::InitPBR()
@@ -382,8 +396,9 @@ namespace Frostium
 				shaderCI.StorageBuffersSizes[s_Data->m_AnimBinding] = { sizeof(glm::mat4) * s_MaxAnimationJoints};
 
 				// Fragment
-				shaderCI.StorageBuffersSizes[s_Data->m_DirLightBinding] = { sizeof(DirectionalLightBuffer) * s_MaxDirectionalLights };
-				shaderCI.StorageBuffersSizes[s_Data->m_PointLightBinding] = { sizeof(PointLightBuffer) * s_MaxPointLights };
+				shaderCI.StorageBuffersSizes[s_Data->m_PointLightBinding] = { sizeof(PointLight) * s_MaxLights };
+				shaderCI.StorageBuffersSizes[s_Data->m_SpotLightBinding] = { sizeof(SpotLight) * s_MaxLights };
+				shaderCI.StorageBuffersSizes[s_Data->m_DirLightBinding] = { sizeof(DirectionalLight) };
 			};
 
 			GraphicsPipelineCreateInfo DynamicPipelineCI = {};
@@ -397,7 +412,6 @@ namespace Frostium
 			auto result = s_Data->m_PBRPipeline.Create(&DynamicPipelineCI);
 			assert(result == PipelineCreateResult::SUCCESS);
 
-			s_Data->m_PBRPipeline.SubmitBuffer(30, s_Data->m_AmbientLightingSize, &s_Data->m_AmbientLighting);
 			s_Data->m_PBRPipeline.UpdateSampler(&s_Data->m_DepthFramebuffer, 1, "Depth_Attachment");
 #ifndef FROSTIUM_OPENGL_IMPL
 			s_Data->m_PBRPipeline.UpdateVulkanImageDescriptor(2, VulkanPBR::GetIrradianceImageInfo());
@@ -686,7 +700,6 @@ namespace Frostium
 			FramebufferSpecification framebufferCI = {};
 			framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
 			framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
-			framebufferCI.bResizable = false;
 			framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
 			framebufferCI.Attachments = { bloom };
 			Framebuffer::Create(framebufferCI, &s_Data->m_BloomFramebuffer);
@@ -695,20 +708,18 @@ namespace Frostium
 
 	}
 
-	glm::mat4 Renderer::CalculateDepthMVP(const glm::vec3& lightPos)
+	void Renderer::CalculateDepthMVP(glm::mat4& out_mvp)
 	{
 		// Keep depth range as small as possible
 		// for better shadow map precision
-		float zNear = 1.0f;
-		float zFar = 500.0f;
-		float lightFOV = 45.0f;
+		DepthPassProperties& data = s_Data->m_DepthPassProperties;
 
 		// Matrix from light's point of view
-		glm::mat4 depthProjectionMatrix = glm::perspective(lightFOV, 1.0f, zNear, zFar);
-		glm::mat4 depthViewMatrix = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0, 1, 0));
+		glm::mat4 depthProjectionMatrix = glm::perspective(data.lightFOV, 1.0f, data.zNear, data.zFar);
+		glm::mat4 depthViewMatrix = glm::lookAt(data.lightPos, glm::vec3(0.0f), glm::vec3(0, 1, 0));
 		glm::mat4 depthModelMatrix = glm::mat4(1.0f);
 
-		return depthProjectionMatrix * depthViewMatrix * depthModelMatrix;
+		out_mvp =  depthProjectionMatrix * depthViewMatrix * depthModelMatrix;
 	}
 
 	void Renderer::AddMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Mesh* mesh, const uint32_t& materialID)
@@ -790,8 +801,8 @@ namespace Frostium
 	{
 		s_Data->m_Objects = 0;
 		s_Data->m_InstanceDataIndex = 0;
-		s_Data->m_DirectionalLightIndex = 0;
 		s_Data->m_PointLightIndex = 0;
+		s_Data->m_SpotLightIndex = 0;
 		s_Data->m_DrawListIndex = 0;
 		s_Data->m_UsedMeshesIndex = 0;
 		s_Data->m_LastAnimationOffset = 0;
