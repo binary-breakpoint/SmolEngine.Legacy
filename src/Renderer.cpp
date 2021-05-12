@@ -317,10 +317,8 @@ namespace Frostium
 
 	void Renderer::SubmitDirLight(DirectionalLight* light)
 	{
-		if (light != nullptr)
-		{
-			s_Data->m_DirLight = *light;
-		}
+		assert(light != nullptr);
+		s_Data->m_DirLight = *light;
 	}
 
 	void Renderer::SubmitPointLight(PointLight* light)
@@ -343,22 +341,16 @@ namespace Frostium
 		s_Data->m_SpotLightIndex++;
 	}
 
-	void Renderer::SetRendererState(RendererState* state)
+	void Renderer::SetRenderingState(RenderingState* state)
 	{
-		if (state != nullptr)
-		{
-			s_Data->m_State = *state;
-			if (state->pSceneState)
-				s_Data->m_SceneState = *state->pSceneState;
-		}
+		assert(state != nullptr);
+		s_Data->m_State = *state;
 	}
 
-	void Renderer::SetDepthPassProperties(DepthPassProperties* properties)
+	void Renderer::SetSceneState(SceneState* state)
 	{
-		if (properties != nullptr)
-		{
-			s_Data->m_DepthPassProperties = *properties;
-		}
+		assert(state != nullptr);
+		s_Data->m_SceneState = *state;
 	}
 
 	void Renderer::InitPBR()
@@ -712,11 +704,11 @@ namespace Frostium
 	{
 		// Keep depth range as small as possible
 		// for better shadow map precision
-		DepthPassProperties& data = s_Data->m_DepthPassProperties;
+		auto& data = s_Data->m_DirLight;
 
 		// Matrix from light's point of view
 		glm::mat4 depthProjectionMatrix = glm::perspective(data.lightFOV, 1.0f, data.zNear, data.zFar);
-		glm::mat4 depthViewMatrix = glm::lookAt(data.lightPos, glm::vec3(0.0f), glm::vec3(0, 1, 0));
+		glm::mat4 depthViewMatrix = glm::lookAt(glm::vec3(data.Direction), glm::vec3(0.0f), glm::vec3(0, 1, 0));
 		glm::mat4 depthModelMatrix = glm::mat4(1.0f);
 
 		out_mvp =  depthProjectionMatrix * depthViewMatrix * depthModelMatrix;

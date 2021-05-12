@@ -67,6 +67,8 @@ namespace Frostium
 			Framebuffer::Create(framebufferCI, &m_Framebuffer);
 		}
 
+		LoadMeshes();
+
 		if (info->Flags & Features_Renderer_3D_Flags)
 		{
 			if (info->pRendererStorage != nullptr)
@@ -107,8 +109,7 @@ namespace Frostium
 			Renderer2D::Init(m_Renderer2DStorage);
 		}
 
-		DebugRenderer::Init(); // temp
-
+		DebugRenderer::Init();
 #ifdef  FROSTIUM_OPENGL_IMPL
 		GetOpenglRendererAPI()->Init();
 #endif
@@ -252,6 +253,21 @@ namespace Frostium
 		return &m_Frustum;
 	}
 
+	Mesh* GraphicsContext::GetBoxMesh()
+	{
+		return &m_BoxMesh;
+	}
+
+	Mesh* GraphicsContext::GetCapsuleMesh()
+	{
+		return &m_CapsuleMesh;
+	}
+
+	Mesh* GraphicsContext::GetSphereMesh()
+	{
+		return &m_SphereMesh;
+	}
+
 	bool GraphicsContext::IsWindowMinimized() const
 	{
 		return m_State->WindowMinimized;
@@ -322,6 +338,14 @@ namespace Frostium
 
 		if(m_EventCallback != nullptr)
 			m_EventCallback(std::forward<Event&>(e));
+	}
+
+	bool GraphicsContext::LoadMeshes()
+	{
+		Mesh::Create(m_ResourcesFolderPath + "Models/box.gltf", &m_BoxMesh);
+		Mesh::Create(m_ResourcesFolderPath + "Models/capsule.gltf", &m_CapsuleMesh);
+		Mesh::Create(m_ResourcesFolderPath + "Models/sphere.gltf", &m_SphereMesh);
+		return true;
 	}
 
 #ifdef FROSTIUM_OPENGL_IMPL

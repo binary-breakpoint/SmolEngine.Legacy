@@ -95,9 +95,9 @@ int main(int argc, char** argv)
 
 	InitMono();
 	static glm::vec3 lightDir = glm::vec3(105.0f, 53.0f, 102.0f);
+	Mesh* cube = GraphicsContext::GetSingleton()->GetBoxMesh();
+
 	// Load assets
-	Mesh cube = {};
-	Mesh::Create("Assets/cube.gltf", &cube);
 	MaterialCreateInfo materialCI = {};
 	materialCI.SetTexture(MaterialTexture::Albedro, "Assets/materials/stone/Tiles087_1K_Color.png");
 	materialCI.SetTexture(MaterialTexture::Normal, "Assets/materials/stone/Tiles087_1K_Normal.png");
@@ -125,7 +125,7 @@ int main(int argc, char** argv)
 			ImGui::End();
 
 			Renderer::BeginScene(&clearInfo);
-			Renderer::SubmitMesh({ 0, -5.0, 0 }, { 0, 0, 0 }, { 10, 1, 10, }, &cube, stoneMat);
+			Renderer::SubmitMesh({ 0, -5.0, 0 }, { 0, 0, 0 }, { 10, 1, 10, }, cube, stoneMat);
 			Renderer::EndScene();
 		}
 		context->SwapBuffers();

@@ -69,8 +69,7 @@ int main(int argc, char** argv)
 	context = new GraphicsContext(&info);
 
 	ClearInfo clearInfo = {};
-	Mesh cube = {};
-	Mesh::Create("Assets/cube.gltf", &cube);
+	Mesh* cube = GraphicsContext::GetSingleton()->GetBoxMesh();
 	bool process = true;
 
 	context->SetEventCallback([&](Event& e) 
@@ -84,7 +83,6 @@ int main(int argc, char** argv)
 	LoadMaterials(materialIDs);
 	GenerateMap(chunks, materialIDs);
 
-	DepthPassProperties depthPass = {};
 	DirectionalLight dirLight = {};
 	dirLight.IsActive = true;
 	dirLight.Direction = glm::vec4(105.0f, 53.0f, 102.0f, 0);
@@ -130,25 +128,21 @@ int main(int argc, char** argv)
 			Renderer::BeginScene(&clearInfo);
 			{
 				for (const auto& c : chunks)
-					Renderer::SubmitMesh(c.Pos, c.Rot, c.Scale, &cube, c.MaterialID);
+					Renderer::SubmitMesh(c.Pos, c.Rot, c.Scale, cube, c.MaterialID);
 
 				objects = Renderer::GetNumObjects();
 			}
 			Renderer::EndScene();
 
-			ImGui::Begin("Debug Window");
+			ImGui::Begin("PBR Sample");
 			{
 				float lastFrameTime = deltaTime.GetTimeSeconds();
 				std::string str = "DeltaTime: " + std::to_string(lastFrameTime);
 				std::string str2 = "Objects: " + std::to_string(objects);
 
 				if (ImGui::DragFloat3("LightDir", glm::value_ptr(dirLight.Direction)))
-				{
-					depthPass.lightPos = dirLight.Direction;
-
 					Renderer::SubmitDirLight(&dirLight);
-					Renderer::SetDepthPassProperties(&depthPass);
-				}
+
 				ImGui::Text(str.c_str());
 				ImGui::Text(str2.c_str());
 			}

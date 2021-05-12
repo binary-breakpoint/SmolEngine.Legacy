@@ -36,7 +36,7 @@ int main(int argc, char** argv)
 		info.ResourcesFolderPath = "../resources/";
 		info.pWindowCI = &windoInfo;
 		info.pDefaultCamera = camera;
-		info.eShadowMapSize = ShadowMapSize::SIZE_16;
+		info.eShadowMapSize = ShadowMapSize::SIZE_8;
 	}
 
 	bool process = true;
@@ -51,15 +51,27 @@ int main(int argc, char** argv)
 	glm::vec3 lightDir = glm::vec3(0.0f);
 	glm::vec3 rot = glm::vec3(-90.0f, 0.0f, 0.0f);
 
+	bool playAnim = false;
+	bool reset = false;
+	bool wireframes = false;
+	float zNear = 1.0f;
+	float zFar = 350.0f;
+	float lightFOV = 45.0f;
+	float animSpeed = 1.0f;
+	float lightIntensity = 1.0f;
+
+	RenderingState state = {};
+	DirectionalLight dirLight = {};
+	dirLight.IsActive = true;
+	dirLight.IsCastShadows = true;
+
 	// Load models
 	Mesh plane = {};
-	Mesh knight2 = {};
-	Mesh cube = {};
-	Mesh sphere {};
+	Mesh dummy = {};
 	Mesh::Create("Assets/plane.gltf", &plane);
-	Mesh::Create("Assets/CesiumMan.gltf", &knight2);
-	Mesh::Create("Assets/cube.gltf", &cube);
-	Mesh::Create("Assets/sphere.gltf", &sphere);
+	Mesh::Create("Assets/CesiumMan.gltf", &dummy);
+	Mesh* cube = GraphicsContext::GetSingleton()->GetBoxMesh();
+	Mesh* sphere = GraphicsContext::GetSingleton()->GetSphereMesh();
 
 	// Load Materials
 	uint32_t stoneMat;
@@ -92,21 +104,8 @@ int main(int argc, char** argv)
 	plane.SetMaterialID(planeMat, true);
 
 	AnimationProperties* defaultProp = plane.GetAnimationProperties(0);
-	AnimationProperties* defaultProp2 = knight2.GetAnimationProperties(0);
-
+	AnimationProperties* defaultProp2 = dummy.GetAnimationProperties(0);
 	defaultProp2->SetActive(true);
-
-	bool playAnim = false;
-	bool reset = false;
-	bool wireframes = false;
-	float animSpeed = 1.0f;
-	float lightIntensity = 1.0f;
-
-	RendererState state = {};
-	DepthPassProperties depthPass = {};
-	DirectionalLight dirLight = {};
-	dirLight.IsActive = true;
-	dirLight.IsCastShadows = true;
 
 	while (process)
 	{
@@ -119,16 +118,47 @@ int main(int argc, char** argv)
 		context->UpdateSceneData(); // uses default camera - updates automatically
 		context->BeginFrame(deltaTime);
 		{
-			ImGui::Begin("Debug Window");
+			ImGui::Begin("Skinning Sample");
 			{
-				ImGui::Checkbox("Grid", &state.bDrawGrid);
-				ImGui::Checkbox("Skybox", &state.bDrawSkyBox);
+				if (ImGui::Checkbox("Grid", &state.bDrawGrid))
+					Renderer::SetRenderingState(&state);
+
+				if (ImGui::Checkbox("Skybox", &state.bDrawSkyBox))
+					Renderer::SetRenderingState(&state);
+
+				if (ImGui::Checkbox("Bloom Pass", &state.bBloomPass))
+					Renderer::SetRenderingState(&state);
+
 				ImGui::Checkbox("Wireframes", &wireframes);
 				if (ImGui::InputFloat("LightIntensity", &lightIntensity))
 				{
 					dirLight.Intensity = lightIntensity;
+					Renderer::SubmitDirLight(&dirLight);
 				}
 
+				if (ImGui::InputFloat("Znear", &zNear))
+				{
+					dirLight.zNear = zNear;
+					Renderer::SubmitDirLight(&dirLight);
+				}
+
+				if (ImGui::InputFloat("ZFar", &zFar))
+				{
+					dirLight.zFar = zFar;
+					Renderer::SubmitDirLight(&dirLight);
+				}
+
+				if (ImGui::InputFloat("LightFOV", &lightFOV))
+				{
+					dirLight.lightFOV = lightFOV;
+					Renderer::SubmitDirLight(&dirLight);
+				}
+
+				if (ImGui::DragFloat3("LightDir", glm::value_ptr(lightDir)))
+				{
+					dirLight.Direction = glm::vec4(lightDir, 1);
+					Renderer::SubmitDirLight(&dirLight);
+				}
 
 				if (ImGui::Checkbox("Play", &playAnim))
 				{
@@ -153,31 +183,21 @@ int main(int argc, char** argv)
 					defaultProp2->SetSpeed(animSpeed);
 				}
 
-				if (ImGui::DragFloat3("LightDir", glm::value_ptr(lightDir)))
-				{
-					depthPass.lightPos = lightDir;
-					dirLight.Direction = glm::vec4(lightDir, 1);
-					Renderer::SubmitDirLight(&dirLight);
-					Renderer::SetDepthPassProperties(&depthPass);
-				}
-
 				ImGui::DragFloat3("Plane rot", glm::value_ptr(rot));
 			}
 			ImGui::End();
 
-			Renderer::SetRendererState(&state);
-
 			Renderer::BeginScene(&clearInfo);
-			Renderer::SubmitMesh({ -5, 5, 0 }, { 0, 0, 0 }, { 2, 2, 2, }, &sphere, planeMat);
-			Renderer::SubmitMesh({ 0, 1, 0 }, { 0, 0, 0 }, { 50, 1, 50, }, &cube, 0);
+			Renderer::SubmitMesh({ -5, 5, 0 }, { 0, 0, 0 }, { 2, 2, 2, }, sphere, planeMat);
+			Renderer::SubmitMesh({ 0, 1, 0 }, { 0, 0, 0 }, { 50, 1, 50, }, cube, 0);
 			Renderer::SubmitMesh({ 0, 3.9f, -3 }, glm::radians(rot), { 1, 1, 1, }, &plane, planeMat);
-			Renderer::SubmitMesh({ 3, 2, 0 }, { 0, 0, 0 }, { 1, 1, 1, }, &knight2, stoneMat);
+			Renderer::SubmitMesh({ 3, 2, 0 }, { 0, 0, 0 }, { 5, 5, 5, }, &dummy, stoneMat);
 			Renderer::EndScene();
 
 			if (wireframes)
 			{
 				DebugRenderer::BeginDebug();
-				DebugRenderer::DrawMesh({ 0, 1, 0 }, { 0, 0, 0 }, { 50, 1, 50, }, &cube);
+				DebugRenderer::DrawWireframes({ 0, 1, 0 }, { 0, 0, 0 }, { 50, 1, 50, }, cube);
 				DebugRenderer::EndDebug();
 			}
 

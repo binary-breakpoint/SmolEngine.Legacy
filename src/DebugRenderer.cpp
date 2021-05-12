@@ -23,12 +23,10 @@ namespace Frostium
 	struct DebugRendererStorage
 	{
 		GraphicsPipeline   PrimitivePipeline{};
-		GraphicsPipeline   MeshPipeline{};
-						   
+		GraphicsPipeline   WireframesPipeline{};	   
 		VertexBuffer       QuadVB{};
 		VertexBuffer       CircleVB{};
 		VertexBuffer       LineVB{};
-					       
 		IndexBuffer        QuadIB{};
 		PushConstant       PushConst{};
 	};					   
@@ -37,15 +35,14 @@ namespace Frostium
 
 	void DebugRenderer::BeginDebug()
 	{
-		s_Data->MeshPipeline.BeginCommandBuffer(true);
+		s_Data->WireframesPipeline.BeginCommandBuffer(true);
 		s_Data->PrimitivePipeline.BeginCommandBuffer(true);
-
-		s_Data->MeshPipeline.BeginRenderPass();
+		s_Data->WireframesPipeline.BeginRenderPass();
 	}
 
 	void DebugRenderer::EndDebug()
 	{
-		s_Data->MeshPipeline.EndRenderPass();
+		s_Data->WireframesPipeline.EndRenderPass();
 	}
 
 	void DebugRenderer::DrawLine(const glm::vec3& pos1, const glm::vec3& pos2, float width, const glm::vec4& color)
@@ -74,20 +71,35 @@ namespace Frostium
 		s_Data->PrimitivePipeline.Draw(&s_Data->CircleVB, 3000, DrawMode::Fan);
 	}
 
-	void DebugRenderer::DrawMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Mesh* mesh)
+	void DebugRenderer::DrawWireframes(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Mesh* mesh)
 	{
 		glm::mat4 model;
 		Utils::ComposeTransform(pos, rotation, scale, model);
-		s_Data->MeshPipeline.SubmitPushConstant(ShaderType::Vertex, sizeof(glm::mat4), &model);
-		s_Data->MeshPipeline.DrawMeshIndexed(mesh, 1);
+		s_Data->WireframesPipeline.SubmitPushConstant(ShaderType::Vertex, sizeof(glm::mat4), &model);
+		s_Data->WireframesPipeline.DrawMeshIndexed(mesh, 1);
 
 		for(auto& child: mesh->GetChilds())
-			DrawMesh(pos, rotation, scale, &child);
+			DrawWireframes(pos, rotation, scale, &child);
 	}
 
 	void DebugRenderer::Init()
 	{
 		s_Data = new DebugRendererStorage();
+
+		VertexInputInfo vertexInput{};
+		{
+			BufferLayout main_layout =
+			{
+				{ DataTypes::Float3, "aPos" },
+				{ DataTypes::Float3, "aNormal" },
+				{ DataTypes::Float3, "aTangent" },
+				{ DataTypes::Float2, "aUV" },
+				{ DataTypes::Int4,   "aBoneIDs"},
+				{ DataTypes::Float4, "aWeight"}
+			};
+
+			vertexInput = VertexInputInfo(sizeof(glm::vec3), main_layout);
+		}
 
 		// Primitives
 		{
@@ -119,7 +131,7 @@ namespace Frostium
 				VertexBuffer::Create(&s_Data->LineVB, &LineVertex, sizeof(DebugVertex) * 2, isStatic);
 				IndexBuffer::Create(&s_Data->QuadIB, quadIndices, 6, isStatic);
 
-				delete CircleVertex;
+				delete[] CircleVertex;
 			}
 
 			BufferLayout layout =
@@ -131,7 +143,7 @@ namespace Frostium
 			GraphicsPipelineShaderCreateInfo shaderCI = {};
 			{
 				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::GetSingleton()->m_ResourcesFolderPath + "Shaders/DebugPrimitive.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::GetSingleton()->m_ResourcesFolderPath + "Shaders/DebugPrimitive.frag";
+				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::GetSingleton()->m_ResourcesFolderPath + "Shaders/DebugColor.frag";
 			};
 
 			pipelineCI.PipelineName = "DebugPrimitive";
@@ -145,35 +157,25 @@ namespace Frostium
 			assert(s_Data->PrimitivePipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
 		}
 
-		// Mesh
+		// Wireframes
 		{
-
-			BufferLayout layout =
-			{
-				{ DataTypes::Float3, "aPos" },
-				{ DataTypes::Float3, "aNormal" },
-				{ DataTypes::Float3, "aTangent" },
-				{ DataTypes::Float2, "aUV" },
-				{ DataTypes::Int4,   "aBoneIDs"},
-				{ DataTypes::Float4, "aWeight"}
-			};
 
 			GraphicsPipelineCreateInfo pipelineCI = {};
 			GraphicsPipelineShaderCreateInfo shaderCI = {};
 			{
 				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::GetSingleton()->m_ResourcesFolderPath + "Shaders/DebugMesh.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::GetSingleton()->m_ResourcesFolderPath + "Shaders/DebugMesh.frag";
+				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::GetSingleton()->m_ResourcesFolderPath + "Shaders/DebugColor.frag";
 			};
 
 			pipelineCI.PipelineName = "DebugMesh";
 			pipelineCI.eCullMode = CullMode::None;
-			pipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(PBRVertex), layout) };
+			pipelineCI.VertexInputInfos = { vertexInput };
 			pipelineCI.ePolygonMode = PolygonMode::Line;
 			pipelineCI.bDepthTestEnabled = false;
 			pipelineCI.pTargetFramebuffer = GraphicsContext::GetSingleton()->GetFramebuffer();
 			pipelineCI.pShaderCreateInfo = &shaderCI;
 
-			assert(s_Data->MeshPipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
+			assert(s_Data->WireframesPipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
 		}
 
 	}

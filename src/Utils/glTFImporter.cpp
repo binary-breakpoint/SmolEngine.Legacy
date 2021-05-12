@@ -222,7 +222,10 @@ namespace Frostium
 				uint32_t                   vertexStart = 0;
 				uint32_t                   indexCount = 0;
 				bool                       hasSkin = false;
+				glm::mat4                  model = glm::mat4(1.0f);
+				glm::vec3                  rot = glm::eulerAngles(node->Rotation);
 
+				Utils::ComposeTransform(node->Translation, rot, node->Scale, model);
 				if (out_data->Primitives.size() > 0)
 				{
 					firstIndex = static_cast<uint32_t>(out_data->Primitives.back().IndexBuffer.size());
@@ -289,10 +292,6 @@ namespace Frostium
 
 					hasSkin = (jointIndicesBuffer && jointWeightsBuffer);
 
-					glm::mat4 model = glm::mat4(1.0f);
-					glm::vec3 rot = glm::eulerAngles(node->Rotation);
-					Utils::ComposeTransform(node->Translation, rot, node->Scale, model);
-
 					// Append data to model's vertex buffer
 					for (size_t v = 0; v < vertexCount; v++)
 					{
@@ -352,6 +351,7 @@ namespace Frostium
 				}
 
 				out_data->Primitives.push_back(primitive);
+				out_data->Primitives.back().AABB.CalculateAABB(model);
 			}
 		}
 
@@ -517,5 +517,35 @@ namespace Frostium
 		}
 
 		return fileLoaded;
+	}
+
+    Primitive::BoundingBox Primitive::BoundingBox::CalculateAABB(const glm::mat4& m)
+	{
+		glm::vec3 min = glm::vec3(m[3]);
+		glm::vec3 max = min;
+		glm::vec3 v0, v1;
+
+		glm::vec3 right = glm::vec3(m[0]);
+		v0 = right * this->min.x;
+		v1 = right * this->max.x;
+		min += glm::min(v0, v1);
+		max += glm::max(v0, v1);
+
+		glm::vec3 up = glm::vec3(m[1]);
+		v0 = up * this->min.y;
+		v1 = up * this->max.y;
+		min += glm::min(v0, v1);
+		max += glm::max(v0, v1);
+
+		glm::vec3 back = glm::vec3(m[2]);
+		v0 = back * this->min.z;
+		v1 = back * this->max.z;
+		min += glm::min(v0, v1);
+		max += glm::max(v0, v1);
+
+		Primitive::BoundingBox box{};
+		box.min = min;
+		box.max = max;
+		return box;
 	}
 }
