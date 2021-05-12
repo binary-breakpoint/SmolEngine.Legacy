@@ -47,7 +47,7 @@ namespace Frostium
 		Texture::CreateWhiteTexture(m_DummyTexure);
 		// Initialize ImGUI and renderers
 		if (m_State->UseImGUI)
-			m_ImGuiContext.Init();
+			m_ImGuiContext.Init(info);
 		// Creates main framebuffer
 		FramebufferSpecification framebufferCI = {};
 		{

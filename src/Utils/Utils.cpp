@@ -8,13 +8,10 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 
-#ifdef WIN32
 #include <commdlg.h>
 #include <GLFW/glfw3.h>
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
-#endif // WIN32
-
 #include <GLFW/glfw3.h>
 
 namespace Frostium
@@ -118,7 +115,8 @@ namespace Frostium
 		CHAR currentDir[256] = { 0 };
 		ZeroMemory(&ofn, sizeof(OPENFILENAME));
 		ofn.lStructSize = sizeof(OPENFILENAME);
-		ofn.hwndOwner = glfwGetWin32Window((GLFWwindow*)GraphicsContext::GetSingleton()->GetWindow());
+		Window* win = GraphicsContext::GetSingleton()->GetWindow();
+		ofn.hwndOwner = glfwGetWin32Window((GLFWwindow*)win->GetNativeWindow());
 		ofn.lpstrFile = szFile;
 		ofn.nMaxFile = sizeof(szFile);
 		if (GetCurrentDirectoryA(256, currentDir))
@@ -129,6 +127,7 @@ namespace Frostium
 
 		if (GetOpenFileNameA(&ofn) == TRUE)
 			return ofn.lpstrFile;
+
 		return std::nullopt;
 	}
 
@@ -147,7 +146,8 @@ namespace Frostium
 		CHAR currentDir[256] = { 0 };
 		ZeroMemory(&ofn, sizeof(OPENFILENAME));
 		ofn.lStructSize = sizeof(OPENFILENAME);
-		ofn.hwndOwner = glfwGetWin32Window((GLFWwindow*)GraphicsContext::GetSingleton()->GetWindow());
+		Window* win = GraphicsContext::GetSingleton()->GetWindow();
+		ofn.hwndOwner = glfwGetWin32Window((GLFWwindow*)win->GetNativeWindow());
 		ofn.lpstrFile = szFile;
 		ofn.nMaxFile = sizeof(szFile);
 		if (GetCurrentDirectoryA(256, currentDir))
@@ -161,6 +161,7 @@ namespace Frostium
 
 		if (GetSaveFileNameA(&ofn) == TRUE)
 			return ofn.lpstrFile;
+
 		return std::nullopt;
 	}
 
