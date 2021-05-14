@@ -23,7 +23,7 @@ IncludeDir["imgizmo"] = "include/Libraries/imgizmo/src"
 IncludeDir["GLFW"] = "vendor/glfw/include"
 IncludeDir["Glad"] = "vendor/glad/include"
 IncludeDir["vulkan"] = "include/Libraries/vulkan/include"
-IncludeDir["stb"] = "vendor/stb_image"
+IncludeDir["stb"] = "include/Libraries/stb_image"
 IncludeDir["ktx"] = "vendor/ktx/include"
 IncludeDir["gli"] = "vendor/gli"
 IncludeDir["tinygltf"] = "vendor/tinygltf"
@@ -49,6 +49,7 @@ project "Frostium"
 
 	pchheader "stdafx.h"
 	pchsource "src/stdafx.cpp"
+	linkoptions { "/ignore:4006" }
 
 	files
 	{
@@ -59,7 +60,7 @@ project "Frostium"
 		"include/Libraries/glm/glm/**.hpp",
 		"include/Libraries/glm/glm/**.inl",
 
-		"vendor/stb_image/**.h",
+		"include/Libraries/stb_image/**.h",
 		"vendor/stb_image/**.cpp",
 		"vendor/implot/**.cpp",
 	}
@@ -177,7 +178,7 @@ project "Frostium"
 		buildoptions "/MD"
 		buildoptions "/bigobj"
 		buildoptions "/Zm500"
-		optimize "on"
+		optimize "full"
 
 		links 
 		{ 
@@ -197,7 +198,7 @@ project "Frostium"
 	buildoptions "/MD"
 	buildoptions "/bigobj"
 	buildoptions "/Zm500"
-	optimize "on"
+	optimize "full"
 
 	   links 
 	   { 
@@ -270,7 +271,7 @@ project "PBR"
 
 	filter "configurations:Release_Vulkan"
 		buildoptions "/MD"
-		optimize "on"
+		optimize "speed"
 
 --------------------------------------------------------- C#
 
@@ -322,7 +323,7 @@ project "CSharpBinding"
 
 	filter "configurations:Release_Vulkan"
 		buildoptions "/MD"
-		optimize "on"
+		optimize "full"
 
 ------------------------------------------------- 2D
 
@@ -372,7 +373,7 @@ project "2D"
 
 	filter "configurations:Release_Vulkan"
 		buildoptions "/MD"
-		optimize "on"
+		optimize "full"
 
 	------------------------------------------------- 3D Animations
 
@@ -418,7 +419,7 @@ project "2D"
 	filter "configurations:Debug_Vulkan"
 	buildoptions "/MDd"
 	buildoptions "/bigobj"
-	symbols "on"
+	optimize "full"
 
 	filter "configurations:Release_Vulkan"
 		buildoptions "/MD"

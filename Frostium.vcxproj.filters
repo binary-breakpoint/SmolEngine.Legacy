@@ -142,6 +142,9 @@
     <Filter Include="include\Libraries\spir_v_cross\include\spirv_cross">
       <UniqueIdentifier>{FF59524F-EBED-47F7-54B2-A1AB406582E9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\Libraries\stb_image">
+      <UniqueIdentifier>{0F999E82-7BA6-CC68-048D-C8537099981F}</UniqueIdentifier>
+    </Filter>
     <Filter Include="include\Libraries\vulkan">
       <UniqueIdentifier>{35D6529D-21FB-A11D-4A46-87AD36CAA03B}</UniqueIdentifier>
     </Filter>
@@ -2100,6 +2103,12 @@
     <ClInclude Include="include\Libraries\spir_v_cross\include\spirv_cross\external_interface.h">
       <Filter>include\Libraries\spir_v_cross\include\spirv_cross</Filter>
     </ClInclude>
+    <ClInclude Include="include\Libraries\stb_image\stb_image.h">
+      <Filter>include\Libraries\stb_image</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Libraries\stb_image\stb_image_write.h">
+      <Filter>include\Libraries\stb_image</Filter>
+    </ClInclude>
     <ClInclude Include="include\Libraries\vulkan\include\glslang\Include\BaseTypes.h">
       <Filter>include\Libraries\vulkan\include\glslang\Include</Filter>
     </ClInclude>
@@ -2367,14 +2376,11 @@
     <ClInclude Include="src\stdafx.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="vendor\stb_image\stb_image.h">
-      <Filter>vendor\stb_image</Filter>
-    </ClInclude>
-    <ClInclude Include="vendor\stb_image\stb_image_write.h">
-      <Filter>vendor\stb_image</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Common\Common.cpp">
+      <Filter>src\Common</Filter>
+    </ClCompile>
     <ClCompile Include="src\Common\CubeTexture.cpp">
       <Filter>src\Common</Filter>
     </ClCompile>

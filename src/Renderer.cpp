@@ -315,6 +315,45 @@ namespace Frostium
 		}
 	}
 
+	void Renderer::SubmitMeshEx(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Mesh* mesh, const uint32_t& PBRmaterialID)
+	{
+		if (s_Data->m_Frustum->CheckSphere(pos, 10.0f) && mesh != nullptr)
+		{
+			if (s_Data->m_Objects >= s_Data->m_MaxObjects)
+				StartNewBacth();
+
+			auto& instance = s_Data->m_Packages[mesh];
+			if (instance.CurrentIndex >= s_MaxInstances)
+				StartNewBacth();
+
+			auto& package = instance.Data[instance.CurrentIndex];
+
+			package.MaterialID = PBRmaterialID;
+			package.WorldPos = const_cast<glm::vec3*>(&pos);
+			package.Rotation = const_cast<glm::vec3*>(&rotation);
+			package.Scale = const_cast<glm::vec3*>(&scale);
+			instance.CurrentIndex++;
+
+			bool found = false;
+			for (uint32_t i = 0; i < s_Data->m_UsedMeshesIndex; ++i)
+			{
+				if (s_Data->m_UsedMeshes[i] == mesh)
+				{
+					found = true;
+					break;
+				}
+			}
+
+			if (found == false)
+			{
+				s_Data->m_UsedMeshes[s_Data->m_UsedMeshesIndex] = mesh;
+				s_Data->m_UsedMeshesIndex++;
+			}
+
+			s_Data->m_Objects++;
+		}
+	}
+
 	void Renderer::SubmitDirLight(DirectionalLight* light)
 	{
 		assert(light != nullptr);

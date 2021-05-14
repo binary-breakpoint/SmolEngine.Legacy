@@ -96,7 +96,7 @@
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;PLATFORM_WIN;BUILD_DLL;GLFW_INCLUDE_NONE;FROSTIUM_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;vendor\icon_font_cpp_headers;include;include\Libraries;include\Libraries\implot;include\Libraries\spdlog\include;include\Libraries\cereal\include;src;vendor\glfw\include;vendor\glad\include;include\Libraries\imgui;include\Libraries\glm;vendor\stb_image;include\Libraries\vulkan\include;include\Libraries\imgizmo\src;vendor\ktx\include;vendor\gli;vendor\tinygltf;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;vendor\icon_font_cpp_headers;include;include\Libraries;include\Libraries\implot;include\Libraries\spdlog\include;include\Libraries\cereal\include;src;vendor\glfw\include;vendor\glad\include;include\Libraries\imgui;include\Libraries\glm;include\Libraries\stb_image;include\Libraries\vulkan\include;include\Libraries\imgizmo\src;vendor\ktx\include;vendor\gli;vendor\tinygltf;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -109,6 +109,7 @@
     </Link>
     <Lib>
       <AdditionalDependencies>vendor\libs\Debug_Vulkan-windows-x86_64\Glad\Glad.lib;vendor\libs\Debug_Vulkan-windows-x86_64\GLFW\GLFW.lib;vendor\libs\Debug_Vulkan-windows-x86_64\ImGizmo\ImGizmo.lib;vendor\libs\Debug_Vulkan-windows-x86_64\ImGui\ImGui.lib;vendor\libs\Debug_Vulkan-windows-x86_64\KTX-Tools\KTX-Tools.lib;vendor\libs\Debug_Vulkan-windows-x86_64\SPIRV-Cross\SPIRV-Cross.lib;vendor\vulkan\libs\vulkan-1.lib;vendor\vulkan\libs\VkLayer_utils.lib;vendor\vulkan\libs\shaderc_d.lib;vendor\vulkan\libs\shaderc_util_d.lib;vendor\vulkan\libs\glslang_d.lib;vendor\vulkan\libs\SPIRV_d.lib;vendor\vulkan\libs\SPIRV-Tools_d.lib;vendor\vulkan\libs\SPIRV-Tools-opt_d.lib;vendor\vulkan\libs\machineIndependent_d.lib;vendor\vulkan\libs\genericCodeGen_d.lib;vendor\vulkan\libs\OGLCompiler_d.lib;vendor\vulkan\libs\OSDependent_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_Vulkan|x64'">
@@ -117,7 +118,7 @@
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;PLATFORM_WIN;BUILD_DLL;GLFW_INCLUDE_NONE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;vendor\icon_font_cpp_headers;include;include\Libraries;include\Libraries\implot;include\Libraries\spdlog\include;include\Libraries\cereal\include;src;vendor\glfw\include;vendor\glad\include;include\Libraries\imgui;include\Libraries\glm;vendor\stb_image;include\Libraries\vulkan\include;include\Libraries\imgizmo\src;vendor\ktx\include;vendor\gli;vendor\tinygltf;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;vendor\icon_font_cpp_headers;include;include\Libraries;include\Libraries\implot;include\Libraries\spdlog\include;include\Libraries\cereal\include;src;vendor\glfw\include;vendor\glad\include;include\Libraries\imgui;include\Libraries\glm;include\Libraries\stb_image;include\Libraries\vulkan\include;include\Libraries\imgizmo\src;vendor\ktx\include;vendor\gli;vendor\tinygltf;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -134,6 +135,7 @@
     </Link>
     <Lib>
       <AdditionalDependencies>vendor\libs\Release_Vulkan-windows-x86_64\Glad\Glad.lib;vendor\libs\Release_Vulkan-windows-x86_64\GLFW\GLFW.lib;vendor\libs\Release_Vulkan-windows-x86_64\ImGizmo\ImGizmo.lib;vendor\libs\Release_Vulkan-windows-x86_64\ImGui\ImGui.lib;vendor\libs\Release_Vulkan-windows-x86_64\KTX-Tools\KTX-Tools.lib;vendor\libs\Release_Vulkan-windows-x86_64\SPIRV-Cross\SPIRV-Cross.lib;vendor\vulkan\libs\vulkan-1.lib;vendor\vulkan\libs\shaderc.lib;vendor\vulkan\libs\shaderc_util.lib;vendor\vulkan\libs\glslang.lib;vendor\vulkan\libs\SPIRV.lib;vendor\vulkan\libs\SPIRV-Tools.lib;vendor\vulkan\libs\SPIRV-Tools-opt.lib;vendor\vulkan\libs\machineIndependent.lib;vendor\vulkan\libs\genericCodeGen.lib;vendor\vulkan\libs\OGLCompiler.lib;vendor\vulkan\libs\OSDependent.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_OpenGL|x64'">
@@ -142,7 +144,7 @@
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;PLATFORM_WIN;BUILD_DLL;GLFW_INCLUDE_NONE;FROSTIUM_OPENGL_IMPL;FROSTIUM_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;vendor\icon_font_cpp_headers;include;include\Libraries;include\Libraries\implot;include\Libraries\spdlog\include;include\Libraries\cereal\include;src;vendor\glfw\include;vendor\glad\include;include\Libraries\imgui;include\Libraries\glm;vendor\stb_image;include\Libraries\vulkan\include;include\Libraries\imgizmo\src;vendor\ktx\include;vendor\gli;vendor\tinygltf;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;vendor\icon_font_cpp_headers;include;include\Libraries;include\Libraries\implot;include\Libraries\spdlog\include;include\Libraries\cereal\include;src;vendor\glfw\include;vendor\glad\include;include\Libraries\imgui;include\Libraries\glm;include\Libraries\stb_image;include\Libraries\vulkan\include;include\Libraries\imgizmo\src;vendor\ktx\include;vendor\gli;vendor\tinygltf;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -155,6 +157,7 @@
     </Link>
     <Lib>
       <AdditionalDependencies>vendor\libs\Debug_OpenGL-windows-x86_64\Glad\Glad.lib;vendor\libs\Debug_OpenGL-windows-x86_64\GLFW\GLFW.lib;vendor\libs\Debug_OpenGL-windows-x86_64\ImGizmo\ImGizmo.lib;vendor\libs\Debug_OpenGL-windows-x86_64\ImGui\ImGui.lib;vendor\libs\Debug_OpenGL-windows-x86_64\KTX-Tools\KTX-Tools.lib;vendor\libs\Debug_OpenGL-windows-x86_64\SPIRV-Cross\SPIRV-Cross.lib;vendor\vulkan\libs\vulkan-1.lib;opengl32.lib;vendor\vulkan\libs\shaderc_d.lib;vendor\vulkan\libs\shaderc_util_d.lib;vendor\vulkan\libs\glslang_d.lib;vendor\vulkan\libs\SPIRV_d.lib;vendor\vulkan\libs\SPIRV-Tools_d.lib;vendor\vulkan\libs\SPIRV-Tools-opt_d.lib;vendor\vulkan\libs\machineIndependent_d.lib;vendor\vulkan\libs\genericCodeGen_d.lib;vendor\vulkan\libs\OGLCompiler_d.lib;vendor\vulkan\libs\OSDependent_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_OpenGL|x64'">
@@ -163,7 +166,7 @@
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;PLATFORM_WIN;BUILD_DLL;GLFW_INCLUDE_NONE;FROSTIUM_OPENGL_IMPL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;vendor\icon_font_cpp_headers;include;include\Libraries;include\Libraries\implot;include\Libraries\spdlog\include;include\Libraries\cereal\include;src;vendor\glfw\include;vendor\glad\include;include\Libraries\imgui;include\Libraries\glm;vendor\stb_image;include\Libraries\vulkan\include;include\Libraries\imgizmo\src;vendor\ktx\include;vendor\gli;vendor\tinygltf;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;vendor\icon_font_cpp_headers;include;include\Libraries;include\Libraries\implot;include\Libraries\spdlog\include;include\Libraries\cereal\include;src;vendor\glfw\include;vendor\glad\include;include\Libraries\imgui;include\Libraries\glm;include\Libraries\stb_image;include\Libraries\vulkan\include;include\Libraries\imgizmo\src;vendor\ktx\include;vendor\gli;vendor\tinygltf;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -180,6 +183,7 @@
     </Link>
     <Lib>
       <AdditionalDependencies>vendor\libs\Release_OpenGL-windows-x86_64\Glad\Glad.lib;vendor\libs\Release_OpenGL-windows-x86_64\GLFW\GLFW.lib;vendor\libs\Release_OpenGL-windows-x86_64\ImGizmo\ImGizmo.lib;vendor\libs\Release_OpenGL-windows-x86_64\ImGui\ImGui.lib;vendor\libs\Release_OpenGL-windows-x86_64\KTX-Tools\KTX-Tools.lib;vendor\libs\Release_OpenGL-windows-x86_64\SPIRV-Cross\SPIRV-Cross.lib;vendor\vulkan\libs\vulkan-1.lib;opengl32.lib;vendor\vulkan\libs\shaderc.lib;vendor\vulkan\libs\shaderc_util.lib;vendor\vulkan\libs\glslang.lib;vendor\vulkan\libs\SPIRV.lib;vendor\vulkan\libs\SPIRV-Tools.lib;vendor\vulkan\libs\SPIRV-Tools-opt.lib;vendor\vulkan\libs\machineIndependent.lib;vendor\vulkan\libs\genericCodeGen.lib;vendor\vulkan\libs\OGLCompiler.lib;vendor\vulkan\libs\OSDependent.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -811,6 +815,8 @@
     <ClInclude Include="include\Libraries\spdlog\include\spdlog\tweakme.h" />
     <ClInclude Include="include\Libraries\spdlog\include\spdlog\version.h" />
     <ClInclude Include="include\Libraries\spir_v_cross\include\spirv_cross\external_interface.h" />
+    <ClInclude Include="include\Libraries\stb_image\stb_image.h" />
+    <ClInclude Include="include\Libraries\stb_image\stb_image_write.h" />
     <ClInclude Include="include\Libraries\vulkan\include\glslang\Include\BaseTypes.h" />
     <ClInclude Include="include\Libraries\vulkan\include\glslang\Include\Common.h" />
     <ClInclude Include="include\Libraries\vulkan\include\glslang\Include\ConstantUnion.h" />
@@ -900,10 +906,9 @@
     <ClInclude Include="include\Vulkan\VulkanUtils.h" />
     <ClInclude Include="include\Vulkan\VulkanVertexBuffer.h" />
     <ClInclude Include="src\stdafx.h" />
-    <ClInclude Include="vendor\stb_image\stb_image.h" />
-    <ClInclude Include="vendor\stb_image\stb_image_write.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Common\Common.cpp" />
     <ClCompile Include="src\Common\CubeTexture.cpp" />
     <ClCompile Include="src\Common\Events.cpp" />
     <ClCompile Include="src\Common\Framebuffer.cpp" />

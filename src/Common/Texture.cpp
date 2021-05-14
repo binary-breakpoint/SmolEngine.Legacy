@@ -28,7 +28,7 @@ namespace Frostium
 	bool Texture::IsInitialized() const
 	{
 #ifdef  FROSTIUM_OPENGL_IMPL
-		return false;
+		return false; // temp
 #else
 		return m_VulkanTexture.GetHeight() > 0;
 #endif
@@ -54,11 +54,7 @@ namespace Frostium
 
 	const uint32_t Texture::GetID() const
 	{
-#ifdef  FROSTIUM_OPENGL_IMPL
-		return m_OpenglTexture2D.GetID();
-#else
-		return static_cast<uint32_t>(m_VulkanTexture.GetID());
-#endif
+		return m_ID;
 	}
 
 	void* Texture::GetImGuiTexture() const
@@ -70,48 +66,17 @@ namespace Frostium
 #endif
 	}
 
-	void Texture::SetData(void* data, uint32_t size)
-	{
-#ifdef  FROSTIUM_OPENGL_IMPL
-		m_OpenglTexture2D.SetData(data, size);
-#else
-#endif
-	}
-
-	void Texture::LoadTexture(const std::string& path, TextureLoadedData* outData)
-	{
-		outData->Data = nullptr;
-		if (!Utils::IsPathValid(path))
-			return;
-
-		outData->FilePath = path;
-		int height, width, channels;
-		stbi_set_flip_vertically_on_load(1);
-		stbi_uc* data = nullptr;
-		{
-			data = stbi_load(path.c_str(), &width, &height, &channels, 4);
-			if (!data)
-				NATIVE_ERROR("Texture not found! file: {}, line: {}", __FILE__, __LINE__);
-		}
-
-		outData->Data = data;
-		outData->Height = height;
-		outData->Width = width;
-		outData->Channels = channels;
-	}
-
 	bool Texture::operator==(const Texture& other) const
 	{
-		return GetID() == other.GetID();
+		return m_ID == other.m_ID;
 	}
 
 	void Texture::Create(const std::string& filePath, Texture* out_texture, TextureFormat format, bool flip,  bool imgui_handler)
 	{
-		if (out_texture)
+		if (out_texture && Utils::IsPathValid(filePath))
 		{
-			if (!Utils::IsPathValid(filePath))
-				return;
-
+			std::hash<std::string_view> hasher{};
+			out_texture->m_ID = static_cast<uint32_t>(hasher(filePath));
 #ifdef  FROSTIUM_OPENGL_IMPL
 			out_texture->m_OpenglTexture2D.Init(filePath);
 #else
@@ -124,6 +89,9 @@ namespace Frostium
 	{
 		if (out_texture)
 		{
+			std::hash<const void*> hasher{};
+			out_texture->m_ID = static_cast<uint32_t>(hasher(data));
+
 #ifdef  FROSTIUM_OPENGL_IMPL
 #else
 			out_texture->m_VulkanTexture.GenTexture(data, size, width, height, format);
@@ -135,6 +103,8 @@ namespace Frostium
 	{
 		if (out_texture)
 		{
+			std::hash<std::string_view> hasher{};
+			out_texture->m_ID = static_cast<uint32_t>(hasher("WhiteTexture"));
 #ifdef  FROSTIUM_OPENGL_IMPL
 			uint32_t whiteTextureData = 0xffffffff;
 			out_texture->m_OpenglTexture2D.Init(4, 4);

@@ -29,8 +29,10 @@ namespace Frostium
             {
                 // Root
                 {
+                    std::hash<std::string_view> hasher{};
                     Primitive* primitve = &data->Primitives[0];
                     obj->m_MeshMap[primitve->MeshName] = obj;
+                    obj->m_ID = static_cast<uint32_t>(hasher(filePath));
                     Init(obj, nullptr,  primitve);
                 }
 
@@ -99,6 +101,14 @@ namespace Frostium
     uint32_t Mesh::GetMaterialID() const
     {
         return m_MaterialID;
+    }
+
+    uint32_t Mesh::GetMeshID() const
+    {
+        if (m_Root != nullptr)
+            return m_Root->GetMeshID();
+
+        return m_ID;
     }
 
     std::string_view Mesh::GetName() const

@@ -36,10 +36,10 @@ project "SPIRV-Cross"
 	
 		filter "configurations:Release_Vulkan"
 		buildoptions "/MD"
-		optimize "on"
+		optimize "full"
 	
 		filter "configurations:Release_OpenGL"
 		buildoptions "/MD"
-		optimize "on"
+		optimize "full"
 	
 

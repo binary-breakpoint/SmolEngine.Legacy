@@ -46,7 +46,7 @@ namespace Frostium
 	{
 		uint32_t whiteTextureData = 0xffffffff;
 		m_Format = GetImageFormat(TextureFormat::R8G8B8A8_UNORM);
-		CreateTexture(width, height, 1, &whiteTextureData);
+		CreateTexture(width, height, 1, &whiteTextureData, m_Format, false);
 
 		m_Width = width;
 		m_Height = height;
@@ -70,16 +70,11 @@ namespace Frostium
 
 		const uint32_t mipLevels = static_cast<uint32_t>(floor(log2(std::max(width, height)))) + 1;
 		m_Format = GetImageFormat(format);
-
-		CreateTexture(width, height, mipLevels, data);
-		stbi_image_free(data);
-
 		m_Width = width;
 		m_Height = height;
-		std::hash<std::string> hasher;
-		m_ID = hasher(filePath);
-		if (imgui_handler)
-			m_ImGuiTextureID = ImGui_ImplVulkan_AddTexture(m_DescriptorImageInfo);
+
+		CreateTexture(width, height, mipLevels, data, m_Format, imgui_handler);
+		stbi_image_free(data);
 	}
 
 	void VulkanTexture::LoadCubeMap(const std::string& filePath, TextureFormat format)
@@ -281,7 +276,7 @@ namespace Frostium
 		return image;
 	}
 
-	void VulkanTexture::CreateTexture(uint32_t width, uint32_t height, uint32_t mipMaps, const void* data)
+	void VulkanTexture::CreateTexture(uint32_t width, uint32_t height, uint32_t mipMaps, const void* data, VkFormat format, bool imgui_handler)
 	{
 		const VkDeviceSize size = width * height * 4;
 
@@ -289,7 +284,7 @@ namespace Frostium
 		stagingBuffer.CreateBuffer(size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
 		stagingBuffer.SetData(data, size);
 
-		m_Image = CreateVkImage(width, height, mipMaps, VK_SAMPLE_COUNT_1_BIT, m_Format,
+		m_Image = CreateVkImage(width, height, mipMaps, VK_SAMPLE_COUNT_1_BIT, format,
 			VK_IMAGE_TILING_OPTIMAL,
 			VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, m_DeviceMemory);
 
@@ -341,7 +336,10 @@ namespace Frostium
 		VulkanContext::GetCommandBuffer().EndSingleCommandBuffer(cmdBuffer);
 		GenerateMipMaps(m_Image, width, height, mipMaps, subresourceRange);
 		m_ImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		CreateSamplerAndImageView(mipMaps);
+		CreateSamplerAndImageView(mipMaps, format);
+
+		if (imgui_handler)
+			m_ImGuiTextureID = ImGui_ImplVulkan_AddTexture(m_DescriptorImageInfo);
 	}
 
 	void VulkanTexture::CreateFromBuffer(const void* data, VkDeviceSize size, uint32_t width, uint32_t height)
@@ -404,7 +402,7 @@ namespace Frostium
 		VulkanContext::GetCommandBuffer().EndSingleCommandBuffer(cmdBuffer);
 
 		m_ImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		CreateSamplerAndImageView(1);
+		CreateSamplerAndImageView(1, m_Format);
 	}
 
 	void VulkanTexture::GenerateMipMaps(VkImage image, int32_t width, int32_t height, int32_t mipLevel, VkImageSubresourceRange& range)
@@ -513,7 +511,7 @@ namespace Frostium
 			1, &imageMemoryBarrier);
 	}
 
-	void VulkanTexture::CreateSamplerAndImageView(uint32_t mipMaps)
+	void VulkanTexture::CreateSamplerAndImageView(uint32_t mipMaps, VkFormat format)
 	{
 		/// Samplers
 	    /// https://vulkan-tutorial.com/Texture_mapping/Image_view_and_sampler
@@ -552,7 +550,7 @@ namespace Frostium
 		{
 			imageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 			imageViewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			imageViewCI.format = m_Format;
+			imageViewCI.format = format;
 			imageViewCI.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
 			imageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 			imageViewCI.subresourceRange.baseMipLevel = 0;
@@ -701,16 +699,12 @@ namespace Frostium
 	{
 		switch (format)
 		{
-		case Frostium::TextureFormat::R8_UNORM:
-			return VK_FORMAT_R8_UNORM;
-		case Frostium::TextureFormat::R8G8B8A8_UNORM:
-			return VK_FORMAT_R8G8B8A8_UNORM;
-		case Frostium::TextureFormat::R16G16B16A16_SFLOAT:
-			return VK_FORMAT_R16G16B16A16_SFLOAT;
-		case Frostium::TextureFormat::R32G32B32A32_SFLOAT:
-			return  VK_FORMAT_R32G32B32A32_SFLOAT;
-		default:
-			return VK_FORMAT_R8G8B8A8_UNORM;
+		case Frostium::TextureFormat::R8_UNORM:               return VK_FORMAT_R8_UNORM;
+		case Frostium::TextureFormat::R8G8B8A8_UNORM:         return VK_FORMAT_R8G8B8A8_UNORM;
+		case Frostium::TextureFormat::B8G8R8A8_UNORM:         return VK_FORMAT_B8G8R8A8_UNORM;
+		case Frostium::TextureFormat::R16G16B16A16_SFLOAT:    return VK_FORMAT_R16G16B16A16_SFLOAT;
+		case Frostium::TextureFormat::R32G32B32A32_SFLOAT:    return VK_FORMAT_R32G32B32A32_SFLOAT;
+		default:                                              return VK_FORMAT_R8G8B8A8_UNORM;
 		}
 	}
 
@@ -727,11 +721,6 @@ namespace Frostium
 	uint32_t VulkanTexture::GetWidth() const
 	{
 		return m_Width;
-	}
-
-	size_t VulkanTexture::GetID() const
-	{
-		return m_ID;
 	}
 
 	void* VulkanTexture::GetImGuiTextureID() const

@@ -114,7 +114,7 @@ int main(int argc, char** argv)
 
 		if (context->IsWindowMinimized())
 			continue;
-
+		bool selected = true;
 		context->UpdateSceneData(); // uses default camera - updates automatically
 		context->BeginFrame(deltaTime);
 		{
@@ -200,7 +200,6 @@ int main(int argc, char** argv)
 				DebugRenderer::DrawWireframes({ 0, 1, 0 }, { 0, 0, 0 }, { 50, 1, 50, }, cube);
 				DebugRenderer::EndDebug();
 			}
-
 		}
 		context->SwapBuffers();
 	}

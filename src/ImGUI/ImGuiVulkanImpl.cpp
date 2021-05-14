@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #ifndef FROSTIUM_OPENGL_IMPL
+
 #include "ImGUI/ImGuiVulkanImpl.h"
 
 #include "Vulkan/VulkanContext.h"
@@ -8,7 +9,6 @@
 
 #include <imgui/imgui.h>
 #include <GLFW/glfw3.h>
-
 
 namespace Frostium
 {
@@ -46,6 +46,7 @@ namespace Frostium
 		{
 			pipelineCacheCI.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
 		}
+
 		VK_CHECK_RESULT(vkCreatePipelineCache(g_Device, &pipelineCacheCI, nullptr, &g_PipelineCache));
 	}
 
