@@ -268,6 +268,11 @@ namespace Frostium
 		return &m_SphereMesh;
 	}
 
+	Texture* GraphicsContext::GetWhiteTexture() const
+	{
+		return m_DummyTexure;
+	}
+
 	bool GraphicsContext::IsWindowMinimized() const
 	{
 		return m_State->WindowMinimized;

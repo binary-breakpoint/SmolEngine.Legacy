@@ -183,7 +183,7 @@ namespace Frostium
 				m_ImageLayout,
 				subresourceRange);
 		}
-		VulkanContext::GetCommandBuffer().EndSingleCommandBuffer(copyCmd);
+		VulkanContext::GetCommandBuffer().FlushCommandBuffer(copyCmd);
 
 		// Sampler
 		{
@@ -333,7 +333,7 @@ namespace Frostium
 				subresourceRange);
 
 		}
-		VulkanContext::GetCommandBuffer().EndSingleCommandBuffer(cmdBuffer);
+		VulkanContext::GetCommandBuffer().FlushCommandBuffer(cmdBuffer);
 		GenerateMipMaps(m_Image, width, height, mipMaps, subresourceRange);
 		m_ImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		CreateSamplerAndImageView(mipMaps, format);
@@ -399,7 +399,7 @@ namespace Frostium
 				subresourceRange);
 
 		}
-		VulkanContext::GetCommandBuffer().EndSingleCommandBuffer(cmdBuffer);
+		VulkanContext::GetCommandBuffer().FlushCommandBuffer(cmdBuffer);
 
 		m_ImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		CreateSamplerAndImageView(1, m_Format);
@@ -485,7 +485,7 @@ namespace Frostium
 				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
 				range);
 		}
-		VulkanContext::GetCommandBuffer().EndSingleCommandBuffer(blitCmd);
+		VulkanContext::GetCommandBuffer().FlushCommandBuffer(blitCmd);
 	}
 
 	void VulkanTexture::InsertImageMemoryBarrier(VkCommandBuffer cmdbuffer, VkImage image, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout, VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask, VkImageSubresourceRange subresourceRange)

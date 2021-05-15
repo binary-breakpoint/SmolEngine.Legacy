@@ -49,6 +49,11 @@ namespace Frostium
 		void SetAlbedro(float value);
 		void SetTexture(MaterialTexture type, const std::string& filePath);
 
+		// Getters
+		float* GetMetalness();
+		float* GetRoughness();
+		std::unordered_map<MaterialTexture, std::string>& GetTexturesInfo();
+
 	private:
 
 		float                                             Metallic = 1.0f;

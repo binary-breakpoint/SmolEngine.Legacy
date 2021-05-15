@@ -5,7 +5,6 @@
 #include "Vulkan/VulkanInstance.h"
 #include "Vulkan/VulkanDevice.h"
 #include "Vulkan/VulkanCommandBuffer.h"
-#include "Vulkan/VulkanCommandPool.h"
 #include "Vulkan/VulkanMemoryAllocator.h"
 #include "Vulkan/VulkanTexture.h"
 
@@ -30,13 +29,7 @@ namespace Frostium
 
     VulkanSwapchain::~VulkanSwapchain()
     {
-		//CleanUp();
-		//FreeResources();
 
-		//if (m_RenderPass != VK_NULL_HANDLE)
-		//{
-		//	vkDestroyRenderPass(m_Device->GetLogicalDevice(), m_RenderPass, nullptr);
-		//}
     }
 
     bool VulkanSwapchain::Init(VulkanInstance* instance, VulkanDevice* device, GLFWwindow* window, bool clearOP)

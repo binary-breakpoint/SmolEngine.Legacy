@@ -4,7 +4,6 @@
 
 #include "Vulkan/VulkanDevice.h"
 #include "Vulkan/VulkanSwapchain.h"
-#include "Vulkan/VulkanCommandPool.h"
 #include "Vulkan/VulkanContext.h"
 
 namespace Frostium
@@ -16,50 +15,66 @@ namespace Frostium
 
 	VulkanCommandBuffer::~VulkanCommandBuffer()
 	{
-		//vkFreeCommandBuffers(*m_Device->GetLogicalDevice(), *m_CommandPool->GetCommandPool(), static_cast<uint32_t>(m_CommandBuffers.size()), m_CommandBuffers.data());
+
 	}
 
-	bool VulkanCommandBuffer::Init(VulkanDevice* device, VulkanCommandPool* commandPool, VulkanSwapchain* targetSwapchain)
+	bool VulkanCommandBuffer::Init(VulkanDevice* device, VulkanSwapchain* swapchain)
 	{
-		m_CommandBuffers.resize(targetSwapchain->m_ImageCount);
+		m_Device = device;
+		m_Swapchain = swapchain;
+		return Create();
+	}
 
-		VkCommandBufferAllocateInfo commandBufferInfo = {};
+	bool VulkanCommandBuffer::Create()
+	{
+		VkDevice device = m_Device->GetLogicalDevice();
+
+		if (m_CommandPool == VK_NULL_HANDLE)
 		{
-			commandBufferInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-			commandBufferInfo.commandPool = commandPool->GetCommandPool();
-			commandBufferInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-			commandBufferInfo.commandBufferCount = static_cast<uint32_t>(m_CommandBuffers.size());
-
-			VkResult result = vkAllocateCommandBuffers(device->GetLogicalDevice(), &commandBufferInfo, m_CommandBuffers.data());
-			VK_CHECK_RESULT(result);
-
-			if (result == VK_SUCCESS)
+			VkCommandPoolCreateInfo poolInfo = {};
 			{
-				m_CommandPool = commandPool;
-				m_Device = device;
-				m_TargetSwapchain = targetSwapchain;
-
-				return true;
+				poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+				poolInfo.queueFamilyIndex = m_Device->GetQueueFamilyIndex();
+				poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+				VK_CHECK_RESULT(vkCreateCommandPool(device, &poolInfo, nullptr, &m_CommandPool));
 			}
 		}
 
-		return false;
+		{
+			uint32_t count = m_Swapchain->m_ImageCount;
+			m_CommandBuffers.resize(count);
+
+			VkCommandBufferAllocateInfo commandBufferInfo = {};
+			{
+				commandBufferInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+				commandBufferInfo.commandPool = m_CommandPool;
+				commandBufferInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+				commandBufferInfo.commandBufferCount = static_cast<uint32_t>(m_CommandBuffers.size());
+			}
+
+			VK_CHECK_RESULT(vkAllocateCommandBuffers(device, &commandBufferInfo, m_CommandBuffers.data()));
+		}
+
+
+		return true;
 	}
 
 	bool VulkanCommandBuffer::Recrate()
 	{
-		if (!m_Device || !m_CommandPool || !m_TargetSwapchain)
-		{
-			return false;
-		}
+		if (!m_Device) { return false; }
 
-		vkFreeCommandBuffers(m_Device->GetLogicalDevice(), m_CommandPool->GetCommandPool(), static_cast<uint32_t>(m_CommandBuffers.size()), m_CommandBuffers.data());
-		return Init(m_Device, m_CommandPool, m_TargetSwapchain);
+		vkResetCommandPool(m_Device->GetLogicalDevice(), m_CommandPool, 0);
+		return true;
 	}
 
-	const VkCommandBuffer VulkanCommandBuffer::GetVkCommandBuffer() const
+	VkCommandBuffer VulkanCommandBuffer::GetVkCommandBuffer() const
 	{
-		return m_CommandBuffers[m_TargetSwapchain->GetCurrentBufferIndex()];
+		return m_CommandBuffers[m_Swapchain->GetCurrentBufferIndex()];
+	}
+
+	VkCommandPool VulkanCommandBuffer::GetVkCommandPool() const
+	{
+		return m_CommandPool;
 	}
 
 	const VkCommandBuffer VulkanCommandBuffer::CreateSingleCommandBuffer(bool oneCommand)
@@ -67,7 +82,7 @@ namespace Frostium
 		VkCommandBufferAllocateInfo allocInfo = {};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		allocInfo.commandPool = VulkanContext::GetCommandPool().GetCommandPool();
+		allocInfo.commandPool = VulkanContext::GetCommandBuffer().m_CommandPool;
 		allocInfo.commandBufferCount = 1;
 
 		VkCommandBuffer commandBuffer;
@@ -81,7 +96,6 @@ namespace Frostium
 		}
 
 		VK_CHECK_RESULT(vkBeginCommandBuffer(commandBuffer, &beginInfo));
-
 		return commandBuffer;
 	}
 
@@ -96,11 +110,10 @@ namespace Frostium
 			submitInfo.pCommandBuffers = &cmdBuffer;
 		}
 
-		
 		VkQueue q = VulkanContext::GetDevice().GetQueue();
 		vkQueueSubmit(q, 1, &submitInfo, VK_NULL_HANDLE);
 		vkQueueWaitIdle(q);
-		vkFreeCommandBuffers(VulkanContext::GetDevice().GetLogicalDevice(), VulkanContext::GetCommandPool().GetCommandPool(), 1, &cmdBuffer);
+		vkFreeCommandBuffers(VulkanContext::GetDevice().GetLogicalDevice(), VulkanContext::GetCommandBuffer().m_CommandPool, 1, &cmdBuffer);
 	}
 
 	void VulkanCommandBuffer::FlushCommandBuffer(const VkCommandBuffer cmdBuffer)
@@ -128,7 +141,7 @@ namespace Frostium
 		VK_CHECK_RESULT(vkWaitForFences(VulkanContext::GetDevice().GetLogicalDevice(), 1, &fence, VK_TRUE, time_out));
 
 		vkDestroyFence(VulkanContext::GetDevice().GetLogicalDevice(), fence, nullptr);
-		vkFreeCommandBuffers(VulkanContext::GetDevice().GetLogicalDevice(), VulkanContext::GetCommandPool().GetCommandPool(), 1, &cmdBuffer);
+		vkFreeCommandBuffers(VulkanContext::GetDevice().GetLogicalDevice(), VulkanContext::GetCommandBuffer().m_CommandPool, 1, &cmdBuffer);
 	}
 
 	size_t VulkanCommandBuffer::GetBufferSize() const

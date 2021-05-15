@@ -13,7 +13,6 @@ namespace Frostium
 	{
 		m_Swapchain.~VulkanSwapchain();
 		m_CommandBuffer.~VulkanCommandBuffer();
-		m_CommandPool.~VulkanCommandPool();
 		m_Semaphore.~VulkanSemaphore();
 		m_Instance.~VulkanInstance();
 		m_Device.~VulkanDevice();
@@ -31,12 +30,11 @@ namespace Frostium
 		{
 			m_Instance.Init();
 			m_Device.Init(&m_Instance);
-			m_CommandPool.Init(&m_Device);
 			swapchain_initialized = m_Swapchain.Init(&m_Instance, &m_Device, window, state->UseSwapchain ? false: true);
 			if (swapchain_initialized)
 			{
 				m_Swapchain.Create(width, height);
-				m_CommandBuffer.Init(&m_Device, &m_CommandPool, &m_Swapchain);
+				m_CommandBuffer.Init(&m_Device, &m_Swapchain);
 				m_Semaphore.Init(&m_Device, &m_CommandBuffer);
 				m_Swapchain.Prepare(*width, *height);
 			}

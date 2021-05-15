@@ -72,7 +72,8 @@ namespace Frostium
 		Frustum* GetFrustum();
 		Mesh* GetBoxMesh();
 		Mesh* GetCapsuleMesh();
-		Mesh*  GetSphereMesh();
+		Mesh* GetSphereMesh();
+		Texture* GetWhiteTexture() const;
 		float GetGltfTime() const;
 		float GetDeltaTime() const;
 		float GetLastFrameTime() const;

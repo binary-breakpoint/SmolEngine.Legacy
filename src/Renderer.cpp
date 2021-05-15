@@ -808,6 +808,16 @@ namespace Frostium
 		return true;
 	}
 
+	bool Renderer::ResetStates()
+	{
+		s_Data->m_DirLight = {};
+		s_Data->m_SceneState = {};
+		s_Data->m_State = {};
+
+		Reset();
+		return true;
+	}
+
 	void Renderer::OnResize(uint32_t width, uint32_t height)
 	{
 		s_Data->m_PBRFramebuffer.OnResize(width, height);

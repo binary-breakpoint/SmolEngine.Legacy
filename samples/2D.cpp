@@ -86,7 +86,7 @@ int main(int argc, char** argv)
 		context->UpdateSceneData(); // uses default camera - updates automatically
 		context->BeginFrame(deltaTime);
 		{
-			ImGui::Begin("Debug Window");
+			ImGui::Begin("2D Sample");
 			{
 				float lastFrameTime = deltaTime.GetTimeSeconds() * 100.0f;
 				ImGui::Extensions::Text("Ms: ", std::to_string(lastFrameTime), 60.0f);

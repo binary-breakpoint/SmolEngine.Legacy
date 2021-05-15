@@ -885,7 +885,6 @@
     <ClInclude Include="include\Vulkan\VulkanBuffer.h" />
     <ClInclude Include="include\Vulkan\VulkanBufferPool.h" />
     <ClInclude Include="include\Vulkan\VulkanCommandBuffer.h" />
-    <ClInclude Include="include\Vulkan\VulkanCommandPool.h" />
     <ClInclude Include="include\Vulkan\VulkanContext.h" />
     <ClInclude Include="include\Vulkan\VulkanDescriptor.h" />
     <ClInclude Include="include\Vulkan\VulkanDevice.h" />
@@ -951,7 +950,6 @@
     <ClCompile Include="src\Vulkan\VulkanBuffer.cpp" />
     <ClCompile Include="src\Vulkan\VulkanBufferPool.cpp" />
     <ClCompile Include="src\Vulkan\VulkanCommandBuffer.cpp" />
-    <ClCompile Include="src\Vulkan\VulkanCommandPool.cpp" />
     <ClCompile Include="src\Vulkan\VulkanContext.cpp" />
     <ClCompile Include="src\Vulkan\VulkanDescriptor.cpp" />
     <ClCompile Include="src\Vulkan\VulkanDevice.cpp" />

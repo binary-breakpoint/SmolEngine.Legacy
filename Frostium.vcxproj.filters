@@ -2313,9 +2313,6 @@
     <ClInclude Include="include\Vulkan\VulkanCommandBuffer.h">
       <Filter>include\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="include\Vulkan\VulkanCommandPool.h">
-      <Filter>include\Vulkan</Filter>
-    </ClInclude>
     <ClInclude Include="include\Vulkan\VulkanContext.h">
       <Filter>include\Vulkan</Filter>
     </ClInclude>
@@ -2505,9 +2502,6 @@
       <Filter>src\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\Vulkan\VulkanCommandBuffer.cpp">
-      <Filter>src\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Vulkan\VulkanCommandPool.cpp">
       <Filter>src\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\Vulkan\VulkanContext.cpp">

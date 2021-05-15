@@ -202,14 +202,26 @@ namespace Frostium
 	{
 		std::filesystem::path p = filePath;
 		std::filesystem::path path;
+		std::filesystem::path dir;
+
 		switch (type)
 		{
 		case Frostium::CachedPathType::Shader:
-			path = p.parent_path() / "SPIRV" / (p.filename().string() + ".spirv");
+
+			dir = p.parent_path() / "SPIRV";
+			if (!std::filesystem::exists(dir))
+				std::filesystem::create_directories(dir);
+
+			path = dir / (p.filename().string() + ".spirv");
 			break;
+
 		case Frostium::CachedPathType::Pipeline:
-			path = p.parent_path() / "PipelineCache" / (p.filename().string() + ".pipeline_cached");
-			break;
+
+			dir = p.parent_path() / "PipelineCache";
+			if (!std::filesystem::exists(dir))
+				std::filesystem::create_directories(dir);
+
+			path = dir / (p.filename().string() + ".pipeline_cached");
 			break;
 		}
 

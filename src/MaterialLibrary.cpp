@@ -227,4 +227,19 @@ namespace Frostium
 	{
 		Textures[type] = filePath;
 	}
+
+	float* MaterialCreateInfo::GetMetalness()
+	{
+		return &Metallic;
+	}
+
+	float* MaterialCreateInfo::GetRoughness()
+	{
+		return &Roughness;
+	}
+
+	std::unordered_map<MaterialTexture, std::string>& MaterialCreateInfo::GetTexturesInfo()
+	{
+		return Textures;
+	}
 }
