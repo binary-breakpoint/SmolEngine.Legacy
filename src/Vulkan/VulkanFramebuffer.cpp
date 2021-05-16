@@ -41,6 +41,9 @@ namespace Frostium
 		m_ClearAttachments.resize(attachmentsCount);
 		std::vector<VkImageView> attachments(attachmentsCount);
 
+		CommandBufferStorage cmdStorage{};
+		VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
+
 		// Sampler
 		CreateSampler();
 
@@ -67,10 +70,8 @@ namespace Frostium
 					vkInfo.ImGuiID = ImGui_ImplVulkan_AddTexture(vkInfo.ImageInfo);
 				}
 
-				auto cmd = VulkanCommandBuffer::CreateSingleCommandBuffer();
-				VulkanTexture::SetImageLayout(cmd, vkInfo.AttachmentVkInfo.image,
+				VulkanTexture::SetImageLayout(cmdStorage.Buffer, vkInfo.AttachmentVkInfo.image,
 					VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-				VulkanCommandBuffer::EndSingleCommandBuffer(cmd);
 			}
 
 			attachments[lastImageViewIndex] = vkInfo.AttachmentVkInfo.view;
@@ -107,10 +108,8 @@ namespace Frostium
 				resolve.ImageInfo.imageView = resolve.AttachmentVkInfo.view;
 				resolve.ImageInfo.sampler = m_Sampler;
 
-				auto cmd = VulkanCommandBuffer::CreateSingleCommandBuffer();
-				VulkanTexture::SetImageLayout(cmd, resolve.AttachmentVkInfo.image,
+				VulkanTexture::SetImageLayout(cmdStorage.Buffer, resolve.AttachmentVkInfo.image,
 					VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-				VulkanCommandBuffer::EndSingleCommandBuffer(cmd);
 
 				if (m_Specification.bUsedByImGui)
 					resolve.ImGuiID = ImGui_ImplVulkan_AddTexture(resolve.ImageInfo);
@@ -191,6 +190,8 @@ namespace Frostium
 			return true;
 		}
 
+		VulkanCommandBuffer::ExecuteCommandBuffer(&cmdStorage);
+
 		m_VkFrameBuffers.resize(1);
 		VK_CHECK_RESULT(vkCreateFramebuffer(m_Device, &fbufCreateInfo, nullptr, &m_VkFrameBuffers[0]));
 		return true;
@@ -207,10 +208,11 @@ namespace Frostium
 				m_DepthAttachment.AttachmentVkInfo.image, m_DepthAttachment.AttachmentVkInfo.view, m_DepthAttachment.AttachmentVkInfo.mem, imageAspect);
 		}
 
-		auto cmd = VulkanCommandBuffer::CreateSingleCommandBuffer();
-		VulkanTexture::SetImageLayout(cmd, m_DepthAttachment.AttachmentVkInfo.image,
+		CommandBufferStorage cmdStorage{};
+		VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
+		VulkanTexture::SetImageLayout(cmdStorage.Buffer, m_DepthAttachment.AttachmentVkInfo.image,
 			VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL);
-		VulkanCommandBuffer::EndSingleCommandBuffer(cmd);
+		VulkanCommandBuffer::ExecuteCommandBuffer(&cmdStorage);
 
 		// Sampler
 		{

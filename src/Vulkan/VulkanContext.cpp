@@ -11,11 +11,7 @@ namespace Frostium
 {
 	VulkanContext::~VulkanContext()
 	{
-		m_Swapchain.~VulkanSwapchain();
-		m_CommandBuffer.~VulkanCommandBuffer();
-		m_Semaphore.~VulkanSemaphore();
-		m_Instance.~VulkanInstance();
-		m_Device.~VulkanDevice();
+
 	}
 
 	void VulkanContext::OnResize(uint32_t* width, uint32_t* height)
@@ -34,7 +30,7 @@ namespace Frostium
 			if (swapchain_initialized)
 			{
 				m_Swapchain.Create(width, height);
-				m_CommandBuffer.Init(&m_Device, &m_Swapchain);
+				m_CommandBuffer.Init(&m_Device);
 				m_Semaphore.Init(&m_Device, &m_CommandBuffer);
 				m_Swapchain.Prepare(*width, *height);
 			}

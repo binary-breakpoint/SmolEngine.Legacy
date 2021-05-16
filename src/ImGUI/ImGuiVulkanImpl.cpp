@@ -57,11 +57,12 @@ namespace Frostium
 
 	void ImGuiVulkanImpl::InitResources()
 	{
-		VkCommandBuffer copyCmd = VulkanContext::GetCommandBuffer().CreateSingleCommandBuffer();
+		CommandBufferStorage cmdStorage{};
+		VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
 		{
-			ImGui_ImplVulkan_CreateFontsTexture(copyCmd);
+			ImGui_ImplVulkan_CreateFontsTexture(cmdStorage.Buffer);
 		}
-		VulkanContext::GetCommandBuffer().EndSingleCommandBuffer(copyCmd);
+		VulkanCommandBuffer::ExecuteCommandBuffer(&cmdStorage);
 
 		ImGui_ImplVulkan_DestroyFontUploadObjects();
 	}

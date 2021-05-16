@@ -10,6 +10,9 @@ workspace "Frostium"
 
 		"Debug_OpenGL",
 		"Release_OpenGL",
+
+		"SmolEngine_R",
+		"SmolEngine_D"
 	}
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
@@ -147,6 +150,33 @@ project "Frostium"
 			"FROSTIUM_DEBUG"
 		}
 
+	filter "configurations:SmolEngine_D"
+	buildoptions "/MDd"
+	buildoptions "/bigobj"
+	buildoptions "/Zm500"
+	symbols "on"
+
+	    links 
+		{ 
+			"vendor/vulkan/libs/VkLayer_utils.lib",
+			"vendor/vulkan/libs/shaderc_d.lib",
+			"vendor/vulkan/libs/shaderc_util_d.lib",
+			"vendor/vulkan/libs/glslang_d.lib",
+			"vendor/vulkan/libs/SPIRV_d.lib",
+			"vendor/vulkan/libs/SPIRV-Tools_d.lib",
+			"vendor/vulkan/libs/SPIRV-Tools-opt_d.lib",
+			"vendor/vulkan/libs/machineIndependent_d.lib",
+			"vendor/vulkan/libs/genericCodeGen_d.lib",
+			"vendor/vulkan/libs/OGLCompiler_d.lib",
+			"vendor/vulkan/libs/OSDependent_d.lib"
+		}
+	
+		defines
+		{
+			"FROSTIUM_SMOLENGINE_IMPL",
+			"FROSTIUM_DEBUG"
+		}
+
 	filter "configurations:Debug_OpenGL"
 	buildoptions "/MDd"
 	buildoptions "/bigobj"
@@ -175,10 +205,10 @@ project "Frostium"
 	}
 
 	filter "configurations:Release_Vulkan"
-		buildoptions "/MD"
-		buildoptions "/bigobj"
-		buildoptions "/Zm500"
-		optimize "full"
+	buildoptions "/MD"
+	buildoptions "/bigobj"
+	buildoptions "/Zm500"
+	optimize "on"
 
 		links 
 		{ 
@@ -194,11 +224,37 @@ project "Frostium"
 			"vendor/vulkan/libs/OSDependent.lib"
 		}
 
+
+	filter "configurations:SmolEngine_R"
+	buildoptions "/MD"
+	buildoptions "/bigobj"
+	buildoptions "/Zm500"
+	optimize "on"
+
+		links 
+		{ 
+			"vendor/vulkan/libs/shaderc.lib",
+			"vendor/vulkan/libs/shaderc_util.lib",
+			"vendor/vulkan/libs/glslang.lib",
+			"vendor/vulkan/libs/SPIRV.lib",
+			"vendor/vulkan/libs/SPIRV-Tools.lib",
+			"vendor/vulkan/libs/SPIRV-Tools-opt.lib",
+			"vendor/vulkan/libs/machineIndependent.lib",
+			"vendor/vulkan/libs/genericCodeGen.lib",
+			"vendor/vulkan/libs/OGLCompiler.lib",
+			"vendor/vulkan/libs/OSDependent.lib"
+		}
+
+		defines
+		{
+		  "FROSTIUM_SMOLENGINE_IMPL"
+		}
+
 	filter "configurations:Release_OpenGL"
 	buildoptions "/MD"
 	buildoptions "/bigobj"
 	buildoptions "/Zm500"
-	optimize "full"
+	optimize "on"
 
 	   links 
 	   { 
@@ -264,14 +320,26 @@ project "PBR"
 			"PLATFORM_WIN"
 		}
 
-	filter "configurations:Debug_Vulkan"
-	buildoptions "/MDd"
-	buildoptions "/bigobj"
-	symbols "on"
-
-	filter "configurations:Release_Vulkan"
+		filter "configurations:Debug_Vulkan"
+		buildoptions "/MDd"
+		buildoptions "/bigobj"
+		symbols "on"
+	
+		filter "configurations:Release_Vulkan"
 		buildoptions "/MD"
-		optimize "speed"
+		buildoptions "/bigobj"
+		optimize "on"
+	
+		filter "configurations:SmolEngine_R"
+		buildoptions "/MD"
+		buildoptions "/bigobj"
+		optimize "on"
+	
+		filter "configurations:SmolEngine_D"
+		buildoptions "/MDd"
+		buildoptions "/bigobj"
+		symbols "on"
+
 
 --------------------------------------------------------- C#
 
@@ -316,14 +384,25 @@ project "CSharpBinding"
 			"PLATFORM_WIN"
 		}
 
-	filter "configurations:Debug_Vulkan"
-	buildoptions "/MDd"
-	buildoptions "/bigobj"
-	symbols "on"
-
-	filter "configurations:Release_Vulkan"
+		filter "configurations:Debug_Vulkan"
+		buildoptions "/MDd"
+		buildoptions "/bigobj"
+		symbols "on"
+	
+		filter "configurations:Release_Vulkan"
 		buildoptions "/MD"
-		optimize "full"
+		buildoptions "/bigobj"
+		optimize "on"
+	
+		filter "configurations:SmolEngine_R"
+		buildoptions "/MD"
+		buildoptions "/bigobj"
+		optimize "on"
+	
+		filter "configurations:SmolEngine_D"
+		buildoptions "/MDd"
+		buildoptions "/bigobj"
+		symbols "on"
 
 ------------------------------------------------- 2D
 
@@ -366,14 +445,25 @@ project "2D"
 			"PLATFORM_WIN"
 		}
 
-	filter "configurations:Debug_Vulkan"
-	buildoptions "/MDd"
-	buildoptions "/bigobj"
-	symbols "on"
-
-	filter "configurations:Release_Vulkan"
+		filter "configurations:Debug_Vulkan"
+		buildoptions "/MDd"
+		buildoptions "/bigobj"
+		symbols "on"
+	
+		filter "configurations:Release_Vulkan"
 		buildoptions "/MD"
-		optimize "full"
+		buildoptions "/bigobj"
+		optimize "on"
+	
+		filter "configurations:SmolEngine_R"
+		buildoptions "/MD"
+		buildoptions "/bigobj"
+		optimize "on"
+	
+		filter "configurations:SmolEngine_D"
+		buildoptions "/MDd"
+		buildoptions "/bigobj"
+		symbols "on"
 
 	------------------------------------------------- 3D Animations
 
@@ -416,13 +506,24 @@ project "2D"
 			"PLATFORM_WIN"
 		}
 
-	filter "configurations:Debug_Vulkan"
-	buildoptions "/MDd"
-	buildoptions "/bigobj"
-	optimize "full"
-
-	filter "configurations:Release_Vulkan"
+		filter "configurations:Debug_Vulkan"
+		buildoptions "/MDd"
+		buildoptions "/bigobj"
+		symbols "on"
+	
+		filter "configurations:Release_Vulkan"
 		buildoptions "/MD"
+		buildoptions "/bigobj"
 		optimize "on"
+	
+		filter "configurations:SmolEngine_R"
+		buildoptions "/MD"
+		buildoptions "/bigobj"
+		optimize "on"
+	
+		filter "configurations:SmolEngine_D"
+		buildoptions "/MDd"
+		buildoptions "/bigobj"
+		symbols "on"
 
 	group ""

@@ -36,6 +36,7 @@ namespace Frostium
     {
         m_Instance = instance;
 		m_Device = device;
+		m_DepthStencil = new DepthStencil();
 
 		GetPtrs();
 		FindDepthStencilFormat();
@@ -50,6 +51,7 @@ namespace Frostium
 	bool VulkanSwapchain::Prepare(uint32_t width, uint32_t height)
 	{
 		FreeResources();
+
 		if (CreateDepthStencil() == VK_SUCCESS)
 		{
 			if (CreateFramebuffers(width, height) == VK_SUCCESS)
@@ -430,14 +432,12 @@ namespace Frostium
 	VkResult VulkanSwapchain::CreateDepthStencil()
 	{
 		VkResult result = VK_ERROR_UNKNOWN;
-		m_DepthStencil = {};
-
-		m_DepthStencil.Image = VulkanTexture::CreateVkImage(m_Width, m_Height,
+		m_DepthStencil->Image = VulkanTexture::CreateVkImage(m_Width, m_Height,
 			1,
 			VK_SAMPLE_COUNT_1_BIT,
 			m_DepthBufferFormat,
 			VK_IMAGE_TILING_OPTIMAL,
-			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, m_DepthStencil.DeviceMemory);
+			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, m_DepthStencil->DeviceMemory);
 
 		VkImageViewCreateInfo depthStencilViewCI = {};
 		{
@@ -451,13 +451,13 @@ namespace Frostium
 			depthStencilViewCI.subresourceRange.levelCount = 1;
 			depthStencilViewCI.subresourceRange.baseArrayLayer = 0;
 			depthStencilViewCI.subresourceRange.layerCount = 1;
-			depthStencilViewCI.image = m_DepthStencil.Image;
+			depthStencilViewCI.image = m_DepthStencil->Image;
 			depthStencilViewCI.components.r = VK_COMPONENT_SWIZZLE_R;
 			depthStencilViewCI.components.g = VK_COMPONENT_SWIZZLE_G;
 			depthStencilViewCI.components.b = VK_COMPONENT_SWIZZLE_B;
 			depthStencilViewCI.components.a = VK_COMPONENT_SWIZZLE_A;
 
-			result = vkCreateImageView(m_Device->GetLogicalDevice(), &depthStencilViewCI, nullptr, &m_DepthStencil.ImageView);
+			result = vkCreateImageView(m_Device->GetLogicalDevice(), &depthStencilViewCI, nullptr, &m_DepthStencil->ImageView);
 			VK_CHECK_RESULT(result);
 		}
 
@@ -508,7 +508,7 @@ namespace Frostium
 		VkResult result = VK_ERROR_UNKNOWN;
 		VkImageView ivAttachment[2];
 		// Depth attachment is the same for all framebuffers
-		ivAttachment[1] = m_DepthStencil.ImageView;
+		ivAttachment[1] = m_DepthStencil->ImageView;
 
 		VkFramebufferCreateInfo framebufferCI = {};
 		{
@@ -624,14 +624,14 @@ namespace Frostium
 
 	void VulkanSwapchain::FreeResources()
 	{
-		if (m_DepthStencil.Image != VK_NULL_HANDLE)
-			vkDestroyImage(m_Device->GetLogicalDevice(), m_DepthStencil.Image, nullptr);
+		if (m_DepthStencil->Image != VK_NULL_HANDLE)
+			vkDestroyImage(m_Device->GetLogicalDevice(), m_DepthStencil->Image, nullptr);
 
-		if (m_DepthStencil.ImageView != VK_NULL_HANDLE)
-			vkDestroyImageView(m_Device->GetLogicalDevice(), m_DepthStencil.ImageView, nullptr);
+		if (m_DepthStencil->ImageView != VK_NULL_HANDLE)
+			vkDestroyImageView(m_Device->GetLogicalDevice(), m_DepthStencil->ImageView, nullptr);
 
-		if (m_DepthStencil.DeviceMemory != VK_NULL_HANDLE)
-			vkFreeMemory(m_Device->GetLogicalDevice(), m_DepthStencil.DeviceMemory, nullptr);
+		if (m_DepthStencil->DeviceMemory != VK_NULL_HANDLE)
+			vkFreeMemory(m_Device->GetLogicalDevice(), m_DepthStencil->DeviceMemory, nullptr);
 
 		for (auto& framebuffer : m_Framebuffers)
 		{

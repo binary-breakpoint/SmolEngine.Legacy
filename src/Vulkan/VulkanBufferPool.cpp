@@ -18,7 +18,16 @@ namespace Frostium
 			object->DesriptorBufferInfo.buffer = object->VkBuffer.GetBuffer();
 			object->DesriptorBufferInfo.offset = 0;
 			object->DesriptorBufferInfo.range = size;
+
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+			{
+				const std::lock_guard<std::mutex> lock(m_Mutex);
+
+				m_Buffers[binding] = object;
+			}
+#else
 			m_Buffers[binding] = object;
+#endif
 
 			outDescriptorBufferInfo = object->DesriptorBufferInfo;
 			return;

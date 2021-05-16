@@ -15,6 +15,8 @@
 #include "Common/CubeTexture.h"
 #include "Common/Shader.h"
 
+#include "Extensions/JobsSystem.h"
+
 #include <glm/glm.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
@@ -326,9 +328,10 @@ namespace Frostium
 					renderPassBeginInfo.framebuffer = framebuffer;
 				}
 
-				VkCommandBuffer cmdBuffer = VulkanCommandBuffer::CreateSingleCommandBuffer();
+				CommandBufferStorage cmdStorage{};
+				VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
 				{
-					vkCmdBeginRenderPass(cmdBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+					vkCmdBeginRenderPass(cmdStorage.Buffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 					VkViewport viewport = {};
 					{
 						viewport.width = (float)dim;
@@ -345,13 +348,13 @@ namespace Frostium
 						rect2D.offset.y = 0;
 					}
 
-					vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
-					vkCmdSetScissor(cmdBuffer, 0, 1, &rect2D);
-					vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-					vkCmdDraw(cmdBuffer, 3, 1, 0, 0);
-					vkCmdEndRenderPass(cmdBuffer);
+					vkCmdSetViewport(cmdStorage.Buffer, 0, 1, &viewport);
+					vkCmdSetScissor(cmdStorage.Buffer, 0, 1, &rect2D);
+					vkCmdBindPipeline(cmdStorage.Buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+					vkCmdDraw(cmdStorage.Buffer, 3, 1, 0, 0);
+					vkCmdEndRenderPass(cmdStorage.Buffer);
 				}
-				VulkanCommandBuffer::EndSingleCommandBuffer(cmdBuffer);
+				VulkanCommandBuffer::ExecuteCommandBuffer(&cmdStorage);
 
 			}
 
@@ -554,16 +557,17 @@ namespace Frostium
 					VK_CHECK_RESULT(vkCreateFramebuffer(device, &fbufCreateInfo, nullptr, &offscreen.framebuffer));
 				}
 
-				VkCommandBuffer layoutCmd = VulkanCommandBuffer::CreateSingleCommandBuffer();
+				CommandBufferStorage cmdStorage{};
+				VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
 				{
 					VulkanTexture::SetImageLayout(
-						layoutCmd,
+						cmdStorage.Buffer,
 						offscreen.image,
 						VK_IMAGE_ASPECT_COLOR_BIT,
 						VK_IMAGE_LAYOUT_UNDEFINED,
 						VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 				}
-				VulkanCommandBuffer::FlushCommandBuffer(layoutCmd);
+				VulkanCommandBuffer::ExecuteCommandBuffer(&cmdStorage);
 			}
 
 			// Descriptors
@@ -865,7 +869,8 @@ namespace Frostium
 			VertexBuffer skyBoxFB = {};
 			VertexBuffer::Create(&skyBoxFB, skyboxVertices, sizeof(skyboxVertices));
 
-			VkCommandBuffer cmdBuffer = VulkanCommandBuffer::CreateSingleCommandBuffer();
+			CommandBufferStorage cmdStorage{};
+			VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
 			{
 				VkViewport viewport = {};
 				{
@@ -883,8 +888,8 @@ namespace Frostium
 					rect2D.offset.y = 0;
 				}
 
-				vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
-				vkCmdSetScissor(cmdBuffer, 0, 1, &rect2D);
+				vkCmdSetViewport(cmdStorage.Buffer, 0, 1, &viewport);
+				vkCmdSetScissor(cmdStorage.Buffer, 0, 1, &rect2D);
 
 				VkImageSubresourceRange subresourceRange = {};
 				subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -893,7 +898,7 @@ namespace Frostium
 				subresourceRange.layerCount = 6;
 
 
-				VulkanTexture::SetImageLayout(cmdBuffer,
+				VulkanTexture::SetImageLayout(cmdStorage.Buffer,
 					outImage,
 					VK_IMAGE_LAYOUT_UNDEFINED,
 					VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -905,31 +910,31 @@ namespace Frostium
 					{
 						viewport.width = static_cast<float>(dim * std::pow(0.5f, m));
 						viewport.height = static_cast<float>(dim * std::pow(0.5f, m));
-						vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
+						vkCmdSetViewport(cmdStorage.Buffer, 0, 1, &viewport);
 
 						// Render scene from cube face's point of view
-						vkCmdBeginRenderPass(cmdBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+						vkCmdBeginRenderPass(cmdStorage.Buffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 						// Update shader push constant block
 						pushBlock.mvp = glm::perspective((float)(M_PI / 2.0), 1.0f, 0.1f, 512.0f) * matrices[f];
 
 
-						vkCmdPushConstants(cmdBuffer, pipelinelayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+						vkCmdPushConstants(cmdStorage.Buffer, pipelinelayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
 							0, sizeof(PushBlock), &pushBlock);
 
-						vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-						vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelinelayout, 0, 1, &descriptorset, 0, NULL);
+						vkCmdBindPipeline(cmdStorage.Buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+						vkCmdBindDescriptorSets(cmdStorage.Buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelinelayout, 0, 1, &descriptorset, 0, NULL);
 
 						VkDeviceSize offsets[1] = { 0 };
 #ifndef FROSTIUM_OPENGL_IMPL
-						vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &skyBoxFB.GetVulkanVertexBuffer().GetBuffer(), offsets);
+						vkCmdBindVertexBuffers(cmdStorage.Buffer, 0, 1, &skyBoxFB.GetVulkanVertexBuffer().GetBuffer(), offsets);
 #endif
 
-						vkCmdDraw(cmdBuffer, 36, 1, 0, 0);
+						vkCmdDraw(cmdStorage.Buffer, 36, 1, 0, 0);
 
-						vkCmdEndRenderPass(cmdBuffer);
+						vkCmdEndRenderPass(cmdStorage.Buffer);
 
-						VulkanTexture::SetImageLayout(cmdBuffer,
+						VulkanTexture::SetImageLayout(cmdStorage.Buffer,
 							offscreen.image,
 							VK_IMAGE_ASPECT_COLOR_BIT,
 							VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
@@ -955,7 +960,7 @@ namespace Frostium
 						copyRegion.extent.depth = 1;
 
 						vkCmdCopyImage(
-							cmdBuffer,
+							cmdStorage.Buffer,
 							offscreen.image,
 							VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
 							outImage,
@@ -964,7 +969,7 @@ namespace Frostium
 							&copyRegion);
 
 
-						VulkanTexture::SetImageLayout(cmdBuffer,
+						VulkanTexture::SetImageLayout(cmdStorage.Buffer,
 							offscreen.image,
 							VK_IMAGE_ASPECT_COLOR_BIT,
 							VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
@@ -973,13 +978,13 @@ namespace Frostium
 				}
 
 
-				VulkanTexture::SetImageLayout(cmdBuffer,
+				VulkanTexture::SetImageLayout(cmdStorage.Buffer,
 					outImage,
 					VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 					subresourceRange);
 			}
-			VulkanCommandBuffer::FlushCommandBuffer(cmdBuffer);
+			VulkanCommandBuffer::ExecuteCommandBuffer(&cmdStorage);
 
 			outImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			outImageInfo.imageView = outImageView;
@@ -1182,16 +1187,18 @@ namespace Frostium
 					VK_CHECK_RESULT(vkCreateFramebuffer(device, &fbufCreateInfo, nullptr, &offscreen.framebuffer));
 				}
 
-				VkCommandBuffer layoutCmd = VulkanCommandBuffer::CreateSingleCommandBuffer();
+
+				CommandBufferStorage cmdStorage{};
+				VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
 				{
 					VulkanTexture::SetImageLayout(
-						layoutCmd,
+						cmdStorage.Buffer,
 						offscreen.image,
 						VK_IMAGE_ASPECT_COLOR_BIT,
 						VK_IMAGE_LAYOUT_UNDEFINED,
 						VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 				}
-				VulkanCommandBuffer::FlushCommandBuffer(layoutCmd);
+				VulkanCommandBuffer::ExecuteCommandBuffer(&cmdStorage);
 			}
 
 			// Descriptors
@@ -1490,8 +1497,11 @@ namespace Frostium
 			VertexBuffer skyBoxFB = {};
 			VertexBuffer::Create(&skyBoxFB, skyboxVertices, sizeof(skyboxVertices));
 
-			VkCommandBuffer cmdBuffer = VulkanCommandBuffer::CreateSingleCommandBuffer();
+			CommandBufferStorage cmdStorage{};
+			VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
 			{
+				VkCommandBuffer cmdBuffer = cmdStorage.Buffer;
+
 				VkViewport viewport = {};
 				{
 					viewport.width = (float)dim;
@@ -1600,7 +1610,7 @@ namespace Frostium
 					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 					subresourceRange);
 			}
-			VulkanCommandBuffer::FlushCommandBuffer(cmdBuffer);
+			VulkanCommandBuffer::ExecuteCommandBuffer(&cmdStorage);
 
 			outImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			outImageInfo.imageView = outImageView;
@@ -1646,6 +1656,29 @@ namespace Frostium
 		m_SkyBox = new VulkanTexture();
 		m_SkyBox->LoadCubeMap(cubeMapFile, format);
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+		JobsSystem::BeginSubmition();
+		{
+			JobsSystem::Schedule([&]() 
+			{
+				GenerateBRDFLUT(m_BRDFLUT.Image, m_BRDFLUT.ImageView, m_BRDFLUT.Sampler, m_BRDFLUT.DeviceMemory, m_BRDFLUTImageInfo);
+			});
+
+			JobsSystem::Schedule([&]()
+			{
+				GenerateIrradianceCube(m_Irradiance.Image, m_Irradiance.ImageView, m_Irradiance.Sampler,
+						m_Irradiance.DeviceMemory, m_SkyBox, m_IrradianceImageInfo);
+	        });
+
+			JobsSystem::Schedule([&]()
+			{
+				GeneratePrefilteredCube(m_PrefilteredCube.Image, m_PrefilteredCube.ImageView,
+						m_PrefilteredCube.Sampler, m_PrefilteredCube.DeviceMemory, m_SkyBox, m_PrefilteredCubeImageInfo);
+			});
+		}
+		JobsSystem::EndSubmition();
+#else
+
 		GenerateBRDFLUT(m_BRDFLUT.Image, m_BRDFLUT.ImageView, m_BRDFLUT.Sampler, m_BRDFLUT.DeviceMemory, m_BRDFLUTImageInfo);
 
 		GenerateIrradianceCube(m_Irradiance.Image, m_Irradiance.ImageView, m_Irradiance.Sampler,
@@ -1653,6 +1686,7 @@ namespace Frostium
 
 		GeneratePrefilteredCube(m_PrefilteredCube.Image, m_PrefilteredCube.ImageView,
 			m_PrefilteredCube.Sampler, m_PrefilteredCube.DeviceMemory, m_SkyBox, m_PrefilteredCubeImageInfo);
+#endif
 	}
 
 	void VulkanPBR::Reload(const std::string& cubeMapFile, TextureFormat format)

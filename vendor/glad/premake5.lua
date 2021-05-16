@@ -37,3 +37,12 @@ project "Glad"
 	buildoptions "/MD"
 	optimize "full"
 
+
+	filter "configurations:SmolEngine_R"
+	buildoptions "/MD"
+	optimize "full"
+
+	filter "configurations:SmolEngine_D"
+	buildoptions "/MDd"
+	symbols "on"
+

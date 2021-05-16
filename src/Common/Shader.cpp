@@ -19,6 +19,8 @@ namespace Frostium
 		case ShaderType::Geometry:    return shaderc_shader_kind::shaderc_geometry_shader;
 		case ShaderType::Compute:     return shaderc_shader_kind::shaderc_compute_shader;
 		}
+
+		return shaderc_shader_kind::shaderc_vertex_shader;
 	}
 
 	void LoadSPIRV(const std::string& path, std::vector<uint32_t>& binaries)

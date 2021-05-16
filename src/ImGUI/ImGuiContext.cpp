@@ -17,8 +17,6 @@
 #include <imgui/examples/imgui_impl_vulkan.h>
 #endif
 #include <implot/implot.h>
-
-#include <icon_font_cpp_headers/IconsFontAwesome5.h>
 #include <imgizmo/src/ImGuizmo.h>
 
 namespace Frostium 

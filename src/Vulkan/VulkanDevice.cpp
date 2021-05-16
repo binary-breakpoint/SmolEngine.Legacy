@@ -102,9 +102,8 @@ namespace Frostium
 		{
 			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 			queueCreateInfo.queueFamilyIndex = m_DeviceQueueFamilyIndex;
-			queueCreateInfo.queueCount = 1; // temp
-			queueCreateInfo.pQueuePriorities = &priority; // temp
-
+			queueCreateInfo.queueCount = 1;
+			queueCreateInfo.pQueuePriorities = &priority;
 		}
 
 		VkDeviceCreateInfo deviceInfo = {};

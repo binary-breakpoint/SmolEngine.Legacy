@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "MaterialLibrary.h"
 #include "Common/SLog.h"
+#include "Extensions/JobsSystem.h"
 
 #include <filesystem>
 #include <cereal/archives/json.hpp>
@@ -33,11 +34,24 @@ namespace Frostium
 
 		PBRMaterial newMaterial = {};
 		{
+
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+			JobsSystem::BeginSubmition();
+			{
+				JobsSystem::Schedule([&]() {newMaterial.AlbedroTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Albedro], newMaterial.UseAlbedroTex); });
+				JobsSystem::Schedule([&]() {newMaterial.NormalTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Normal], newMaterial.UseNormalTex); });
+				JobsSystem::Schedule([&]() {newMaterial.MetallicTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Metallic], newMaterial.UseMetallicTex); });
+				JobsSystem::Schedule([&]() {newMaterial.RoughnessTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Roughness], newMaterial.UseRoughnessTex); });
+				JobsSystem::Schedule([&]() {newMaterial.AOTexIndex = AddTexture(infoCI->Textures[MaterialTexture::AO], newMaterial.UseAOTex); });
+			}
+			JobsSystem::EndSubmition();
+#else
 			newMaterial.AlbedroTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Albedro], newMaterial.UseAlbedroTex);
 			newMaterial.NormalTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Normal], newMaterial.UseNormalTex);
 			newMaterial.MetallicTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Metallic], newMaterial.UseMetallicTex);
 			newMaterial.RoughnessTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Roughness], newMaterial.UseRoughnessTex);
 			newMaterial.AOTexIndex = AddTexture(infoCI->Textures[MaterialTexture::AO], newMaterial.UseAOTex);
+#endif
 
 			// x - Metallic, y - Roughness, z - Albedro
 			newMaterial.PBRValues.x = infoCI->Metallic;
@@ -49,6 +63,8 @@ namespace Frostium
 		m_Materials.emplace_back(newMaterial);
 		m_MaterialMap[hashID] = materialID;
 		m_MaterialIndex++;
+
+		m_Textures;
 
 		if(!path.empty())
 			Save(path, *infoCI);
@@ -131,9 +147,21 @@ namespace Frostium
 			Texture* tex = new Texture();
 			Texture::Create(path, tex);
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+			{
+				const std::lock_guard<std::mutex> lock(m_Mutex);
+
+				index = m_TextureIndex;
+				m_Textures[index] = tex;
+				m_TextureIndex++;
+			}
+#else
+
 			index = m_TextureIndex;
 			m_Textures[index] = tex;
 			m_TextureIndex++;
+#endif
+
 			useTetxure = true;
 			return index;
 		}

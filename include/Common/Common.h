@@ -14,6 +14,7 @@ namespace Frostium
 		bool           WindowMinimized = false;
 		bool           Is2DStoragePreAlloc = false;
 		bool           IsStoragePreAlloc = false;
+
 		const bool     UseImGUI = false;
 		const bool     UseEditorCamera = false;
 		const bool     UseSwapchain = true;
@@ -55,19 +56,6 @@ namespace Frostium
 		glm::vec3 max;
 
 		void CalculateAABB(const glm::mat4& m);
-	};
-
-	enum class CommandBufferSpec : uint32_t
-	{
-		LEVEL_PRIMARY     = 0,
-		LEVEL_3D_RENDERER,
-		LEVEL_2D_RENDERER,
-		LEVEL_SECONDARY_1,
-		LEVEL_SECONDARY_2,
-		LEVEL_SECONDARY_3,
-		LEVEL_SECONDARY_4,
-
-		MAX_ENUM
 	};
 
 	enum class ShaderType : uint32_t

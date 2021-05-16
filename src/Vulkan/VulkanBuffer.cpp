@@ -126,18 +126,19 @@ namespace Frostium
 		staging.Create(data, size);
 		CreateBuffer(nullptr, size, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, usageFlags);
 
-		VkCommandBuffer copyCmd = VulkanCommandBuffer::CreateSingleCommandBuffer();
+		CommandBufferStorage cmdStorage{};
+		VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
 		{
 			VkBufferCopy copyRegion = { };
 			copyRegion.size = m_Size;
 			vkCmdCopyBuffer(
-				copyCmd,
+				cmdStorage.Buffer,
 				staging.GetBuffer(),
 				m_Buffer,
 				1,
 				&copyRegion);
 		}
-		VulkanCommandBuffer::FlushCommandBuffer(copyCmd);
+		VulkanCommandBuffer::ExecuteCommandBuffer(&cmdStorage);
 	}
 
 	void VulkanBuffer::Flush() const

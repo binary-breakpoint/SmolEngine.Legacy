@@ -158,17 +158,18 @@ namespace Frostium
 
 		m_ImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-		VkCommandBuffer copyCmd = VulkanContext::GetCommandBuffer().CreateSingleCommandBuffer();
+		CommandBufferStorage cmdStorage{};
+		VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
 		{
 			SetImageLayout(
-				copyCmd,
+				cmdStorage.Buffer,
 				m_Image,
 				VK_IMAGE_LAYOUT_UNDEFINED,
 				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 				subresourceRange);
 
 			vkCmdCopyBufferToImage(
-				copyCmd,
+				cmdStorage.Buffer,
 				stagingBuffer.GetBuffer(),
 				m_Image,
 				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -177,13 +178,13 @@ namespace Frostium
 			);
 
 			SetImageLayout(
-				copyCmd,
+				cmdStorage.Buffer,
 				m_Image,
 				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 				m_ImageLayout,
 				subresourceRange);
 		}
-		VulkanContext::GetCommandBuffer().FlushCommandBuffer(copyCmd);
+		VulkanCommandBuffer::ExecuteCommandBuffer(&cmdStorage);
 
 		// Sampler
 		{
@@ -293,12 +294,13 @@ namespace Frostium
 		subresourceRange.levelCount = 1;
 		subresourceRange.layerCount = 1;
 
-		VkCommandBuffer cmdBuffer = VulkanContext::GetCommandBuffer().CreateSingleCommandBuffer();
+		CommandBufferStorage cmdStorage{};
+		VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
 		{
 
 			// Optimal image will be used as destination for the copy, so we must transfer from our initial undefined image layout to the transfer destination layout
 			InsertImageMemoryBarrier(
-				cmdBuffer,
+				cmdStorage.Buffer,
 				m_Image,
 				0,
 				VK_ACCESS_TRANSFER_WRITE_BIT,
@@ -318,11 +320,11 @@ namespace Frostium
 			bufferCopyRegion.imageExtent.height = height;
 			bufferCopyRegion.imageExtent.depth = 1;
 
-			vkCmdCopyBufferToImage(cmdBuffer, stagingBuffer.GetBuffer(), m_Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &bufferCopyRegion);
+			vkCmdCopyBufferToImage(cmdStorage.Buffer, stagingBuffer.GetBuffer(), m_Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &bufferCopyRegion);
 
 			// Transition first mip level to transfer source for read during blit
 			InsertImageMemoryBarrier(
-				cmdBuffer,
+				cmdStorage.Buffer,
 				m_Image,
 				VK_ACCESS_TRANSFER_WRITE_BIT,
 				VK_ACCESS_TRANSFER_READ_BIT,
@@ -332,9 +334,10 @@ namespace Frostium
 				VK_PIPELINE_STAGE_TRANSFER_BIT,
 				subresourceRange);
 
+			GenerateMipMaps(m_Image, cmdStorage.Buffer, width, height, mipMaps, subresourceRange);
 		}
-		VulkanContext::GetCommandBuffer().FlushCommandBuffer(cmdBuffer);
-		GenerateMipMaps(m_Image, width, height, mipMaps, subresourceRange);
+		VulkanCommandBuffer::ExecuteCommandBuffer(&cmdStorage);
+
 		m_ImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		CreateSamplerAndImageView(mipMaps, format);
 
@@ -360,11 +363,12 @@ namespace Frostium
 		subresourceRange.levelCount = 1;
 		subresourceRange.layerCount = 1;
 
-		VkCommandBuffer cmdBuffer = VulkanContext::GetCommandBuffer().CreateSingleCommandBuffer();
+		CommandBufferStorage cmdStorage{};
+		VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
 		{
 			// Optimal image will be used as destination for the copy, so we must transfer from our initial undefined image layout to the transfer destination layout
 			InsertImageMemoryBarrier(
-				cmdBuffer,
+				cmdStorage.Buffer,
 				m_Image,
 				0,
 				VK_ACCESS_TRANSFER_WRITE_BIT,
@@ -384,11 +388,11 @@ namespace Frostium
 			bufferCopyRegion.imageExtent.height = height;
 			bufferCopyRegion.imageExtent.depth = 1;
 
-			vkCmdCopyBufferToImage(cmdBuffer, stagingBuffer.GetBuffer(), m_Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &bufferCopyRegion);
+			vkCmdCopyBufferToImage(cmdStorage.Buffer, stagingBuffer.GetBuffer(), m_Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &bufferCopyRegion);
 
 			// Transition first mip level to transfer source for read during blit
 			InsertImageMemoryBarrier(
-				cmdBuffer,
+				cmdStorage.Buffer,
 				m_Image,
 				VK_ACCESS_TRANSFER_WRITE_BIT,
 				VK_ACCESS_TRANSFER_READ_BIT,
@@ -399,93 +403,89 @@ namespace Frostium
 				subresourceRange);
 
 		}
-		VulkanContext::GetCommandBuffer().FlushCommandBuffer(cmdBuffer);
+		VulkanCommandBuffer::ExecuteCommandBuffer(&cmdStorage);
 
 		m_ImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		CreateSamplerAndImageView(1, m_Format);
 	}
 
-	void VulkanTexture::GenerateMipMaps(VkImage image, int32_t width, int32_t height, int32_t mipLevel, VkImageSubresourceRange& range)
+	void VulkanTexture::GenerateMipMaps(VkImage image, VkCommandBuffer cmd, int32_t width, int32_t height, int32_t mipLevel, VkImageSubresourceRange& range)
 	{
-		VkCommandBuffer blitCmd = VulkanContext::GetCommandBuffer().CreateSingleCommandBuffer();
+		// Copy down mips from n-1 to n
+		for (int32_t i = 1; i < mipLevel; i++)
 		{
-			// Copy down mips from n-1 to n
-			for (int32_t i = 1; i < mipLevel; i++)
-			{
-				VkImageBlit imageBlit{};
+			VkImageBlit imageBlit{};
 
-				// Source
-				imageBlit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-				imageBlit.srcSubresource.layerCount = 1;
-				imageBlit.srcSubresource.mipLevel = i - 1;
-				imageBlit.srcOffsets[1].x = int32_t(width >> (i - 1));
-				imageBlit.srcOffsets[1].y = int32_t(height >> (i - 1));
-				imageBlit.srcOffsets[1].z = 1;
+			// Source
+			imageBlit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			imageBlit.srcSubresource.layerCount = 1;
+			imageBlit.srcSubresource.mipLevel = i - 1;
+			imageBlit.srcOffsets[1].x = int32_t(width >> (i - 1));
+			imageBlit.srcOffsets[1].y = int32_t(height >> (i - 1));
+			imageBlit.srcOffsets[1].z = 1;
 
-				// Destination
-				imageBlit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-				imageBlit.dstSubresource.layerCount = 1;
-				imageBlit.dstSubresource.mipLevel = i;
-				imageBlit.dstOffsets[1].x = int32_t(width >> i);
-				imageBlit.dstOffsets[1].y = int32_t(height >> i);
-				imageBlit.dstOffsets[1].z = 1;
+			// Destination
+			imageBlit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			imageBlit.dstSubresource.layerCount = 1;
+			imageBlit.dstSubresource.mipLevel = i;
+			imageBlit.dstOffsets[1].x = int32_t(width >> i);
+			imageBlit.dstOffsets[1].y = int32_t(height >> i);
+			imageBlit.dstOffsets[1].z = 1;
 
-				VkImageSubresourceRange mipSubRange = {};
-				mipSubRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-				mipSubRange.baseMipLevel = i;
-				mipSubRange.levelCount = 1;
-				mipSubRange.layerCount = 1;
+			VkImageSubresourceRange mipSubRange = {};
+			mipSubRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			mipSubRange.baseMipLevel = i;
+			mipSubRange.levelCount = 1;
+			mipSubRange.layerCount = 1;
 
-				// Prepare current mip level as image blit destination
-				InsertImageMemoryBarrier(
-					blitCmd,
-					m_Image,
-					0,
-					VK_ACCESS_TRANSFER_WRITE_BIT,
-					VK_IMAGE_LAYOUT_UNDEFINED,
-					VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-					VK_PIPELINE_STAGE_TRANSFER_BIT,
-					VK_PIPELINE_STAGE_TRANSFER_BIT,
-					mipSubRange);
-
-				// Blit from previous level
-				vkCmdBlitImage(
-					blitCmd,
-					m_Image,
-					VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-					m_Image,
-					VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-					1,
-					&imageBlit,
-					VK_FILTER_LINEAR);
-
-				// Prepare current mip level as image blit source for next level
-				InsertImageMemoryBarrier(
-					blitCmd,
-					m_Image,
-					VK_ACCESS_TRANSFER_WRITE_BIT,
-					VK_ACCESS_TRANSFER_READ_BIT,
-					VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-					VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-					VK_PIPELINE_STAGE_TRANSFER_BIT,
-					VK_PIPELINE_STAGE_TRANSFER_BIT,
-					mipSubRange);
-			}
-
-			// After the loop, all mip layers are in TRANSFER_SRC layout, so transition all to SHADER_READ
-			range.levelCount = mipLevel;
+			// Prepare current mip level as image blit destination
 			InsertImageMemoryBarrier(
-				blitCmd,
+				cmd,
 				m_Image,
-				VK_ACCESS_TRANSFER_READ_BIT,
-				VK_ACCESS_SHADER_READ_BIT,
-				VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+				0,
+				VK_ACCESS_TRANSFER_WRITE_BIT,
+				VK_IMAGE_LAYOUT_UNDEFINED,
+				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 				VK_PIPELINE_STAGE_TRANSFER_BIT,
-				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-				range);
+				VK_PIPELINE_STAGE_TRANSFER_BIT,
+				mipSubRange);
+
+			// Blit from previous level
+			vkCmdBlitImage(
+				cmd,
+				m_Image,
+				VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+				m_Image,
+				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+				1,
+				&imageBlit,
+				VK_FILTER_LINEAR);
+
+			// Prepare current mip level as image blit source for next level
+			InsertImageMemoryBarrier(
+				cmd,
+				m_Image,
+				VK_ACCESS_TRANSFER_WRITE_BIT,
+				VK_ACCESS_TRANSFER_READ_BIT,
+				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+				VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+				VK_PIPELINE_STAGE_TRANSFER_BIT,
+				VK_PIPELINE_STAGE_TRANSFER_BIT,
+				mipSubRange);
 		}
-		VulkanContext::GetCommandBuffer().FlushCommandBuffer(blitCmd);
+
+		// After the loop, all mip layers are in TRANSFER_SRC layout, so transition all to SHADER_READ
+		range.levelCount = mipLevel;
+		InsertImageMemoryBarrier(
+			cmd,
+			m_Image,
+			VK_ACCESS_TRANSFER_READ_BIT,
+			VK_ACCESS_SHADER_READ_BIT,
+			VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+			VK_PIPELINE_STAGE_TRANSFER_BIT,
+			VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+			range);
 	}
 
 	void VulkanTexture::InsertImageMemoryBarrier(VkCommandBuffer cmdbuffer, VkImage image, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout, VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask, VkImageSubresourceRange subresourceRange)

@@ -17,6 +17,14 @@
       <Configuration>Release_OpenGL</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="SmolEngine_R|x64">
+      <Configuration>SmolEngine_R</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="SmolEngine_D|x64">
+      <Configuration>SmolEngine_D</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{5E977168-4A64-CC73-737D-BA1B5FA90102}</ProjectGuid>
@@ -50,6 +58,18 @@
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='SmolEngine_R|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='SmolEngine_D|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
@@ -63,6 +83,12 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release_OpenGL|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='SmolEngine_R|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='SmolEngine_D|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
@@ -87,6 +113,18 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_OpenGL|x64'">
     <OutDir>bin\Release_OpenGL-windows-x86_64\Frostium\</OutDir>
     <IntDir>vendor\libs\bin-int\Release_OpenGL-windows-x86_64\Frostium\</IntDir>
+    <TargetName>Frostium</TargetName>
+    <TargetExt>.lib</TargetExt>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='SmolEngine_R|x64'">
+    <OutDir>bin\SmolEngine_R-windows-x86_64\Frostium\</OutDir>
+    <IntDir>vendor\libs\bin-int\SmolEngine_R-windows-x86_64\Frostium\</IntDir>
+    <TargetName>Frostium</TargetName>
+    <TargetExt>.lib</TargetExt>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='SmolEngine_D|x64'">
+    <OutDir>bin\SmolEngine_D-windows-x86_64\Frostium\</OutDir>
+    <IntDir>vendor\libs\bin-int\SmolEngine_D-windows-x86_64\Frostium\</IntDir>
     <TargetName>Frostium</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
@@ -186,6 +224,54 @@
       <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='SmolEngine_R|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;PLATFORM_WIN;BUILD_DLL;GLFW_INCLUDE_NONE;FROSTIUM_SMOLENGINE_IMPL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>vendor;vendor\icon_font_cpp_headers;include;include\Libraries;include\Libraries\implot;include\Libraries\spdlog\include;include\Libraries\cereal\include;src;vendor\glfw\include;vendor\glad\include;include\Libraries\imgui;include\Libraries\glm;include\Libraries\stb_image;include\Libraries\vulkan\include;include\Libraries\imgizmo\src;vendor\ktx\include;vendor\gli;vendor\tinygltf;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalOptions>/MD /bigobj /Zm500 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>vendor\libs\SmolEngine_R-windows-x86_64\Glad\Glad.lib;vendor\libs\SmolEngine_R-windows-x86_64\GLFW\GLFW.lib;vendor\libs\SmolEngine_R-windows-x86_64\ImGizmo\ImGizmo.lib;vendor\libs\SmolEngine_R-windows-x86_64\ImGui\ImGui.lib;vendor\libs\SmolEngine_R-windows-x86_64\KTX-Tools\KTX-Tools.lib;vendor\libs\SmolEngine_R-windows-x86_64\SPIRV-Cross\SPIRV-Cross.lib;vendor\vulkan\libs\vulkan-1.lib;vendor\vulkan\libs\shaderc.lib;vendor\vulkan\libs\shaderc_util.lib;vendor\vulkan\libs\glslang.lib;vendor\vulkan\libs\SPIRV.lib;vendor\vulkan\libs\SPIRV-Tools.lib;vendor\vulkan\libs\SPIRV-Tools-opt.lib;vendor\vulkan\libs\machineIndependent.lib;vendor\vulkan\libs\genericCodeGen.lib;vendor\vulkan\libs\OGLCompiler.lib;vendor\vulkan\libs\OSDependent.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='SmolEngine_D|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;PLATFORM_WIN;BUILD_DLL;GLFW_INCLUDE_NONE;FROSTIUM_SMOLENGINE_IMPL;FROSTIUM_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>vendor;vendor\icon_font_cpp_headers;include;include\Libraries;include\Libraries\implot;include\Libraries\spdlog\include;include\Libraries\cereal\include;src;vendor\glfw\include;vendor\glad\include;include\Libraries\imgui;include\Libraries\glm;include\Libraries\stb_image;include\Libraries\vulkan\include;include\Libraries\imgizmo\src;vendor\ktx\include;vendor\gli;vendor\tinygltf;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalOptions>/MDd /bigobj /Zm500 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>vendor\libs\SmolEngine_D-windows-x86_64\Glad\Glad.lib;vendor\libs\SmolEngine_D-windows-x86_64\GLFW\GLFW.lib;vendor\libs\SmolEngine_D-windows-x86_64\ImGizmo\ImGizmo.lib;vendor\libs\SmolEngine_D-windows-x86_64\ImGui\ImGui.lib;vendor\libs\SmolEngine_D-windows-x86_64\KTX-Tools\KTX-Tools.lib;vendor\libs\SmolEngine_D-windows-x86_64\SPIRV-Cross\SPIRV-Cross.lib;vendor\vulkan\libs\vulkan-1.lib;vendor\vulkan\libs\VkLayer_utils.lib;vendor\vulkan\libs\shaderc_d.lib;vendor\vulkan\libs\shaderc_util_d.lib;vendor\vulkan\libs\glslang_d.lib;vendor\vulkan\libs\SPIRV_d.lib;vendor\vulkan\libs\SPIRV-Tools_d.lib;vendor\vulkan\libs\SPIRV-Tools-opt_d.lib;vendor\vulkan\libs\machineIndependent_d.lib;vendor\vulkan\libs\genericCodeGen_d.lib;vendor\vulkan\libs\OGLCompiler_d.lib;vendor\vulkan\libs\OSDependent_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\Common\Animation.h" />
     <ClInclude Include="include\Common\BufferElement.h" />
@@ -218,6 +304,8 @@
     <ClInclude Include="include\Common\Window.h" />
     <ClInclude Include="include\DebugRenderer.h" />
     <ClInclude Include="include\EditorCamera.h" />
+    <ClInclude Include="include\Extensions\JobsSystem.h" />
+    <ClInclude Include="include\Extensions\Profiler.h" />
     <ClInclude Include="include\GraphicsContext.h" />
     <ClInclude Include="include\GraphicsPipeline.h" />
     <ClInclude Include="include\ImGUI\ImGuiContext.h" />
@@ -925,6 +1013,8 @@
     <ClCompile Include="src\Common\Window.cpp" />
     <ClCompile Include="src\DebugRenderer.cpp" />
     <ClCompile Include="src\EditorCamera.cpp" />
+    <ClCompile Include="src\Extensions\JobsSystem.cpp" />
+    <ClCompile Include="src\Extensions\Profiler.cpp" />
     <ClCompile Include="src\GraphicsContext.cpp" />
     <ClCompile Include="src\GraphicsPipeline.cpp" />
     <ClCompile Include="src\ImGUI\ImGuiBuid.cpp" />

@@ -190,7 +190,7 @@ namespace Frostium
 			return;
 		}
 
-		m_CommandBuffer = VulkanCommandBuffer::CreateSingleCommandBuffer();
+		VulkanCommandBuffer::CreateCommandBuffer(&m_CmdStorage);
 #else
 		OpenglRendererAPI* instance = m_GraphicsContext->GetOpenglRendererAPI();
 		instance->Init();
@@ -202,7 +202,7 @@ namespace Frostium
 #ifndef FROSTIUM_OPENGL_IMPL
 		if (!m_IsMainCmdBufferInUse)
 		{
-			VulkanCommandBuffer::FlushCommandBuffer(m_CommandBuffer);
+			VulkanCommandBuffer::ExecuteCommandBuffer(&m_CmdStorage);
 		}
 #endif
 	}

@@ -12,6 +12,10 @@
 #include "Common/Renderer2DStorage.h"
 #include "Common/RendererStorage.h"
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+#include "Extensions/JobsSystem.h"
+#endif
+
 #include <GLFW/glfw3.h>
 
 namespace Frostium
@@ -32,9 +36,11 @@ namespace Frostium
 		m_ResourcesFolderPath = info->ResourcesFolderPath;
 		m_DefaultCamera = info->pDefaultCamera;
 		m_EventHandler.OnEventFn = std::bind(&GraphicsContext::OnEvent, this, std::placeholders::_1);
+
 		// Creates GLFW window
 		m_Window.Init(info->pWindowCI, &m_EventHandler);
 		GLFWwindow* window = m_Window.GetNativeWindow();
+
 		// Creates API context
 #ifdef  FROSTIUM_OPENGL_IMPL
 		m_OpenglContext.Setup(window);
@@ -45,9 +51,15 @@ namespace Frostium
 		// Creates 4x4 white texture
 		m_DummyTexure = new Texture();
 		Texture::CreateWhiteTexture(m_DummyTexure);
-		// Initialize ImGUI and renderers
+
+		// Initialize ImGUI
 		if (m_State->UseImGUI)
 			m_ImGuiContext.Init(info);
+
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+		m_JobsSystem = new JobsSystem();
+#endif
+
 		// Creates main framebuffer
 		FramebufferSpecification framebufferCI = {};
 		{
@@ -68,7 +80,6 @@ namespace Frostium
 		}
 
 		LoadMeshes();
-
 		if (info->Flags & Features_Renderer_3D_Flags)
 		{
 			if (info->pRendererStorage != nullptr)
@@ -201,6 +212,10 @@ namespace Frostium
 #endif
 
 			delete m_MaterialLibrary, m_DummyTexure, m_State;
+
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+			delete m_JobsSystem;
+#endif
 	    }
 }
 
@@ -233,7 +248,7 @@ namespace Frostium
 		return &m_Framebuffer;
 	}
 
-	Camera* GraphicsContext::GetDefaultCamera()
+	Camera* GraphicsContext::GetDefaultCamera() const
 	{
 		return m_DefaultCamera;
 	}
@@ -369,4 +384,11 @@ namespace Frostium
 	{
 		return s_Instance;
 	}
+
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+	JobsSystem* GraphicsContext::GetJobsSystemInstance()
+	{
+		return m_JobsSystem;
+	}
+#endif
 }

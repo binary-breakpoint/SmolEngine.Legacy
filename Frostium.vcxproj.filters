@@ -7,6 +7,9 @@
     <Filter Include="include\Common">
       <UniqueIdentifier>{A1C887FB-8D96-7B01-762A-EC2762975766}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\Extensions">
+      <UniqueIdentifier>{08053EC2-F4E8-FE17-5D49-F96A494CE999}</UniqueIdentifier>
+    </Filter>
     <Filter Include="include\ImGUI">
       <UniqueIdentifier>{33E330A3-9FA3-ACD9-68DE-F556D45DF1B5}</UniqueIdentifier>
     </Filter>
@@ -196,6 +199,9 @@
     <Filter Include="src\Common">
       <UniqueIdentifier>{C5C39D09-B17B-DF56-1A83-B8B2065A7A47}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Extensions">
+      <UniqueIdentifier>{2CF26493-18C0-5899-0154-C9BFEDC034FE}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\ImGUI">
       <UniqueIdentifier>{D70922B3-4374-D629-8CB2-87CFF85BB47E}</UniqueIdentifier>
     </Filter>
@@ -311,6 +317,12 @@
     </ClInclude>
     <ClInclude Include="include\EditorCamera.h">
       <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Extensions\JobsSystem.h">
+      <Filter>include\Extensions</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Extensions\Profiler.h">
+      <Filter>include\Extensions</Filter>
     </ClInclude>
     <ClInclude Include="include\GraphicsContext.h">
       <Filter>include</Filter>
@@ -2428,6 +2440,12 @@
     </ClCompile>
     <ClCompile Include="src\EditorCamera.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Extensions\JobsSystem.cpp">
+      <Filter>src\Extensions</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Extensions\Profiler.cpp">
+      <Filter>src\Extensions</Filter>
     </ClCompile>
     <ClCompile Include="src\GraphicsContext.cpp">
       <Filter>src</Filter>
