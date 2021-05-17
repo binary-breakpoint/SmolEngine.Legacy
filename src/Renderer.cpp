@@ -558,8 +558,6 @@ namespace Frostium
 
 		VertexInputInfo vertexMain(sizeof(PBRVertex), mainLayout);
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
-
 		// PBR
 		{
 			GraphicsPipelineShaderCreateInfo shaderCI = {};
@@ -567,15 +565,28 @@ namespace Frostium
 				shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/PBR.vert";
 				shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/PBR.frag";
 
+				// SSBO's
+				ShaderBufferInfo bufferInfo = {};
+
 				// Vertex
-				shaderCI.StorageBuffersSizes[s_Data->m_ShaderDataBinding] = { sizeof(InstanceData) * s_InstanceDataMaxCount };
-				shaderCI.StorageBuffersSizes[s_Data->m_MaterialsBinding] = { sizeof(PBRMaterial) * 1000 };
-				shaderCI.StorageBuffersSizes[s_Data->m_AnimBinding] = { sizeof(glm::mat4) * s_MaxAnimationJoints };
+				bufferInfo.Size = sizeof(InstanceData) * s_InstanceDataMaxCount;
+				shaderCI.BufferInfos[s_Data->m_ShaderDataBinding] = bufferInfo;
+
+				bufferInfo.Size = sizeof(PBRMaterial) * 1000;
+				shaderCI.BufferInfos[s_Data->m_MaterialsBinding] = bufferInfo;
+
+				bufferInfo.Size = sizeof(glm::mat4) * s_MaxAnimationJoints;
+				shaderCI.BufferInfos[s_Data->m_AnimBinding] = bufferInfo;
 
 				// Fragment
-				shaderCI.StorageBuffersSizes[s_Data->m_PointLightBinding] = { sizeof(PointLight) * s_MaxLights };
-				shaderCI.StorageBuffersSizes[s_Data->m_SpotLightBinding] = { sizeof(SpotLight) * s_MaxLights };
-				shaderCI.StorageBuffersSizes[s_Data->m_DirLightBinding] = { sizeof(DirectionalLight) };
+				bufferInfo.Size = sizeof(PointLight) * s_MaxLights;
+				shaderCI.BufferInfos[s_Data->m_PointLightBinding] = bufferInfo;
+
+				bufferInfo.Size = sizeof(SpotLight) * s_MaxLights;
+				shaderCI.BufferInfos[s_Data->m_SpotLightBinding] = bufferInfo;
+
+				bufferInfo.Size = sizeof(DirectionalLight);
+				shaderCI.BufferInfos[s_Data->m_DirLightBinding] = bufferInfo;
 			};
 
 			GraphicsPipelineCreateInfo DynamicPipelineCI = {};
@@ -596,6 +607,8 @@ namespace Frostium
 			s_Data->m_PBRPipeline.UpdateVulkanImageDescriptor(4, VulkanPBR::GetPrefilteredCubeImageInfo());
 #endif
 		}
+
+#ifdef FROSTIUM_SMOLENGINE_IMPL
 
 		JobsSystem::BeginSubmition();
 		{
@@ -784,43 +797,6 @@ namespace Frostium
 		JobsSystem::EndSubmition();
 
 #else
-		// PBR
-		{
-			GraphicsPipelineShaderCreateInfo shaderCI = {};
-			{
-				shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/PBR.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/PBR.frag";
-
-				// Vertex
-				shaderCI.StorageBuffersSizes[s_Data->m_ShaderDataBinding] = { sizeof(InstanceData) * s_InstanceDataMaxCount };
-				shaderCI.StorageBuffersSizes[s_Data->m_MaterialsBinding] = { sizeof(PBRMaterial) * 1000 };
-				shaderCI.StorageBuffersSizes[s_Data->m_AnimBinding] = { sizeof(glm::mat4) * s_MaxAnimationJoints };
-
-				// Fragment
-				shaderCI.StorageBuffersSizes[s_Data->m_PointLightBinding] = { sizeof(PointLight) * s_MaxLights };
-				shaderCI.StorageBuffersSizes[s_Data->m_SpotLightBinding] = { sizeof(SpotLight) * s_MaxLights };
-				shaderCI.StorageBuffersSizes[s_Data->m_DirLightBinding] = { sizeof(DirectionalLight) };
-			};
-
-			GraphicsPipelineCreateInfo DynamicPipelineCI = {};
-			{
-				DynamicPipelineCI.VertexInputInfos = { vertexMain };
-				DynamicPipelineCI.PipelineName = "PBR_Pipeline";
-				DynamicPipelineCI.pShaderCreateInfo = &shaderCI;
-				DynamicPipelineCI.pTargetFramebuffer = &s_Data->m_PBRFramebuffer;
-			}
-
-			auto result = s_Data->m_PBRPipeline.Create(&DynamicPipelineCI);
-			assert(result == PipelineCreateResult::SUCCESS);
-
-			s_Data->m_PBRPipeline.UpdateSampler(&s_Data->m_DepthFramebuffer, 1, "Depth_Attachment");
-#ifndef FROSTIUM_OPENGL_IMPL
-			s_Data->m_PBRPipeline.UpdateVulkanImageDescriptor(2, VulkanPBR::GetIrradianceImageInfo());
-			s_Data->m_PBRPipeline.UpdateVulkanImageDescriptor(3, VulkanPBR::GetBRDFLUTImageInfo());
-			s_Data->m_PBRPipeline.UpdateVulkanImageDescriptor(4, VulkanPBR::GetPrefilteredCubeImageInfo());
-#endif
-		}
-
 		// Grid
 		{
 			Utils::ComposeTransform(glm::vec3(0), glm::vec3(0), { 100, 1, 100 }, s_Data->m_GridModel);

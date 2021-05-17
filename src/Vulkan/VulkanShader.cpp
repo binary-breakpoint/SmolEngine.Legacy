@@ -98,6 +98,8 @@ namespace Frostium
         default:                                return VkShaderStageFlagBits::VK_SHADER_STAGE_ALL;
 
         }
+
+        return VkShaderStageFlagBits::VK_SHADER_STAGE_ALL;
     }
 
     std::vector<VkPipelineShaderStageCreateInfo>& VulkanShader::GetVkPipelineShaderStages()

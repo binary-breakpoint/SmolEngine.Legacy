@@ -44,7 +44,7 @@ namespace Frostium
 		void DrawMesh(Mesh* mesh, uint32_t instances = 1, DrawMode mode = DrawMode::Triangle, uint32_t descriptorSetIndex = 0);
 
 		// Resources
-		void SubmitBuffer(uint32_t bindingPoint, size_t size, const void* data, uint32_t offset = 0);
+		bool SubmitBuffer(uint32_t bindingPoint, size_t size, const void* data, uint32_t offset = 0, uint32_t descriptorIndex = 0);
 		void SubmitPushConstant(ShaderType shaderStage, size_t size, const void* data);
 		void SetVertexBuffers(const std::vector<Ref<VertexBuffer>>& buffer);
 		void SetIndexBuffers(const std::vector<Ref<IndexBuffer>>& buffer);

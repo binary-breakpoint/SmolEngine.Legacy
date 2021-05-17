@@ -1659,18 +1659,18 @@ namespace Frostium
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 		JobsSystem::BeginSubmition();
 		{
-			JobsSystem::Schedule([&]() 
+			JobsSystem::Schedule([]() 
 			{
 				GenerateBRDFLUT(m_BRDFLUT.Image, m_BRDFLUT.ImageView, m_BRDFLUT.Sampler, m_BRDFLUT.DeviceMemory, m_BRDFLUTImageInfo);
 			});
 
-			JobsSystem::Schedule([&]()
+			JobsSystem::Schedule([]()
 			{
 				GenerateIrradianceCube(m_Irradiance.Image, m_Irradiance.ImageView, m_Irradiance.Sampler,
 						m_Irradiance.DeviceMemory, m_SkyBox, m_IrradianceImageInfo);
 	        });
 
-			JobsSystem::Schedule([&]()
+			JobsSystem::Schedule([]()
 			{
 				GeneratePrefilteredCube(m_PrefilteredCube.Image, m_PrefilteredCube.ImageView,
 						m_PrefilteredCube.Sampler, m_PrefilteredCube.DeviceMemory, m_SkyBox, m_PrefilteredCubeImageInfo);

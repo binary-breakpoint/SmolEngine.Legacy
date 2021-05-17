@@ -238,7 +238,11 @@ namespace Frostium
 				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/2D.vert";
 				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/2D.frag";
 
-				shaderCI.StorageBuffersSizes[1] = { sizeof(s_Data->ShaderInstanceSize) * Renderer2DStorage::MaxQuads };
+				ShaderBufferInfo bufferInfo = {};
+				bufferInfo.bGlobal = false;
+				bufferInfo.Size = sizeof(s_Data->ShaderInstanceSize) * Renderer2DStorage::MaxQuads;
+
+				shaderCI.BufferInfos[1] = bufferInfo;
 			};
 
 			pipelineCI.PipelineName = "Deferred_2D";

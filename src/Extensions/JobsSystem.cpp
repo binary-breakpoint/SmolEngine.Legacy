@@ -38,5 +38,10 @@ namespace Frostium
 	{
 		return static_cast<uint32_t>(s_Instance->m_RenderingQueue.num_tasks());
 	}
+
+	tf::Executor* JobsSystem::GetExecutor()
+	{
+		return &s_Instance->m_Executor;
+	}
 }
 #endif

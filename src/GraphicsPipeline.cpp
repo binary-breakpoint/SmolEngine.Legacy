@@ -171,12 +171,12 @@ namespace Frostium
 #endif
 	}
 
-	void GraphicsPipeline::SubmitBuffer(uint32_t bindingPoint, size_t size, const void* data, uint32_t offset)
+	bool GraphicsPipeline::SubmitBuffer(uint32_t bindingPoint, size_t size, const void* data, uint32_t offset, uint32_t descriptorIndex)
 	{
 #ifndef FROSTIUM_OPENGL_IMPL
-		VulkanBuffer* buffer = VulkanBufferPool::GetSingleton()->GetBuffer(bindingPoint);
-		if (buffer)
-			buffer->SetData(data, size, offset);
+		return m_VulkanPipeline.m_Descriptors[descriptorIndex].UpdateBuffer(bindingPoint, size, data, offset);
+#else
+		return false;
 #endif
 	}
 

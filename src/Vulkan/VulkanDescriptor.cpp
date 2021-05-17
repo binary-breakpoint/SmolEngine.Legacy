@@ -22,12 +22,19 @@ namespace Frostium
 
 	VulkanDescriptor::~VulkanDescriptor()
 	{
+		Free();
+	}
+
+	void VulkanDescriptor::Free()
+	{
 		if (m_Device)
 		{
 			if (m_DescriptorSetLayout != VK_NULL_HANDLE)
 			{
 				vkDestroyDescriptorSetLayout(m_Device, m_DescriptorSetLayout, nullptr);
 			}
+
+			m_LocalBuffers.clear();
 		}
 	}
 
@@ -87,38 +94,92 @@ namespace Frostium
 		}
 	}
 
+	// TODO: refactor
 	void VulkanDescriptor::GenBuffersDescriptors(VulkanShader* shader)
 	{
 		ReflectionData* refData = shader->m_ReflectionData;
 		for (auto& [key, buffer] : refData->Buffers)
 		{
 			VkDescriptorBufferInfo descriptorBufferInfo = {};
-			size_t dataSize = buffer.Size;
-			VkDescriptorType type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			VkBufferUsageFlags usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-			VkMemoryPropertyFlags mem = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+			ShaderBufferInfo bufferInfo = {};
 
-			if (buffer.Type == BufferType::Storage)
+			VkDescriptorType type = buffer.Type == BufferType::Uniform ?  VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+			VkBufferUsageFlags usage = buffer.Type == BufferType::Uniform ?  VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT : VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+			size_t size = buffer.Size;
+
 			{
-				type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-				usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
-
-				const auto& it = shader->m_CreateInfo->StorageBuffersSizes.find(buffer.BindingPoint);
-				if (it != shader->m_CreateInfo->StorageBuffersSizes.end())
-					dataSize = it->second;
-				else
+				const auto& it = shader->m_CreateInfo->BufferInfos.find(buffer.BindingPoint);
+				if (it == shader->m_CreateInfo->BufferInfos.end())
 				{
-					if (!VulkanBufferPool::GetSingleton()->IsBindingExist(buffer.BindingPoint))
+					if (buffer.Type == BufferType::Storage)
 					{
-						NATIVE_ERROR("Storage buffer dataSize must be declared inside GraphicsPipelineShaderCreateInfo!");
-						continue;
+						bool found = false;
+
+						{
+							if (bufferInfo.bGlobal)
+								found = VulkanBufferPool::GetSingleton()->IsBindingExist(buffer.BindingPoint);
+							else
+							{
+								auto& f_res = m_LocalBuffers.find(buffer.BindingPoint);
+								if (f_res != m_LocalBuffers.end())
+									found = true;
+
+							}
+						}
+
+						if (found == false)
+						{
+#ifdef FROSTIUM_DEBUG
+							NATIVE_ERROR("Storage buffer dataSize must be declared inside GraphicsPipelineShaderCreateInfo!");
+#endif
+							continue;
+						}
 					}
 				}
+				else
+				{
+					if (buffer.Type == BufferType::Storage)
+						size = it->second.Size;
 
+					bufferInfo = it->second;
+				}
 			}
 
-			VulkanBufferPool::GetSingleton()->Add(dataSize, buffer.BindingPoint, mem,
-				usage, descriptorBufferInfo);
+
+			if (bufferInfo.bGlobal)
+				VulkanBufferPool::GetSingleton()->Add(size, buffer.BindingPoint, usage, descriptorBufferInfo, bufferInfo.bStatic, bufferInfo.Data);
+			else
+			{
+				const auto& it = m_LocalBuffers.find(buffer.BindingPoint);
+				if (it == m_LocalBuffers.end())
+				{
+					Ref<BufferObject> object = std::make_shared<BufferObject>();
+					{
+						if (bufferInfo.bStatic)
+						{
+							usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+							object->VkBuffer.CreateStaticBuffer(bufferInfo.Data, size, usage);
+						}
+						else
+						{
+							VkMemoryPropertyFlags mem = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+							object->VkBuffer.CreateBuffer(size, mem, usage);
+						}
+
+						object->DesriptorBufferInfo.buffer = object->VkBuffer.GetBuffer();
+						object->DesriptorBufferInfo.offset = 0;
+						object->DesriptorBufferInfo.range = size;
+					}
+
+					m_LocalBuffers[buffer.BindingPoint] = object;
+					descriptorBufferInfo = object->DesriptorBufferInfo;
+				}
+				else
+				{
+					descriptorBufferInfo = it->second->DesriptorBufferInfo;
+				}
+			}
 
 			m_WriteSets.push_back(CreateWriteSet(m_DescriptorSet,
 				buffer.BindingPoint, &descriptorBufferInfo, type));
@@ -278,6 +339,37 @@ namespace Frostium
 
 		vkUpdateDescriptorSets(m_Device, 1, writeSet, 0, nullptr);
 		return true;
+	}
+
+	bool VulkanDescriptor::UpdateBuffer(uint32_t binding, size_t size, const void* data, uint32_t offset)
+	{
+		VulkanBuffer* buffer = nullptr;
+		// Local Buffers
+		{
+			if (m_LocalBuffers.size() > 0)
+			{
+				auto& it = m_LocalBuffers.find(binding);
+				if (it != m_LocalBuffers.end())
+				{
+					buffer = &it->second->VkBuffer;
+					buffer->SetData(data, size, offset);
+					return true;
+				}
+			}
+		}
+
+
+		// Global Buffers
+		{
+			buffer = VulkanBufferPool::GetSingleton()->GetBuffer(binding);
+			if (buffer)
+			{
+				buffer->SetData(data, size, offset);
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	void VulkanDescriptor::UpdateWriteSets()

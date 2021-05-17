@@ -17,6 +17,7 @@ namespace Frostium
 						        
 		static uint32_t         GetNumWorkers();
 		static uint32_t         GetNumRenderingTasks();
+		static tf::Executor*    GetExecutor();
 							    
 		template<typename... F>    
 		static void             Schedule(F&&... f) { s_Instance->m_RenderingQueue.emplace(std::forward<F>(f)...); }
