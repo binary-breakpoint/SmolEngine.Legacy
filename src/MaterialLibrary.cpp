@@ -25,12 +25,16 @@ namespace Frostium
 	uint32_t MaterialLibrary::Add(MaterialCreateInfo* infoCI, const std::string& path)
 	{
 		uint32_t materialID = 0;
+		size_t hashID = GetHash(infoCI);
 
-		std::string name = GetCompleteName(infoCI);
-		size_t hashID = m_Hash(name);
-		const auto& name_it = m_MaterialMap.find(hashID);
-		if (name_it != m_MaterialMap.end())
-			return name_it->second;
+		if (m_MaterialMap.size() > 0)
+		{
+			auto& it = m_MaterialMap.find(hashID);
+			if (it != m_MaterialMap.end())
+			{
+				return it->second;
+			}
+		}
 
 		PBRMaterial newMaterial = {};
 		{
@@ -61,10 +65,8 @@ namespace Frostium
 
 		materialID = m_MaterialIndex;
 		m_Materials.emplace_back(newMaterial);
-		m_MaterialMap[hashID] = materialID;
+		m_MaterialMap.insert({ hashID, materialID });
 		m_MaterialIndex++;
-
-		m_Textures;
 
 		if(!path.empty())
 			Save(path, *infoCI);
@@ -170,18 +172,17 @@ namespace Frostium
 		return index;
 	}
 
-	std::string MaterialLibrary::GetCompleteName(MaterialCreateInfo* infoCI)
+	size_t MaterialLibrary::GetHash(MaterialCreateInfo* infoCI)
 	{
-		std::string result;
+		std::string name = "";
 		std::filesystem::path p;
-
 		for (auto& [type, path] : infoCI->Textures)
 		{
 			std::filesystem::path p(path);
-			result += p.filename().stem().string();
+			name += p.filename().stem().string();
 		}
 
-		return result;
+		return m_Hash(name);
 	}
 
 	PBRMaterial* MaterialLibrary::GetMaterial(uint32_t ID)

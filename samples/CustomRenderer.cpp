@@ -54,9 +54,21 @@ void CustomRenderer::Init()
 		m_Camera->OnEvent(e);
 	});
 
+	m_MaterialLibrary = new MaterialLibrary();
+
 	BuildFramebuffers();
+	BuildMaterials();
 	BuildObjects();
 	BuildPipelines();
+
+	// Updates shader buffers
+	auto& materials = m_MaterialLibrary->GetMaterials();
+	std::vector<Texture*> textures;
+	m_MaterialLibrary->GetTextures(textures);
+
+	m_Storage.MRT_Pipeline.SubmitBuffer(3, sizeof(PBRMaterial) * 5, materials.data());
+	m_Storage.MRT_Pipeline.UpdateSamplers(textures, 4);
+
 	Render();
 }
 
@@ -129,8 +141,8 @@ void CustomRenderer::BuildPipelines()
 
 		GraphicsPipelineShaderCreateInfo shaderCI = {};
 		{
-			shaderCI.FilePaths[ShaderType::Vertex] = "Assets/Shaders/MRT.vert";
-			shaderCI.FilePaths[ShaderType::Fragment] = "Assets/Shaders/MRT.frag";
+			shaderCI.FilePaths[ShaderType::Vertex] = "Assets/shaders/Gbuffer.vert";
+			shaderCI.FilePaths[ShaderType::Fragment] = "Assets/shaders/Gbuffer.frag";
 
 			uint32_t bindingPoint = 1;
 			ShaderBufferInfo bufferInfo = {};
@@ -161,7 +173,7 @@ void CustomRenderer::BuildPipelines()
 		GraphicsPipelineShaderCreateInfo shaderCI = {};
 		{
 			shaderCI.FilePaths[ShaderType::Vertex] = "../resources/Shaders/GenVertex.vert";
-			shaderCI.FilePaths[ShaderType::Fragment] = "Assets/Shaders/Combination.frag";
+			shaderCI.FilePaths[ShaderType::Fragment] = "Assets/shaders/Combination.frag";
 		};
 
 		float quadVertices[] = {
@@ -247,19 +259,71 @@ void CustomRenderer::BuildObjects()
 		for (uint32_t z = 0; z < 100; z += 1)
 		{
 			float scale_y = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 6));
-			float color_r = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 6));
-			float color_g = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 6));
+			float matID = rand() % m_MaterialsIDs.size();
 
-			glm::vec3 pos = { x, 0, z };
-			glm::vec3 rot = { 0, 0, 0 };
-			glm::vec3 scale = { 0.5, scale_y, 0.5 };
-			glm::vec4 color = { color_r, color_g, scale_y, 1 };
+			glm::vec4 pos = { x, 0, z, 0 };
+			glm::vec4 scale = { 0.5, scale_y, 0.5, matID };
 
-			glm::mat4 model;
-			Utils::ComposeTransform(pos, rot, scale, model);
-
-			m_Instances[index].model = model;
+			m_Instances[index].pos = pos;
+			m_Instances[index].scale = scale;
 			index++;
 		}
+	}
+}
+
+void CustomRenderer::BuildMaterials()
+{
+	MaterialLibrary* lib = m_MaterialLibrary;
+	MaterialCreateInfo materialCI = {};
+
+	std::string path = "Assets/materials/";
+
+	{
+		uint32_t id = lib->Add(&materialCI);
+	}
+
+	{
+		materialCI.SetTexture(MaterialTexture::Albedro, path + "steel/CorrugatedSteel005_2K_Color.png");
+		materialCI.SetTexture(MaterialTexture::Normal, path + "steel/CorrugatedSteel005_2K_Normal.png");
+		materialCI.SetTexture(MaterialTexture::Roughness, path + "steel/CorrugatedSteel005_2K_Roughness.png");
+		materialCI.SetTexture(MaterialTexture::Metallic, path + "steel/CorrugatedSteel005_2K_Metalness.png");
+
+		uint32_t id = lib->Add(&materialCI);
+
+
+
+
+		m_MaterialsIDs.push_back(id);
+	}
+
+
+	{
+		materialCI.SetTexture(MaterialTexture::Albedro, path + "metal_1/Metal033_1K_Color.png");
+		materialCI.SetTexture(MaterialTexture::Normal, path + "metal_1/Metal033_1K_Normal.png");
+		materialCI.SetTexture(MaterialTexture::Roughness, path + "metal_1/Metal033_1K_Roughness.png");
+		materialCI.SetTexture(MaterialTexture::Metallic, path + "metal_1/Metal033_1K_Metalness.png");
+
+		uint32_t id = lib->Add(&materialCI);
+		m_MaterialsIDs.push_back(id);
+	}
+
+	{
+		materialCI.SetTexture(MaterialTexture::Albedro, path + "metal_2/Metal012_1K_Color.png");
+		materialCI.SetTexture(MaterialTexture::Normal, path + "metal_2/Metal012_1K_Normal.png");
+		materialCI.SetTexture(MaterialTexture::Roughness, path + "metal_2/Metal012_1K_Roughness.png");
+		materialCI.SetTexture(MaterialTexture::Metallic, path + "metal_2/Metal012_1K_Metalness.png");
+
+		uint32_t id = lib->Add(&materialCI);
+		m_MaterialsIDs.push_back(id);
+	}
+
+	{
+		materialCI.SetTexture(MaterialTexture::Albedro, path + "plane/Metal021_2K_Color.png");
+		materialCI.SetTexture(MaterialTexture::Normal, path + "plane/Metal021_2K_Normal.png");
+		materialCI.SetTexture(MaterialTexture::Roughness, path + "plane/Metal021_2K_Roughness.png");
+		materialCI.SetTexture(MaterialTexture::Metallic, path + "plane/Metal021_2K_Metalness.png");
+
+		uint32_t id = lib->Add(&materialCI);
+		m_MaterialsIDs.push_back(id);
 	}
 }

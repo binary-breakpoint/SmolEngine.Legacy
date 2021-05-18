@@ -1,5 +1,6 @@
 #pragma once
 #include <GraphicsPipeline.h>
+#include <MaterialLibrary.h>
 #include <Common/Mesh.h>
 #include <Common/Framebuffer.h>
 
@@ -24,7 +25,8 @@ struct CameraUBO
 
 struct InstanceUBO
 {
-	glm::mat4 model{};
+	glm::vec4 pos;
+	glm::vec4 scale;
 };
 							     
 class CustomRenderer		     
@@ -34,6 +36,7 @@ public:
 	void Init();			         
 	void BuildPipelines();	    
 	void BuildFramebuffers();
+	void BuildMaterials();
 	void BuildObjects();
 	void Render();
 
@@ -43,8 +46,10 @@ private:
 							     
 	Frostium::GraphicsContext*   m_Context = nullptr;
 	Frostium::EditorCamera*      m_Camera = nullptr;
+	Frostium::MaterialLibrary*   m_MaterialLibrary = nullptr;
 	bool                         m_Process = true;
 	RendererData                 m_Storage = {};
 	CameraUBO                    m_CameraUBO = {};
 	std::vector<InstanceUBO>     m_Instances;
+	std::vector<uint32_t>        m_MaterialsIDs;
 };							   
