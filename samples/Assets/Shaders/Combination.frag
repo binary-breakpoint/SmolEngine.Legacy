@@ -133,7 +133,7 @@ void main()
 
     vec3 F0 = mix(vec3(0.04), albedo_color, metallic); 
     vec3 ambient = CalcIBL(normals.xyz, V, F0, ao, albedo_color, metallic, roughness);
-    vec3 dirLight = CalcDirLight(V, normals.xyz, F0, position.xyz, albedo_color, metallic, roughness);
+    //vec3 dirLight = CalcDirLight(V, normals.xyz, F0, position.xyz, albedo_color, metallic, roughness);
 
     vec3 result = ambient;
 

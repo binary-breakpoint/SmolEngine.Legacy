@@ -171,10 +171,10 @@ namespace Frostium
 #endif
 	}
 
-	bool GraphicsPipeline::SubmitBuffer(uint32_t bindingPoint, size_t size, const void* data, uint32_t offset, uint32_t descriptorIndex)
+	bool GraphicsPipeline::SubmitBuffer(uint32_t bindingPoint, size_t size, const void* data, uint32_t offset)
 	{
 #ifndef FROSTIUM_OPENGL_IMPL
-		return m_VulkanPipeline.m_Descriptors[descriptorIndex].UpdateBuffer(bindingPoint, size, data, offset);
+		return m_VulkanPipeline.m_Descriptors[m_DescriptorIndex].UpdateBuffer(bindingPoint, size, data, offset);
 #else
 		return false;
 #endif
@@ -207,7 +207,13 @@ namespace Frostium
 #endif
 	}
 
-	void GraphicsPipeline::DrawIndexed(DrawMode mode, uint32_t vertexBufferIndex, uint32_t indexBufferIndex, uint32_t descriptorSetIndex)
+	void GraphicsPipeline::ResetStates()
+	{
+		m_DescriptorIndex = 0;
+		m_DrawMode = DrawMode::Triangle;
+	}
+
+	void GraphicsPipeline::DrawIndexed(uint32_t vertexBufferIndex, uint32_t indexBufferIndex)
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
 		m_VextexArray->Bind();
@@ -216,7 +222,7 @@ namespace Frostium
 		m_Shader->Bind();
 
 		OpenglRendererAPI* instance = m_GraphicsContext->GetOpenglRendererAPI();
-		switch (mode)
+		switch (m_DrawMode)
 		{
 		case Frostium::DrawMode::Triangle:
 			instance->DrawTriangle(m_VextexArray);
@@ -231,14 +237,14 @@ namespace Frostium
 			break;
 		}
 #else
-		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_VulkanPipeline.GetVkPipeline(mode));
+		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_VulkanPipeline.GetVkPipeline(m_DrawMode));
 
 		VkDeviceSize offsets[1] = { 0 };
 		vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &m_VertexBuffers[vertexBufferIndex]->GetVulkanVertexBuffer().GetBuffer(), offsets);
 
 		vkCmdBindIndexBuffer(m_CommandBuffer, m_IndexBuffers[indexBufferIndex]->GetVulkanIndexBuffer().GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-		const auto& descriptorSets = m_VulkanPipeline.GetVkDescriptorSets(descriptorSetIndex);
+		const auto& descriptorSets = m_VulkanPipeline.GetVkDescriptorSets(m_DescriptorIndex);
 		vkCmdBindDescriptorSets(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 			m_VulkanPipeline.GetVkPipelineLayot(), 0, 1,
 			&descriptorSets, 0, nullptr);
@@ -247,18 +253,18 @@ namespace Frostium
 #endif
 	}
 
-	void GraphicsPipeline::DrawIndexed(VertexBuffer* vb, IndexBuffer* ib, DrawMode mode, uint32_t descriptorSetIndex)
+	void GraphicsPipeline::DrawIndexed(VertexBuffer* vb, IndexBuffer* ib)
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
 #else
-		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_VulkanPipeline.GetVkPipeline(mode));
+		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_VulkanPipeline.GetVkPipeline(m_DrawMode));
 
 		VkDeviceSize offsets[1] = { 0 };
 		vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &vb->GetVulkanVertexBuffer().GetBuffer(), offsets);
 
 		vkCmdBindIndexBuffer(m_CommandBuffer, ib->GetVulkanIndexBuffer().GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-		const auto& descriptorSets = m_VulkanPipeline.GetVkDescriptorSets(descriptorSetIndex);
+		const auto& descriptorSets = m_VulkanPipeline.GetVkDescriptorSets(m_DescriptorIndex);
 		vkCmdBindDescriptorSets(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 			m_VulkanPipeline.GetVkPipelineLayot(), 0, 1,
 			&descriptorSets, 0, nullptr);
@@ -267,16 +273,16 @@ namespace Frostium
 #endif
 	}
 
-	void GraphicsPipeline::Draw(VertexBuffer* vb, uint32_t vertextCount, DrawMode mode, uint32_t descriptorSetIndex)
+	void GraphicsPipeline::Draw(VertexBuffer* vb, uint32_t vertextCount)
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
 #else
-		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_VulkanPipeline.GetVkPipeline(mode));
+		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_VulkanPipeline.GetVkPipeline(m_DrawMode));
 
 		VkDeviceSize offsets[1] = { 0 };
 		vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &vb->GetVulkanVertexBuffer().GetBuffer(), offsets);
 
-		const auto& descriptorSets = m_VulkanPipeline.GetVkDescriptorSets(descriptorSetIndex);
+		const auto& descriptorSets = m_VulkanPipeline.GetVkDescriptorSets(m_DescriptorIndex);
 		vkCmdBindDescriptorSets(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 			m_VulkanPipeline.GetVkPipelineLayot(), 0, 1,
 			&descriptorSets, 0, nullptr);
@@ -285,7 +291,7 @@ namespace Frostium
 #endif
 	}
 
-	void GraphicsPipeline::Draw(uint32_t vertextCount, DrawMode mode, uint32_t vertexBufferIndex, uint32_t descriptorSetIndex)
+	void GraphicsPipeline::Draw(uint32_t vertextCount, uint32_t vertexBufferIndex)
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
 		m_VextexArray->Bind();
@@ -293,7 +299,7 @@ namespace Frostium
 		m_Shader->Bind();
 
 		OpenglRendererAPI* instance = m_GraphicsContext->GetOpenglRendererAPI();
-		switch (mode)
+		switch (m_DrawMode)
 		{
 		case Frostium::DrawMode::Triangle:
 			instance->DrawTriangle(m_VextexArray, 0, vertextCount);
@@ -308,7 +314,7 @@ namespace Frostium
 			break;
 		}
 #else
-		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_VulkanPipeline.GetVkPipeline(mode));
+		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_VulkanPipeline.GetVkPipeline(m_DrawMode));
 
 		VkDeviceSize offsets[1] = { 0 };
 		if (m_VertexBuffers.size() > 0)
@@ -316,7 +322,7 @@ namespace Frostium
 			vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &m_VertexBuffers[vertexBufferIndex]->GetVulkanVertexBuffer().GetBuffer(), offsets);
 		}
 
-		const auto& descriptorSets = m_VulkanPipeline.GetVkDescriptorSets(descriptorSetIndex);
+		const auto& descriptorSets = m_VulkanPipeline.GetVkDescriptorSets(m_DescriptorIndex);
 		vkCmdBindDescriptorSets(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 			m_VulkanPipeline.GetVkPipelineLayot(), 0, 1,
 			&descriptorSets, 0, nullptr);
@@ -325,17 +331,17 @@ namespace Frostium
 #endif
 	}
 
-	void GraphicsPipeline::DrawMeshIndexed(Mesh* mesh, uint32_t instances, DrawMode mode, uint32_t descriptorSetIndex)
+	void GraphicsPipeline::DrawMeshIndexed(Mesh* mesh, uint32_t instances)
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
 #else
-		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_VulkanPipeline.GetVkPipeline(mode));
+		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_VulkanPipeline.GetVkPipeline(m_DrawMode));
 
 		VkDeviceSize offsets[1] = { 0 };
 		vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &mesh->GetVertexBuffer()->GetVulkanVertexBuffer().GetBuffer(), offsets);
 		vkCmdBindIndexBuffer(m_CommandBuffer, mesh->GetIndexBuffer()->GetVulkanIndexBuffer().GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-		const auto& descriptorSets = m_VulkanPipeline.GetVkDescriptorSets(descriptorSetIndex);
+		const auto& descriptorSets = m_VulkanPipeline.GetVkDescriptorSets(m_DescriptorIndex);
 		vkCmdBindDescriptorSets(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 			m_VulkanPipeline.GetVkPipelineLayot(), 0, 1,
 			&descriptorSets, 0, nullptr);
@@ -344,17 +350,17 @@ namespace Frostium
 #endif
 	}
 
-	void GraphicsPipeline::DrawMesh(Mesh* mesh, uint32_t instances, DrawMode mode, uint32_t descriptorSetIndex)
+	void GraphicsPipeline::DrawMesh(Mesh* mesh, uint32_t instances)
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
 #else
-		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_VulkanPipeline.GetVkPipeline(mode));
+		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_VulkanPipeline.GetVkPipeline(m_DrawMode));
 
 		VkDeviceSize offsets[1] = { 0 };
 		vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &mesh->GetVertexBuffer()->GetVulkanVertexBuffer().GetBuffer(), offsets);
 		vkCmdBindIndexBuffer(m_CommandBuffer, mesh->GetIndexBuffer()->GetVulkanIndexBuffer().GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-		const auto& descriptorSets = m_VulkanPipeline.GetVkDescriptorSets(descriptorSetIndex);
+		const auto& descriptorSets = m_VulkanPipeline.GetVkDescriptorSets(m_DescriptorIndex);
 		vkCmdBindDescriptorSets(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 			m_VulkanPipeline.GetVkPipelineLayot(), 0, 1,
 			&descriptorSets, 0, nullptr);
@@ -381,24 +387,6 @@ namespace Frostium
 		m_IndexBuffers = buffer;
 	}
 
-	void GraphicsPipeline::UpdateVertextBuffer(void* vertices, size_t size, uint32_t bufferIndex, uint32_t offset)
-	{
-		m_VertexBuffers[bufferIndex]->UploadData(vertices, static_cast<uint32_t>(size), offset);
-#ifdef FROSTIUM_OPENGL_IMPL
-		m_VextexArray->Bind();
-		m_VextexArray->SetVertexBuffer(m_VertexBuffers[bufferIndex]);
-#endif
-	}
-
-	void GraphicsPipeline::UpdateIndexBuffer(uint32_t* indices, size_t count, uint32_t bufferIndex, uint32_t offset)
-	{
-		m_IndexBuffers[bufferIndex]->UploadData(indices, static_cast<uint32_t>(count));
-#ifdef FROSTIUM_OPENGL_IMPL
-		m_VextexArray->Bind();
-		m_VextexArray->SetIndexBuffer(m_IndexBuffers[bufferIndex]);
-#endif
-	}
-
 #ifndef FROSTIUM_OPENGL_IMPL
 	void GraphicsPipeline::CmdUpdateVertextBuffer(const void* data, size_t size, uint32_t bufferIndex, uint32_t offset)
 	{
@@ -410,9 +398,19 @@ namespace Frostium
 		m_IndexBuffers[bufferIndex]->CmdUpdateData(m_CommandBuffer, indices, sizeof(uint32_t) * count, offset);
 	}
 
-	bool GraphicsPipeline::UpdateVulkanImageDescriptor(uint32_t bindingPoint, const VkDescriptorImageInfo& imageInfo, uint32_t descriptorSetIndex)
+	bool GraphicsPipeline::UpdateVulkanImageDescriptor(uint32_t bindingPoint, const VkDescriptorImageInfo& imageInfo)
 	{
-		return m_VulkanPipeline.m_Descriptors[descriptorSetIndex].UpdateImageResource(bindingPoint, imageInfo);
+		return m_VulkanPipeline.m_Descriptors[m_DescriptorIndex].UpdateImageResource(bindingPoint, imageInfo);
+	}
+
+	void GraphicsPipeline::SetDescriptorIndex(uint32_t value)
+	{
+		m_DescriptorIndex = value;
+	}
+
+	void GraphicsPipeline::SetDrawMode(DrawMode mode)
+	{
+		m_DrawMode = mode;
 	}
 
 	const VkPipeline& GraphicsPipeline::GetVkPipeline(DrawMode mode)
@@ -441,7 +439,7 @@ namespace Frostium
 	}
 #endif
 
-	bool GraphicsPipeline::UpdateSamplers(const std::vector<Texture*>& textures, uint32_t bindingPoint, uint32_t descriptorSetIndex)
+	bool GraphicsPipeline::UpdateSamplers(const std::vector<Texture*>& textures, uint32_t bindingPoint)
 	{
 		m_Shader->Bind();
 		uint32_t index = 0;
@@ -464,48 +462,48 @@ namespace Frostium
 		}
 
 #ifndef FROSTIUM_OPENGL_IMPL
-		return m_VulkanPipeline.UpdateSamplers2D(vkTextures, bindingPoint, descriptorSetIndex);
+		return m_VulkanPipeline.UpdateSamplers2D(vkTextures, bindingPoint, m_DescriptorIndex);
 #else
 		return true;
 #endif
 	}
 
-	bool GraphicsPipeline::UpdateSampler(Texture* tetxure, uint32_t bindingPoint, uint32_t descriptorSetIndex)
+	bool GraphicsPipeline::UpdateSampler(Texture* tetxure, uint32_t bindingPoint)
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
 		return false;
 #else
-		return m_VulkanPipeline.m_Descriptors[descriptorSetIndex].UpdateImageResource(bindingPoint,
+		return m_VulkanPipeline.m_Descriptors[m_DescriptorIndex].UpdateImageResource(bindingPoint,
 			tetxure->GetVulkanTexture()->GetVkDescriptorImageInfo());
 #endif
 	}
 
-	bool GraphicsPipeline::UpdateSampler(Framebuffer* framebuffer, uint32_t bindingPoint, uint32_t attachmentIndex, uint32_t descriptorSetIndex)
+	bool GraphicsPipeline::UpdateSampler(Framebuffer* framebuffer, uint32_t bindingPoint, uint32_t attachmentIndex)
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
 		return false;
 #else
 		const auto& descriptor = framebuffer->GetVulkanFramebuffer().GetAttachment(attachmentIndex)->ImageInfo;
-		return m_VulkanPipeline.m_Descriptors[descriptorSetIndex].UpdateImageResource(bindingPoint, descriptor);
+		return m_VulkanPipeline.m_Descriptors[m_DescriptorIndex].UpdateImageResource(bindingPoint, descriptor);
 #endif
 	}
 
-	bool GraphicsPipeline::UpdateSampler(Framebuffer* framebuffer, uint32_t bindingPoint, const std::string& attachmentName, uint32_t descriptorSetIndex)
+	bool GraphicsPipeline::UpdateSampler(Framebuffer* framebuffer, uint32_t bindingPoint, const std::string& attachmentName)
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
 		return false;
 #else
 		const auto& descriptor = framebuffer->GetVulkanFramebuffer().GetAttachment(attachmentName)->ImageInfo;
-		return m_VulkanPipeline.m_Descriptors[descriptorSetIndex].UpdateImageResource(bindingPoint, descriptor);
+		return m_VulkanPipeline.m_Descriptors[m_DescriptorIndex].UpdateImageResource(bindingPoint, descriptor);
 #endif
 	}
 
-	bool GraphicsPipeline::UpdateCubeMap(Texture* cubeMap, uint32_t bindingPoint, uint32_t descriptorSetIndex)
+	bool GraphicsPipeline::UpdateCubeMap(Texture* cubeMap, uint32_t bindingPoint)
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
 		return false; // temp
 #else
-		return m_VulkanPipeline.UpdateCubeMap(cubeMap->GetVulkanTexture(), bindingPoint, descriptorSetIndex);
+		return m_VulkanPipeline.UpdateCubeMap(cubeMap->GetVulkanTexture(), bindingPoint, m_DescriptorIndex);
 #endif
 	}
 

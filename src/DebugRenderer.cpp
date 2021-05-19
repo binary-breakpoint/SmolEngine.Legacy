@@ -52,7 +52,9 @@ namespace Frostium
 		Utils::ComposeTransform(pos2, { 0, 0, 0 }, { 1, 1, 1 }, s_Data->PushConst.Model_2);
 
 		s_Data->PrimitivePipeline.SubmitPushConstant(ShaderType::Vertex, sizeof(PushConstant), &s_Data->PushConst);
-		s_Data->PrimitivePipeline.Draw(&s_Data->LineVB, 2, DrawMode::Line);
+		s_Data->PrimitivePipeline.SetDrawMode(DrawMode::Line);
+		s_Data->PrimitivePipeline.Draw(&s_Data->LineVB, 2);
+		s_Data->PrimitivePipeline.ResetStates();
 	}
 
 	void DebugRenderer::DrawQuad(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale)
@@ -60,7 +62,9 @@ namespace Frostium
 		s_Data->PushConst.State = 0;
 		Utils::ComposeTransform(pos, rotation, scale, s_Data->PushConst.Model);
 		s_Data->PrimitivePipeline.SubmitPushConstant(ShaderType::Vertex, sizeof(PushConstant), &s_Data->PushConst);
-		s_Data->PrimitivePipeline.DrawIndexed(&s_Data->QuadVB, &s_Data->QuadIB, DrawMode::Line);
+		s_Data->PrimitivePipeline.SetDrawMode(DrawMode::Line);
+		s_Data->PrimitivePipeline.DrawIndexed(&s_Data->QuadVB, &s_Data->QuadIB);
+		s_Data->PrimitivePipeline.ResetStates();
 	}
 
 	void DebugRenderer::DrawCirlce(const glm::vec3& pos, const glm::vec3& scale)
@@ -68,7 +72,9 @@ namespace Frostium
 		s_Data->PushConst.State = 0;
 		Utils::ComposeTransform(pos, { 0,0,0 }, scale, s_Data->PushConst.Model);
 		s_Data->PrimitivePipeline.SubmitPushConstant(ShaderType::Vertex, sizeof(PushConstant), &s_Data->PushConst);
-		s_Data->PrimitivePipeline.Draw(&s_Data->CircleVB, 3000, DrawMode::Fan);
+		s_Data->PrimitivePipeline.SetDrawMode(DrawMode::Fan);
+		s_Data->PrimitivePipeline.Draw(&s_Data->CircleVB, 3000);
+		s_Data->PrimitivePipeline.ResetStates();
 	}
 
 	void DebugRenderer::DrawWireframes(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Mesh* mesh)
