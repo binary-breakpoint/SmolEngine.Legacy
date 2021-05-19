@@ -36,10 +36,11 @@ layout(std140, binding = 1) uniform ModelData
 	InstanceData instances[1000];
 };
 
-layout(std140, binding = 2) uniform CameraData
+layout(std140, binding = 10) uniform CameraData
 {   
 	mat4 projection;
 	mat4 view;
+	vec4 camPos;
 };
 
 layout(std140, binding = 3) uniform MaterialsBuffer

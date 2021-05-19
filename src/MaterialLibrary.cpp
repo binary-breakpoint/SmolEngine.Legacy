@@ -4,7 +4,12 @@
 #include "Extensions/JobsSystem.h"
 
 #include <filesystem>
+#include <mutex>
 #include <cereal/archives/json.hpp>
+
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+std::mutex* s_Mutex = nullptr;
+#endif
 
 namespace Frostium
 {
@@ -14,12 +19,14 @@ namespace Frostium
 	MaterialLibrary::MaterialLibrary()
 	{
 		s_Instance = this;
+		s_Mutex = new std::mutex();
 		m_Textures.resize(maxTextures);
 	}
 
 	MaterialLibrary::~MaterialLibrary()
 	{
 		s_Instance = nullptr;
+		delete s_Mutex;
 	}
 
 	uint32_t MaterialLibrary::Add(MaterialCreateInfo* infoCI, const std::string& path)
@@ -151,7 +158,7 @@ namespace Frostium
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 			{
-				const std::lock_guard<std::mutex> lock(m_Mutex);
+				const std::lock_guard<std::mutex> lock(*s_Mutex);
 
 				index = m_TextureIndex;
 				m_Textures[index] = tex;

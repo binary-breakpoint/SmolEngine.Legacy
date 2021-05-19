@@ -192,6 +192,60 @@ namespace Frostium
 		}
 	}
 
+	void EditorCamera::SetPosition(const glm::vec3& pos)
+	{
+		switch (m_Type)
+		{
+		case CameraType::Perspective:
+		{
+			m_FocalPoint = pos;
+			UpdateViewPerspective();
+			break;
+		}
+		case CameraType::Ortho:
+		{
+			m_Position = pos;
+			UpdateViewOrtho();
+			break;
+		}
+		default:
+			break;
+
+		}
+	}
+
+	void EditorCamera::SetYaw(float value)
+	{
+		switch (m_Type)
+		{
+		case CameraType::Perspective:
+		{
+			m_Yaw = value;
+			UpdateViewPerspective();
+			break;
+		}
+		default:
+			break;
+
+		}
+	}
+
+	void EditorCamera::SetPitch(float value)
+	{
+		switch (m_Type)
+		{
+		case CameraType::Perspective:
+		{
+			m_Pitch = value;
+			UpdateViewPerspective();
+			break;
+		}
+		default:
+			break;
+
+		}
+	}
+
 	glm::vec3 EditorCamera::GetForwardDirection() const
 	{
 		return glm::rotate(GetOrientation(), glm::vec3(0.0f, 0.0f, -1.0f));

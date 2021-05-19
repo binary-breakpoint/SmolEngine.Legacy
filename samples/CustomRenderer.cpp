@@ -10,6 +10,8 @@
 
 using namespace Frostium;
 
+#define FREE_CAMERA
+
 int main(int argc, char** argv)
 {
 	CustomRenderer renderer = {};
@@ -51,7 +53,9 @@ void CustomRenderer::Init()
 			OnResize(width, height);
 		}
 
+#ifdef FREE_CAMERA
 		m_Camera->OnEvent(e);
+#endif
 	});
 
 	m_MaterialLibrary = new MaterialLibrary();
@@ -74,6 +78,12 @@ void CustomRenderer::Init()
 
 void CustomRenderer::Render()
 {
+	glm::vec3 initPos = { 4.495538, 11.454922, -8.130335 };
+	float speed = 1.0f;
+	m_Camera->SetPosition(initPos);
+	m_Camera->SetPitch(0.007f);
+	m_Camera->SetYaw(3.15f);
+
 	while (m_Process)
 	{
 		m_Context->ProcessEvents();
@@ -82,15 +92,28 @@ void CustomRenderer::Render()
 		if (m_Context->IsWindowMinimized())
 			continue;
 
-		m_Camera->OnUpdate(deltaTime);
-		m_Context->BeginFrame(deltaTime);
 		{
+			if (initPos.z < 100)
+				initPos.z += (initPos.x * speed) * deltaTime;
+			else
+				initPos = { 4.495538, 11.454922, -8.130335 };
+
+			m_Camera->SetPosition(initPos);
+
+#ifdef FREE_CAMERA
+			m_Camera->OnUpdate(deltaTime);
+#endif
+
 			m_CameraUBO.projection = m_Camera->GetProjection();
 			m_CameraUBO.view = m_Camera->GetViewMatrix();
+			m_CameraUBO.camPos = glm::vec4(m_Camera->GetPosition(), 1.0f);
 
-			bool submit_result = m_Storage.MRT_Pipeline.SubmitBuffer(2, sizeof(CameraUBO), &m_CameraUBO);
+			bool submit_result = m_Storage.MRT_Pipeline.SubmitBuffer(10, sizeof(CameraUBO), &m_CameraUBO);
 			assert(submit_result == true);
+		}
 
+		m_Context->BeginFrame(deltaTime);
+		{
 			m_Storage.MRT_Pipeline.BeginCommandBuffer(true);
 			m_Storage.MRT_Pipeline.BeginRenderPass();
 			{
@@ -102,8 +125,6 @@ void CustomRenderer::Render()
 			m_Storage.Comp_Pipeline.BeginCommandBuffer(true);
 			m_Storage.Comp_Pipeline.BeginRenderPass();
 			{
-				glm::vec3 camPos = m_Camera->GetPosition();
-				m_Storage.Comp_Pipeline.SubmitPushConstant(ShaderType::Fragment, sizeof(glm::vec3), &camPos);
 				m_Storage.Comp_Pipeline.DrawIndexed();
 			}
 			m_Storage.Comp_Pipeline.EndRenderPass();
@@ -229,9 +250,9 @@ void CustomRenderer::BuildFramebuffers()
 	// MRT
 	{
 		const bool ClearOp = true;
-		FramebufferAttachment albedro = FramebufferAttachment(AttachmentFormat::SFloat4_32, ClearOp, "albedro");
-		FramebufferAttachment position = FramebufferAttachment(AttachmentFormat::SFloat4_32, ClearOp, "position");
-		FramebufferAttachment normals = FramebufferAttachment(AttachmentFormat::SFloat4_32, ClearOp, "normals");
+		FramebufferAttachment albedro = FramebufferAttachment(AttachmentFormat::Color, ClearOp, "albedro");
+		FramebufferAttachment position = FramebufferAttachment(AttachmentFormat::SFloat4_16, ClearOp, "position");
+		FramebufferAttachment normals = FramebufferAttachment(AttachmentFormat::SFloat4_16, ClearOp, "normals");
 
 		FramebufferSpecification framebufferCI = {};
 		framebufferCI.Width = m_Context->GetWindowData()->Width;
@@ -289,10 +310,6 @@ void CustomRenderer::BuildMaterials()
 		materialCI.SetTexture(MaterialTexture::Metallic, path + "steel/CorrugatedSteel005_2K_Metalness.png");
 
 		uint32_t id = lib->Add(&materialCI);
-
-
-
-
 		m_MaterialsIDs.push_back(id);
 	}
 

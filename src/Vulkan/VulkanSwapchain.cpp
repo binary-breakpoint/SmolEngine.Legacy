@@ -257,7 +257,8 @@ namespace Frostium
 			Create(width, height);
 			Prepare(*width, *height);
 
-			assert(commandBuffer->Recrate() == true);
+			if (commandBuffer != nullptr)
+				commandBuffer->Recrate();
 		}
 		vkDeviceWaitIdle(device);
 	}

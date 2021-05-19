@@ -21,7 +21,10 @@ void main()
 	const float roughness = texture(texturesMap[v_roughnessMapIndex], v_UV).r;
 	const vec4 color = texture(texturesMap[v_albedroMapIndex], v_UV);
 
+	const vec3 tangentNormal = texture(texturesMap[v_normalMapIndex], v_UV).xyz * 2.0 - 1.0;
+	const vec3 N = normalize(v_TBN * tangentNormal);
+
 	albedro = color;
 	position = vec4(v_pos, metallness);
-	normals = vec4(v_normals, roughness);
+	normals = vec4(N, roughness);
 }

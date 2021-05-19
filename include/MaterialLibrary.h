@@ -6,7 +6,6 @@
 
 #include <string>
 #include <optional>
-#include <mutex>
 #include <unordered_map>
 #include <vector>
 #include <cereal/cereal.hpp>
@@ -114,9 +113,6 @@ namespace Frostium
 		std::unordered_map<size_t, uint32_t>  m_MaterialMap;
 		std::vector<PBRMaterial>              m_Materials;
 		std::vector<Texture*>                 m_Textures;
-#ifdef FROSTIUM_SMOLENGINE_IMPL
-		std::mutex                            m_Mutex{};
-#endif
 		uint32_t                              m_MaterialIndex = 0;
 		uint32_t                              m_TextureIndex = 0;
 		std::hash<std::string_view>           m_Hash{};

@@ -9,13 +9,13 @@
 namespace Frostium
 {
 #ifdef FROSTIUM_SMOLENGINE_IMPL
-	std::mutex* m_Mutex = nullptr;
+	std::mutex* s_Mutex = nullptr;
 #endif
 
 	VulkanCommandBuffer::VulkanCommandBuffer()
 	{
 #ifdef FROSTIUM_SMOLENGINE_IMPL
-		m_Mutex = new std::mutex();
+		s_Mutex = new std::mutex();
 #endif
 	}
 
@@ -136,7 +136,7 @@ namespace Frostium
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 			{
-				const std::lock_guard<std::mutex> lock(*m_Mutex);
+				const std::lock_guard<std::mutex> lock(*s_Mutex);
 				VK_CHECK_RESULT(vkQueueSubmit(VulkanContext::GetDevice().GetQueue(), 1, &submitInfo, fence));
 			}
 
