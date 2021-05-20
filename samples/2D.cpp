@@ -83,7 +83,7 @@ int main(int argc, char** argv)
 		   @Calculate physics, process script, etc
 		*/
 
-		context->UpdateSceneData(); // uses default camera - updates automatically
+		context->UpdateSceneInfo(); // uses default camera - updates automatically
 		context->BeginFrame(deltaTime);
 		{
 			ImGui::Begin("2D Sample");

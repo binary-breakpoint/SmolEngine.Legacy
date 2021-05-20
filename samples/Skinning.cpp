@@ -115,7 +115,7 @@ int main(int argc, char** argv)
 		if (context->IsWindowMinimized())
 			continue;
 		bool selected = true;
-		context->UpdateSceneData(); // uses default camera - updates automatically
+		context->UpdateSceneInfo();
 		context->BeginFrame(deltaTime);
 		{
 			ImGui::Begin("Skinning Sample");

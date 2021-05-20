@@ -76,26 +76,30 @@ And finally load resources and run main update loop:
 	while (process)
 	{
 		context->ProcessEvents();
-		DeltaTime deltaTime = context->CalculateDeltaTime();
 
 		if (context->IsWindowMinimized())
 			continue;
       
 		/* 
-		   @Calculate physics, process script, etc
+		   @Simulate physics, process scripts, etc
 		*/
-
+		
+		// FarClip, NearClip, Camera Position, Projection and View Matrices
 		BeginSceneInfo info = {};
+		// Updates struct using camera class
 		info.Update(camera);
-		context->UpdateSceneData(&info);
-
+		
+		// Calculates default frustum, updates buffers
+		context->UpdateSceneInfo(&info);
+		
+		DeltaTime deltaTime = context->CalculateDeltaTime();
 		context->BeginFrame(deltaTime);
 		{
 			uint32_t objects = 0;
 			Renderer::BeginScene(&clearInfo);
 			{
 				for (const auto& c : chunks)
-					Renderer::SubmitMesh(c.Pos, c.Rot, c.Scale, &cube);
+					Renderer::SubmitMesh(c.Pos, c.Rot, c.Scale, &cube, c.MaterialID);
 					
 				objects = Renderer::GetNumObjects();
 			}
@@ -123,6 +127,7 @@ More samples can be found [here.](https://github.com/YellowDummy/Frostium3D/tree
 - [vulkan](https://www.lunarg.com/vulkan-sdk/)
 - [glad](https://glad.dav1d.de/)
 - [glfw](https://github.com/glfw/glfw)
+- [taskflow](https://github.com/taskflow/taskflow)
 - [tinygltf](https://github.com/syoyo/tinygltf)
 - [spirv-cross](https://github.com/KhronosGroup/SPIRV-Cross)
 - [stb_image](https://github.com/nothings/stb)
@@ -142,7 +147,8 @@ More samples can be found [here.](https://github.com/YellowDummy/Frostium3D/tree
 
 ## Building
 ### Windows
-1. Install Vulkan SDK (1.2 or higher)
-2. Run gen-project-vs2019.bat or cmd ```premake5 vs2019```
-3. Extract libs.7z from vendor\vulkan
-4. Compile
+1. Install [premake5](https://premake.github.io/)
+2. Install [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/)
+3. Run gen-project-vs2019.bat or cmd ```premake5 vs2019```
+4. Extract libs.7z from vendor\vulkan
+5. Compile

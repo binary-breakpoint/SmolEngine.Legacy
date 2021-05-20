@@ -57,7 +57,7 @@ namespace Frostium
 								      
 		void                          ProcessEvents();
 		void                          BeginFrame(DeltaTime time);
-		void                          UpdateSceneData(BeginSceneInfo* sceneInfo = nullptr);
+		void                          UpdateSceneInfo(BeginSceneInfo* sceneInfo = nullptr);
 		void                          SwapBuffers();
 		void                          ShutDown();
 								      

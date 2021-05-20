@@ -115,7 +115,7 @@ int main(int argc, char** argv)
 		if (context->IsWindowMinimized())
 			continue;
 
-		context->UpdateSceneData(); // uses default camera - updates automatically
+		context->UpdateSceneInfo(); // uses default camera - updates automatically
 		context->BeginFrame(deltaTime);
 		{
 			ImGui::Begin("Debug Window");

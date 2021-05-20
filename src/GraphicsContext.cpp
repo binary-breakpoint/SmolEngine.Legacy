@@ -172,7 +172,7 @@ namespace Frostium
 			m_ImGuiContext->OnBegin();
 	}
 
-	void GraphicsContext::UpdateSceneData(BeginSceneInfo* info)
+	void GraphicsContext::UpdateSceneInfo(BeginSceneInfo* info)
 	{
 		if (m_State->UseEditorCamera && info == nullptr)
 		{

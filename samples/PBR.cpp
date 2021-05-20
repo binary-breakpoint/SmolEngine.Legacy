@@ -118,9 +118,12 @@ int main(int argc, char** argv)
 		   @Calculate physics, process script, etc
 		*/
 
+
+		// FarClip, NearClip, Camera Position, Projection and View Matrix
 		BeginSceneInfo info = {};
 		info.Update(camera);
-		context->UpdateSceneData(&info);
+
+		context->UpdateSceneInfo(&info);
 
 		context->BeginFrame(deltaTime);
 		{
