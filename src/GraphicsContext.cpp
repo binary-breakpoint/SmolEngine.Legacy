@@ -38,29 +38,37 @@ namespace Frostium
 		m_EventHandler.OnEventFn = std::bind(&GraphicsContext::OnEvent, this, std::placeholders::_1);
 
 		// Creates GLFW window
-		m_Window.Init(info->pWindowCI, &m_EventHandler);
-		GLFWwindow* window = m_Window.GetNativeWindow();
+		m_Window = new Window();
+		m_Window->Init(info->pWindowCI, &m_EventHandler);
+		GLFWwindow* window = m_Window->GetNativeWindow();
 
 		// Creates API context
 #ifdef  FROSTIUM_OPENGL_IMPL
 		m_OpenglContext.Setup(window);
 #else
 		m_VulkanContext.Setup(window, m_State,
-			&m_Window.GetWindowData()->Width, &m_Window.GetWindowData()->Height);
+			&m_Window->GetWindowData()->Width, &m_Window->GetWindowData()->Height);
 #endif
+		// Creates default frustum
+		m_Frustum = new Frustum();
+
 		// Creates 4x4 white texture
 		m_DummyTexure = new Texture();
 		Texture::CreateWhiteTexture(m_DummyTexure);
 
 		// Initialize ImGUI
 		if (m_State->UseImGUI)
-			m_ImGuiContext.Init(info);
+		{
+			m_ImGuiContext = new ImGuiContext();
+			m_ImGuiContext->Init(info);
+		}
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 		m_JobsSystem = new JobsSystem();
 #endif
-
+		LoadMeshes();
 		// Creates main framebuffer
+		m_Framebuffer = new Framebuffer();
 		FramebufferSpecification framebufferCI = {};
 		{
 #ifdef  FROSTIUM_OPENGL_IMPL
@@ -76,10 +84,9 @@ namespace Frostium
 			framebufferCI.bUsedByImGui = m_State->UseImGUI && !info->bTargetsSwapchain ? true : false;
 			framebufferCI.Attachments = { FramebufferAttachment(AttachmentFormat::Color) };
 
-			Framebuffer::Create(framebufferCI, &m_Framebuffer);
+			Framebuffer::Create(framebufferCI, m_Framebuffer);
 		}
 
-		LoadMeshes();
 		if (info->Flags & Features_Renderer_3D_Flags)
 		{
 			if (info->pRendererStorage != nullptr)
@@ -120,7 +127,11 @@ namespace Frostium
 			Renderer2D::Init(m_Renderer2DStorage);
 		}
 
-		DebugRenderer::Init();
+		if (info->Flags & Features_Renderer_Debug_Flags)
+		{
+			DebugRenderer::Init();
+		}
+
 #ifdef  FROSTIUM_OPENGL_IMPL
 		GetOpenglRendererAPI()->Init();
 #endif
@@ -134,7 +145,7 @@ namespace Frostium
 	void GraphicsContext::SwapBuffers()
 	{
 		if (m_State->UseImGUI)
-			m_ImGuiContext.OnEnd();
+			m_ImGuiContext->OnEnd();
 #ifdef  FROSTIUM_OPENGL_IMPL
 		m_OpenglContext.SwapBuffers();
 #else
@@ -144,7 +155,7 @@ namespace Frostium
 
 	void GraphicsContext::ProcessEvents()
 	{
-		m_Window.ProcessEvents();
+		m_Window->ProcessEvents();
 	}
 
 	void GraphicsContext::BeginFrame(DeltaTime time)
@@ -158,7 +169,7 @@ namespace Frostium
 		m_VulkanContext.BeginFrame();
 #endif
 		if (m_State->UseImGUI)
-			m_ImGuiContext.OnBegin();
+			m_ImGuiContext->OnBegin();
 	}
 
 	void GraphicsContext::UpdateSceneData(BeginSceneInfo* info)
@@ -185,7 +196,7 @@ namespace Frostium
 			m_SceneData.FarClip = info->FarClip;
 		}
 
-		m_Frustum.Update(m_SceneData.Projection * m_SceneData.View);
+		m_Frustum->Update(m_SceneData.Projection * m_SceneData.View);
 	}
 
 	void GraphicsContext::ShutDown()
@@ -193,25 +204,25 @@ namespace Frostium
 		if (m_State != nullptr)
 		{
 			if (m_State->UseImGUI)
-				m_ImGuiContext.ShutDown();
+				m_ImGuiContext->ShutDown();
 
 			Renderer::Shutdown();
 			Renderer2D::Shutdown();
 
+			m_Window->ShutDown();
+#ifdef FROSTIUM_OPENGL_IMPL
+#else
+			m_VulkanContext.~VulkanContext();
+#endif
 			if (!m_State->Is2DStoragePreAlloc)
 				delete m_Renderer2DStorage;
 
 			if (!m_State->IsStoragePreAlloc)
 				delete m_RendererStorage;
 
-			m_Framebuffer.~Framebuffer();
-			m_Window.ShutDown();
-#ifdef FROSTIUM_OPENGL_IMPL
-#else
-			m_VulkanContext.~VulkanContext();
-#endif
-
-			delete m_MaterialLibrary, m_DummyTexure, m_State;
+			delete m_MaterialLibrary, m_DummyTexure, m_State,
+				m_Framebuffer, m_Window, m_ImGuiContext,
+				m_BoxMesh, m_SphereMesh, m_CapsuleMesh;
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 			delete m_JobsSystem;
@@ -225,7 +236,7 @@ namespace Frostium
 #else
 		m_VulkanContext.OnResize(width, height);
 #endif
-		m_Framebuffer.OnResize(*width, *height);
+		m_Framebuffer->OnResize(*width, *height);
 		if (m_Flags & Features_Renderer_3D_Flags)
 			Renderer::OnResize(*width, *height);
 	}
@@ -243,9 +254,9 @@ namespace Frostium
 		return deltaTime;
 	}
 
-	Framebuffer* GraphicsContext::GetFramebuffer()
+	Framebuffer* GraphicsContext::GetFramebuffer() const
 	{
-		return &m_Framebuffer;
+		return m_Framebuffer;
 	}
 
 	Camera* GraphicsContext::GetDefaultCamera() const
@@ -255,32 +266,32 @@ namespace Frostium
 
 	GLFWwindow* GraphicsContext::GetNativeWindow()
 	{
-		return m_Window.GetNativeWindow();
+		return m_Window->GetNativeWindow();
     }
 
 	WindowData* GraphicsContext::GetWindowData()
 	{
-		return m_Window.GetWindowData();
+		return m_Window->GetWindowData();
 	}
 
-	Frustum* GraphicsContext::GetFrustum()
+	Frustum* GraphicsContext::GetFrustum() const
 	{
-		return &m_Frustum;
+		return m_Frustum;
 	}
 
-	Mesh* GraphicsContext::GetBoxMesh()
+	Mesh* GraphicsContext::GetBoxMesh() const
 	{
-		return &m_BoxMesh;
+		return m_BoxMesh;
 	}
 
-	Mesh* GraphicsContext::GetCapsuleMesh()
+	Mesh* GraphicsContext::GetCapsuleMesh() const
 	{
-		return &m_CapsuleMesh;
+		return m_CapsuleMesh;
 	}
 
-	Mesh* GraphicsContext::GetSphereMesh()
+	Mesh* GraphicsContext::GetSphereMesh() const
 	{
-		return &m_SphereMesh;
+		return m_SphereMesh;
 	}
 
 	Texture* GraphicsContext::GetWhiteTexture() const
@@ -298,7 +309,7 @@ namespace Frostium
 		if (!storage) {
 			return false;
 		}
-		storage->Frustum = &m_Frustum;
+		storage->Frustum = m_Frustum;
 		return true;
 	}
 
@@ -309,13 +320,13 @@ namespace Frostium
 		}
 		storage->m_MapSize = shadow_map_size;
 		storage->m_Path = m_ResourcesFolderPath;
-		storage->m_Frustum = &m_Frustum;
+		storage->m_Frustum = m_Frustum;
 		return true;
 	}
 
-	Window* GraphicsContext::GetWindow()
+	Window* GraphicsContext::GetWindow() const
 	{
-		return &m_Window;
+		return m_Window;
 	}
 
 	float GraphicsContext::GetGltfTime() const
@@ -336,7 +347,7 @@ namespace Frostium
 	void GraphicsContext::OnEvent(Event& e)
 	{
 		if (m_State->UseImGUI)
-			m_ImGuiContext.OnEvent(e);
+			m_ImGuiContext->OnEvent(e);
 
 		if (m_State->UseEditorCamera)
 			m_DefaultCamera->OnEvent(e);
@@ -357,14 +368,18 @@ namespace Frostium
 		}
 
 		if(m_EventCallback != nullptr)
-			m_EventCallback(std::forward<Event&>(e));
+			m_EventCallback(std::forward<Event>(e));
 	}
 
 	bool GraphicsContext::LoadMeshes()
 	{
-		Mesh::Create(m_ResourcesFolderPath + "Models/box.gltf", &m_BoxMesh);
-		Mesh::Create(m_ResourcesFolderPath + "Models/capsule.gltf", &m_CapsuleMesh);
-		Mesh::Create(m_ResourcesFolderPath + "Models/sphere.gltf", &m_SphereMesh);
+		m_BoxMesh = new Mesh();
+		m_CapsuleMesh = new Mesh();
+		m_SphereMesh = new Mesh();
+
+		Mesh::Create(m_ResourcesFolderPath + "Models/box.gltf", m_BoxMesh);
+		Mesh::Create(m_ResourcesFolderPath + "Models/capsule.gltf", m_CapsuleMesh);
+		Mesh::Create(m_ResourcesFolderPath + "Models/sphere.gltf", m_SphereMesh);
 		return true;
 	}
 
