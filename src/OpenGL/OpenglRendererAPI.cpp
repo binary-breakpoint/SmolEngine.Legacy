@@ -10,7 +10,11 @@
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 	void OpenGLMessageCallback(
 		unsigned source,

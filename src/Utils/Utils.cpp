@@ -14,7 +14,11 @@
 #include <GLFW/glfw3native.h>
 #include <GLFW/glfw3.h>
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 	bool Utils::DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale)
 	{
@@ -206,7 +210,7 @@ namespace Frostium
 
 		switch (type)
 		{
-		case Frostium::CachedPathType::Shader:
+		case CachedPathType::Shader:
 
 			dir = p.parent_path() / "SPIRV";
 			if (!std::filesystem::exists(dir))
@@ -215,7 +219,7 @@ namespace Frostium
 			path = dir / (p.filename().string() + ".spirv");
 			break;
 
-		case Frostium::CachedPathType::Pipeline:
+		case CachedPathType::Pipeline:
 
 			dir = p.parent_path() / "PipelineCache";
 			if (!std::filesystem::exists(dir))

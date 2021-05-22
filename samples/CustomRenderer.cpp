@@ -8,8 +8,6 @@
 
 #include <Vulkan/VulkanPBR.h>
 
-using namespace Frostium;
-
 #define FREE_CAMERA
 
 int main(int argc, char** argv)
@@ -179,7 +177,7 @@ void CustomRenderer::BuildPipelines()
 		{
 			DynamicPipelineCI.VertexInputInfos = { vertexMain };
 			DynamicPipelineCI.PipelineName = "MRT_Pipeline";
-			DynamicPipelineCI.pShaderCreateInfo = &shaderCI;
+			DynamicPipelineCI.ShaderCreateInfo = shaderCI;
 			DynamicPipelineCI.pTargetFramebuffer = &m_Storage.MRT_Framebufer;
 		}
 
@@ -225,7 +223,7 @@ void CustomRenderer::BuildPipelines()
 
 		GraphicsPipelineCreateInfo DynamicPipelineCI = {};
 		DynamicPipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(FullSreenData), FullSreenlayout) };
-		DynamicPipelineCI.pShaderCreateInfo = &shaderCI;
+		DynamicPipelineCI.ShaderCreateInfo = shaderCI;
 		DynamicPipelineCI.pTargetFramebuffer = m_Context->GetFramebuffer();
 		DynamicPipelineCI.eCullMode = CullMode::None;
 

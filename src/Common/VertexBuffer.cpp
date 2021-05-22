@@ -1,7 +1,11 @@
 #include "stdafx.h"
 #include "Common/VertexBuffer.h"
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 	void VertexBuffer::SetLayout(const BufferLayout& layout)
 	{

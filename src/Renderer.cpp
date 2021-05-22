@@ -19,13 +19,17 @@
 #endif
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
-#include "Extensions/JobsSystem.h"
+#include "Extensions/JobsSystemInstance.h"
 #endif
 
 #include "Common/RendererStorage.h"
 #include "Utils/glTFImporter.h"
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 	static RendererStorage* s_Data = nullptr;
 
@@ -68,7 +72,7 @@ namespace Frostium
 	void Renderer::Flush()
 	{
 #ifdef FROSTIUM_SMOLENGINE_IMPL
-		JobsSystem::BeginSubmition();
+		JobsSystemInstance::BeginSubmition();
 #endif
 
 		for (uint32_t i = 0; i < s_Data->m_UsedMeshesIndex; ++i)
@@ -133,7 +137,7 @@ namespace Frostium
 				}
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
-				JobsSystem::Schedule([animated, animStartOffset, &package, &shaderData]()
+				JobsSystemInstance::Schedule([animated, animStartOffset, &package, &shaderData]()
 				{
 					Utils::ComposeTransform(*package.WorldPos, *package.Rotation, *package.Scale, shaderData.ModelView);
 
@@ -159,23 +163,23 @@ namespace Frostium
 		}
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
-		JobsSystem::EndSubmition();
+		JobsSystemInstance::EndSubmition();
 #endif
 
 		// Updates UBOs and SSBOs 
 		{
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 
-			JobsSystem::BeginSubmition();
+			JobsSystemInstance::BeginSubmition();
 			{
 				// Updates Scene Data
-				JobsSystem::Schedule([]()
+				JobsSystemInstance::Schedule([]()
 				{
 					s_Data->m_PBRPipeline.SubmitBuffer(s_Data->m_SceneDataBinding, sizeof(SceneData), s_Data->m_SceneData);
 				});
 
 				// Updates Scene State
-				JobsSystem::Schedule([]()
+				JobsSystemInstance::Schedule([]()
 				{
 					s_Data->m_SceneState.NumPointsLights = s_Data->m_PointLightIndex;
 					s_Data->m_SceneState.NumSpotLights = s_Data->m_SpotLightIndex;
@@ -183,7 +187,7 @@ namespace Frostium
 				});
 
 				// Updates Directional Lights
-				JobsSystem::Schedule([]()
+				JobsSystemInstance::Schedule([]()
 				{
 					if (s_Data->m_DirLight.IsActive)
 					{
@@ -197,7 +201,7 @@ namespace Frostium
 				});
 
 				// Updates Point Lights
-				JobsSystem::Schedule([]()
+				JobsSystemInstance::Schedule([]()
 				{
 					if (s_Data->m_PointLightIndex > 0)
 					{
@@ -206,7 +210,7 @@ namespace Frostium
 				});
 
 				// Updates Spot Lights
-				JobsSystem::Schedule([]()
+				JobsSystemInstance::Schedule([]()
 				{
 					if (s_Data->m_SpotLightIndex > 0)
 					{
@@ -215,7 +219,7 @@ namespace Frostium
 			    });
 
 				// Updates Animation joints
-				JobsSystem::Schedule([]()
+				JobsSystemInstance::Schedule([]()
 				{
 					if (s_Data->m_LastAnimationOffset > 0)
 					{
@@ -224,7 +228,7 @@ namespace Frostium
 				});
 
 				// Updates Batch Data
-				JobsSystem::Schedule([]()
+				JobsSystemInstance::Schedule([]()
 				{
 					if (s_Data->m_InstanceDataIndex > 0)
 					{
@@ -233,7 +237,7 @@ namespace Frostium
 				});
 
 			}
-			JobsSystem::EndSubmition();
+			JobsSystemInstance::EndSubmition();
 #else
 			// Updates scene data
 			s_Data->m_PBRPipeline.SubmitBuffer(s_Data->m_SceneDataBinding, sizeof(SceneData), s_Data->m_SceneData);
@@ -593,7 +597,7 @@ namespace Frostium
 			{
 				DynamicPipelineCI.VertexInputInfos = { vertexMain };
 				DynamicPipelineCI.PipelineName = "PBR_Pipeline";
-				DynamicPipelineCI.pShaderCreateInfo = &shaderCI;
+				DynamicPipelineCI.ShaderCreateInfo = shaderCI;
 				DynamicPipelineCI.pTargetFramebuffer = &s_Data->m_PBRFramebuffer;
 			}
 
@@ -610,10 +614,10 @@ namespace Frostium
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 
-		JobsSystem::BeginSubmition();
+		JobsSystemInstance::BeginSubmition();
 		{
 			// Grid
-			JobsSystem::Schedule([&]()
+			JobsSystemInstance::Schedule([&]()
 			{
 					Utils::ComposeTransform(glm::vec3(0), glm::vec3(0), { 100, 1, 100 }, s_Data->m_GridModel);
 					Mesh::Create(GraphicsContext::GetSingleton()->m_ResourcesFolderPath + "Models/plane_v2.gltf", &s_Data->m_PlaneMesh);
@@ -629,13 +633,13 @@ namespace Frostium
 					pipelineCI.eCullMode = CullMode::None;
 					pipelineCI.VertexInputInfos = { vertexMain };
 					pipelineCI.pTargetFramebuffer = &s_Data->m_PBRFramebuffer;
-					pipelineCI.pShaderCreateInfo = &shaderCI;
+					pipelineCI.ShaderCreateInfo = shaderCI;
 
 					assert(s_Data->m_GridPipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
 			});
 
 			// Skybox
-			JobsSystem::Schedule([&]()
+			JobsSystemInstance::Schedule([&]()
 			{
 					GraphicsPipelineShaderCreateInfo shaderCI = {};
 					{
@@ -657,7 +661,7 @@ namespace Frostium
 					{
 						DynamicPipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(SkyBoxData), layout) };
 						DynamicPipelineCI.PipelineName = "Skybox_Pipiline";
-						DynamicPipelineCI.pShaderCreateInfo = &shaderCI;
+						DynamicPipelineCI.ShaderCreateInfo = shaderCI;
 						DynamicPipelineCI.bDepthTestEnabled = false;
 						DynamicPipelineCI.bDepthWriteEnabled = false;
 						DynamicPipelineCI.pTargetFramebuffer = &s_Data->m_PBRFramebuffer;
@@ -676,7 +680,7 @@ namespace Frostium
 
 
 			// Depth Pass
-			JobsSystem::Schedule([&]()
+			JobsSystemInstance::Schedule([&]()
 			{
 					GraphicsPipelineShaderCreateInfo shaderCI = {};
 					{
@@ -688,7 +692,7 @@ namespace Frostium
 					{
 						DynamicPipelineCI.VertexInputInfos = { vertexMain };
 						DynamicPipelineCI.PipelineName = "DepthPass_Pipeline";
-						DynamicPipelineCI.pShaderCreateInfo = &shaderCI;
+						DynamicPipelineCI.ShaderCreateInfo = shaderCI;
 						DynamicPipelineCI.pTargetFramebuffer = &s_Data->m_DepthFramebuffer;
 						DynamicPipelineCI.bDepthBiasEnabled = true;
 						DynamicPipelineCI.StageCount = 1;
@@ -699,12 +703,8 @@ namespace Frostium
 			});
 
 			// Debug/Combination/Bloom/Blur Pipelines
-			JobsSystem::Schedule([&]()
+			JobsSystemInstance::Schedule([&]()
 			{
-					GraphicsPipelineShaderCreateInfo shaderCI = {};
-					{
-						shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/GenVertex.vert";
-					};
 
 					float quadVertices[] = {
 						// positions   // texCoords
@@ -735,13 +735,15 @@ namespace Frostium
 					GraphicsPipelineCreateInfo DynamicPipelineCI = {};
 					{
 						DynamicPipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(FullSreenData), FullSreenlayout) };
-						DynamicPipelineCI.pShaderCreateInfo = &shaderCI;
 						DynamicPipelineCI.pTargetFramebuffer = s_Data->m_MainFramebuffer;
 						DynamicPipelineCI.eCullMode = CullMode::None;
 
 						// Debug
 						{
+							GraphicsPipelineShaderCreateInfo shaderCI = {};
+							shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/GenVertex.vert";
 							shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/DebugView.frag";
+							DynamicPipelineCI.ShaderCreateInfo = shaderCI;
 							DynamicPipelineCI.PipelineName = "Debug";
 
 							auto result = s_Data->m_DebugPipeline.Create(&DynamicPipelineCI);
@@ -753,7 +755,10 @@ namespace Frostium
 
 						// Combination
 						{
+							GraphicsPipelineShaderCreateInfo shaderCI = {};
+							shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/GenVertex.vert";
 							shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Combination.frag";
+							DynamicPipelineCI.ShaderCreateInfo = shaderCI;
 							DynamicPipelineCI.PipelineName = "Combination";
 
 							auto result = s_Data->m_CombinationPipeline.Create(&DynamicPipelineCI);
@@ -767,7 +772,10 @@ namespace Frostium
 
 						// Bloom
 						{
+							GraphicsPipelineShaderCreateInfo shaderCI = {};
+							shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/GenVertex.vert";
 							shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Bloom.frag";
+							DynamicPipelineCI.ShaderCreateInfo = shaderCI;
 							DynamicPipelineCI.PipelineName = "Bloom";
 							DynamicPipelineCI.pTargetFramebuffer = &s_Data->m_BloomFramebuffer;
 
@@ -780,7 +788,10 @@ namespace Frostium
 
 						// Blur
 						{
+							GraphicsPipelineShaderCreateInfo shaderCI = {};
+							shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/GenVertex.vert";
 							shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Blur.frag";
+							DynamicPipelineCI.ShaderCreateInfo = shaderCI;
 							DynamicPipelineCI.PipelineName = "Blur";
 							DynamicPipelineCI.pTargetFramebuffer = &s_Data->m_BlurFramebuffer;
 
@@ -794,7 +805,7 @@ namespace Frostium
 			});
 		}
 
-		JobsSystem::EndSubmition();
+		JobsSystemInstance::EndSubmition();
 
 #else
 		// Grid
@@ -825,7 +836,7 @@ namespace Frostium
 				pipelineCI.eCullMode = CullMode::None;
 				pipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(PBRVertex), PBRlayout) };
 				pipelineCI.pTargetFramebuffer = &s_Data->m_PBRFramebuffer;
-				pipelineCI.pShaderCreateInfo = &shaderCI;
+				pipelineCI.ShaderCreateInfo = shaderCI;
 
 				assert(s_Data->m_GridPipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
 			}
@@ -853,7 +864,7 @@ namespace Frostium
 			{
 				DynamicPipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(SkyBoxData), layout) };
 				DynamicPipelineCI.PipelineName = "Skybox_Pipiline";
-				DynamicPipelineCI.pShaderCreateInfo = &shaderCI;
+				DynamicPipelineCI.ShaderCreateInfo = shaderCI;
 				DynamicPipelineCI.bDepthTestEnabled = false;
 				DynamicPipelineCI.bDepthWriteEnabled = false;
 				DynamicPipelineCI.pTargetFramebuffer = &s_Data->m_PBRFramebuffer;
@@ -882,7 +893,7 @@ namespace Frostium
 			{
 				DynamicPipelineCI.VertexInputInfos = { vertexMain };
 				DynamicPipelineCI.PipelineName = "DepthPass_Pipeline";
-				DynamicPipelineCI.pShaderCreateInfo = &shaderCI;
+				DynamicPipelineCI.ShaderCreateInfo = shaderCI;
 				DynamicPipelineCI.pTargetFramebuffer = &s_Data->m_DepthFramebuffer;
 				DynamicPipelineCI.bDepthBiasEnabled = true;
 				DynamicPipelineCI.StageCount = 1;
@@ -894,11 +905,6 @@ namespace Frostium
 
 		// Debug/Combination/Bloom/Blur Pipelines
 		{
-			GraphicsPipelineShaderCreateInfo shaderCI = {};
-			{
-				shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/GenVertex.vert";
-			};
-
 			float quadVertices[] = {
 				// positions   // texCoords
 				-1.0f, -1.0f,  0.0f, 1.0f,
@@ -928,13 +934,15 @@ namespace Frostium
 			GraphicsPipelineCreateInfo DynamicPipelineCI = {};
 			{
 				DynamicPipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(FullSreenData), FullSreenlayout) };
-				DynamicPipelineCI.pShaderCreateInfo = &shaderCI;
 				DynamicPipelineCI.pTargetFramebuffer = s_Data->m_MainFramebuffer;
 				DynamicPipelineCI.eCullMode = CullMode::None;
 
 				// Debug
 				{
+					GraphicsPipelineShaderCreateInfo shaderCI = {};
+					shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/GenVertex.vert";
 					shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/DebugView.frag";
+					DynamicPipelineCI.ShaderCreateInfo = shaderCI;
 					DynamicPipelineCI.PipelineName = "Debug";
 
 					auto result = s_Data->m_DebugPipeline.Create(&DynamicPipelineCI);
@@ -946,7 +954,10 @@ namespace Frostium
 
 				// Combination
 				{
+					GraphicsPipelineShaderCreateInfo shaderCI = {};
+					shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/GenVertex.vert";
 					shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Combination.frag";
+					DynamicPipelineCI.ShaderCreateInfo = shaderCI;
 					DynamicPipelineCI.PipelineName = "Combination";
 
 					auto result = s_Data->m_CombinationPipeline.Create(&DynamicPipelineCI);
@@ -960,7 +971,10 @@ namespace Frostium
 
 				// Bloom
 				{
+					GraphicsPipelineShaderCreateInfo shaderCI = {};
+					shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/GenVertex.vert";
 					shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Bloom.frag";
+					DynamicPipelineCI.ShaderCreateInfo = shaderCI;
 					DynamicPipelineCI.PipelineName = "Bloom";
 					DynamicPipelineCI.pTargetFramebuffer = &s_Data->m_BloomFramebuffer;
 
@@ -969,11 +983,14 @@ namespace Frostium
 					s_Data->m_BloomPipeline.SetVertexBuffers({ vb });
 					s_Data->m_BloomPipeline.SetIndexBuffers({ ib });
 					s_Data->m_BloomPipeline.UpdateSampler(&s_Data->m_PBRFramebuffer, 0, "color_1");
-				}
+						}
 
 				// Blur
 				{
+					GraphicsPipelineShaderCreateInfo shaderCI = {};
+					shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/GenVertex.vert";
 					shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Blur.frag";
+					DynamicPipelineCI.ShaderCreateInfo = shaderCI;
 					DynamicPipelineCI.PipelineName = "Blur";
 					DynamicPipelineCI.pTargetFramebuffer = &s_Data->m_BlurFramebuffer;
 
@@ -997,9 +1014,9 @@ namespace Frostium
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 
-		JobsSystem::BeginSubmition();
+		JobsSystemInstance::BeginSubmition();
 		{
-			JobsSystem::Schedule([&]()
+			JobsSystemInstance::Schedule([&]()
 			{
 				// PBR
 				{
@@ -1017,7 +1034,7 @@ namespace Frostium
 				
 			});
 
-			JobsSystem::Schedule([&]()
+			JobsSystemInstance::Schedule([&]()
 			{
 				// Depth
 				{
@@ -1042,7 +1059,7 @@ namespace Frostium
 			});
 
 			// Bloom 
-			JobsSystem::Schedule([&]()
+			JobsSystemInstance::Schedule([&]()
 			{
 					FramebufferAttachment bloom = FramebufferAttachment(AttachmentFormat::SFloat4_32, false);
 
@@ -1056,7 +1073,7 @@ namespace Frostium
 			});
 
 			// Blur
-			JobsSystem::Schedule([&]()
+			JobsSystemInstance::Schedule([&]()
 				{
 					FramebufferAttachment bloom = FramebufferAttachment(AttachmentFormat::SFloat4_32, false);
 
@@ -1069,7 +1086,7 @@ namespace Frostium
 					Framebuffer::Create(framebufferCI, &s_Data->m_BlurFramebuffer);
 				});
 		}
-		JobsSystem::EndSubmition();
+		JobsSystemInstance::EndSubmition();
 #else
 		// PBR
 		{

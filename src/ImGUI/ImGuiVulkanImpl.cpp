@@ -10,7 +10,11 @@
 #include <imgui/imgui.h>
 #include <GLFW/glfw3.h>
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 	void ImGuiVulkanImpl::Init()
 	{

@@ -1,7 +1,11 @@
 #include "stdafx.h"
 #include "Common/Text.h"
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 	Ref<Text> Text::CreateSDF(const std::string& sdfPath, const std::string& texturePath)
 	{

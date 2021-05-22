@@ -8,7 +8,11 @@
 
 #include "Common/Renderer2DStorage.h"
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 	static Renderer2DStorage* s_Data;
 
@@ -255,7 +259,7 @@ namespace Frostium
 			pipelineCI.eDstAlphaBlendFactor = BlendFactor::ZERO;
 			pipelineCI.bDepthTestEnabled = false;
 			pipelineCI.pTargetFramebuffer = s_Data->MainFB;
-			pipelineCI.pShaderCreateInfo = &shaderCI;
+			pipelineCI.ShaderCreateInfo = shaderCI;
 
 			assert(s_Data->MainPipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
 		}
@@ -284,7 +288,7 @@ namespace Frostium
 			pipelineCI.eDstAlphaBlendFactor = BlendFactor::ZERO;
 			pipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(TextVertex), layout) };
 			pipelineCI.pTargetFramebuffer = s_Data->MainFB;
-			pipelineCI.pShaderCreateInfo = &shaderCI;
+			pipelineCI.ShaderCreateInfo = shaderCI;
 
 			assert(s_Data->TextPipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
 		}

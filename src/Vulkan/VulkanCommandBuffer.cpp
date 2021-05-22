@@ -6,7 +6,11 @@
 #include "Vulkan/VulkanSwapchain.h"
 #include "Vulkan/VulkanContext.h"
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 	std::mutex* s_Mutex = nullptr;

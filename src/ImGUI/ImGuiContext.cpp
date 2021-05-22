@@ -19,7 +19,11 @@
 #include <implot/implot.h>
 #include <imgizmo/src/ImGuizmo.h>
 
-namespace Frostium 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
+namespace Frostium
+#endif
 {
 	void ImGuiContext::OnEvent(Event& e)
 	{

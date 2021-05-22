@@ -13,7 +13,11 @@
 #include "Common/Shader.h"
 #include "Common/Mesh.h"
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 	GraphicsPipeline::~GraphicsPipeline()
 	{
@@ -27,9 +31,9 @@ namespace Frostium
 
 		m_GraphicsContext = GraphicsContext::s_Instance;
 		m_Shader = std::make_shared<Shader>();
-		Shader::Create(pipelineInfo->pShaderCreateInfo, m_Shader.get());
-
 		m_PiplineCreateInfo = *pipelineInfo;
+		Shader::Create(&m_PiplineCreateInfo.ShaderCreateInfo, m_Shader.get());
+
 #ifdef FROSTIUM_OPENGL_IMPL
 		m_VextexArray = VertexArray::Create();
 #else
@@ -47,6 +51,7 @@ namespace Frostium
 		}
 		m_Shader->GetVulkanShader()->DeleteShaderModules();
 #endif
+		m_Shader->m_ReflectData.Clean();
 		return PipelineCreateResult::SUCCESS;
 	}
 
@@ -60,6 +65,7 @@ namespace Frostium
 			return PipelineCreateResult::ERROR_PIPELINE_NOT_INVALIDATED;
 		m_Shader->GetVulkanShader()->DeleteShaderModules();
 #endif
+		m_Shader->m_ReflectData.Clean();
 		return PipelineCreateResult::SUCCESS;
 	}
 
@@ -509,7 +515,7 @@ namespace Frostium
 
 	bool GraphicsPipeline::IsPipelineCreateInfoValid(const GraphicsPipelineCreateInfo* pipelineInfo)
 	{
-		if (pipelineInfo->DescriptorSets < 1 || !pipelineInfo->pShaderCreateInfo || !pipelineInfo->pTargetFramebuffer)
+		if (pipelineInfo->DescriptorSets < 1 || !pipelineInfo->pTargetFramebuffer)
 			return false;
 
 		return true;

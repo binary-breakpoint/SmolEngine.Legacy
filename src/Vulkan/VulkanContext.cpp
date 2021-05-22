@@ -7,7 +7,11 @@
 #include <GLFW/glfw3.h>
 #include <imgui/examples/imgui_impl_vulkan.h>
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 	VulkanContext::~VulkanContext()
 	{

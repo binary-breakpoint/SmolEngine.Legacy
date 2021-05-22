@@ -5,7 +5,11 @@
 
 #include "Utils/Utils.h"
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
     VulkanShader::VulkanShader()
     {
@@ -91,10 +95,10 @@ namespace Frostium
     {
         switch (type)
         {
-        case Frostium::ShaderType::Vertex:      return VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT;
-        case Frostium::ShaderType::Fragment:    return VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT;
-        case Frostium::ShaderType::Compute:     return VkShaderStageFlagBits::VK_SHADER_STAGE_COMPUTE_BIT;
-        case Frostium::ShaderType::Geometry:    return VkShaderStageFlagBits::VK_SHADER_STAGE_GEOMETRY_BIT;
+        case ShaderType::Vertex:               return VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT;
+        case ShaderType::Fragment:             return VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT;
+        case ShaderType::Compute:              return VkShaderStageFlagBits::VK_SHADER_STAGE_COMPUTE_BIT;
+        case ShaderType::Geometry:             return VkShaderStageFlagBits::VK_SHADER_STAGE_GEOMETRY_BIT;
         default:                                return VkShaderStageFlagBits::VK_SHADER_STAGE_ALL;
 
         }

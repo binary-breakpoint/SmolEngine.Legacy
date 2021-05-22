@@ -318,7 +318,7 @@
     <ClInclude Include="include\EditorCamera.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="include\Extensions\JobsSystem.h">
+    <ClInclude Include="include\Extensions\JobsSystemInstance.h">
       <Filter>include\Extensions</Filter>
     </ClInclude>
     <ClInclude Include="include\Extensions\Profiler.h">
@@ -2441,7 +2441,7 @@
     <ClCompile Include="src\EditorCamera.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\Extensions\JobsSystem.cpp">
+    <ClCompile Include="src\Extensions\JobsSystemInstance.cpp">
       <Filter>src\Extensions</Filter>
     </ClCompile>
     <ClCompile Include="src\Extensions\Profiler.cpp">

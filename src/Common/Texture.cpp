@@ -9,7 +9,11 @@
 #include <stb_image.h>
 #include <memory>
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 	void Texture::Bind(uint32_t slot) const
 	{

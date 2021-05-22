@@ -6,7 +6,11 @@
 #include <GLFW/glfw3.h>
 #include <glad\glad.h>
 
-namespace Frostium 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
+namespace Frostium
+#endif
 {
 	static WindowData* DataPtr = nullptr;
 	static EventSender* EventHandler = nullptr;

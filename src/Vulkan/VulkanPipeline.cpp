@@ -8,7 +8,11 @@
 #include "GraphicsPipeline.h"
 #include "Common/Framebuffer.h"
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 	VulkanPipeline::VulkanPipeline()
 	{
@@ -507,18 +511,18 @@ namespace Frostium
 	{
 		switch (type)
 		{
-		case Frostium::DataTypes::None:			                     break;
-		case Frostium::DataTypes::Float:	                         return VK_FORMAT_R32_SFLOAT;
-		case Frostium::DataTypes::Float2:		                     return VK_FORMAT_R32G32_SFLOAT;
-		case Frostium::DataTypes::Float3:		                     return VK_FORMAT_R32G32B32_SFLOAT;
-		case Frostium::DataTypes::Float4:		                     return VK_FORMAT_R32G32B32A32_SFLOAT;
-		case Frostium::DataTypes::Mat3:			                     return VK_FORMAT_R32G32B32_SFLOAT;
-		case Frostium::DataTypes::Mat4:			                     return VK_FORMAT_R32G32B32A32_SFLOAT;
-		case Frostium::DataTypes::Int:			                     return VK_FORMAT_R32_SINT;
-		case Frostium::DataTypes::Int2:			                     return VK_FORMAT_R32G32_SINT;
-		case Frostium::DataTypes::Int3:			                     return VK_FORMAT_R32G32B32_SINT;
-		case Frostium::DataTypes::Int4:			                     return VK_FORMAT_R32G32B32A32_SINT;
-		case Frostium::DataTypes::Bool:			                     return VK_FORMAT_R32_SINT;
+		case DataTypes::None:			                     break;
+		case DataTypes::Float:	                             return VK_FORMAT_R32_SFLOAT;
+		case DataTypes::Float2:		                         return VK_FORMAT_R32G32_SFLOAT;
+		case DataTypes::Float3:		                         return VK_FORMAT_R32G32B32_SFLOAT;
+		case DataTypes::Float4:		                         return VK_FORMAT_R32G32B32A32_SFLOAT;
+		case DataTypes::Mat3:			                     return VK_FORMAT_R32G32B32_SFLOAT;
+		case DataTypes::Mat4:			                     return VK_FORMAT_R32G32B32A32_SFLOAT;
+		case DataTypes::Int:			                     return VK_FORMAT_R32_SINT;
+		case DataTypes::Int2:			                     return VK_FORMAT_R32G32_SINT;
+		case DataTypes::Int3:			                     return VK_FORMAT_R32G32B32_SINT;
+		case DataTypes::Int4:			                     return VK_FORMAT_R32G32B32A32_SINT;
+		case DataTypes::Bool:			                     return VK_FORMAT_R32_SINT;
 		}
 
 		return VK_FORMAT_R32G32B32_SFLOAT;
@@ -528,11 +532,11 @@ namespace Frostium
 	{
 		switch (mode)
 		{
-		case Frostium::DrawMode::Triangle:	                        return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-		case Frostium::DrawMode::Line:			                    return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
-		case Frostium::DrawMode::Fan:			                    return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY;
-		case Frostium::DrawMode::Triangle_Strip:                    return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
-		default:			                                        return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+		case DrawMode::Triangle:	                           return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+		case DrawMode::Line:			                       return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+		case DrawMode::Fan:			                           return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY;
+		case DrawMode::Triangle_Strip:                         return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+		default:			                                   return VkPrimitiveTopology::VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 		}
 	}
 
@@ -540,10 +544,10 @@ namespace Frostium
 	{
 		switch (mode)
 		{
-		case Frostium::CullMode::Back: 			                    return VK_CULL_MODE_BACK_BIT;
-		case Frostium::CullMode::Front: 		                    return VK_CULL_MODE_FRONT_BIT;
-		case Frostium::CullMode::None: 			                    return VK_CULL_MODE_NONE;
-		default:			                                        return VK_CULL_MODE_BACK_BIT;
+		case CullMode::Back: 			                       return VK_CULL_MODE_BACK_BIT;
+		case CullMode::Front: 		                           return VK_CULL_MODE_FRONT_BIT;
+		case CullMode::None: 			                       return VK_CULL_MODE_NONE;
+		default:			                                   return VK_CULL_MODE_BACK_BIT;
 		}
 	}
 
@@ -551,10 +555,10 @@ namespace Frostium
 	{
 		switch (mode)
 		{
-		case Frostium::PolygonMode::Fill:		                    return VkPolygonMode::VK_POLYGON_MODE_FILL;
-		case Frostium::PolygonMode::Line:				            return VkPolygonMode::VK_POLYGON_MODE_LINE;
-		case Frostium::PolygonMode::Point:			                return VkPolygonMode::VK_POLYGON_MODE_POINT;
-		default:			                                        return VkPolygonMode::VK_POLYGON_MODE_FILL;
+		case PolygonMode::Fill:		                           return VkPolygonMode::VK_POLYGON_MODE_FILL;
+		case PolygonMode::Line:				                   return VkPolygonMode::VK_POLYGON_MODE_LINE;
+		case PolygonMode::Point:			                   return VkPolygonMode::VK_POLYGON_MODE_POINT;
+		default:			                                   return VkPolygonMode::VK_POLYGON_MODE_FILL;
 		}
 	}
 
@@ -562,27 +566,27 @@ namespace Frostium
 	{
 		switch (factor)
 		{
-		case Frostium::BlendFactor::NONE:                           return VK_BLEND_FACTOR_ZERO;
-		case Frostium::BlendFactor::ONE:                            return VK_BLEND_FACTOR_ONE;
-		case Frostium::BlendFactor::ZERO:                           return VK_BLEND_FACTOR_ZERO;
-		case Frostium::BlendFactor::SRC_ALPHA:                      return VK_BLEND_FACTOR_SRC_ALPHA;
-		case Frostium::BlendFactor::SRC_COLOR:                      return VK_BLEND_FACTOR_SRC_COLOR;
-		case Frostium::BlendFactor::ONE_MINUS_SRC_COLOR:            return VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR;
-		case Frostium::BlendFactor::DST_COLOR:                      return VK_BLEND_FACTOR_DST_COLOR;
-		case Frostium::BlendFactor::ONE_MINUS_DST_COLOR:            return VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR;
-		case Frostium::BlendFactor::ONE_MINUS_SRC_ALPHA:            return VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-		case Frostium::BlendFactor::DST_ALPHA:                      return VK_BLEND_FACTOR_DST_ALPHA;
-		case Frostium::BlendFactor::ONE_MINUS_DST_ALPHA:            return VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;
-		case Frostium::BlendFactor::CONSTANT_COLOR:                 return VK_BLEND_FACTOR_CONSTANT_COLOR;
-		case Frostium::BlendFactor::ONE_MINUS_CONSTANT_COLOR:       return VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR;
-		case Frostium::BlendFactor::CONSTANT_ALPHA:                 return VK_BLEND_FACTOR_CONSTANT_ALPHA;
-		case Frostium::BlendFactor::ONE_MINUS_CONSTANT_ALPHA:       return VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA;
-		case Frostium::BlendFactor::SRC_ALPHA_SATURATE:             return VK_BLEND_FACTOR_SRC_ALPHA_SATURATE;
-		case Frostium::BlendFactor::SRC1_COLOR:                     return VK_BLEND_FACTOR_SRC1_COLOR;
-		case Frostium::BlendFactor::ONE_MINUS_SRC1_COLOR:           return VK_BLEND_FACTOR_ONE_MINUS_SRC1_COLOR;
-		case Frostium::BlendFactor::SRC1_ALPHA:                     return VK_BLEND_FACTOR_SRC1_ALPHA;
-		case Frostium::BlendFactor::ONE_MINUS_SRC1_ALPHA:           return VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA;
-		default:                                                    return VK_BLEND_FACTOR_ONE;
+		case BlendFactor::NONE:                                return VK_BLEND_FACTOR_ZERO;
+		case BlendFactor::ONE:                                 return VK_BLEND_FACTOR_ONE;
+		case BlendFactor::ZERO:                                return VK_BLEND_FACTOR_ZERO;
+		case BlendFactor::SRC_ALPHA:                           return VK_BLEND_FACTOR_SRC_ALPHA;
+		case BlendFactor::SRC_COLOR:                           return VK_BLEND_FACTOR_SRC_COLOR;
+		case BlendFactor::ONE_MINUS_SRC_COLOR:                 return VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR;
+		case BlendFactor::DST_COLOR:                           return VK_BLEND_FACTOR_DST_COLOR;
+		case BlendFactor::ONE_MINUS_DST_COLOR:                 return VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR;
+		case BlendFactor::ONE_MINUS_SRC_ALPHA:                 return VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+		case BlendFactor::DST_ALPHA:                           return VK_BLEND_FACTOR_DST_ALPHA;
+		case BlendFactor::ONE_MINUS_DST_ALPHA:                 return VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;
+		case BlendFactor::CONSTANT_COLOR:                      return VK_BLEND_FACTOR_CONSTANT_COLOR;
+		case BlendFactor::ONE_MINUS_CONSTANT_COLOR:            return VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR;
+		case BlendFactor::CONSTANT_ALPHA:                      return VK_BLEND_FACTOR_CONSTANT_ALPHA;
+		case BlendFactor::ONE_MINUS_CONSTANT_ALPHA:            return VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA;
+		case BlendFactor::SRC_ALPHA_SATURATE:                  return VK_BLEND_FACTOR_SRC_ALPHA_SATURATE;
+		case BlendFactor::SRC1_COLOR:                          return VK_BLEND_FACTOR_SRC1_COLOR;
+		case BlendFactor::ONE_MINUS_SRC1_COLOR:                return VK_BLEND_FACTOR_ONE_MINUS_SRC1_COLOR;
+		case BlendFactor::SRC1_ALPHA:                          return VK_BLEND_FACTOR_SRC1_ALPHA;
+		case BlendFactor::ONE_MINUS_SRC1_ALPHA:                return VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA;
+		default:                                               return VK_BLEND_FACTOR_ONE;
 		}
 	}
 
@@ -590,12 +594,12 @@ namespace Frostium
 	{
 		switch (op)
 		{
-		case Frostium::BlendOp::ADD:			                    return VK_BLEND_OP_ADD;
-		case Frostium::BlendOp::SUBTRACT:			                return VK_BLEND_OP_SUBTRACT;
-		case Frostium::BlendOp::REVERSE_SUBTRACT:	                return VK_BLEND_OP_REVERSE_SUBTRACT;
-		case Frostium::BlendOp::MIN:			                    return VK_BLEND_OP_MIN;
-		case Frostium::BlendOp::MAX:			                    return VK_BLEND_OP_MAX;
-		default:			                                        return VK_BLEND_OP_ADD;
+		case BlendOp::ADD:			                           return VK_BLEND_OP_ADD;
+		case BlendOp::SUBTRACT:			                       return VK_BLEND_OP_SUBTRACT;
+		case BlendOp::REVERSE_SUBTRACT:	                       return VK_BLEND_OP_REVERSE_SUBTRACT;
+		case BlendOp::MIN:			                           return VK_BLEND_OP_MIN;
+		case BlendOp::MAX:			                           return VK_BLEND_OP_MAX;
+		default:			                                   return VK_BLEND_OP_ADD;
 		}
 	}
 }

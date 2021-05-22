@@ -2,7 +2,11 @@
 #ifndef FROSTIUM_OPENGL_IMPL
 #include "Vulkan/VulkanStagingBuffer.h"
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 	void VulkanStagingBuffer::Create(const void* data, uint64_t size)
 	{

@@ -4,7 +4,11 @@
 
 #include "Vulkan/VulkanDevice.h"
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 	void VulkanIndexBuffer::Create(const uint32_t* data, uint64_t count, bool is_static)
 	{

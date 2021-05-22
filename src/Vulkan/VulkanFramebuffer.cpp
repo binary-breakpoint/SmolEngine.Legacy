@@ -10,7 +10,11 @@
 
 #include <imgui/examples/imgui_impl_vulkan.h>
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 	VulkanFramebuffer::VulkanFramebuffer()
 	{
@@ -470,13 +474,13 @@ namespace Frostium
 	{
 		switch (samples)
 		{
-		case Frostium::MSAASamples::SAMPLE_COUNT_1:                return VK_SAMPLE_COUNT_1_BIT;
-		case Frostium::MSAASamples::SAMPLE_COUNT_2:                return VK_SAMPLE_COUNT_2_BIT;
-		case Frostium::MSAASamples::SAMPLE_COUNT_4:                return VK_SAMPLE_COUNT_4_BIT;
-		case Frostium::MSAASamples::SAMPLE_COUNT_8:                return VK_SAMPLE_COUNT_8_BIT;
-		case Frostium::MSAASamples::SAMPLE_COUNT_16:               return VK_SAMPLE_COUNT_16_BIT;
-		case Frostium::MSAASamples::SAMPLE_COUNT_MAX_SUPPORTED:    return VulkanContext::GetDevice().GetMSAASamplesCount();
-		default:                                                   return VK_SAMPLE_COUNT_1_BIT;
+		case MSAASamples::SAMPLE_COUNT_1:                return VK_SAMPLE_COUNT_1_BIT;
+		case MSAASamples::SAMPLE_COUNT_2:                return VK_SAMPLE_COUNT_2_BIT;
+		case MSAASamples::SAMPLE_COUNT_4:                return VK_SAMPLE_COUNT_4_BIT;
+		case MSAASamples::SAMPLE_COUNT_8:                return VK_SAMPLE_COUNT_8_BIT;
+		case MSAASamples::SAMPLE_COUNT_16:               return VK_SAMPLE_COUNT_16_BIT;
+		case MSAASamples::SAMPLE_COUNT_MAX_SUPPORTED:    return VulkanContext::GetDevice().GetMSAASamplesCount();
+		default:                                         return VK_SAMPLE_COUNT_1_BIT;
 		}
 	}
 
@@ -485,43 +489,43 @@ namespace Frostium
 		switch (format)
 		{
 
-		case Frostium::AttachmentFormat::UNORM_8:			       return VK_FORMAT_R8_UNORM;
-		case Frostium::AttachmentFormat::UNORM2_8: 			       return VK_FORMAT_R8G8_UNORM;
-		case Frostium::AttachmentFormat::UNORM3_8: 			       return VK_FORMAT_R8G8B8_UNORM;
-		case Frostium::AttachmentFormat::UNORM4_8: 			       return VK_FORMAT_R8G8B8A8_UNORM;
-
-		case Frostium::AttachmentFormat::UNORM_16:			       return VK_FORMAT_R16_UNORM;
-		case Frostium::AttachmentFormat::UNORM2_16: 			   return VK_FORMAT_R16G16_UNORM;
-		case Frostium::AttachmentFormat::UNORM3_16: 			   return VK_FORMAT_R16G16B16_UNORM;
-		case Frostium::AttachmentFormat::UNORM4_16: 			   return VK_FORMAT_R16G16B16A16_UNORM;
-																   
-		case Frostium::AttachmentFormat::SFloat_16: 			   return VK_FORMAT_R16_SFLOAT;
-		case Frostium::AttachmentFormat::SFloat2_16: 			   return VK_FORMAT_R16G16_SFLOAT;
-		case Frostium::AttachmentFormat::SFloat3_16: 			   return VK_FORMAT_R16G16B16_SFLOAT;
-		case Frostium::AttachmentFormat::SFloat4_16: 			   return VK_FORMAT_R16G16B16A16_SFLOAT;
-																   
-		case Frostium::AttachmentFormat::SFloat_32: 			   return VK_FORMAT_R32_SFLOAT;
-		case Frostium::AttachmentFormat::SFloat2_32: 			   return VK_FORMAT_R32G32_SFLOAT;
-		case Frostium::AttachmentFormat::SFloat3_32: 			   return VK_FORMAT_R32G32B32_SFLOAT;
-		case Frostium::AttachmentFormat::SFloat4_32: 			   return VK_FORMAT_R32G32B32A32_SFLOAT;
-																   
-		case Frostium::AttachmentFormat::SInt_8: 			       return VK_FORMAT_R8_SINT;
-		case Frostium::AttachmentFormat::SInt2_8:			       return VK_FORMAT_R8G8_SINT;
-		case Frostium::AttachmentFormat::SInt3_8:			       return VK_FORMAT_R8G8B8_SINT;
-		case Frostium::AttachmentFormat::SInt4_8:			       return VK_FORMAT_R8G8B8A8_SINT;
-															    
-		case Frostium::AttachmentFormat::SInt_16: 			       return VK_FORMAT_R16_SINT;
-		case Frostium::AttachmentFormat::SInt2_16:			       return VK_FORMAT_R16G16_SINT;
-		case Frostium::AttachmentFormat::SInt3_16:			       return VK_FORMAT_R16G16B16_SINT;
-		case Frostium::AttachmentFormat::SInt4_16:			       return VK_FORMAT_R16G16B16A16_SINT;
-															           
-		case Frostium::AttachmentFormat::SInt_32: 			       return VK_FORMAT_R32_SINT;
-		case Frostium::AttachmentFormat::SInt2_32:			       return VK_FORMAT_R32G32_SINT;
-		case Frostium::AttachmentFormat::SInt3_32:			       return VK_FORMAT_R32G32B32_SINT;
-		case Frostium::AttachmentFormat::SInt4_32:			       return VK_FORMAT_R32G32B32A32_SINT;
-
-		case Frostium::AttachmentFormat::Color:			           return VulkanContext::GetSwapchain().GetColorFormat();
-		case Frostium::AttachmentFormat::Depth:                    return VulkanContext::GetSwapchain().GetDepthFormat();
+		case AttachmentFormat::UNORM_8:			         return VK_FORMAT_R8_UNORM;
+		case AttachmentFormat::UNORM2_8: 			     return VK_FORMAT_R8G8_UNORM;
+		case AttachmentFormat::UNORM3_8: 			     return VK_FORMAT_R8G8B8_UNORM;
+		case AttachmentFormat::UNORM4_8: 			     return VK_FORMAT_R8G8B8A8_UNORM;
+													     
+		case AttachmentFormat::UNORM_16:			     return VK_FORMAT_R16_UNORM;
+		case AttachmentFormat::UNORM2_16: 			     return VK_FORMAT_R16G16_UNORM;
+		case AttachmentFormat::UNORM3_16: 			     return VK_FORMAT_R16G16B16_UNORM;
+		case AttachmentFormat::UNORM4_16: 			     return VK_FORMAT_R16G16B16A16_UNORM;
+													     
+		case AttachmentFormat::SFloat_16: 			     return VK_FORMAT_R16_SFLOAT;
+		case AttachmentFormat::SFloat2_16: 			     return VK_FORMAT_R16G16_SFLOAT;
+		case AttachmentFormat::SFloat3_16: 			     return VK_FORMAT_R16G16B16_SFLOAT;
+		case AttachmentFormat::SFloat4_16: 			     return VK_FORMAT_R16G16B16A16_SFLOAT;
+													     
+		case AttachmentFormat::SFloat_32: 			     return VK_FORMAT_R32_SFLOAT;
+		case AttachmentFormat::SFloat2_32: 			     return VK_FORMAT_R32G32_SFLOAT;
+		case AttachmentFormat::SFloat3_32: 			     return VK_FORMAT_R32G32B32_SFLOAT;
+		case AttachmentFormat::SFloat4_32: 			     return VK_FORMAT_R32G32B32A32_SFLOAT;
+													     
+		case AttachmentFormat::SInt_8: 			         return VK_FORMAT_R8_SINT;
+		case AttachmentFormat::SInt2_8:			         return VK_FORMAT_R8G8_SINT;
+		case AttachmentFormat::SInt3_8:			         return VK_FORMAT_R8G8B8_SINT;
+		case AttachmentFormat::SInt4_8:			         return VK_FORMAT_R8G8B8A8_SINT;
+												         
+		case AttachmentFormat::SInt_16: 			     return VK_FORMAT_R16_SINT;
+		case AttachmentFormat::SInt2_16:			     return VK_FORMAT_R16G16_SINT;
+		case AttachmentFormat::SInt3_16:			     return VK_FORMAT_R16G16B16_SINT;
+		case AttachmentFormat::SInt4_16:			     return VK_FORMAT_R16G16B16A16_SINT;
+												         
+		case AttachmentFormat::SInt_32: 			     return VK_FORMAT_R32_SINT;
+		case AttachmentFormat::SInt2_32:			     return VK_FORMAT_R32G32_SINT;
+		case AttachmentFormat::SInt3_32:			     return VK_FORMAT_R32G32B32_SINT;
+		case AttachmentFormat::SInt4_32:			     return VK_FORMAT_R32G32B32A32_SINT;
+													     
+		case AttachmentFormat::Color:			         return VulkanContext::GetSwapchain().GetColorFormat();
+		case AttachmentFormat::Depth:                    return VulkanContext::GetSwapchain().GetDepthFormat();
 		default:
 			break;
 		}

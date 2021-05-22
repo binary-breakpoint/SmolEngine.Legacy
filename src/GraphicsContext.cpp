@@ -13,12 +13,16 @@
 #include "Common/RendererStorage.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
-#include "Extensions/JobsSystem.h"
+#include "Extensions/JobsSystemInstance.h"
 #endif
 
 #include <GLFW/glfw3.h>
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 	GraphicsContext* GraphicsContext::s_Instance = nullptr;
 
@@ -64,7 +68,7 @@ namespace Frostium
 		}
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
-		m_JobsSystem = new JobsSystem();
+		m_JobsSystem = new JobsSystemInstance();
 #endif
 		LoadMeshes();
 		// Creates main framebuffer
@@ -107,7 +111,7 @@ namespace Frostium
 			materialInfo.SetMetalness(0.2f);
 			materialInfo.SetRoughness(1.0f);
 			m_MaterialLibrary = new MaterialLibrary();
-			int32_t id = m_MaterialLibrary->Add(&materialInfo, "default material");
+			int32_t id = m_MaterialLibrary->Add(&materialInfo);
 			Renderer::UpdateMaterials();
 		}
 
@@ -401,7 +405,7 @@ namespace Frostium
 	}
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
-	JobsSystem* GraphicsContext::GetJobsSystemInstance()
+	JobsSystemInstance* GraphicsContext::GetJobsSystemInstance()
 	{
 		return m_JobsSystem;
 	}

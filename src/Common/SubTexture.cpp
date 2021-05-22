@@ -1,7 +1,11 @@
 #include "stdafx.h"
 #include "Common/SubTexture.h"
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 	SubTexture2D::SubTexture2D(const Ref<Texture>& texture, const glm::vec2& min, const glm::vec2& max)
 		:m_Texture(texture)

@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "MaterialLibrary.h"
 #include "Common/SLog.h"
-#include "Extensions/JobsSystem.h"
+#include "Extensions/JobsSystemInstance.h"
 
 #include <filesystem>
 #include <mutex>
@@ -11,7 +11,11 @@
 std::mutex* s_Mutex = nullptr;
 #endif
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 	const uint32_t maxTextures = 4096;
 	MaterialLibrary* MaterialLibrary::s_Instance = nullptr;
@@ -19,14 +23,18 @@ namespace Frostium
 	MaterialLibrary::MaterialLibrary()
 	{
 		s_Instance = this;
+#ifdef FROSTIUM_SMOLENGINE_IMPL
 		s_Mutex = new std::mutex();
+#endif
 		m_Textures.resize(maxTextures);
 	}
 
 	MaterialLibrary::~MaterialLibrary()
 	{
 		s_Instance = nullptr;
+#ifdef FROSTIUM_SMOLENGINE_IMPL
 		delete s_Mutex;
+#endif
 	}
 
 	uint32_t MaterialLibrary::Add(MaterialCreateInfo* infoCI, const std::string& path)
@@ -47,15 +55,15 @@ namespace Frostium
 		{
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
-			JobsSystem::BeginSubmition();
+			JobsSystemInstance::BeginSubmition();
 			{
-				JobsSystem::Schedule([&]() {newMaterial.AlbedroTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Albedro], newMaterial.UseAlbedroTex); });
-				JobsSystem::Schedule([&]() {newMaterial.NormalTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Normal], newMaterial.UseNormalTex); });
-				JobsSystem::Schedule([&]() {newMaterial.MetallicTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Metallic], newMaterial.UseMetallicTex); });
-				JobsSystem::Schedule([&]() {newMaterial.RoughnessTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Roughness], newMaterial.UseRoughnessTex); });
-				JobsSystem::Schedule([&]() {newMaterial.AOTexIndex = AddTexture(infoCI->Textures[MaterialTexture::AO], newMaterial.UseAOTex); });
+				JobsSystemInstance::Schedule([&]() {newMaterial.AlbedroTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Albedro], newMaterial.UseAlbedroTex); });
+				JobsSystemInstance::Schedule([&]() {newMaterial.NormalTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Normal], newMaterial.UseNormalTex); });
+				JobsSystemInstance::Schedule([&]() {newMaterial.MetallicTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Metallic], newMaterial.UseMetallicTex); });
+				JobsSystemInstance::Schedule([&]() {newMaterial.RoughnessTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Roughness], newMaterial.UseRoughnessTex); });
+				JobsSystemInstance::Schedule([&]() {newMaterial.AOTexIndex = AddTexture(infoCI->Textures[MaterialTexture::AO], newMaterial.UseAOTex); });
 			}
-			JobsSystem::EndSubmition();
+			JobsSystemInstance::EndSubmition();
 #else
 			newMaterial.AlbedroTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Albedro], newMaterial.UseAlbedroTex);
 			newMaterial.NormalTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Normal], newMaterial.UseNormalTex);
@@ -235,8 +243,11 @@ namespace Frostium
 	}
 	void MaterialLibrary::GetMaterialsPtr(void*& data, uint32_t& size)
 	{
-		data = m_Materials.data();
-		size = static_cast<uint32_t>(sizeof(PBRMaterial) * m_Materials.size());
+		if (m_Materials.size() > 0)
+		{
+			data = m_Materials.data();
+			size = static_cast<uint32_t>(sizeof(PBRMaterial) * m_Materials.size());
+		}
 	}
 
 	void MaterialLibrary::GetTextures(std::vector<Texture*>& out_textures) const

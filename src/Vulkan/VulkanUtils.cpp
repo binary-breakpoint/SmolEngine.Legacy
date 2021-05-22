@@ -2,7 +2,11 @@
 #ifndef FROSTIUM_OPENGL_IMPL
 #include "Vulkan/VulkanUtils.h"
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
     void* VulkanUtils::AlignedAlloc(size_t size, size_t alignment)
     {

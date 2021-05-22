@@ -304,7 +304,7 @@
     <ClInclude Include="include\Common\Window.h" />
     <ClInclude Include="include\DebugRenderer.h" />
     <ClInclude Include="include\EditorCamera.h" />
-    <ClInclude Include="include\Extensions\JobsSystem.h" />
+    <ClInclude Include="include\Extensions\JobsSystemInstance.h" />
     <ClInclude Include="include\Extensions\Profiler.h" />
     <ClInclude Include="include\GraphicsContext.h" />
     <ClInclude Include="include\GraphicsPipeline.h" />
@@ -1013,7 +1013,7 @@
     <ClCompile Include="src\Common\Window.cpp" />
     <ClCompile Include="src\DebugRenderer.cpp" />
     <ClCompile Include="src\EditorCamera.cpp" />
-    <ClCompile Include="src\Extensions\JobsSystem.cpp" />
+    <ClCompile Include="src\Extensions\JobsSystemInstance.cpp" />
     <ClCompile Include="src\Extensions\Profiler.cpp" />
     <ClCompile Include="src\GraphicsContext.cpp" />
     <ClCompile Include="src\GraphicsPipeline.cpp" />

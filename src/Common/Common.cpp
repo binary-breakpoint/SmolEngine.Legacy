@@ -1,8 +1,18 @@
 #include "stdafx.h"
 #include "Common/Common.h"
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
+	void BoundingBox::SetBoundingBox(const glm::vec3& _min, const glm::vec3& _max)
+	{
+		min = _min;
+		max = _max;
+	}
+
 	void BoundingBox::CalculateAABB(const glm::mat4& m)
 	{
 		glm::vec3 min = glm::vec3(m[3]);

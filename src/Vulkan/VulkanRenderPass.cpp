@@ -4,7 +4,11 @@
 #include "Vulkan/VulkanContext.h"
 #include "Vulkan/VulkanFramebuffer.h"
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 	void VulkanRenderPass::Create(FramebufferSpecification* framebufferSpec, RenderPassGenInfo* renderPassInfo, VkRenderPass& outPass)
 	{

@@ -334,11 +334,22 @@ project "PBR"
 		buildoptions "/MD"
 		buildoptions "/bigobj"
 		optimize "on"
+
+		defines
+		{
+			"FROSTIUM_SMOLENGINE_IMPL"
+		}
 	
 		filter "configurations:SmolEngine_D"
 		buildoptions "/MDd"
 		buildoptions "/bigobj"
 		symbols "on"
+
+		defines
+		{
+			"FROSTIUM_SMOLENGINE_IMPL",
+			"FROSTIUM_DEBUG"
+		}
 
 
 --------------------------------------------------------- C#
@@ -398,11 +409,22 @@ project "CSharpBinding"
 		buildoptions "/MD"
 		buildoptions "/bigobj"
 		optimize "on"
+
+		defines
+		{
+			"FROSTIUM_SMOLENGINE_IMPL"
+		}
 	
 		filter "configurations:SmolEngine_D"
 		buildoptions "/MDd"
 		buildoptions "/bigobj"
 		symbols "on"
+
+		defines
+		{
+			"FROSTIUM_SMOLENGINE_IMPL",
+			"FROSTIUM_DEBUG"
+		}
 
 ------------------------------------------------- 2D
 
@@ -459,11 +481,22 @@ project "2D"
 		buildoptions "/MD"
 		buildoptions "/bigobj"
 		optimize "on"
+
+		defines
+		{
+			"FROSTIUM_SMOLENGINE_IMPL"
+		}
 	
 		filter "configurations:SmolEngine_D"
 		buildoptions "/MDd"
 		buildoptions "/bigobj"
 		symbols "on"
+
+		defines
+		{
+			"FROSTIUM_SMOLENGINE_IMPL",
+			"FROSTIUM_DEBUG"
+		}
 
 	------------------------------------------------- 3D Animations
 
@@ -520,11 +553,22 @@ project "2D"
 		buildoptions "/MD"
 		buildoptions "/bigobj"
 		optimize "on"
+
+		defines
+		{
+			"FROSTIUM_SMOLENGINE_IMPL"
+		}
 	
 		filter "configurations:SmolEngine_D"
 		buildoptions "/MDd"
 		buildoptions "/bigobj"
 		symbols "on"
+
+		defines
+		{
+			"FROSTIUM_SMOLENGINE_IMPL",
+			"FROSTIUM_DEBUG"
+		}
 
 	---------------------------------------
 	project "Custom Renderer"
@@ -580,11 +624,22 @@ project "2D"
 		buildoptions "/MD"
 		buildoptions "/bigobj"
 		optimize "on"
+
+		defines
+		{
+			"FROSTIUM_SMOLENGINE_IMPL"
+		}
 	
 		filter "configurations:SmolEngine_D"
 		buildoptions "/MDd"
 		buildoptions "/bigobj"
 		symbols "on"
+
+		defines
+		{
+			"FROSTIUM_SMOLENGINE_IMPL",
+			"FROSTIUM_DEBUG"
+		}
 
 
 	group ""

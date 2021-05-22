@@ -1,7 +1,11 @@
 #include "stdafx.h"
 #include "Utils/Frustum.h"
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 	void Frustum::Update(const glm::mat4& matrix)
 	{

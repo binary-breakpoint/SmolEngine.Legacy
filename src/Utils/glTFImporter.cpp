@@ -11,7 +11,11 @@
 
 using namespace tinygltf;
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 	glTFNode* FindNode(glTFNode* parent, uint32_t index)
 	{
@@ -224,6 +228,8 @@ namespace Frostium
 				bool                       hasSkin = false;
 				glm::mat4                  model = glm::mat4(1.0f);
 				glm::vec3                  rot = glm::eulerAngles(node->Rotation);
+				glm::vec3                  posMin{};
+				glm::vec3                  posMax{};
 
 				Utils::ComposeTransform(node->Translation, rot, node->Scale, model);
 				if (out_data->Primitives.size() > 0)
@@ -250,6 +256,9 @@ namespace Frostium
 						const tinygltf::BufferView& view = input.bufferViews[accessor.bufferView];
 						positionBuffer = reinterpret_cast<const float*>(&(input.buffers[view.buffer].data[accessor.byteOffset + view.byteOffset]));
 						vertexCount = accessor.count;
+
+						posMin = glm::vec3(accessor.minValues[0], accessor.minValues[1], accessor.minValues[2]);
+						posMax = glm::vec3(accessor.maxValues[0], accessor.maxValues[1], accessor.maxValues[2]);
 					}
 					// Get buffer data for vertex normals
 					if (glTFPrimitive.attributes.find("NORMAL") != glTFPrimitive.attributes.end())
@@ -350,9 +359,10 @@ namespace Frostium
 					}
 				}
 
+				primitive.MeshName = inputNode.name;
+				primitive.AABB.SetBoundingBox(posMin, posMax);
+				primitive.AABB.CalculateAABB(model);
 				out_data->Primitives.push_back(primitive);
-				BoundingBox& box = out_data->Primitives.back().AABB;
-				box.CalculateAABB(model);
 			}
 		}
 

@@ -3,7 +3,11 @@
 #include "Vulkan/VulkanBufferPool.h"
 #include "Common/SLog.h"
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 	VulkanBufferPool* VulkanBufferPool::s_Instance = new VulkanBufferPool();
 

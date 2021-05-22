@@ -1,22 +1,22 @@
 #include "stdafx.h"
 #ifdef FROSTIUM_SMOLENGINE_IMPL
-#include "Extensions/JobsSystem.h"
+#include "Extensions/JobsSystemInstance.h"
 
-namespace Frostium
+namespace SmolEngine
 {
-	JobsSystem* JobsSystem::s_Instance = nullptr;
+	JobsSystemInstance* JobsSystemInstance::s_Instance = nullptr;
 
-	JobsSystem::JobsSystem()
+	JobsSystemInstance::JobsSystemInstance()
 	{
 		s_Instance = this;
 	}
 
-	void JobsSystem::BeginSubmition()
+	void JobsSystemInstance::BeginSubmition()
 	{
 		s_Instance->m_RenderingQueue.clear();
 	}
 
-	void JobsSystem::EndSubmition(bool wait)
+	void JobsSystemInstance::EndSubmition(bool wait)
 	{
 		auto& queue = s_Instance->m_RenderingQueue;
 		auto& executor = s_Instance->m_Executor;
@@ -29,17 +29,17 @@ namespace Frostium
 		}
 	}
 
-	uint32_t JobsSystem::GetNumWorkers()
+	uint32_t JobsSystemInstance::GetNumWorkers()
 	{
 		return static_cast<uint32_t>(s_Instance->m_Executor.num_workers());
 	}
 
-	uint32_t JobsSystem::GetNumRenderingTasks()
+	uint32_t JobsSystemInstance::GetNumRenderingTasks()
 	{
 		return static_cast<uint32_t>(s_Instance->m_RenderingQueue.num_tasks());
 	}
 
-	tf::Executor* JobsSystem::GetExecutor()
+	tf::Executor* JobsSystemInstance::GetExecutor()
 	{
 		return &s_Instance->m_Executor;
 	}

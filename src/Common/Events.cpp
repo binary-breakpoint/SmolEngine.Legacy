@@ -1,7 +1,11 @@
 #include "stdafx.h"
 #include "Common/Events.h"
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 	void EventSender::SendEvent(Event& event, EventType eventType, EventCategory eventCategory, int action, int key)
 	{
@@ -19,7 +23,7 @@ namespace Frostium
 		return m_EventCategory == category;
 	}
 
-	bool Event::IsEventReceived(Frostium::EventType type, Event& event)
+	bool Event::IsEventReceived(EventType type, Event& event)
 	{
 		return event.m_EventType == type;
 	}

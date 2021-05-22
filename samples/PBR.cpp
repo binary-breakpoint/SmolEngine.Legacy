@@ -11,7 +11,11 @@
 
 #include <imgui/imgui.h>
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+using namespace SmolEngine;
+#else
 using namespace Frostium;
+#endif
 
 struct Chunk
 {

@@ -8,8 +8,13 @@
 #include <Renderer.h>
 
 #include <ImGUI/ImGuiExtension.h>
+#include <Utils/Utils.h>
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+using namespace SmolEngine;
+#else
 using namespace Frostium;
+#endif
 
 GraphicsContext* context = nullptr;
 
@@ -32,7 +37,7 @@ int main(int argc, char** argv)
 
 	GraphicsContextInitInfo info = {};
 	{
-		info.Flags = Features_Renderer_3D_Flags | Features_ImGui_Flags;
+		info.Flags = Features_Renderer_3D_Flags | Features_ImGui_Flags | Features_Renderer_Debug_Flags;
 		info.ResourcesFolderPath = "../resources/";
 		info.pWindowCI = &windoInfo;
 		info.pDefaultCamera = camera;
@@ -193,13 +198,17 @@ int main(int argc, char** argv)
 			Renderer::SubmitMesh({ 0, 3.9f, -3 }, glm::radians(rot), { 1, 1, 1, }, &plane, planeMat);
 			Renderer::SubmitMesh({ 3, 2, 0 }, { 0, 0, 0 }, { 5, 5, 5, }, &dummy, stoneMat);
 			Renderer::EndScene();
-
+			
 			if (wireframes)
 			{
 				DebugRenderer::BeginDebug();
-				DebugRenderer::DrawWireframes({ 0, 1, 0 }, { 0, 0, 0 }, { 50, 1, 50, }, cube);
+				DebugRenderer::DrawAABB(sphere->GetAABB(), { -5, 5, 0 }, { 2, 2, 2, });
+				DebugRenderer::DrawBox({ 1, 1, 1 }, { -1,-1, -1 }, { 5, 5, 5 }, { 0, 2, 0 }, { 3, 3, 3 });
+				DebugRenderer::DrawCapsule(1, 0.5, 2, { -5, 5, 0 }, { 0, 0, 0 }, { 2, 2, 2 });
+			//	DebugRenderer::DrawSphere(3, { 10, 5, 0 }, { 0, 0, 0 }, { 2, 2, 2 });
 				DebugRenderer::EndDebug();
 			}
+
 		}
 		context->SwapBuffers();
 	}

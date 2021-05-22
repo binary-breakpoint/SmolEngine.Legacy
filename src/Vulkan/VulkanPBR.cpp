@@ -15,14 +15,20 @@
 #include "Common/CubeTexture.h"
 #include "Common/Shader.h"
 
-#include "Extensions/JobsSystem.h"
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+#include "Extensions/JobsSystemInstance.h"
+#endif
 
 #include <glm/glm.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 #define M_PI       3.14159265358979323846   // pi
 
@@ -1657,26 +1663,26 @@ namespace Frostium
 		m_SkyBox->LoadCubeMap(cubeMapFile, format);
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
-		JobsSystem::BeginSubmition();
+		JobsSystemInstance::BeginSubmition();
 		{
-			JobsSystem::Schedule([]() 
+			JobsSystemInstance::Schedule([]()
 			{
 				GenerateBRDFLUT(m_BRDFLUT.Image, m_BRDFLUT.ImageView, m_BRDFLUT.Sampler, m_BRDFLUT.DeviceMemory, m_BRDFLUTImageInfo);
 			});
 
-			JobsSystem::Schedule([]()
+			JobsSystemInstance::Schedule([]()
 			{
 				GenerateIrradianceCube(m_Irradiance.Image, m_Irradiance.ImageView, m_Irradiance.Sampler,
 						m_Irradiance.DeviceMemory, m_SkyBox, m_IrradianceImageInfo);
 	        });
 
-			JobsSystem::Schedule([]()
+			JobsSystemInstance::Schedule([]()
 			{
 				GeneratePrefilteredCube(m_PrefilteredCube.Image, m_PrefilteredCube.ImageView,
 						m_PrefilteredCube.Sampler, m_PrefilteredCube.DeviceMemory, m_SkyBox, m_PrefilteredCubeImageInfo);
 			});
 		}
-		JobsSystem::EndSubmition();
+		JobsSystemInstance::EndSubmition();
 #else
 
 		GenerateBRDFLUT(m_BRDFLUT.Image, m_BRDFLUT.ImageView, m_BRDFLUT.Sampler, m_BRDFLUT.DeviceMemory, m_BRDFLUTImageInfo);

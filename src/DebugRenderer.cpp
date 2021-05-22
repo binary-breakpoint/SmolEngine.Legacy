@@ -6,8 +6,24 @@
 #include "Utils/Utils.h"
 #include "GraphicsPipeline.h"
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
+
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
+
+#define SIMD_PI float(3.1415926535897932384626433832795029)
+#define SIMD_HALF_PI (SIMD_PI * 0.5f)
+#define SIMD_2_PI (2.0f * SIMD_PI)
+#define SIMD_RADS_PER_DEG (SIMD_2_PI / float(360.0))
+
 	struct DebugVertex
 	{
 		glm::vec3          Position;
@@ -29,6 +45,7 @@ namespace Frostium
 		VertexBuffer       LineVB{};
 		IndexBuffer        QuadIB{};
 		PushConstant       PushConst{};
+		glm::vec4          Color = glm::vec4(0, 1, 0, 1);
 	};					   
 
 	DebugRendererStorage* s_Data = nullptr;
@@ -45,7 +62,233 @@ namespace Frostium
 		s_Data->WireframesPipeline.EndRenderPass();
 	}
 
-	void DebugRenderer::DrawLine(const glm::vec3& pos1, const glm::vec3& pos2, float width, const glm::vec4& color)
+	void DebugRenderer::DrawSphereLines(const glm::vec3& center, const glm::vec3& up, const glm::vec3& axis, float radius, float minTh, float maxTh, float minPs, float maxPs, float stepDegrees, bool drawCenter)
+	{
+		glm::vec3 vA[74];
+		glm::vec3 vB[74];
+		glm::vec3* pvA = vA, * pvB = vB, * pT;
+		glm::vec3 npole = center + up * radius;
+		glm::vec3 spole = center - up * radius;
+		glm::vec3 arcStart;
+		float step = stepDegrees * SIMD_RADS_PER_DEG;
+		const glm::vec3& kv = up;
+		const glm::vec3& iv = axis;
+
+		glm::vec3 jv = glm::vec3(
+			kv[1] * iv[2] - kv[2] *iv[1],
+			kv[2] * iv[0] - kv[0] *iv[2],
+			kv[0] * iv[1] - kv[1] *iv[0]);
+
+		bool drawN = false;
+		bool drawS = false;
+		if (minTh <= -SIMD_HALF_PI)
+		{
+			minTh = -SIMD_HALF_PI + step;
+			drawN = true;
+		}
+		if (maxTh >= SIMD_HALF_PI)
+		{
+			maxTh = SIMD_HALF_PI - step;
+			drawS = true;
+		}
+		if (minTh > maxTh)
+		{
+			minTh = -SIMD_HALF_PI + step;
+			maxTh = SIMD_HALF_PI - step;
+			drawN = drawS = true;
+		}
+		int n_hor = (int)((maxTh - minTh) / step) + 1;
+		if (n_hor < 2) n_hor = 2;
+		float step_h = (maxTh - minTh) /float(n_hor - 1);
+		bool isClosed = false;
+		if (minPs > maxPs)
+		{
+			minPs = -SIMD_PI + step;
+			maxPs = SIMD_PI;
+			isClosed = true;
+		}
+		else if ((maxPs - minPs) >= SIMD_PI * float(2.f))
+		{
+			isClosed = true;
+		}
+		else
+		{
+			isClosed = false;
+		}
+		int n_vert = (int)((maxPs - minPs) / step) + 1;
+		if (n_vert < 2) n_vert = 2;
+		float step_v = (maxPs - minPs) /float(n_vert - 1);
+		for (int i = 0; i < n_hor; i++)
+		{
+			float th = minTh + float(i) * step_h;
+			float sth = radius * sinf(th);
+			float cth = radius * cosf(th);
+			for (int j = 0; j < n_vert; j++)
+			{
+				float psi = minPs + float(j) * step_v;
+				float sps = sinf(psi);
+				float cps = cosf(psi);
+				pvB[j] = center + cth * cps * iv + cth * sps * jv + sth * kv;
+				if (i)
+				{
+					DrawLine(pvA[j], pvB[j]);
+				}
+				else if (drawS)
+				{
+					DrawLine(spole, pvB[j]);
+				}
+				if (j)
+				{
+					DrawLine(pvB[j - 1], pvB[j]);
+				}
+				else
+				{
+					arcStart = pvB[j];
+				}
+				if ((i == (n_hor - 1)) && drawN)
+				{
+					DrawLine(npole, pvB[j]);
+				}
+
+				if (drawCenter)
+				{
+					if (isClosed)
+					{
+						if (j == (n_vert - 1))
+						{
+							DrawLine(arcStart, pvB[j]);
+						}
+					}
+					else
+					{
+						if (((!i) || (i == (n_hor - 1))) && ((!j) || (j == (n_vert - 1))))
+						{
+							DrawLine(center, pvB[j]);
+						}
+					}
+				}
+			}
+			pT = pvA;
+			pvA = pvB;
+			pvB = pT;
+		}
+	}
+
+	void DebugRenderer::DrawSphere(float radius, const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& scale)
+	{
+		glm::mat4 model;
+		Utils::ComposeTransform(pos, rot, scale, model);
+
+		glm::vec3 up = model[1];
+		glm::vec3 axis = model[0];
+		float minTh = -SIMD_HALF_PI;
+		float maxTh = SIMD_HALF_PI;
+		float minPs = -SIMD_HALF_PI;
+		float maxPs = SIMD_HALF_PI;
+		float stepDegrees = 30.f;
+		DrawSphereLines(pos, up, axis, radius, minTh, maxTh, minPs, maxPs, stepDegrees, false);
+		DrawSphereLines(pos, up, -axis, radius, minTh, maxTh, minPs, maxPs, stepDegrees, false);
+	}
+
+	void DebugRenderer::DrawCapsule(float radius, float halfHeight, uint32_t upAxis, const glm::vec3& pos, const glm::vec3& rot_, const glm::vec3& scale)
+	{
+		int stepDegrees = 30;
+		glm::vec3 capStart(0.f, 0.f, 0.f);
+		capStart[upAxis] = -halfHeight;
+
+		glm::vec3 capEnd(0.f, 0.f, 0.f);
+		capEnd[upAxis] = halfHeight;
+
+		glm::mat4 transform;
+		Utils::ComposeTransform(pos, rot_, scale, transform);
+
+		// Draw the ends
+		{
+			glm::mat4 childTransform = transform;
+			glm::vec4 origin = transform * glm::vec4(capStart, 1.0);
+			{
+				glm::vec3 center = origin;
+				glm::vec3 up = transform[(upAxis + 1) % 3];
+				glm::vec3 axis = -transform[upAxis];
+				float minTh = -SIMD_HALF_PI;
+				float maxTh = SIMD_HALF_PI;
+				float minPs = -SIMD_HALF_PI;
+				float maxPs = SIMD_HALF_PI;
+
+				DrawSphereLines(center, up, axis, radius, minTh, maxTh, minPs, maxPs, static_cast<float>(stepDegrees), false);
+			}
+		}
+
+		{
+			glm::mat4 childTransform = transform;
+			glm::vec4 origin = transform * glm::vec4(capStart, 1.0);
+			{
+				glm::vec3 center = origin;
+				glm::vec3 up = transform[(upAxis + 1) % 3];
+				glm::vec3 axis = transform[upAxis];
+				float minTh = -SIMD_HALF_PI;
+				float maxTh = SIMD_HALF_PI;
+				float minPs = -SIMD_HALF_PI;
+				float maxPs = SIMD_HALF_PI;
+				DrawSphereLines(center, up, axis, radius, minTh, maxTh, minPs, maxPs, float(stepDegrees), false);
+			}
+		}
+	}
+
+	void DebugRenderer::DrawBox(const glm::vec3& bbMin, const glm::vec3& bbMax, const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& scale)
+	{
+		glm::mat4 trans;
+		Utils::ComposeTransform(pos, rot, scale, trans);
+
+		DrawLine(trans * glm::vec4(bbMin[0], bbMin[1], bbMin[2], 1), trans * glm::vec4(bbMax[0], bbMin[1], bbMin[2], 1));
+		DrawLine(trans * glm::vec4(bbMax[0], bbMin[1], bbMin[2], 1), trans * glm::vec4(bbMax[0], bbMax[1], bbMin[2], 1));
+		DrawLine(trans * glm::vec4(bbMax[0], bbMax[1], bbMin[2], 1), trans * glm::vec4(bbMin[0], bbMax[1], bbMin[2], 1));
+		DrawLine(trans * glm::vec4(bbMin[0], bbMax[1], bbMin[2], 1), trans * glm::vec4(bbMin[0], bbMin[1], bbMin[2], 1));
+		DrawLine(trans * glm::vec4(bbMin[0], bbMin[1], bbMin[2], 1), trans * glm::vec4(bbMin[0], bbMin[1], bbMax[2], 1));
+		DrawLine(trans * glm::vec4(bbMax[0], bbMin[1], bbMin[2], 1), trans * glm::vec4(bbMax[0], bbMin[1], bbMax[2], 1));
+		DrawLine(trans * glm::vec4(bbMax[0], bbMax[1], bbMin[2], 1), trans * glm::vec4(bbMax[0], bbMax[1], bbMax[2], 1));
+		DrawLine(trans * glm::vec4(bbMin[0], bbMax[1], bbMin[2], 1), trans * glm::vec4(bbMin[0], bbMax[1], bbMax[2], 1));
+		DrawLine(trans * glm::vec4(bbMin[0], bbMin[1], bbMax[2], 1), trans * glm::vec4(bbMax[0], bbMin[1], bbMax[2], 1));
+		DrawLine(trans * glm::vec4(bbMax[0], bbMin[1], bbMax[2], 1), trans * glm::vec4(bbMax[0], bbMax[1], bbMax[2], 1));
+		DrawLine(trans * glm::vec4(bbMax[0], bbMax[1], bbMax[2], 1), trans * glm::vec4(bbMin[0], bbMax[1], bbMax[2], 1));
+		DrawLine(trans * glm::vec4(bbMin[0], bbMax[1], bbMax[2], 1), trans * glm::vec4(bbMin[0], bbMin[1], bbMax[2], 1));
+	}
+
+	void DebugRenderer::DrawAABB(const BoundingBox& aabb, const glm::vec3& pos, const glm::vec3& scale)
+	{
+		glm::mat4 scaleMat = glm::scale(scale);
+		glm::vec3 halfExtents = (aabb.max - aabb.min) * 0.5f;
+		int i, j;
+
+		glm::vec3 edgecoord(1.f, 1.f, 1.f), pa, pb;
+		for (i = 0; i < 4; i++)
+		{
+			for (j = 0; j < 3; j++)
+			{
+				pa = glm::vec3(edgecoord[0] * halfExtents[0], edgecoord[1] * halfExtents[1],
+					edgecoord[2] * halfExtents[2]);
+				pa = scaleMat * glm::vec4(pa, 1.0);
+				pa += pos;
+
+				int othercoord = j % 3;
+				edgecoord[othercoord] *= -1.f;
+				pb = glm::vec3(edgecoord[0] * halfExtents[0], edgecoord[1] * halfExtents[1],
+					edgecoord[2] * halfExtents[2]);
+
+				pb = scaleMat * glm::vec4(pb, 1.0);
+				pb += pos;
+
+				DrawLine(pa, pb);
+			}
+
+			edgecoord = glm::vec3(-1.f, -1.f, -1.f);
+			if (i < 3)
+				edgecoord[i] *= -1.f;
+		}
+
+	}
+
+	void DebugRenderer::DrawLine(const glm::vec3& pos1, const glm::vec3& pos2, float width)
 	{
 		s_Data->PushConst.State = 1;
 		Utils::ComposeTransform(pos1, { 0, 0, 0 }, { 1, 1, 1}, s_Data->PushConst.Model);
@@ -75,6 +318,10 @@ namespace Frostium
 		s_Data->PrimitivePipeline.SetDrawMode(DrawMode::Fan);
 		s_Data->PrimitivePipeline.Draw(&s_Data->CircleVB, 3000);
 		s_Data->PrimitivePipeline.ResetStates();
+	}
+
+	void DebugRenderer::SetColor(const glm::vec4& color)
+	{
 	}
 
 	void DebugRenderer::DrawWireframes(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Mesh* mesh)
@@ -158,7 +405,7 @@ namespace Frostium
 			pipelineCI.PipelineDrawModes = { DrawMode::Line, DrawMode::Fan };
 			pipelineCI.bDepthTestEnabled = false;
 			pipelineCI.pTargetFramebuffer = GraphicsContext::GetSingleton()->GetFramebuffer();
-			pipelineCI.pShaderCreateInfo = &shaderCI;
+			pipelineCI.ShaderCreateInfo = shaderCI;
 
 			assert(s_Data->PrimitivePipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
 		}
@@ -179,7 +426,7 @@ namespace Frostium
 			pipelineCI.ePolygonMode = PolygonMode::Line;
 			pipelineCI.bDepthTestEnabled = false;
 			pipelineCI.pTargetFramebuffer = GraphicsContext::GetSingleton()->GetFramebuffer();
-			pipelineCI.pShaderCreateInfo = &shaderCI;
+			pipelineCI.ShaderCreateInfo = shaderCI;
 
 			assert(s_Data->WireframesPipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
 		}

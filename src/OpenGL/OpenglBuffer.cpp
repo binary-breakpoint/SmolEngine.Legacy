@@ -4,7 +4,11 @@
 
 #include <glad/glad.h>
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 	//----------------------------VERTEX-BUFFER-------------------------//
 

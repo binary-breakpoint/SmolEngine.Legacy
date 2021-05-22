@@ -2,7 +2,11 @@
 #include "Common/SLog.h"
 #include <spdlog/sinks/stdout_color_sinks.h>
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 	SLog* SLog::s_Instance = new SLog();
 

@@ -10,8 +10,11 @@
 #include <mono/metadata/assembly.h>
 #include <mono/jit/jit.h>
 
-
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+using namespace SmolEngine;
+#else
 using namespace Frostium;
+#endif
 
 GraphicsContext* context = nullptr;
 

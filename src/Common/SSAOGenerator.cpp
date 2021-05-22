@@ -4,7 +4,11 @@
 
 #include <random>
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 	void SSAOGenerator::Generate(Ref<Texture>& out_NoiseTexture, std::array<glm::vec4, 32>& out_Kernel)
 	{

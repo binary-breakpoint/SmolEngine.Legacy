@@ -5,7 +5,11 @@
 #include "Vulkan/VulkanContext.h"
 #include "Vulkan/VulkanStagingBuffer.h"
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 	VulkanBuffer::VulkanBuffer()
 	{

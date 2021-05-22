@@ -5,12 +5,12 @@
 
 #include <taskflow/taskflow/include/taskflow.hpp>
 
-namespace Frostium
+namespace SmolEngine
 {
-	class JobsSystem
+	class JobsSystemInstance
 	{
 	public:
-		JobsSystem();
+		JobsSystemInstance();
 
 		static void             BeginSubmition();
 		static void             EndSubmition(bool wait = true);
@@ -24,9 +24,9 @@ namespace Frostium
 
 	private:
 
-		static JobsSystem*      s_Instance;
-		tf::Taskflow            m_RenderingQueue{};
-		tf::Executor            m_Executor{};
+		static JobsSystemInstance*      s_Instance;
+		tf::Taskflow                    m_RenderingQueue{};
+		tf::Executor                    m_Executor{};
 	};						                 
 }
 #endif

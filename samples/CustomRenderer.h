@@ -4,17 +4,23 @@
 #include <Common/Mesh.h>
 #include <Common/Framebuffer.h>
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+using namespace SmolEngine;
+#else
+using namespace Frostium;
+#endif
+
 int main(int argc, char** argv);
 
 struct RendererData
 {
 	// Pipelines
-	Frostium::GraphicsPipeline   MRT_Pipeline = {};
-	Frostium::GraphicsPipeline   Comp_Pipeline = {};
+	GraphicsPipeline   MRT_Pipeline = {};
+	GraphicsPipeline   Comp_Pipeline = {};
 	// Framebuffers			     
-	Frostium::Framebuffer        MRT_Framebufer = {};
+	Framebuffer        MRT_Framebufer = {};
 	/// Meshes
-	Frostium::Mesh*              Box_Mesh = nullptr;
+	Mesh*              Box_Mesh = nullptr;
 };
 
 struct CameraUBO
@@ -45,9 +51,9 @@ public:
 							     
 private:					     
 							     
-	Frostium::GraphicsContext*   m_Context = nullptr;
-	Frostium::EditorCamera*      m_Camera = nullptr;
-	Frostium::MaterialLibrary*   m_MaterialLibrary = nullptr;
+	GraphicsContext*             m_Context = nullptr;
+	EditorCamera*                m_Camera = nullptr;
+	MaterialLibrary*             m_MaterialLibrary = nullptr;
 	bool                         m_Process = true;
 	RendererData                 m_Storage = {};
 	CameraUBO                    m_CameraUBO = {};

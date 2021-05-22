@@ -11,7 +11,11 @@
 #include <ktxvulkan.h>
 #include <stb_image.h>
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+namespace SmolEngine
+#else
 namespace Frostium
+#endif
 {
 	VulkanTexture::VulkanTexture()
 	{
@@ -699,11 +703,11 @@ namespace Frostium
 	{
 		switch (format)
 		{
-		case Frostium::TextureFormat::R8_UNORM:               return VK_FORMAT_R8_UNORM;
-		case Frostium::TextureFormat::R8G8B8A8_UNORM:         return VK_FORMAT_R8G8B8A8_UNORM;
-		case Frostium::TextureFormat::B8G8R8A8_UNORM:         return VK_FORMAT_B8G8R8A8_UNORM;
-		case Frostium::TextureFormat::R16G16B16A16_SFLOAT:    return VK_FORMAT_R16G16B16A16_SFLOAT;
-		case Frostium::TextureFormat::R32G32B32A32_SFLOAT:    return VK_FORMAT_R32G32B32A32_SFLOAT;
+		case TextureFormat::R8_UNORM:                         return VK_FORMAT_R8_UNORM;
+		case TextureFormat::R8G8B8A8_UNORM:                   return VK_FORMAT_R8G8B8A8_UNORM;
+		case TextureFormat::B8G8R8A8_UNORM:                   return VK_FORMAT_B8G8R8A8_UNORM;
+		case TextureFormat::R16G16B16A16_SFLOAT:              return VK_FORMAT_R16G16B16A16_SFLOAT;
+		case TextureFormat::R32G32B32A32_SFLOAT:              return VK_FORMAT_R32G32B32A32_SFLOAT;
 		default:                                              return VK_FORMAT_R8G8B8A8_UNORM;
 		}
 	}
