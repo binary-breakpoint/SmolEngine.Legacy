@@ -147,8 +147,7 @@ More samples can be found [here.](https://github.com/YellowDummy/Frostium3D/tree
 
 ## Building
 ### Windows
-1. Install [premake5](https://premake.github.io/)
-2. Install [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/)
-3. Run gen-project-vs2019.bat or cmd ```premake5 vs2019```
-4. Extract libs.7z from vendor\vulkan
-5. Compile
+1. Install [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/)
+2. Run gen-project-vs2019.bat or cmd ```premake5 vs2019```
+3. Extract libs.7z from vendor\vulkan
+4. Compile

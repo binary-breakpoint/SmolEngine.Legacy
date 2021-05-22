@@ -8,9 +8,6 @@ workspace "Frostium"
 		"Debug_Vulkan",
 		"Release_Vulkan",
 
-		"Debug_OpenGL",
-		"Release_OpenGL",
-
 		"SmolEngine_R",
 		"SmolEngine_D"
 	}
@@ -185,17 +182,7 @@ project "Frostium"
 
 	links 
 	{ 
-		"opengl32.lib",
-		"vendor/vulkan/libs/shaderc_d.lib",
-		"vendor/vulkan/libs/shaderc_util_d.lib",
-		"vendor/vulkan/libs/glslang_d.lib",
-		"vendor/vulkan/libs/SPIRV_d.lib",
-		"vendor/vulkan/libs/SPIRV-Tools_d.lib",
-		"vendor/vulkan/libs/SPIRV-Tools-opt_d.lib",
-		"vendor/vulkan/libs/machineIndependent_d.lib",
-		"vendor/vulkan/libs/genericCodeGen_d.lib",
-		"vendor/vulkan/libs/OGLCompiler_d.lib",
-		"vendor/vulkan/libs/OSDependent_d.lib"
+		"opengl32.lib"
 	}
 
 	defines
@@ -258,17 +245,7 @@ project "Frostium"
 
 	   links 
 	   { 
-		"opengl32.lib",
-		 "vendor/vulkan/libs/shaderc.lib",
-		 "vendor/vulkan/libs/shaderc_util.lib",
-		 "vendor/vulkan/libs/glslang.lib",
-		 "vendor/vulkan/libs/SPIRV.lib",
-		 "vendor/vulkan/libs/SPIRV-Tools.lib",
-		 "vendor/vulkan/libs/SPIRV-Tools-opt.lib",
-		 "vendor/vulkan/libs/machineIndependent.lib",
-		 "vendor/vulkan/libs/genericCodeGen.lib",
-		 "vendor/vulkan/libs/OGLCompiler.lib",
-		 "vendor/vulkan/libs/OSDependent.lib"
+		"opengl32.lib"
 	   }
 
 	    defines

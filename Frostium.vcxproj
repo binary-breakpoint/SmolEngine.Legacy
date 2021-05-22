@@ -9,14 +9,6 @@
       <Configuration>Release_Vulkan</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug_OpenGL|x64">
-      <Configuration>Debug_OpenGL</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release_OpenGL|x64">
-      <Configuration>Release_OpenGL</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="SmolEngine_R|x64">
       <Configuration>SmolEngine_R</Configuration>
       <Platform>x64</Platform>
@@ -46,18 +38,6 @@
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_OpenGL|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v142</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_OpenGL|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v142</PlatformToolset>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='SmolEngine_R|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
@@ -79,12 +59,6 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release_Vulkan|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug_OpenGL|x64'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release_OpenGL|x64'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='SmolEngine_R|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
@@ -101,18 +75,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Vulkan|x64'">
     <OutDir>bin\Release_Vulkan-windows-x86_64\Frostium\</OutDir>
     <IntDir>vendor\libs\bin-int\Release_Vulkan-windows-x86_64\Frostium\</IntDir>
-    <TargetName>Frostium</TargetName>
-    <TargetExt>.lib</TargetExt>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_OpenGL|x64'">
-    <OutDir>bin\Debug_OpenGL-windows-x86_64\Frostium\</OutDir>
-    <IntDir>vendor\libs\bin-int\Debug_OpenGL-windows-x86_64\Frostium\</IntDir>
-    <TargetName>Frostium</TargetName>
-    <TargetExt>.lib</TargetExt>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_OpenGL|x64'">
-    <OutDir>bin\Release_OpenGL-windows-x86_64\Frostium\</OutDir>
-    <IntDir>vendor\libs\bin-int\Release_OpenGL-windows-x86_64\Frostium\</IntDir>
     <TargetName>Frostium</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
@@ -173,54 +135,6 @@
     </Link>
     <Lib>
       <AdditionalDependencies>vendor\libs\Release_Vulkan-windows-x86_64\Glad\Glad.lib;vendor\libs\Release_Vulkan-windows-x86_64\GLFW\GLFW.lib;vendor\libs\Release_Vulkan-windows-x86_64\ImGizmo\ImGizmo.lib;vendor\libs\Release_Vulkan-windows-x86_64\ImGui\ImGui.lib;vendor\libs\Release_Vulkan-windows-x86_64\KTX-Tools\KTX-Tools.lib;vendor\libs\Release_Vulkan-windows-x86_64\SPIRV-Cross\SPIRV-Cross.lib;vendor\vulkan\libs\vulkan-1.lib;vendor\vulkan\libs\shaderc.lib;vendor\vulkan\libs\shaderc_util.lib;vendor\vulkan\libs\glslang.lib;vendor\vulkan\libs\SPIRV.lib;vendor\vulkan\libs\SPIRV-Tools.lib;vendor\vulkan\libs\SPIRV-Tools-opt.lib;vendor\vulkan\libs\machineIndependent.lib;vendor\vulkan\libs\genericCodeGen.lib;vendor\vulkan\libs\OGLCompiler.lib;vendor\vulkan\libs\OSDependent.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
-    </Lib>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_OpenGL|x64'">
-    <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;PLATFORM_WIN;BUILD_DLL;GLFW_INCLUDE_NONE;FROSTIUM_OPENGL_IMPL;FROSTIUM_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;vendor\icon_font_cpp_headers;include;include\Libraries;include\Libraries\implot;include\Libraries\spdlog\include;include\Libraries\cereal\include;src;vendor\glfw\include;vendor\glad\include;include\Libraries\imgui;include\Libraries\glm;include\Libraries\stb_image;include\Libraries\vulkan\include;include\Libraries\imgizmo\src;vendor\ktx\include;vendor\gli;vendor\tinygltf;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <Optimization>Disabled</Optimization>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalOptions>/MDd /bigobj /Zm500 %(AdditionalOptions)</AdditionalOptions>
-      <LanguageStandard>stdcpp17</LanguageStandard>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-    <Lib>
-      <AdditionalDependencies>vendor\libs\Debug_OpenGL-windows-x86_64\Glad\Glad.lib;vendor\libs\Debug_OpenGL-windows-x86_64\GLFW\GLFW.lib;vendor\libs\Debug_OpenGL-windows-x86_64\ImGizmo\ImGizmo.lib;vendor\libs\Debug_OpenGL-windows-x86_64\ImGui\ImGui.lib;vendor\libs\Debug_OpenGL-windows-x86_64\KTX-Tools\KTX-Tools.lib;vendor\libs\Debug_OpenGL-windows-x86_64\SPIRV-Cross\SPIRV-Cross.lib;vendor\vulkan\libs\vulkan-1.lib;opengl32.lib;vendor\vulkan\libs\shaderc_d.lib;vendor\vulkan\libs\shaderc_util_d.lib;vendor\vulkan\libs\glslang_d.lib;vendor\vulkan\libs\SPIRV_d.lib;vendor\vulkan\libs\SPIRV-Tools_d.lib;vendor\vulkan\libs\SPIRV-Tools-opt_d.lib;vendor\vulkan\libs\machineIndependent_d.lib;vendor\vulkan\libs\genericCodeGen_d.lib;vendor\vulkan\libs\OGLCompiler_d.lib;vendor\vulkan\libs\OSDependent_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
-    </Lib>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_OpenGL|x64'">
-    <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;PLATFORM_WIN;BUILD_DLL;GLFW_INCLUDE_NONE;FROSTIUM_OPENGL_IMPL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;vendor\icon_font_cpp_headers;include;include\Libraries;include\Libraries\implot;include\Libraries\spdlog\include;include\Libraries\cereal\include;src;vendor\glfw\include;vendor\glad\include;include\Libraries\imgui;include\Libraries\glm;include\Libraries\stb_image;include\Libraries\vulkan\include;include\Libraries\imgizmo\src;vendor\ktx\include;vendor\gli;vendor\tinygltf;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <Optimization>Full</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <MinimalRebuild>false</MinimalRebuild>
-      <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalOptions>/MD /bigobj /Zm500 %(AdditionalOptions)</AdditionalOptions>
-      <LanguageStandard>stdcpp17</LanguageStandard>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-    <Lib>
-      <AdditionalDependencies>vendor\libs\Release_OpenGL-windows-x86_64\Glad\Glad.lib;vendor\libs\Release_OpenGL-windows-x86_64\GLFW\GLFW.lib;vendor\libs\Release_OpenGL-windows-x86_64\ImGizmo\ImGizmo.lib;vendor\libs\Release_OpenGL-windows-x86_64\ImGui\ImGui.lib;vendor\libs\Release_OpenGL-windows-x86_64\KTX-Tools\KTX-Tools.lib;vendor\libs\Release_OpenGL-windows-x86_64\SPIRV-Cross\SPIRV-Cross.lib;vendor\vulkan\libs\vulkan-1.lib;opengl32.lib;vendor\vulkan\libs\shaderc.lib;vendor\vulkan\libs\shaderc_util.lib;vendor\vulkan\libs\glslang.lib;vendor\vulkan\libs\SPIRV.lib;vendor\vulkan\libs\SPIRV-Tools.lib;vendor\vulkan\libs\SPIRV-Tools-opt.lib;vendor\vulkan\libs\machineIndependent.lib;vendor\vulkan\libs\genericCodeGen.lib;vendor\vulkan\libs\OGLCompiler.lib;vendor\vulkan\libs\OSDependent.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
   </ItemDefinitionGroup>
