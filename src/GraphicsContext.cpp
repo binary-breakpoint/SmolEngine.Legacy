@@ -32,7 +32,7 @@ namespace Frostium
 			return;
 
 		m_State = new GraphicsContextState(info->pDefaultCamera != nullptr,
-			info->Flags & Features_ImGui_Flags, info->bTargetsSwapchain);
+			info->Flags & Features_ImGui_Flags, info->bTargetsSwapchain, info->bAutoResize);
 
 		s_Instance = this;
 		m_Flags = info->Flags;
@@ -234,20 +234,26 @@ namespace Frostium
 	    }
 }
 
-	void GraphicsContext::OnResize(uint32_t* width, uint32_t* height)
+	void GraphicsContext::Resize(uint32_t* width, uint32_t* height)
 	{
 #ifdef  FROSTIUM_OPENGL_IMPL
 #else
 		m_VulkanContext.OnResize(width, height);
 #endif
-		m_Framebuffer->OnResize(*width, *height);
-		if (m_Flags & Features_Renderer_3D_Flags)
-			Renderer::OnResize(*width, *height);
+		if (m_State->AutoResize)
+			SetFramebufferSize(*width, *height);
 	}
 
 	void GraphicsContext::SetEventCallback(std::function<void(Event&)> callback)
 	{
 		m_EventCallback = callback;
+	}
+
+	void GraphicsContext::SetFramebufferSize(uint32_t width, uint32_t height)
+	{
+		m_Framebuffer->OnResize(width, height);
+		if (m_Flags & Features_Renderer_3D_Flags)
+			Renderer::OnResize(width, height);
 	}
 
 	DeltaTime GraphicsContext::CalculateDeltaTime()
@@ -367,7 +373,7 @@ namespace Frostium
 			else
 			{
 				m_State->WindowMinimized = false;
-				OnResize(&width, &height);
+				Resize(&width, &height);
 			}
 		}
 
