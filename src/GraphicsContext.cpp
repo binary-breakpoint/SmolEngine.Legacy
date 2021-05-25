@@ -111,7 +111,7 @@ namespace Frostium
 			materialInfo.SetMetalness(0.2f);
 			materialInfo.SetRoughness(1.0f);
 			m_MaterialLibrary = new MaterialLibrary();
-			int32_t id = m_MaterialLibrary->Add(&materialInfo);
+			int32_t id = m_MaterialLibrary->Add(&materialInfo, "default material");
 			Renderer::UpdateMaterials();
 		}
 

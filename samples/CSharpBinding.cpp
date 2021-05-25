@@ -5,7 +5,6 @@
 #include <GraphicsContext.h>
 #include <MaterialLibrary.h>
 #include <Renderer.h>
-#include <ImGUI/ImGuiExtension.h>
 
 #include <mono/metadata/assembly.h>
 #include <mono/jit/jit.h>
@@ -107,7 +106,7 @@ int main(int argc, char** argv)
 	materialCI.SetTexture(MaterialTexture::Roughness, "Assets/materials/stone/Tiles087_1K_Roughness.png");
 	materialCI.SetTexture(MaterialTexture::AO, "Assets/materials/stone/Tiles087_1K_AmbientOcclusion.png");
 	materialCI.SetMetalness(0.1f);
-	uint32_t stoneMat = MaterialLibrary::GetSinglenton()->Add(&materialCI);
+	uint32_t stoneMat = MaterialLibrary::GetSinglenton()->Add(&materialCI, "stone");
 	Renderer::UpdateMaterials();
 
 	while (process)

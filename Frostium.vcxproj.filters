@@ -333,9 +333,6 @@
     <ClInclude Include="include\ImGUI\ImGuiContext.h">
       <Filter>include\ImGUI</Filter>
     </ClInclude>
-    <ClInclude Include="include\ImGUI\ImGuiExtension.h">
-      <Filter>include\ImGUI</Filter>
-    </ClInclude>
     <ClInclude Include="include\ImGUI\ImGuiVulkanImpl.h">
       <Filter>include\ImGUI</Filter>
     </ClInclude>
@@ -2457,9 +2454,6 @@
       <Filter>src\ImGUI</Filter>
     </ClCompile>
     <ClCompile Include="src\ImGUI\ImGuiContext.cpp">
-      <Filter>src\ImGUI</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ImGUI\ImGuiExtension.cpp">
       <Filter>src\ImGUI</Filter>
     </ClCompile>
     <ClCompile Include="src\ImGUI\ImGuiVulkanImpl.cpp">

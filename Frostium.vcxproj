@@ -223,7 +223,6 @@
     <ClInclude Include="include\GraphicsContext.h" />
     <ClInclude Include="include\GraphicsPipeline.h" />
     <ClInclude Include="include\ImGUI\ImGuiContext.h" />
-    <ClInclude Include="include\ImGUI\ImGuiExtension.h" />
     <ClInclude Include="include\ImGUI\ImGuiVulkanImpl.h" />
     <ClInclude Include="include\Libraries\cereal\include\cereal\external\rapidjson\allocators.h" />
     <ClInclude Include="include\Libraries\cereal\include\cereal\external\rapidjson\cursorstreamwrapper.h" />
@@ -933,7 +932,6 @@
     <ClCompile Include="src\GraphicsPipeline.cpp" />
     <ClCompile Include="src\ImGUI\ImGuiBuid.cpp" />
     <ClCompile Include="src\ImGUI\ImGuiContext.cpp" />
-    <ClCompile Include="src\ImGUI\ImGuiExtension.cpp" />
     <ClCompile Include="src\ImGUI\ImGuiVulkanImpl.cpp" />
     <ClCompile Include="src\MaterialLibrary.cpp" />
     <ClCompile Include="src\OpenGL\OpenglBuffer.cpp" />

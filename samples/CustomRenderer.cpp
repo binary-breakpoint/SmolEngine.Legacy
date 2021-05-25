@@ -4,7 +4,6 @@
 #include <GraphicsContext.h>
 #include <MaterialLibrary.h>
 #include <Utils/Utils.h>
-#include <ImGUI/ImGuiExtension.h>
 
 #include <Vulkan/VulkanPBR.h>
 
@@ -298,7 +297,7 @@ void CustomRenderer::BuildMaterials()
 	std::string path = "Assets/materials/";
 
 	{
-		uint32_t id = lib->Add(&materialCI);
+		uint32_t id = lib->Add(&materialCI, "default");
 	}
 
 	{
@@ -307,7 +306,7 @@ void CustomRenderer::BuildMaterials()
 		materialCI.SetTexture(MaterialTexture::Roughness, path + "steel/CorrugatedSteel005_2K_Roughness.png");
 		materialCI.SetTexture(MaterialTexture::Metallic, path + "steel/CorrugatedSteel005_2K_Metalness.png");
 
-		uint32_t id = lib->Add(&materialCI);
+		uint32_t id = lib->Add(&materialCI, "steel");
 		m_MaterialsIDs.push_back(id);
 	}
 
@@ -318,7 +317,7 @@ void CustomRenderer::BuildMaterials()
 		materialCI.SetTexture(MaterialTexture::Roughness, path + "metal_1/Metal033_1K_Roughness.png");
 		materialCI.SetTexture(MaterialTexture::Metallic, path + "metal_1/Metal033_1K_Metalness.png");
 
-		uint32_t id = lib->Add(&materialCI);
+		uint32_t id = lib->Add(&materialCI, "metal");
 		m_MaterialsIDs.push_back(id);
 	}
 
@@ -328,7 +327,7 @@ void CustomRenderer::BuildMaterials()
 		materialCI.SetTexture(MaterialTexture::Roughness, path + "metal_2/Metal012_1K_Roughness.png");
 		materialCI.SetTexture(MaterialTexture::Metallic, path + "metal_2/Metal012_1K_Metalness.png");
 
-		uint32_t id = lib->Add(&materialCI);
+		uint32_t id = lib->Add(&materialCI, "metal2");
 		m_MaterialsIDs.push_back(id);
 	}
 
@@ -338,7 +337,7 @@ void CustomRenderer::BuildMaterials()
 		materialCI.SetTexture(MaterialTexture::Roughness, path + "plane/Metal021_2K_Roughness.png");
 		materialCI.SetTexture(MaterialTexture::Metallic, path + "plane/Metal021_2K_Metalness.png");
 
-		uint32_t id = lib->Add(&materialCI);
+		uint32_t id = lib->Add(&materialCI, "metal3");
 		m_MaterialsIDs.push_back(id);
 	}
 }

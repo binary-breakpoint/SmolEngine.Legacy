@@ -3,7 +3,6 @@
 #include <Common/Mesh.h>
 #include <Common/Input.h>
 #include <Common/Text.h>
-#include <ImGUI/ImGuiExtension.h>
 #include <Utils/Utils.h>
 #include <GraphicsContext.h>
 #include <Renderer2D.h>
@@ -93,9 +92,6 @@ int main(int argc, char** argv)
 			ImGui::Begin("2D Sample");
 			{
 				float lastFrameTime = deltaTime.GetTimeSeconds() * 100.0f;
-				ImGui::Extensions::Text("Ms: ", std::to_string(lastFrameTime), 60.0f);
-				if (ImGui::Extensions::InputRawString("Text", str, "Input", 60.0f))
-					text1.SetText(str);
 			}
 			ImGui::End();
 

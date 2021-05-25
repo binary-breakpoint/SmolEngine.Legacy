@@ -190,7 +190,7 @@ namespace Frostium
 		DrawSphereLines(pos, up, -axis, radius, minTh, maxTh, minPs, maxPs, stepDegrees, false);
 	}
 
-	void DebugRenderer::DrawCapsule(float radius, float halfHeight, uint32_t upAxis, const glm::vec3& pos, const glm::vec3& rot_, const glm::vec3& scale)
+	void DebugRenderer::DrawCapsule(float radius, float halfHeight, uint32_t upAxis, const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& scale)
 	{
 		int stepDegrees = 30;
 		glm::vec3 capStart(0.f, 0.f, 0.f);
@@ -200,7 +200,7 @@ namespace Frostium
 		capEnd[upAxis] = halfHeight;
 
 		glm::mat4 transform;
-		Utils::ComposeTransform(pos, rot_, scale, transform);
+		Utils::ComposeTransform(pos, rot, scale, transform);
 
 		// Draw the ends
 		{
@@ -221,7 +221,7 @@ namespace Frostium
 
 		{
 			glm::mat4 childTransform = transform;
-			glm::vec4 origin = transform * glm::vec4(capStart, 1.0);
+			glm::vec4 origin = transform * glm::vec4(capEnd, 1.0);
 			{
 				glm::vec3 center = origin;
 				glm::vec3 up = transform[(upAxis + 1) % 3];
@@ -232,6 +232,15 @@ namespace Frostium
 				float maxPs = SIMD_HALF_PI;
 				DrawSphereLines(center, up, axis, radius, minTh, maxTh, minPs, maxPs, float(stepDegrees), false);
 			}
+		}
+
+		// Draw some additional lines
+
+		for (int i = 0; i < 360; i += stepDegrees)
+		{
+			capEnd[(upAxis + 1) % 3] = capStart[(upAxis + 1) % 3] = sinf(float(i) * SIMD_RADS_PER_DEG) * radius;
+			capEnd[(upAxis + 2) % 3] = capStart[(upAxis + 2) % 3] = cosf(float(i) * SIMD_RADS_PER_DEG) * radius;
+			DrawLine(pos + glm::mat3(transform) * capStart, pos + glm::mat3(transform) * capEnd);
 		}
 	}
 
@@ -351,7 +360,7 @@ namespace Frostium
 				{ DataTypes::Float4, "aWeight"}
 			};
 
-			vertexInput = VertexInputInfo(sizeof(glm::vec3), main_layout);
+			vertexInput = VertexInputInfo(sizeof(PBRVertex), main_layout);
 		}
 
 		// Primitives

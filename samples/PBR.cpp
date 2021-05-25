@@ -184,7 +184,7 @@ void LoadMaterials(std::vector<uint32_t>& materialsIDs)
 		materialCI.SetTexture(MaterialTexture::AO,aoPath);
 		materialCI.SetMetalness(0.2f);
 		 
-		uint32_t id = lib->Add(&materialCI, "Assets/materials/wood.mat");
+		uint32_t id = lib->Add(&materialCI, "wood");
 		materialsIDs.push_back(id);
 	}
 
@@ -203,7 +203,7 @@ void LoadMaterials(std::vector<uint32_t>& materialsIDs)
 		materialCI.SetTexture(MaterialTexture::AO, aoPath);
 		materialCI.SetMetalness(1.0f);
 
-		uint32_t id = lib->Add(&materialCI, "Assets/materials/stone.mat");
+		uint32_t id = lib->Add(&materialCI, "stone");
 		materialsIDs.push_back(id);
 	}
 
@@ -221,7 +221,7 @@ void LoadMaterials(std::vector<uint32_t>& materialsIDs)
 		materialCI.SetTexture(MaterialTexture::Roughness, roughnessPath);
 		materialCI.SetTexture(MaterialTexture::Metallic, metalPath);
 
-		uint32_t id = lib->Add(&materialCI, "Assets/materials/metal1.mat");
+		uint32_t id = lib->Add(&materialCI, "metal1");
 		materialsIDs.push_back(id);
 	}
 
@@ -239,7 +239,7 @@ void LoadMaterials(std::vector<uint32_t>& materialsIDs)
 		materialCI.SetTexture(MaterialTexture::Roughness,  roughnessPath);
 		materialCI.SetTexture(MaterialTexture::Metallic,  metalPath);
 
-		uint32_t id = lib->Add(&materialCI, "Assets/materials/metal2.mat");
+		uint32_t id = lib->Add(&materialCI, "metal2");
 		materialsIDs.push_back(id);
 	}
 

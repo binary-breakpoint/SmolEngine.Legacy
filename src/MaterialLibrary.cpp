@@ -37,11 +37,10 @@ namespace Frostium
 #endif
 	}
 
-	uint32_t MaterialLibrary::Add(MaterialCreateInfo* infoCI, const std::string& path)
+	uint32_t MaterialLibrary::Add(MaterialCreateInfo* infoCI, const std::string& name)
 	{
 		uint32_t materialID = 0;
-		size_t hashID = GetHash(infoCI);
-
+		size_t hashID = m_Hash(name);
 		if (m_MaterialMap.size() > 0)
 		{
 			auto& it = m_MaterialMap.find(hashID);
@@ -82,10 +81,6 @@ namespace Frostium
 		m_Materials.emplace_back(newMaterial);
 		m_MaterialMap.insert({ hashID, materialID });
 		m_MaterialIndex++;
-
-		if(!path.empty())
-			Save(path, *infoCI);
-
 		return materialID;
 	}
 
@@ -187,19 +182,6 @@ namespace Frostium
 		return index;
 	}
 
-	size_t MaterialLibrary::GetHash(MaterialCreateInfo* infoCI)
-	{
-		std::string name = "";
-		std::filesystem::path p;
-		for (auto& [type, path] : infoCI->Textures)
-		{
-			std::filesystem::path p(path);
-			name += p.filename().stem().string();
-		}
-
-		return m_Hash(name);
-	}
-
 	PBRMaterial* MaterialLibrary::GetMaterial(uint32_t ID)
 	{
 		if (ID > m_MaterialIndex)
@@ -272,7 +254,7 @@ namespace Frostium
 
 	void MaterialCreateInfo::SetTexture(MaterialTexture type, const std::string& filePath)
 	{
-		Textures[type] = filePath;
+		Textures[type] = filePath.c_str();
 	}
 
 	float* MaterialCreateInfo::GetMetalness()

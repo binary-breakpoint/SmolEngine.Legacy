@@ -7,7 +7,6 @@
 #include <DebugRenderer.h>
 #include <Renderer.h>
 
-#include <ImGUI/ImGuiExtension.h>
 #include <Utils/Utils.h>
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
@@ -58,7 +57,7 @@ int main(int argc, char** argv)
 
 	bool playAnim = false;
 	bool reset = false;
-	bool wireframes = false;
+	bool debug = false;
 	float zNear = 1.0f;
 	float zFar = 350.0f;
 	float lightFOV = 45.0f;
@@ -91,7 +90,7 @@ int main(int argc, char** argv)
 			materialCI.SetTexture(MaterialTexture::AO, "Assets/materials/stone/Tiles087_1K_AmbientOcclusion.png");
 			materialCI.SetMetalness(0.1f);
 
-			stoneMat = MaterialLibrary::GetSinglenton()->Add(&materialCI);
+			stoneMat = MaterialLibrary::GetSinglenton()->Add(&materialCI, "stone");
 		}
 
 		{
@@ -101,7 +100,7 @@ int main(int argc, char** argv)
 			materialCI.SetTexture(MaterialTexture::Roughness, "Assets/materials/plane/Metal021_2K_Roughness.png");
 			materialCI.SetTexture(MaterialTexture::Metallic, "Assets/materials/plane/Metal021_2K_Metalness.png");
 
-			planeMat = MaterialLibrary::GetSinglenton()->Add(&materialCI);
+			planeMat = MaterialLibrary::GetSinglenton()->Add(&materialCI, "metal");
 		}
 	}
 
@@ -134,7 +133,7 @@ int main(int argc, char** argv)
 				if (ImGui::Checkbox("Bloom Pass", &state.bBloomPass))
 					Renderer::SetRenderingState(&state);
 
-				ImGui::Checkbox("Wireframes", &wireframes);
+				ImGui::Checkbox("Debug Draw", &debug);
 				if (ImGui::InputFloat("LightIntensity", &lightIntensity))
 				{
 					dirLight.Intensity = lightIntensity;
@@ -199,13 +198,11 @@ int main(int argc, char** argv)
 			Renderer::SubmitMesh({ 3, 2, 0 }, { 0, 0, 0 }, { 5, 5, 5, }, &dummy, stoneMat);
 			Renderer::EndScene();
 			
-			if (wireframes)
+			if (debug)
 			{
 				DebugRenderer::BeginDebug();
-				DebugRenderer::DrawAABB(sphere->GetAABB(), { -5, 5, 0 }, { 2, 2, 2, });
-				DebugRenderer::DrawBox({ 1, 1, 1 }, { -1,-1, -1 }, { 5, 5, 5 }, { 0, 2, 0 }, { 3, 3, 3 });
-				DebugRenderer::DrawCapsule(1, 0.5, 2, { -5, 5, 0 }, { 0, 0, 0 }, { 2, 2, 2 });
-			//	DebugRenderer::DrawSphere(3, { 10, 5, 0 }, { 0, 0, 0 }, { 2, 2, 2 });
+				DebugRenderer::DrawWireframes({ 0, 1, 0 }, { 0, 0, 0 }, { 50, 1, 50, }, cube);
+				DebugRenderer::DrawCapsule(1, 2, 1, { 1, 2, 1 }, { 3,2,0 }, { 1, 1, 1 });
 				DebugRenderer::EndDebug();
 			}
 
