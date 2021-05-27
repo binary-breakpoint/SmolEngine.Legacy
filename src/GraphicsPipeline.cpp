@@ -197,6 +197,7 @@ namespace Frostium
 		}
 
 		VulkanCommandBuffer::CreateCommandBuffer(&m_CmdStorage);
+		m_CommandBuffer = m_CmdStorage.Buffer;
 #else
 		OpenglRendererAPI* instance = m_GraphicsContext->GetOpenglRendererAPI();
 		instance->Init();

@@ -40,6 +40,7 @@ int main(int argc, char** argv)
 		info.ResourcesFolderPath = "../resources/";
 		info.pWindowCI = &windoInfo;
 		info.pDefaultCamera = camera;
+		info.eMSAASamples = MSAASamples::SAMPLE_COUNT_4;
 		info.eShadowMapSize = ShadowMapSize::SIZE_8;
 	}
 
@@ -64,7 +65,7 @@ int main(int argc, char** argv)
 	float animSpeed = 1.0f;
 	float lightIntensity = 1.0f;
 
-	RenderingState state = {};
+	RendererState state = {};
 	DirectionalLight dirLight = {};
 	dirLight.IsActive = true;
 	dirLight.IsCastShadows = true;
@@ -124,14 +125,25 @@ int main(int argc, char** argv)
 		{
 			ImGui::Begin("Skinning Sample");
 			{
+				static int type  = 0;
+
+				if (ImGui::Combo("##C", &type, "Bloom\0Blur\0"))
+				{
+					state.eExposureType = (PostProcessingFlags)type;
+					Renderer::SetRendererState(&state);
+				}
+
 				if (ImGui::Checkbox("Grid", &state.bDrawGrid))
-					Renderer::SetRenderingState(&state);
+					Renderer::SetRendererState(&state);
 
 				if (ImGui::Checkbox("Skybox", &state.bDrawSkyBox))
-					Renderer::SetRenderingState(&state);
+					Renderer::SetRendererState(&state);
 
-				if (ImGui::Checkbox("Bloom Pass", &state.bBloomPass))
-					Renderer::SetRenderingState(&state);
+				if (ImGui::Checkbox("HDR", &state.bHDR))
+					Renderer::SetRendererState(&state);
+
+				if (ImGui::Checkbox("FXAA", &state.bFXAA))
+					Renderer::SetRendererState(&state);
 
 				ImGui::Checkbox("Debug Draw", &debug);
 				if (ImGui::InputFloat("LightIntensity", &lightIntensity))

@@ -29,8 +29,7 @@ namespace Frostium
 		static void SubmitPointLight(PointLight* light);
 		static void SubmitSpotLight(SpotLight* light);
 
-		static void SetRenderingState(RenderingState* state);
-		static void SetSceneState(SceneState* state);
+		static void SetRendererState(RendererState* state);
 
 		// Getters
 		static Framebuffer* GetFramebuffer();

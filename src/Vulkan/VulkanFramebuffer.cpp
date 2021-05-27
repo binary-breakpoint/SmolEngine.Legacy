@@ -49,7 +49,7 @@ namespace Frostium
 		VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
 
 		// Sampler
-		CreateSampler();
+		CreateSampler(m_Specification.eSamplerFiltering == SamplerFilter::LINEAR ? VK_FILTER_LINEAR: VK_FILTER_NEAREST);
 
 		// Color Attachments
 		for (uint32_t i = 0; i < bufferSize; ++i)
@@ -84,7 +84,7 @@ namespace Frostium
 			m_ClearAttachments[lastImageViewIndex].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 			m_ClearAttachments[lastImageViewIndex].clearValue.color = { { 0.0f, 0.0f, 0.0f, 1.0f} };
 			m_ClearAttachments[lastImageViewIndex].colorAttachment = lastImageViewIndex;
-			if(!info.Name.empty())
+			if (!info.Name.empty())
 				m_AttachmentsMap[info.Name] = i;
 
 			lastImageViewIndex++;
@@ -161,7 +161,7 @@ namespace Frostium
 				renderPassGenInfo.DepthFormat = m_DepthFormat;
 				renderPassGenInfo.MSAASamples = m_MSAASamples;
 				renderPassGenInfo.NumColorAttachments = static_cast<uint32_t>(m_Attachments.size());
-				renderPassGenInfo.NumResolveAttachments = m_Specification.bTargetsSwapchain && IsUseMSAA() ? 1: static_cast<uint32_t>(m_ResolveAttachments.size());
+				renderPassGenInfo.NumResolveAttachments = m_Specification.bTargetsSwapchain && IsUseMSAA() ? 1 : static_cast<uint32_t>(m_ResolveAttachments.size());
 				renderPassGenInfo.NumDepthAttachments = 1;
 			}
 
