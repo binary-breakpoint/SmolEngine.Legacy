@@ -34,11 +34,12 @@ namespace Frostium
 		alignas(4) uint32_t    NumPointsLights = 0;
 		alignas(4) uint32_t    NumSpotLights = 0;
 
-		friend class Renderer;
+		friend class DeferredRenderer;
 	};
 
 	enum class PostProcessingFlags: uint32_t
 	{
+		None,
 		Bloom,
 		Blur
 	};
@@ -49,6 +50,7 @@ namespace Frostium
 		bool                   bDrawGrid = true;      
 		bool                   bHDR = true;
 		bool                   bFXAA = true;
+		bool                   bSSAO = false;
 		PostProcessingFlags    eExposureType = PostProcessingFlags::Bloom;
 		SceneState             SceneState = {};
 	};

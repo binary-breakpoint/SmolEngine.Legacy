@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "GraphicsContext.h"
-#include "Renderer.h"
+#include "DeferredRenderer.h"
 #include "Renderer2D.h"
 #include "DebugRenderer.h"
 #include "MaterialLibrary.h"
@@ -85,7 +85,6 @@ namespace Frostium
 			framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
 			framebufferCI.bTargetsSwapchain = info->bTargetsSwapchain;
 			framebufferCI.bResizable = true;
-			framebufferCI.NumSubpassDependencies = 1;
 			framebufferCI.bUsedByImGui = m_State->UseImGUI && !info->bTargetsSwapchain ? true : false;
 			framebufferCI.Attachments = { FramebufferAttachment(AttachmentFormat::Color) };
 
@@ -105,7 +104,7 @@ namespace Frostium
 			}
 
 			InitRendererStorage(m_RendererStorage, info->eShadowMapSize);
-			Renderer::Init(m_RendererStorage);
+			DeferredRenderer::Init(m_RendererStorage);
 
 			// Adds default material
 			MaterialCreateInfo materialInfo = {};
@@ -113,7 +112,7 @@ namespace Frostium
 			materialInfo.SetRoughness(1.0f);
 			m_MaterialLibrary = new MaterialLibrary();
 			int32_t id = m_MaterialLibrary->Add(&materialInfo, "default material");
-			Renderer::UpdateMaterials();
+			DeferredRenderer::UpdateMaterials();
 		}
 
 		if (info->Flags & Features_Renderer_2D_Flags)
@@ -211,7 +210,7 @@ namespace Frostium
 			if (m_State->UseImGUI)
 				m_ImGuiContext->ShutDown();
 
-			Renderer::Shutdown();
+			DeferredRenderer::Shutdown();
 			Renderer2D::Shutdown();
 
 			m_Window->ShutDown();
@@ -254,7 +253,7 @@ namespace Frostium
 	{
 		m_Framebuffer->OnResize(width, height);
 		if (m_Flags & Features_Renderer_3D_Flags)
-			Renderer::OnResize(width, height);
+			DeferredRenderer::OnResize(width, height);
 	}
 
 	DeltaTime GraphicsContext::CalculateDeltaTime()

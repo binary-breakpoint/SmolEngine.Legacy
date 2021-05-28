@@ -2286,7 +2286,7 @@
     <ClInclude Include="include\RaytracingPipeline.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="include\Renderer.h">
+    <ClInclude Include="include\DeferredRenderer.h">
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="include\Renderer2D.h">
@@ -2489,7 +2489,7 @@
     <ClCompile Include="src\RaytracingPipeline.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\Renderer.cpp">
+    <ClCompile Include="src\DeferredRenderer.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\Renderer2D.cpp">

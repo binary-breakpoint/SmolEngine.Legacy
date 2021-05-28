@@ -3,13 +3,12 @@ Frostium3D
 ![PBR](https://i.imgur.com/W81qlzQ.png)
 ## Core Features
   - Multiple rendering API backends: Vulkan - 100%, OpenGL - 70%
-  - Physically Based Rendering (Metal/Roughness)
-  - Deferred Shading
+  - Physically Based Rendering (Metalness-Roughness workflow)
+  - Deferred Shading Rendering Path
   - Shadow Mapping
-  - MSAA / FXAA
-  - SSAO
-  - HDR
-  - 2D and 3D renderers
+  - MSAA / FXAA, SSAO, HDR, Bloom\Blur
+  - IBL, Point, Spot and Directional Lighting
+  - 2D, 3D and debug renderers
   - ImGUI Integration
   - Text Rendering (SDF)
   - glTF 2.0
@@ -20,7 +19,7 @@ The first step is to initialize graphics context class:
 ```cpp
 #include <Common/Mesh.h>
 #include <GraphicsContext.h>
-#include <Renderer.h>
+#include <DeferredRenderer.h>
 
 #include <imgui/imgui.h>
 
@@ -47,7 +46,6 @@ int main(int argc, char** argv)
 	GraphicsContextInitInfo info = {};
 	{
 		info.Flags = Features_Renderer_3D_Flags | Features_ImGui_Flags;
-		info.eMSAASamples = MSAASamples::SAMPLE_COUNT_MAX_SUPPORTED;
 		info.eShadowMapSize = ShadowMapSize::SIZE_8;
 		info.ResourcesFolderPath = "../resources/";
 		info.pWindowCI = &windoInfo;
@@ -84,7 +82,7 @@ And finally load resources and run main update loop:
 		   @Simulate physics, process scripts, etc
 		*/
 		
-		// FarClip, NearClip, Camera Position, Projection and View Matrices
+		// Far clip, near clip, camera position, projection and view matrices
 		BeginSceneInfo info = {};
 		// Updates struct using camera class
 		info.Update(camera);
@@ -96,14 +94,14 @@ And finally load resources and run main update loop:
 		context->BeginFrame(deltaTime);
 		{
 			uint32_t objects = 0;
-			Renderer::BeginScene(&clearInfo);
+			DeferredRenderer::BeginScene(&clearInfo);
 			{
 				for (const auto& c : chunks)
-					Renderer::SubmitMesh(c.Pos, c.Rot, c.Scale, &cube, c.MaterialID);
+					DeferredRenderer::SubmitMesh(c.Pos, c.Rot, c.Scale, &cube, c.MaterialID);
 					
-				objects = Renderer::GetNumObjects();
+				objects = DeferredRenderer::GetNumObjects();
 			}
-			Renderer::EndScene();
+			DeferredRenderer::EndScene();
 			
 			ImGui::Begin("Debug Window");
 			{

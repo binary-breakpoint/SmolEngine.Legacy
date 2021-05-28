@@ -14,7 +14,7 @@ namespace Frostium
 	struct MeshComponent;
 	enum class ShadowMapSize : uint16_t;
 
-	class Renderer
+	class DeferredRenderer
 	{
 	public:
 
@@ -28,14 +28,10 @@ namespace Frostium
 		static void SubmitDirLight(DirectionalLight* light);
 		static void SubmitPointLight(PointLight* light);
 		static void SubmitSpotLight(SpotLight* light);
-
 		static void SetRendererState(RendererState* state);
 
-		// Getters
 		static Framebuffer* GetFramebuffer();
 		static uint32_t GetNumObjects();
-
-		// Helpers
 		static bool UpdateMaterials();
 		static bool ResetStates();
 

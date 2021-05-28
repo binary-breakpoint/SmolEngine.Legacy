@@ -5,7 +5,7 @@
 #include <GraphicsContext.h>
 #include <MaterialLibrary.h>
 #include <DebugRenderer.h>
-#include <Renderer.h>
+#include <DeferredRenderer.h>
 
 #include <Utils/Utils.h>
 
@@ -105,7 +105,7 @@ int main(int argc, char** argv)
 		}
 	}
 
-	Renderer::UpdateMaterials();
+	DeferredRenderer::UpdateMaterials();
 	plane.SetMaterialID(planeMat, true);
 
 	AnimationProperties* defaultProp = plane.GetAnimationProperties(0);
@@ -130,50 +130,50 @@ int main(int argc, char** argv)
 				if (ImGui::Combo("##C", &type, "Bloom\0Blur\0"))
 				{
 					state.eExposureType = (PostProcessingFlags)type;
-					Renderer::SetRendererState(&state);
+					DeferredRenderer::SetRendererState(&state);
 				}
 
 				if (ImGui::Checkbox("Grid", &state.bDrawGrid))
-					Renderer::SetRendererState(&state);
+					DeferredRenderer::SetRendererState(&state);
 
 				if (ImGui::Checkbox("Skybox", &state.bDrawSkyBox))
-					Renderer::SetRendererState(&state);
+					DeferredRenderer::SetRendererState(&state);
 
 				if (ImGui::Checkbox("HDR", &state.bHDR))
-					Renderer::SetRendererState(&state);
+					DeferredRenderer::SetRendererState(&state);
 
 				if (ImGui::Checkbox("FXAA", &state.bFXAA))
-					Renderer::SetRendererState(&state);
+					DeferredRenderer::SetRendererState(&state);
 
 				ImGui::Checkbox("Debug Draw", &debug);
 				if (ImGui::InputFloat("LightIntensity", &lightIntensity))
 				{
 					dirLight.Intensity = lightIntensity;
-					Renderer::SubmitDirLight(&dirLight);
+					DeferredRenderer::SubmitDirLight(&dirLight);
 				}
 
 				if (ImGui::InputFloat("Znear", &zNear))
 				{
 					dirLight.zNear = zNear;
-					Renderer::SubmitDirLight(&dirLight);
+					DeferredRenderer::SubmitDirLight(&dirLight);
 				}
 
 				if (ImGui::InputFloat("ZFar", &zFar))
 				{
 					dirLight.zFar = zFar;
-					Renderer::SubmitDirLight(&dirLight);
+					DeferredRenderer::SubmitDirLight(&dirLight);
 				}
 
 				if (ImGui::InputFloat("LightFOV", &lightFOV))
 				{
 					dirLight.lightFOV = lightFOV;
-					Renderer::SubmitDirLight(&dirLight);
+					DeferredRenderer::SubmitDirLight(&dirLight);
 				}
 
 				if (ImGui::DragFloat3("LightDir", glm::value_ptr(lightDir)))
 				{
 					dirLight.Direction = glm::vec4(lightDir, 1);
-					Renderer::SubmitDirLight(&dirLight);
+					DeferredRenderer::SubmitDirLight(&dirLight);
 				}
 
 				if (ImGui::Checkbox("Play", &playAnim))
@@ -203,12 +203,12 @@ int main(int argc, char** argv)
 			}
 			ImGui::End();
 
-			Renderer::BeginScene(&clearInfo);
-			Renderer::SubmitMesh({ -5, 5, 0 }, { 0, 0, 0 }, { 2, 2, 2, }, sphere, planeMat);
-			Renderer::SubmitMesh({ 0, 1, 0 }, { 0, 0, 0 }, { 50, 1, 50, }, cube, 0);
-			Renderer::SubmitMesh({ 0, 3.9f, -3 }, glm::radians(rot), { 1, 1, 1, }, &plane, planeMat);
-			Renderer::SubmitMesh({ 3, 2, 0 }, { 0, 0, 0 }, { 5, 5, 5, }, &dummy, stoneMat);
-			Renderer::EndScene();
+			DeferredRenderer::BeginScene(&clearInfo);
+			DeferredRenderer::SubmitMesh({ -5, 5, 0 }, { 0, 0, 0 }, { 2, 2, 2, }, sphere, planeMat);
+			DeferredRenderer::SubmitMesh({ 0, 1, 0 }, { 0, 0, 0 }, { 50, 1, 50, }, cube, 0);
+			DeferredRenderer::SubmitMesh({ 0, 3.9f, -3 }, glm::radians(rot), { 1, 1, 1, }, &plane, planeMat);
+			DeferredRenderer::SubmitMesh({ 3, 2, 0 }, { 0, 0, 0 }, { 5, 5, 5, }, &dummy, stoneMat);
+			DeferredRenderer::EndScene();
 			
 			if (debug)
 			{

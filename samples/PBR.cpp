@@ -2,7 +2,7 @@
 
 #include <GraphicsContext.h>
 #include <MaterialLibrary.h>
-#include <Renderer.h>
+#include <DeferredRenderer.h>
 
 #include <Common/Mesh.h>
 #include <Common/Input.h>
@@ -90,7 +90,7 @@ int main(int argc, char** argv)
 	DirectionalLight dirLight = {};
 	dirLight.IsActive = true;
 	dirLight.Direction = glm::vec4(105.0f, 53.0f, 102.0f, 0);
-	Renderer::SubmitDirLight(&dirLight);
+	DeferredRenderer::SubmitDirLight(&dirLight);
 
 	while (process)
 	{
@@ -132,14 +132,14 @@ int main(int argc, char** argv)
 		context->BeginFrame(deltaTime);
 		{
 			uint32_t objects = 0;
-			Renderer::BeginScene(&clearInfo);
+			DeferredRenderer::BeginScene(&clearInfo);
 			{
 				for (const auto& c : chunks)
-					Renderer::SubmitMesh(c.Pos, c.Rot, c.Scale, cube, c.MaterialID);
+					DeferredRenderer::SubmitMesh(c.Pos, c.Rot, c.Scale, cube, c.MaterialID);
 
-				objects = Renderer::GetNumObjects();
+				objects = DeferredRenderer::GetNumObjects();
 			}
-			Renderer::EndScene();
+			DeferredRenderer::EndScene();
 
 			ImGui::Begin("PBR Sample");
 			{
@@ -148,7 +148,7 @@ int main(int argc, char** argv)
 				std::string str2 = "Objects: " + std::to_string(objects);
 
 				if (ImGui::DragFloat3("LightDir", glm::value_ptr(dirLight.Direction)))
-					Renderer::SubmitDirLight(&dirLight);
+					DeferredRenderer::SubmitDirLight(&dirLight);
 
 				ImGui::Text(str.c_str());
 				ImGui::Text(str2.c_str());
@@ -156,6 +156,7 @@ int main(int argc, char** argv)
 			ImGui::End();
 		}
 		context->SwapBuffers();
+
 	}
 }
 
@@ -244,5 +245,5 @@ void LoadMaterials(std::vector<uint32_t>& materialsIDs)
 	}
 
 	// Don't forget update materials
-	Renderer::UpdateMaterials();
+	DeferredRenderer::UpdateMaterials();
 }

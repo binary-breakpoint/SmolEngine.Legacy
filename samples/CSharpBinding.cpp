@@ -4,7 +4,7 @@
 #include <Common/Input.h>
 #include <GraphicsContext.h>
 #include <MaterialLibrary.h>
-#include <Renderer.h>
+#include <DeferredRenderer.h>
 
 #include <mono/metadata/assembly.h>
 #include <mono/jit/jit.h>
@@ -107,7 +107,7 @@ int main(int argc, char** argv)
 	materialCI.SetTexture(MaterialTexture::AO, "Assets/materials/stone/Tiles087_1K_AmbientOcclusion.png");
 	materialCI.SetMetalness(0.1f);
 	uint32_t stoneMat = MaterialLibrary::GetSinglenton()->Add(&materialCI, "stone");
-	Renderer::UpdateMaterials();
+	DeferredRenderer::UpdateMaterials();
 
 	while (process)
 	{
@@ -126,9 +126,9 @@ int main(int argc, char** argv)
 			}
 			ImGui::End();
 
-			Renderer::BeginScene(&clearInfo);
-			Renderer::SubmitMesh({ 0, -5.0, 0 }, { 0, 0, 0 }, { 10, 1, 10, }, cube, stoneMat);
-			Renderer::EndScene();
+			DeferredRenderer::BeginScene(&clearInfo);
+			DeferredRenderer::SubmitMesh({ 0, -5.0, 0 }, { 0, 0, 0 }, { 10, 1, 10, }, cube, stoneMat);
+			DeferredRenderer::EndScene();
 		}
 		context->SwapBuffers();
 	}

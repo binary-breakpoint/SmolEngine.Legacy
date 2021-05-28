@@ -6,7 +6,6 @@
 #include <Utils/Utils.h>
 #include <GraphicsContext.h>
 #include <Renderer2D.h>
-#include <Renderer.h>
 
 #include <DebugRenderer.h>
 

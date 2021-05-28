@@ -20,7 +20,7 @@ void main()
         case 1:
         {
             vec4 blendColor = texture(ppSampler, inUV);
-            color += vec4(blendColor.rgb, 0.0);
+            color += vec4(blendColor.rgb, 1.0);
             break;
         }
     }

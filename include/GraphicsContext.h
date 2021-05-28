@@ -141,7 +141,7 @@ namespace Frostium
 	private:
 
 		friend class GraphicsPipeline;
-		friend class Renderer;
+		friend class DeferredRenderer;
 		friend class Renderer2D;
 		friend class DebugRenderer;
 		friend class ImGuiContext;
