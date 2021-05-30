@@ -1,6 +1,6 @@
 Frostium3D
 =====
-![PBR](https://i.imgur.com/W81qlzQ.png)
+![PBR](https://i.imgur.com/3CJDZqY.png)
 ## Core Features
   - Multiple rendering API backends: Vulkan - 100%, OpenGL - 70%
   - Physically Based Rendering (Metalness-Roughness workflow)
