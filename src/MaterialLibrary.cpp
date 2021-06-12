@@ -86,7 +86,7 @@ namespace Frostium
 
 	bool MaterialLibrary::Delete(const std::string& name)
 	{
-		return false;
+		return false; // temp
 	}
 
 	void MaterialLibrary::Reset()
@@ -235,6 +235,16 @@ namespace Frostium
 	void MaterialLibrary::GetTextures(std::vector<Texture*>& out_textures) const
 	{
 		out_textures = m_Textures;
+	}
+
+	MaterialCreateInfo::MaterialCreateInfo()
+	{
+		Textures.reserve(5);
+	}
+
+	MaterialCreateInfo::~MaterialCreateInfo()
+	{
+
 	}
 
 	void MaterialCreateInfo::SetMetalness(float value)

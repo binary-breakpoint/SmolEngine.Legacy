@@ -249,15 +249,18 @@ namespace Frostium
 				shaderCI.BufferInfos[1] = bufferInfo;
 			};
 
+			pipelineCI.bDepthWriteEnabled = false;
+			pipelineCI.bDepthTestEnabled = false;
 			pipelineCI.PipelineName = "Deferred_2D";
 			pipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(PBRVertex), PBRlayout) };
 			pipelineCI.eCullMode = CullMode::None;
-			pipelineCI.bDepthTestEnabled = false;
 			pipelineCI.eSrcColorBlendFactor = BlendFactor::SRC_ALPHA;
 			pipelineCI.eDstColorBlendFactor = BlendFactor::ONE_MINUS_SRC_ALPHA;
-			pipelineCI.eSrcAlphaBlendFactor = BlendFactor::ONE;
-			pipelineCI.eDstAlphaBlendFactor = BlendFactor::ZERO;
-			pipelineCI.bDepthTestEnabled = false;
+			pipelineCI.eSrcAlphaBlendFactor = BlendFactor::SRC_ALPHA;
+			pipelineCI.eDstAlphaBlendFactor = BlendFactor::ONE_MINUS_SRC_ALPHA;
+			pipelineCI.eColorBlendOp = BlendOp::ADD;
+			pipelineCI.eAlphaBlendOp = BlendOp::SUBTRACT;
+
 			pipelineCI.pTargetFramebuffer = s_Data->MainFB;
 			pipelineCI.ShaderCreateInfo = shaderCI;
 

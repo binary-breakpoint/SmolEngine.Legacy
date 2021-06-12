@@ -106,7 +106,7 @@ namespace Frostium
 
 			for (uint32_t i = 0; i < count; ++i)
 			{
-				blendAttachmentState[i].colorWriteMask = 0xf;
+				blendAttachmentState[i].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 				blendAttachmentState[i].blendEnable = IsBlendEnableEnabled() ? VK_TRUE: VK_FALSE;
 				blendAttachmentState[i].srcColorBlendFactor = GetVkBlendFactor(m_PipelineSpecification->eSrcColorBlendFactor);
 				blendAttachmentState[i].dstColorBlendFactor = GetVkBlendFactor(m_PipelineSpecification->eDstColorBlendFactor);;

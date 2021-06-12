@@ -36,7 +36,10 @@ namespace Frostium
 	void DeferredRenderer::Init(RendererStorage* storage)
 	{
 		if (storage == nullptr)
-			std::runtime_error("Renderer: storage is nullptr!");
+		{
+			throw std::runtime_error("Renderer: storage is nullptr!");
+			abort();
+		}
 
 		s_Data = storage;
 		{
@@ -77,13 +80,18 @@ namespace Frostium
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 		JobsSystemInstance::BeginSubmition();
 #endif
+		if (s_Data->m_UsedMeshes.size() > s_Data->m_DrawList.size())
+		{
+			s_Data->m_DrawList.resize(s_Data->m_UsedMeshes.size());
+		}
 
-		for (uint32_t i = 0; i < s_Data->m_UsedMeshesIndex; ++i)
+		uint32_t cmdCount = static_cast<uint32_t>(s_Data->m_UsedMeshes.size());
+		for (uint32_t i = 0; i < cmdCount; ++i)
 		{
 			// Getting values
 			Mesh* mesh = s_Data->m_UsedMeshes[i];
 			InstancePackage& instance = s_Data->m_Packages[mesh];
-			CommandBuffer& cmd = s_Data->m_DrawList[s_Data->m_DrawListIndex];
+			CommandBuffer& cmd = s_Data->m_DrawList[i];
 
 			// Setting draw list command
 			cmd.Offset = s_Data->m_InstanceDataIndex;
@@ -92,77 +100,83 @@ namespace Frostium
 
 			for (uint32_t x = 0; x < instance.CurrentIndex; ++x)
 			{
-				InstancePackage::Package& package = instance.Data[x];
-				InstanceData& shaderData = s_Data->m_InstancesData[s_Data->m_InstanceDataIndex];
+				InstancePackage::Package& package = instance.Packages[x];
+				InstanceData& instanceUBO = s_Data->m_InstancesData[s_Data->m_InstanceDataIndex];
 				AnimationProperties* props = nullptr;
+
 				uint32_t animStartOffset = 0;
+				const bool animated = mesh->IsAnimated();
 				bool animActive = false;
 
-				for (uint32_t y = 0; y < mesh->GetAnimationsCount(); ++y)
+				// Animations
 				{
-					props = mesh->GetAnimationProperties(y);
-					if (props->IsActive())
+					for (uint32_t y = 0; y < mesh->GetAnimationsCount(); ++y)
 					{
-						animActive = true;
-						break;
-					}
-				}
-
-				const bool animated = mesh->IsAnimated();
-				if (animated && mesh->m_ImportedData)
-				{
-					ImportedDataGlTF* imported = mesh->m_ImportedData;
-					glTFAnimation* activeAnim = &imported->Animations[imported->ActiveAnimation];
-					if (mesh->IsRootNode())
-					{
-						animStartOffset = s_Data->m_LastAnimationOffset;
-						s_Data->m_RootOffsets[mesh] = animStartOffset;
-
-						if (animActive)
+						props = mesh->GetAnimationProperties(y);
+						if (props->IsActive())
 						{
-							mesh->UpdateAnimations();
-						}
-
-						uint32_t jointCount = static_cast<uint32_t>(props->Joints.size());
-						for (uint32_t x = 0; x < jointCount; ++x)
-						{
-							s_Data->m_AnimationJoints[s_Data->m_LastAnimationOffset] = props->Joints[x];
-							s_Data->m_LastAnimationOffset++;
+							animActive = true;
+							break;
 						}
 					}
 
-					if (animated && !mesh->IsRootNode())
+					if (animated && mesh->m_ImportedData)
 					{
-						auto& it = s_Data->m_RootOffsets.find(mesh->m_Root);
-						if (it != s_Data->m_RootOffsets.end())
-							animStartOffset = it->second;
+						ImportedDataGlTF* imported = mesh->m_ImportedData;
+						glTFAnimation* activeAnim = &imported->Animations[imported->ActiveAnimation];
+						if (mesh->IsRootNode())
+						{
+							animStartOffset = s_Data->m_LastAnimationOffset;
+							s_Data->m_RootOffsets[mesh] = animStartOffset;
+
+							if (animActive)
+							{
+								mesh->UpdateAnimations();
+							}
+
+							uint32_t jointCount = static_cast<uint32_t>(props->Joints.size());
+							for (uint32_t x = 0; x < jointCount; ++x)
+							{
+								s_Data->m_AnimationJoints[s_Data->m_LastAnimationOffset] = props->Joints[x];
+								s_Data->m_LastAnimationOffset++;
+							}
+						}
+
+						if (animated && !mesh->IsRootNode())
+						{
+							auto& it = s_Data->m_RootOffsets.find(mesh->m_Root);
+							if (it != s_Data->m_RootOffsets.end())
+								animStartOffset = it->second;
+						}
 					}
 				}
 
+				// Transform
+				{
 #ifdef FROSTIUM_SMOLENGINE_IMPL
-				JobsSystemInstance::Schedule([animated, animStartOffset, &package, &shaderData]()
-				{
-					Utils::ComposeTransform(*package.WorldPos, *package.Rotation, *package.Scale, shaderData.ModelView);
+					JobsSystemInstance::Schedule([animated, animStartOffset, &package, &instanceUBO]()
+						{
+							Utils::ComposeTransform(*package.WorldPos, *package.Rotation, *package.Scale, instanceUBO.ModelView);
 
-					shaderData.MaterialID = package.MaterialID;
-					shaderData.IsAnimated = animated;
-					shaderData.AnimOffset = animStartOffset;
-					shaderData.EntityID = 0; // temp
-				});
+							instanceUBO.MaterialID = package.MaterialID;
+							instanceUBO.IsAnimated = animated;
+							instanceUBO.AnimOffset = animStartOffset;
+							instanceUBO.EntityID = 0; // temp
+					});
 #else
-				Utils::ComposeTransform(*package.WorldPos, *package.Rotation, *package.Scale, shaderData.ModelView);
+					Utils::ComposeTransform(*package.WorldPos, *package.Rotation, *package.Scale, instanceUBO.ModelView);
 
-				shaderData.MaterialID = package.MaterialID;
-				shaderData.IsAnimated = animated;
-				shaderData.AnimOffset = animStartOffset;
-				shaderData.EntityID = 0; // temp
+					instanceUBO.MaterialID = package.MaterialID;
+					instanceUBO.IsAnimated = animated;
+					instanceUBO.AnimOffset = animStartOffset;
+					instanceUBO.EntityID = 0; // temp
 #endif
+				}
 
 				s_Data->m_InstanceDataIndex++;
 			}
 
 			instance.CurrentIndex = 0;
-			s_Data->m_DrawListIndex++;
 		}
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
@@ -304,7 +318,7 @@ namespace Frostium
 				} static pc;
 
 				pc.depthMVP = s_Data->m_MainPushConstant.DepthMVP;
-				for (uint32_t i = 0; i < s_Data->m_DrawListIndex; ++i)
+				for (uint32_t i = 0; i < cmdCount; ++i)
 				{
 					auto& cmd = s_Data->m_DrawList[i];
 					pc.offset = cmd.Offset;
@@ -334,7 +348,7 @@ namespace Frostium
 				s_Data->m_GridPipeline.DrawMeshIndexed(&s_Data->m_PlaneMesh);
 			}
 
-			for (uint32_t i = 0; i < s_Data->m_DrawListIndex; ++i)
+			for (uint32_t i = 0; i < cmdCount; ++i)
 			{
 				auto& cmd = s_Data->m_DrawList[i];
 
@@ -447,38 +461,31 @@ namespace Frostium
 	{
 		if (s_Data->m_Frustum->CheckSphere(pos, 10.0f) && mesh != nullptr)
 		{
-			if (s_Data->m_Objects >= s_Data->m_MaxObjects)
+			if (s_Data->m_Objects >= max_objects)
 				StartNewBacth();
 
 			auto& instance = s_Data->m_Packages[mesh];
-			if (instance.CurrentIndex >= s_MaxInstances)
-				StartNewBacth();
+			InstancePackage::Package* package = nullptr;
 
-			auto& package = instance.Data[instance.CurrentIndex];
+			if (instance.CurrentIndex == instance.Packages.size())
+			{
+				instance.Packages.emplace_back(InstancePackage::Package());
+				package = &instance.Packages.back();
+			}
+			else
+				package = &instance.Packages[instance.CurrentIndex];
 
-			package.MaterialID = PBRmaterialID;
-			package.WorldPos = const_cast<glm::vec3*>(&pos);
-			package.Rotation = const_cast<glm::vec3*>(&rotation);
-			package.Scale = const_cast<glm::vec3*>(&scale);
+			package->MaterialID = PBRmaterialID;
+			package->WorldPos = const_cast<glm::vec3*>(&pos);
+			package->Rotation = const_cast<glm::vec3*>(&rotation);
+			package->Scale = const_cast<glm::vec3*>(&scale);
+
 			instance.CurrentIndex++;
-
-			bool found = false;
-			for (uint32_t i = 0; i < s_Data->m_UsedMeshesIndex; ++i)
-			{
-				if (s_Data->m_UsedMeshes[i] == mesh)
-				{
-					found = true;
-					break;
-				}
-			}
-
-			if (found == false)
-			{
-				s_Data->m_UsedMeshes[s_Data->m_UsedMeshesIndex] = mesh;
-				s_Data->m_UsedMeshesIndex++;
-			}
-
 			s_Data->m_Objects++;
+
+			bool found = std::find(s_Data->m_UsedMeshes.begin(), s_Data->m_UsedMeshes.end(), mesh) != s_Data->m_UsedMeshes.end();
+			if (found == false)
+				s_Data->m_UsedMeshes.emplace_back(mesh);
 		}
 	}
 
@@ -491,7 +498,7 @@ namespace Frostium
 	void DeferredRenderer::SubmitPointLight(PointLight* light)
 	{
 		uint32_t index = s_Data->m_PointLightIndex;
-		if (index >= s_MaxLights || light == nullptr)
+		if (index >= max_lights || light == nullptr)
 			return;
 
 		s_Data->m_PointLights[index] = *light;
@@ -501,7 +508,7 @@ namespace Frostium
 	void DeferredRenderer::SubmitSpotLight(SpotLight* light)
 	{
 		uint32_t index = s_Data->m_SpotLightIndex;
-		if (index >= s_MaxLights || light == nullptr)
+		if (index >= max_lights || light == nullptr)
 			return;
 
 		s_Data->m_SpotLights[index] = *light;
@@ -592,13 +599,13 @@ namespace Frostium
 				ShaderBufferInfo bufferInfo = {};
 
 				// Vertex
-				bufferInfo.Size = sizeof(InstanceData) * s_InstanceDataMaxCount;
+				bufferInfo.Size = sizeof(InstanceData) * max_objects;
 				shaderCI.BufferInfos[s_Data->m_ShaderDataBinding] = bufferInfo;
 
 				bufferInfo.Size = sizeof(PBRMaterial) * 1000;
 				shaderCI.BufferInfos[s_Data->m_MaterialsBinding] = bufferInfo;
 
-				bufferInfo.Size = sizeof(glm::mat4) * s_MaxAnimationJoints;
+				bufferInfo.Size = sizeof(glm::mat4) * max_anim_joints;
 				shaderCI.BufferInfos[s_Data->m_AnimBinding] = bufferInfo;
 			};
 
@@ -624,10 +631,10 @@ namespace Frostium
 				ShaderBufferInfo bufferInfo = {};
 
 				// Fragment
-				bufferInfo.Size = sizeof(PointLight) * s_MaxLights;
+				bufferInfo.Size = sizeof(PointLight) * max_lights;
 				shaderCI.BufferInfos[s_Data->m_PointLightBinding] = bufferInfo;
 
-				bufferInfo.Size = sizeof(SpotLight) * s_MaxLights;
+				bufferInfo.Size = sizeof(SpotLight) * max_lights;
 				shaderCI.BufferInfos[s_Data->m_SpotLightBinding] = bufferInfo;
 
 				bufferInfo.Size = sizeof(DirectionalLight);
@@ -1230,37 +1237,31 @@ namespace Frostium
 
 	void DeferredRenderer::AddMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Mesh* mesh, const uint32_t& materialID)
 	{
-		if (s_Data->m_Objects >= s_Data->m_MaxObjects)
+		if (s_Data->m_Objects >= max_objects)
 			StartNewBacth();
 
 		auto& instance = s_Data->m_Packages[mesh];
-		if (instance.CurrentIndex >= s_MaxInstances)
-			StartNewBacth();
+		InstancePackage::Package* package = nullptr;
 
-		auto& package = instance.Data[instance.CurrentIndex];
+		if (instance.CurrentIndex == instance.Packages.size())
+		{
+			instance.Packages.emplace_back(InstancePackage::Package());
+			package = &instance.Packages.back();
+		}
+		else
+			package = &instance.Packages[instance.CurrentIndex];
 
-		package.MaterialID = materialID;
-		package.WorldPos = const_cast<glm::vec3*>(&pos);
-		package.Rotation = const_cast<glm::vec3*>(&rotation);
-		package.Scale = const_cast<glm::vec3*>(&scale);
+		package->MaterialID = materialID;
+		package->WorldPos = const_cast<glm::vec3*>(&pos);
+		package->Rotation = const_cast<glm::vec3*>(&rotation);
+		package->Scale = const_cast<glm::vec3*>(&scale);
+
 		instance.CurrentIndex++;
-
-		bool found = false;
-		for (uint32_t i = 0; i < s_Data->m_UsedMeshesIndex; ++i)
-		{
-			if (s_Data->m_UsedMeshes[i] == mesh)
-			{
-				found = true;
-				break;
-			}
-		}
-
-		if (found == false)
-		{
-			s_Data->m_UsedMeshes[s_Data->m_UsedMeshesIndex] = mesh;
-			s_Data->m_UsedMeshesIndex++;
-		}
 		s_Data->m_Objects++;
+
+		bool found = std::find(s_Data->m_UsedMeshes.begin(), s_Data->m_UsedMeshes.end(), mesh) != s_Data->m_UsedMeshes.end();
+		if (found == false)
+			s_Data->m_UsedMeshes.emplace_back(mesh);
 
 		for (auto& sub : mesh->m_Childs)
 			AddMesh(pos, rotation, scale, &sub, sub.m_MaterialID);
@@ -1326,9 +1327,8 @@ namespace Frostium
 		s_Data->m_InstanceDataIndex = 0;
 		s_Data->m_PointLightIndex = 0;
 		s_Data->m_SpotLightIndex = 0;
-		s_Data->m_DrawListIndex = 0;
-		s_Data->m_UsedMeshesIndex = 0;
 		s_Data->m_LastAnimationOffset = 0;
+		s_Data->m_UsedMeshes.clear();
 		s_Data->m_RootOffsets.clear();
 	}
 
