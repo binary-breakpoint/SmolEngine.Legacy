@@ -90,7 +90,7 @@ namespace Frostium
 		uint32_t                  Add(MaterialCreateInfo* infoCI, const std::string& name);
 		bool                      Delete(const std::string& name);
 		void                      Reset();
-		bool                      Load(const std::string& filePath, MaterialCreateInfo& out_info);
+		bool                      Load(const std::string& filePath, MaterialCreateInfo& out_info, const std::string& searchPath = "");
 		bool                      Save(const std::string& filePath, MaterialCreateInfo& info);
 
 		// Getters

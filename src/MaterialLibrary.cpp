@@ -107,7 +107,7 @@ namespace Frostium
 		m_MaterialMap.clear();
 	}
 
-	bool MaterialLibrary::Load(const std::string& filePath, MaterialCreateInfo& out_info)
+	bool MaterialLibrary::Load(const std::string& filePath, MaterialCreateInfo& out_info, const std::string& searchPath)
 	{
 		std::stringstream storage;
 		std::ifstream file(filePath);
@@ -122,6 +122,27 @@ namespace Frostium
 			cereal::JSONInputArchive input{ storage };
 			input(out_info.Metallic, out_info.Albedro,
 				out_info.Roughness, out_info.Textures);
+		}
+
+		if (searchPath.empty() == false)
+		{
+			for (auto& [type, texPath] : out_info.Textures)
+			{
+				std::filesystem::path origPath(texPath);
+				std::string origName = origPath.filename().stem().u8string();
+
+				for (auto& p : std::filesystem::recursive_directory_iterator(searchPath))
+				{
+					std::string name = p.path().filename().stem().u8string();
+					if (name == origName)
+					{
+						texPath = p.path().u8string();
+						break;
+					}
+				}
+			}
+
+			Save(filePath, out_info);
 		}
 
 		return true;

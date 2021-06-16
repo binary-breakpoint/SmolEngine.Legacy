@@ -315,6 +315,9 @@
     <ClInclude Include="include\DebugRenderer.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="include\DeferredRenderer.h">
+      <Filter>include</Filter>
+    </ClInclude>
     <ClInclude Include="include\EditorCamera.h">
       <Filter>include</Filter>
     </ClInclude>
@@ -2286,9 +2289,6 @@
     <ClInclude Include="include\RaytracingPipeline.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="include\DeferredRenderer.h">
-      <Filter>include</Filter>
-    </ClInclude>
     <ClInclude Include="include\Renderer2D.h">
       <Filter>include</Filter>
     </ClInclude>
@@ -2435,6 +2435,9 @@
     <ClCompile Include="src\DebugRenderer.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\DeferredRenderer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="src\EditorCamera.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -2487,9 +2490,6 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\RaytracingPipeline.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\DeferredRenderer.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\Renderer2D.cpp">

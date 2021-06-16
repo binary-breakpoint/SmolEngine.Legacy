@@ -71,7 +71,7 @@ namespace Frostium
 			{
 				layoutBinding.binding = res.BindingPoint;
 				layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-				res.ArraySize > 0 ? layoutBinding.descriptorCount = res.ArraySize : layoutBinding.descriptorCount = 1;
+				layoutBinding.descriptorCount  = res.ArraySize > 0 ? res.ArraySize : 1;
 				layoutBinding.stageFlags = VulkanShader::GetVkShaderStage(res.Stage);
 			}
 

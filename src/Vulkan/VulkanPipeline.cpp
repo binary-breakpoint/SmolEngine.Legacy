@@ -464,11 +464,18 @@ namespace Frostium
 		}
 
 		// Samplers
-		if(refData->Resources.size())
+		if(refData->Resources.size() > 0)
 		{
+			uint32_t samplerDescriptors = 0;
+			for (auto& info : refData->Resources)
+			{
+				auto& [bindingPoint, res] = info;
+				samplerDescriptors += res.ArraySize > 0 ? res.ArraySize : 1;
+			}
+
 			VkDescriptorPoolSize poolSize = {};
 			{
-				poolSize.descriptorCount = static_cast<uint32_t>(refData->Resources.size());
+				poolSize.descriptorCount = samplerDescriptors;
 				poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 			}
 

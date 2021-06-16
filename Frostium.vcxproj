@@ -217,6 +217,7 @@
     <ClInclude Include="include\Common\VertexBuffer.h" />
     <ClInclude Include="include\Common\Window.h" />
     <ClInclude Include="include\DebugRenderer.h" />
+    <ClInclude Include="include\DeferredRenderer.h" />
     <ClInclude Include="include\EditorCamera.h" />
     <ClInclude Include="include\Extensions\JobsSystemInstance.h" />
     <ClInclude Include="include\Extensions\Profiler.h" />
@@ -874,7 +875,6 @@
     <ClInclude Include="include\OpenGL\OpenglVertexArray.h" />
     <ClInclude Include="include\RayTracer.h" />
     <ClInclude Include="include\RaytracingPipeline.h" />
-    <ClInclude Include="include\DeferredRenderer.h" />
     <ClInclude Include="include\Renderer2D.h" />
     <ClInclude Include="include\Utils\Frustum.h" />
     <ClInclude Include="include\Utils\GLM.h" />
@@ -925,6 +925,7 @@
     <ClCompile Include="src\Common\VertexBuffer.cpp" />
     <ClCompile Include="src\Common\Window.cpp" />
     <ClCompile Include="src\DebugRenderer.cpp" />
+    <ClCompile Include="src\DeferredRenderer.cpp" />
     <ClCompile Include="src\EditorCamera.cpp" />
     <ClCompile Include="src\Extensions\JobsSystemInstance.cpp" />
     <ClCompile Include="src\Extensions\Profiler.cpp" />
@@ -943,7 +944,6 @@
     <ClCompile Include="src\OpenGL\OpenglVertexArray.cpp" />
     <ClCompile Include="src\RayTracer.cpp" />
     <ClCompile Include="src\RaytracingPipeline.cpp" />
-    <ClCompile Include="src\DeferredRenderer.cpp" />
     <ClCompile Include="src\Renderer2D.cpp" />
     <ClCompile Include="src\Utils\Frustum.cpp" />
     <ClCompile Include="src\Utils\Utils.cpp" />
