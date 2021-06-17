@@ -56,7 +56,7 @@ namespace Frostium
 		std::vector<const char*> instanceExt = { VK_KHR_SURFACE_EXTENSION_NAME };
 #ifdef FROSTIUM_DEBUG
 		instanceLayers.push_back("VK_LAYER_KHRONOS_validation");
-		instanceExt.push_back("VK_EXT_debug_report");
+		instanceExt.push_back("VK_EXT_debug_utils");
 #endif
 
 #ifdef _WIN32

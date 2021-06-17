@@ -56,25 +56,28 @@ namespace Frostium
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 			JobsSystemInstance::BeginSubmition();
 			{
-				JobsSystemInstance::Schedule([&]() {newMaterial.AlbedroTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Albedro], newMaterial.UseAlbedroTex); });
-				JobsSystemInstance::Schedule([&]() {newMaterial.NormalTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Normal], newMaterial.UseNormalTex); });
-				JobsSystemInstance::Schedule([&]() {newMaterial.MetallicTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Metallic], newMaterial.UseMetallicTex); });
-				JobsSystemInstance::Schedule([&]() {newMaterial.RoughnessTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Roughness], newMaterial.UseRoughnessTex); });
-				JobsSystemInstance::Schedule([&]() {newMaterial.AOTexIndex = AddTexture(infoCI->Textures[MaterialTexture::AO], newMaterial.UseAOTex); });
+				JobsSystemInstance::Schedule([&]() {newMaterial.AlbedroTexIndex = AddTexture(infoCI->AlbedroPath, newMaterial.UseAlbedroTex); });
+				JobsSystemInstance::Schedule([&]() {newMaterial.NormalTexIndex = AddTexture(infoCI->NormalPath, newMaterial.UseNormalTex); });
+				JobsSystemInstance::Schedule([&]() {newMaterial.MetallicTexIndex = AddTexture(infoCI->MetallnessPath, newMaterial.UseMetallicTex); });
+				JobsSystemInstance::Schedule([&]() {newMaterial.RoughnessTexIndex = AddTexture(infoCI->RoughnessPath, newMaterial.UseRoughnessTex); });
+				JobsSystemInstance::Schedule([&]() {newMaterial.AOTexIndex = AddTexture(infoCI->AOPath, newMaterial.UseAOTex); });
+				JobsSystemInstance::Schedule([&]() {newMaterial.EmissiveTexIndex = AddTexture(infoCI->EmissivePath, newMaterial.UseEmissiveTex); });
+				JobsSystemInstance::Schedule([&]() {newMaterial.HeightTexIndex = AddTexture(infoCI->HeightPath, newMaterial.UseHeightTex); });
 			}
 			JobsSystemInstance::EndSubmition();
 #else
-			newMaterial.AlbedroTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Albedro], newMaterial.UseAlbedroTex);
-			newMaterial.NormalTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Normal], newMaterial.UseNormalTex);
-			newMaterial.MetallicTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Metallic], newMaterial.UseMetallicTex);
-			newMaterial.RoughnessTexIndex = AddTexture(infoCI->Textures[MaterialTexture::Roughness], newMaterial.UseRoughnessTex);
-			newMaterial.AOTexIndex = AddTexture(infoCI->Textures[MaterialTexture::AO], newMaterial.UseAOTex);
+			newMaterial.AlbedroTexIndex = AddTexture(infoCI->AlbedroPath, newMaterial.UseAlbedroTex);
+			newMaterial.NormalTexIndex = AddTexture(infoCI->NormalPath, newMaterial.UseNormalTex);
+			newMaterial.MetallicTexIndex = AddTexture(infoCI->MetallnessPath, newMaterial.UseMetallicTex);
+			newMaterial.RoughnessTexIndex = AddTexture(infoCI->RoughnessPath, newMaterial.UseRoughnessTex);
+			newMaterial.AOTexIndex = AddTexture(infoCI->AOPath, newMaterial.UseAOTex);
+			newMaterial.EmissiveTexIndex = AddTexture(infoCI->EmissivePath, newMaterial.UseEmissiveTex);
+			newMaterial.HeightTexIndex = AddTexture(infoCI->HeightPath, newMaterial.UseHeightTex);
 #endif
 
-			// x - Metallic, y - Roughness, z - Albedro
-			newMaterial.PBRValues.x = infoCI->Metallic;
-			newMaterial.PBRValues.y = infoCI->Roughness;
-			newMaterial.PBRValues.z = infoCI->Albedro;
+			newMaterial.Metalness = infoCI->Metallness;
+			newMaterial.Roughness = infoCI->Roughness;
+			newMaterial.Albedro = glm::vec4(infoCI->AlbedroColor, 1.0f);
 		}
 
 		materialID = m_MaterialIndex;
@@ -120,15 +123,19 @@ namespace Frostium
 		storage << file.rdbuf();
 		{
 			cereal::JSONInputArchive input{ storage };
-			input(out_info.Metallic, out_info.Albedro,
-				out_info.Roughness, out_info.Textures);
+			input(out_info.Metallness, out_info.AlbedroColor.r, out_info.AlbedroColor.g, out_info.AlbedroColor.b,
+				out_info.Roughness, out_info.AlbedroPath, out_info.NormalPath, out_info.MetallnessPath, out_info.RoughnessPath,
+				out_info.AOPath, out_info.EmissivePath, out_info.HeightPath);
 		}
 
 		if (searchPath.empty() == false)
 		{
-			for (auto& [type, texPath] : out_info.Textures)
+			std::unordered_map<MaterialTexture, std::string*> map;
+			out_info.GetTextures(map);
+
+			for (auto& [type, texPath] : map)
 			{
-				std::filesystem::path origPath(texPath);
+				std::filesystem::path origPath(*texPath);
 				std::string origName = origPath.filename().stem().u8string();
 
 				for (auto& p : std::filesystem::recursive_directory_iterator(searchPath))
@@ -136,7 +143,7 @@ namespace Frostium
 					std::string name = p.path().filename().stem().u8string();
 					if (name == origName)
 					{
-						texPath = p.path().u8string();
+						*texPath = p.path().u8string();
 						break;
 					}
 				}
@@ -258,19 +265,9 @@ namespace Frostium
 		out_textures = m_Textures;
 	}
 
-	MaterialCreateInfo::MaterialCreateInfo()
-	{
-		Textures.reserve(5);
-	}
-
-	MaterialCreateInfo::~MaterialCreateInfo()
-	{
-
-	}
-
 	void MaterialCreateInfo::SetMetalness(float value)
 	{
-		Metallic = value;
+		Metallness = value;
 	}
 
 	void MaterialCreateInfo::SetRoughness(float value)
@@ -278,28 +275,76 @@ namespace Frostium
 		Roughness = value;
 	}
 
-	void MaterialCreateInfo::SetAlbedro(float value)
+	void MaterialCreateInfo::SetAlbedro(const glm::vec3& color)
 	{
-		Albedro = value;
+		AlbedroColor = color;
 	}
 
 	void MaterialCreateInfo::SetTexture(MaterialTexture type, const std::string& filePath)
 	{
-		Textures[type] = filePath.c_str();
+		switch (type)
+		{
+		case MaterialTexture::Albedro:
+			AlbedroPath = filePath;
+			break;
+		case MaterialTexture::Normal:
+			NormalPath = filePath;
+			break;
+		case MaterialTexture::Metallic:
+			MetallnessPath = filePath;
+			break;
+		case MaterialTexture::Roughness:
+			RoughnessPath = filePath;
+			break;
+		case MaterialTexture::AO:
+			AOPath = filePath;
+			break;
+		case MaterialTexture::Emissive:
+			EmissivePath = filePath;
+			break;
+		case MaterialTexture::Height:
+			HeightPath = filePath;
+			break;
+		default:
+			break;
+		}
 	}
 
-	float* MaterialCreateInfo::GetMetalness()
+	void MaterialCreateInfo::GetTextures(std::unordered_map<MaterialTexture, std::string*>& out_hashmap)
 	{
-		return &Metallic;
-	}
+		if (AlbedroPath.empty() == false)
+		{
+			out_hashmap[MaterialTexture::Albedro] = &AlbedroPath;
+		}
 
-	float* MaterialCreateInfo::GetRoughness()
-	{
-		return &Roughness;
-	}
+		if (NormalPath.empty() == false)
+		{
+			out_hashmap[MaterialTexture::Normal] = &NormalPath;
+		}
 
-	std::unordered_map<MaterialTexture, std::string>& MaterialCreateInfo::GetTexturesInfo()
-	{
-		return Textures;
+		if (MetallnessPath.empty() == false)
+		{
+			out_hashmap[MaterialTexture::Metallic] = &MetallnessPath;
+		}
+
+		if (RoughnessPath.empty() == false)
+		{
+			out_hashmap[MaterialTexture::Roughness] = &RoughnessPath;
+		}
+
+		if (AOPath.empty() == false)
+		{
+			out_hashmap[MaterialTexture::AO] = &AOPath;
+		}
+
+		if (EmissivePath.empty() == false)
+		{
+			out_hashmap[MaterialTexture::Emissive] = &EmissivePath;
+		}
+
+		if (HeightPath.empty() == false)
+		{
+			out_hashmap[MaterialTexture::Height] = &HeightPath;
+		}
 	}
 }
