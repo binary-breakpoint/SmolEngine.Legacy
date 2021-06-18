@@ -43,7 +43,8 @@ layout (location = 0) out vec4 out_color;
 layout (location = 1) out vec4 out_positions;
 layout (location = 2) out vec4 out_normals;
 layout (location = 3) out vec4 out_materials;
-layout (location = 4) out vec4 out_shadowCoord;
+layout (location = 4) out vec4 out_emission;
+layout (location = 5) out vec4 out_shadowCoord;
 
 layout (binding = 24) uniform sampler2D texturesMap[4096];
 
@@ -68,9 +69,9 @@ vec3 getNormal()
 void main()
 {
 	vec4 albedro = v_Material.UseAlbedroTex == 1 ? texture(texturesMap[v_Material.AlbedroTexIndex], v_UV) : v_Material.AlbedroColor;
+	vec4 emissive = v_Material.UseEmissiveTex == 1 ? texture(texturesMap[v_Material.EmissiveTexIndex], v_UV): vec4(0.0);
 	float metallic = v_Material.UseMetallicTex == 1 ? texture(texturesMap[v_Material.MetallicTexIndex], v_UV).r : v_Material.Metalness;
 	float roughness = v_Material.UseRoughnessTex == 1 ? texture(texturesMap[v_Material.RoughnessTexIndex], v_UV).r: v_Material.Roughness;
-    float emissive = v_Material.UseEmissiveTex == 1 ? texture(texturesMap[v_Material.EmissiveTexIndex], v_UV).r: 0.0;
     float ao = v_Material.UseAOTex == 1 ? texture(texturesMap[v_Material.AOTexIndex], v_UV).r : 1.0;
 
     vec3 N = getNormal(); 						
@@ -81,6 +82,7 @@ void main()
     out_color = albedro;
     out_positions = vec4(v_FragPos, applyEmission);
     out_normals = vec4(N, applyAO);
-    out_materials = vec4(metallic, roughness, emissive, ao);
+    out_materials = vec4(metallic, roughness, ao, 1.0);
     out_shadowCoord = v_ShadowCoord;
+	out_emission = vec4(emissive.rgb, applyEmission);
 }

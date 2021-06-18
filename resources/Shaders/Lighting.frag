@@ -14,7 +14,8 @@ layout (binding = 5) uniform sampler2D albedroMap;
 layout (binding = 6) uniform sampler2D positionsMap;
 layout (binding = 7) uniform sampler2D normalsMap;
 layout (binding = 8) uniform sampler2D materialsMap;
-layout (binding = 9) uniform sampler2D shadowCoordMap;
+layout (binding = 9) uniform sampler2D emissionMap;
+layout (binding = 10) uniform sampler2D shadowCoordMap;
 
 // Buffers
 // -----------------------------------------------------------------------------------------------------------------------
@@ -316,16 +317,16 @@ void main()
     }
     
     vec3 albedro = texColor.rgb;
+	vec4 emission = texture(emissionMap, inUV);
     vec4 position = texture(positionsMap, inUV);
     vec4 normals = texture(normalsMap, inUV);
     vec4 pbrValues = texture(materialsMap, inUV);
     vec4 shadowCoord = texture(shadowCoordMap, inUV);
-    
+    vec3 ao = vec3(pbrValues.z);
+	
     float metallic = pbrValues.x;
     float roughness = pbrValues.y;
-	vec3 emissive = vec3(pbrValues.z);
-    vec3 ao = vec3(pbrValues.w);
-	float applyEmission = position.w;
+	float applyEmission = emission.w;
     float applyAO = normals.w;
 
 	albedro = pow(albedro, vec3(2.2));
@@ -376,7 +377,7 @@ void main()
 	//--------------------------------------------
 	if(applyEmission == 1.0)
 	{
-		color += emissive;
+		color += emission.rgb;
 	}
 	
     // Shadow Mapping

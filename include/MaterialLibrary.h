@@ -63,9 +63,9 @@ namespace Frostium
 		void         GetTextures(std::unordered_map<MaterialTexture, std::string*>& out_hashmap);
 
 	public:
-		float        Metallness = 1.0f;
+		bool         Used = false;
+		float        Metallness = 0.2f;
 		float        Roughness = 1.0f;
-		glm::vec3    AlbedroColor = glm::vec3(1.0f);
 		std::string  AlbedroPath;
 		std::string  NormalPath;
 		std::string  MetallnessPath;
@@ -73,8 +73,8 @@ namespace Frostium
 		std::string  AOPath;
 		std::string  EmissivePath;
 		std::string  HeightPath;
+		glm::vec3    AlbedroColor = glm::vec3(1.0f);
 	private:
-		bool         Used = false;
 		friend class MaterialLibrary;
 
 	private:
@@ -85,8 +85,8 @@ namespace Frostium
 		template<typename Archive>
 		void serialize(Archive& archive)
 		{
-			archive(Roughness, Metallness, AlbedroColor.r, AlbedroColor.g, AlbedroColor.b,
-				AlbedroPath, NormalPath, MetallnessPath, RoughnessPath, AOPath, EmissivePath, HeightPath);
+			archive(Metallness, Roughness, AlbedroPath, NormalPath, MetallnessPath, RoughnessPath, AOPath,
+				EmissivePath, HeightPath, AlbedroColor.r, AlbedroColor.g, AlbedroColor.b);
 		}
 	};
 
@@ -100,7 +100,7 @@ namespace Frostium
 		uint32_t                  Add(MaterialCreateInfo* infoCI, const std::string& name);
 		bool                      Delete(const std::string& name);
 		void                      Reset();
-		bool                      Load(const std::string& filePath, MaterialCreateInfo& out_info, const std::string& searchPath = "");
+		bool                      Load(const std::string& filePath, MaterialCreateInfo& out_info);
 		bool                      Save(const std::string& filePath, MaterialCreateInfo& info);
 
 		// Getters

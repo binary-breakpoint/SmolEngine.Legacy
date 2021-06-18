@@ -125,11 +125,18 @@ int main(int argc, char** argv)
 		{
 			ImGui::Begin("Skinning Sample");
 			{
+				static int debug_val = 0;
 				static int type  = 0;
 
 				if (ImGui::Combo("##C", &type, "Bloom\0Blur\0"))
 				{
-					state.eExposureType = (PostProcessingFlags)type;
+					state.ePostProcessing = (PostProcessingFlags)type;
+					DeferredRenderer::SetRendererState(&state);
+				}
+
+				if (ImGui::Combo("##FF", &debug_val, "None\0Albedro\0Position\0Normals\0Materials\0Emission\0ShadowMap\0ShadowMapCood\0AO\0"))
+				{
+					state.eDebugView = (DebugViewFlags)debug_val;
 					DeferredRenderer::SetRendererState(&state);
 				}
 

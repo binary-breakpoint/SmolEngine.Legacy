@@ -110,7 +110,7 @@ namespace Frostium
 		m_MaterialMap.clear();
 	}
 
-	bool MaterialLibrary::Load(const std::string& filePath, MaterialCreateInfo& out_info, const std::string& searchPath)
+	bool MaterialLibrary::Load(const std::string& filePath, MaterialCreateInfo& out_info)
 	{
 		std::stringstream storage;
 		std::ifstream file(filePath);
@@ -120,38 +120,15 @@ namespace Frostium
 			return false;
 		}
 
+		MaterialCreateInfo copy = out_info;
 		storage << file.rdbuf();
 		{
 			cereal::JSONInputArchive input{ storage };
-			input(out_info.Metallness, out_info.AlbedroColor.r, out_info.AlbedroColor.g, out_info.AlbedroColor.b,
-				out_info.Roughness, out_info.AlbedroPath, out_info.NormalPath, out_info.MetallnessPath, out_info.RoughnessPath,
-				out_info.AOPath, out_info.EmissivePath, out_info.HeightPath);
+			input(copy.Metallness, copy.Roughness, copy.AlbedroPath, copy.NormalPath, copy.MetallnessPath, copy.RoughnessPath,
+				copy.AOPath, copy.EmissivePath, copy.HeightPath, copy.AlbedroColor.r, copy.AlbedroColor.g, copy.AlbedroColor.b);
 		}
 
-		if (searchPath.empty() == false)
-		{
-			std::unordered_map<MaterialTexture, std::string*> map;
-			out_info.GetTextures(map);
-
-			for (auto& [type, texPath] : map)
-			{
-				std::filesystem::path origPath(*texPath);
-				std::string origName = origPath.filename().stem().u8string();
-
-				for (auto& p : std::filesystem::recursive_directory_iterator(searchPath))
-				{
-					std::string name = p.path().filename().stem().u8string();
-					if (name == origName)
-					{
-						*texPath = p.path().u8string();
-						break;
-					}
-				}
-			}
-
-			Save(filePath, out_info);
-		}
-
+		out_info = copy;
 		return true;
 	}
 

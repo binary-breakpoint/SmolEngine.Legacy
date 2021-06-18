@@ -63,6 +63,7 @@ namespace Frostium
 		s_Data->m_HDRPipeline.BeginCommandBuffer(mainCmd);
 		s_Data->m_BloomPipeline.BeginCommandBuffer(mainCmd);
 		s_Data->m_BlurPipeline.BeginCommandBuffer(mainCmd);
+		s_Data->m_DebugPipeline.BeginCommandBuffer(mainCmd);
 
 		s_Data->m_CombinationPipeline.BeginRenderPass();
 		s_Data->m_CombinationPipeline.ClearColors(clearInfo->color);
@@ -359,6 +360,19 @@ namespace Frostium
 		}
 		s_Data->m_GbufferPipeline.EndRenderPass();
 
+		if (s_Data->m_State.eDebugView != DebugViewFlags::None)
+		{
+			s_Data->m_DebugPipeline.BeginRenderPass();
+			{
+				uint32_t state = (uint32_t)s_Data->m_State.eDebugView;
+				s_Data->m_DebugPipeline.SubmitPushConstant(ShaderType::Fragment, sizeof(uint32_t), &state);
+				s_Data->m_DebugPipeline.Draw(3);
+			}
+			s_Data->m_DebugPipeline.EndRenderPass();
+
+			return;
+		}
+
 		// Lighting Pass
 		{
 			s_Data->m_LightingPipeline.BeginRenderPass();
@@ -396,7 +410,7 @@ namespace Frostium
 
 			// Bloom or Blur
 			{
-				if (s_Data->m_State.eExposureType == PostProcessingFlags::Bloom)
+				if (s_Data->m_State.ePostProcessing == PostProcessingFlags::Bloom)
 				{
 					s_Data->m_BloomPipeline.BeginRenderPass();
 					{
@@ -407,7 +421,7 @@ namespace Frostium
 					s_Data->m_BloomPipeline.EndRenderPass();
 				}
 
-				if (s_Data->m_State.eExposureType == PostProcessingFlags::Blur)
+				if (s_Data->m_State.ePostProcessing == PostProcessingFlags::Blur)
 				{
 					struct Info
 					{
@@ -433,7 +447,7 @@ namespace Frostium
 			{
 				s_Data->m_CombinationPipeline.BeginRenderPass();
 				{
-					uint32_t state = s_Data->m_State.eExposureType == PostProcessingFlags::None ? 0 : 1;
+					uint32_t state = s_Data->m_State.ePostProcessing == PostProcessingFlags::None ? 0 : 1;
 					s_Data->m_CombinationPipeline.SubmitPushConstant(ShaderType::Fragment, sizeof(uint32_t), &state);
 					s_Data->m_CombinationPipeline.Draw(3);
 				}
@@ -662,7 +676,8 @@ namespace Frostium
 			s_Data->m_LightingPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 6, "position");
 			s_Data->m_LightingPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 7, "normals");
 			s_Data->m_LightingPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 8, "materials");
-			s_Data->m_LightingPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 9, "shadow_coord");
+			s_Data->m_LightingPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 9, "emission");
+			s_Data->m_LightingPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 10, "shadow_coord");
 		}
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
@@ -809,7 +824,14 @@ namespace Frostium
 
 				auto result = s_Data->m_DebugPipeline.Create(&DynamicPipelineCI);
 				assert(result == PipelineCreateResult::SUCCESS);
+
 				s_Data->m_DebugPipeline.UpdateSampler(&s_Data->m_DepthFramebuffer, 1, "Depth_Attachment");
+				s_Data->m_DebugPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 5, "albedro");
+				s_Data->m_DebugPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 6, "position");
+				s_Data->m_DebugPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 7, "normals");
+				s_Data->m_DebugPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 8, "materials");
+				s_Data->m_DebugPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 9, "emission");
+				s_Data->m_DebugPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 10, "shadow_coord");
 			});
 
 
@@ -988,7 +1010,14 @@ namespace Frostium
 
 			auto result = s_Data->m_DebugPipeline.Create(&DynamicPipelineCI);
 			assert(result == PipelineCreateResult::SUCCESS);
+
 			s_Data->m_DebugPipeline.UpdateSampler(&s_Data->m_DepthFramebuffer, 1, "Depth_Attachment");
+			s_Data->m_DebugPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 5, "albedro");
+			s_Data->m_DebugPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 6, "position");
+			s_Data->m_DebugPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 7, "normals");
+			s_Data->m_DebugPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 8, "materials");
+			s_Data->m_DebugPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 9, "emission");
+			s_Data->m_DebugPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 10, "shadow_coord");
 		}
 
 
@@ -1050,13 +1079,14 @@ namespace Frostium
 					FramebufferAttachment position = FramebufferAttachment(AttachmentFormat::SFloat4_16, ClearOp, "position");
 					FramebufferAttachment normals = FramebufferAttachment(AttachmentFormat::SFloat4_16, ClearOp, "normals");
 					FramebufferAttachment materials = FramebufferAttachment(AttachmentFormat::SFloat4_16, ClearOp, "materials");
+					FramebufferAttachment emission = FramebufferAttachment(AttachmentFormat::SFloat4_16, ClearOp, "emission");
 					FramebufferAttachment shadow_coord = FramebufferAttachment(AttachmentFormat::SFloat4_32, ClearOp, "shadow_coord");
 
 					FramebufferSpecification framebufferCI = {};
 					framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
 					framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
 					framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
-					framebufferCI.Attachments = { albedro, position, normals, materials, shadow_coord};
+					framebufferCI.Attachments = { albedro, position, normals, materials, emission, shadow_coord};
 
 					Framebuffer::Create(framebufferCI, &s_Data->m_GFramebuffer);
 				}
@@ -1146,13 +1176,14 @@ namespace Frostium
 			FramebufferAttachment position = FramebufferAttachment(AttachmentFormat::SFloat4_16, ClearOp, "position");
 			FramebufferAttachment normals = FramebufferAttachment(AttachmentFormat::SFloat4_16, ClearOp, "normals");
 			FramebufferAttachment materials = FramebufferAttachment(AttachmentFormat::SFloat4_16, ClearOp, "materials");
+			FramebufferAttachment emission = FramebufferAttachment(AttachmentFormat::SFloat4_16, ClearOp, "emission");
 			FramebufferAttachment shadow_coord = FramebufferAttachment(AttachmentFormat::SFloat4_32, ClearOp, "shadow_coord");
 
 			FramebufferSpecification framebufferCI = {};
 			framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
 			framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
 			framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
-			framebufferCI.Attachments = { albedro, position, normals, materials, shadow_coord };
+			framebufferCI.Attachments = { albedro, position, normals, materials, emission, shadow_coord };
 
 			Framebuffer::Create(framebufferCI, &s_Data->m_GFramebuffer);
 		}
@@ -1297,11 +1328,22 @@ namespace Frostium
 	{
 		s_Data->m_GFramebuffer.OnResize(width, height);
 		{
+			// Lighting pipeline
 			s_Data->m_LightingPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 5, "albedro");
 			s_Data->m_LightingPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 6, "position");
 			s_Data->m_LightingPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 7, "normals");
 			s_Data->m_LightingPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 8, "materials");
-			s_Data->m_LightingPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 9, "shadow_coord");
+			s_Data->m_LightingPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 9, "emission");
+			s_Data->m_LightingPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 10, "shadow_coord");
+
+			// Debug view pipeline
+			s_Data->m_DebugPipeline.UpdateSampler(&s_Data->m_DepthFramebuffer, 1, "Depth_Attachment");
+			s_Data->m_DebugPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 5, "albedro");
+			s_Data->m_DebugPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 6, "position");
+			s_Data->m_DebugPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 7, "normals");
+			s_Data->m_DebugPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 8, "materials");
+			s_Data->m_DebugPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 9, "emission");
+			s_Data->m_DebugPipeline.UpdateSampler(&s_Data->m_GFramebuffer, 10, "shadow_coord");
 		}
 
 		s_Data->m_LightingFramebuffer.OnResize(width, height);
@@ -1310,8 +1352,8 @@ namespace Frostium
 		s_Data->m_HDRFramebuffer.OnResize(width, height);
 		s_Data->m_CombinationPipeline.UpdateSampler(&s_Data->m_HDRFramebuffer, 0);
 
-		if (s_Data->m_State.eExposureType == PostProcessingFlags::Bloom || 
-			s_Data->m_State.eExposureType == PostProcessingFlags::Blur)
+		if (s_Data->m_State.ePostProcessing == PostProcessingFlags::Bloom || 
+			s_Data->m_State.ePostProcessing == PostProcessingFlags::Blur)
 		{
 			s_Data->m_BloomPipeline.UpdateSampler(&s_Data->m_HDRFramebuffer, 0);
 			s_Data->m_BlurPipeline.UpdateSampler(&s_Data->m_HDRFramebuffer, 0);
