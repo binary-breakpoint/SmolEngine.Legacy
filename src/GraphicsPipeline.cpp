@@ -85,29 +85,31 @@ namespace Frostium
 			m_VextexArray = nullptr;
 	}
 
-	void GraphicsPipeline::BeginRenderPass(uint32_t framebufferIndex, bool flip)
+	void GraphicsPipeline::BeginRenderPass(bool flip)
 	{
+		Framebuffer* target_fb = m_PiplineCreateInfo.TargetFramebuffers[m_FBIndex];
 #ifdef FROSTIUM_OPENGL_IMPL
 		m_Shader->Bind();
 		m_VextexArray->Bind();
-		m_PiplineCreateInfo.TargetFramebuffer->Bind();
+		target_fb->Bind();
 #else
-		const FramebufferSpecification& specs = m_PiplineCreateInfo.pTargetFramebuffer->GetSpecification();
-		uint32_t width = specs.Width;
-		uint32_t height = specs.Height;
-		auto& vkframebuffer = m_PiplineCreateInfo.pTargetFramebuffer->GetVulkanFramebuffer();
+		auto& vulkanFB = target_fb->GetVulkanFramebuffer();
+		const VkFramebuffer vkFramebuffer =  m_FBattachmentIndex == 0 ? vulkanFB.GetCurrentVkFramebuffer(): vulkanFB.GetVkFramebuffer(m_FBattachmentIndex);
+		const FramebufferSpecification& fb_specs = target_fb->GetSpecification();
+		uint32_t width = fb_specs.Width;
+		uint32_t height = fb_specs.Height;
 
 		VkRenderPassBeginInfo renderPassBeginInfo = {};
 		{
 			renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-			renderPassBeginInfo.renderPass = vkframebuffer.GetRenderPass();
-			renderPassBeginInfo.framebuffer = framebufferIndex == 0 ? vkframebuffer.GetCurrentVkFramebuffer(): vkframebuffer.GetVkFramebuffer(framebufferIndex);
+			renderPassBeginInfo.renderPass = vulkanFB.GetRenderPass();
+			renderPassBeginInfo.framebuffer = vkFramebuffer;
 			renderPassBeginInfo.renderArea.offset.x = 0;
 			renderPassBeginInfo.renderArea.offset.y = 0;
 			renderPassBeginInfo.renderArea.extent.width = width;
 			renderPassBeginInfo.renderArea.extent.height = height;
-			renderPassBeginInfo.clearValueCount = static_cast<uint32_t>(vkframebuffer.GetClearValues().size());
-			renderPassBeginInfo.pClearValues = vkframebuffer.GetClearValues().data();
+			renderPassBeginInfo.clearValueCount = static_cast<uint32_t>(vulkanFB.GetClearValues().size());
+			renderPassBeginInfo.pClearValues = vulkanFB.GetClearValues().data();
 		}
 
 		vkCmdBeginRenderPass(m_CommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
@@ -162,14 +164,15 @@ namespace Frostium
 		instance->SetClearColor(clearColors);
 		instance->Clear();
 #else
+		Framebuffer* target_fb = m_PiplineCreateInfo.TargetFramebuffers[m_FBIndex];
 		VkClearRect clearRect = {};
+
 		clearRect.layerCount = 1;
 		clearRect.baseArrayLayer = 0;
 		clearRect.rect.offset = { 0, 0 };
-		clearRect.rect.extent = { (uint32_t)m_PiplineCreateInfo.pTargetFramebuffer->GetSpecification().Width,
-			(uint32_t)m_PiplineCreateInfo.pTargetFramebuffer->GetSpecification().Height };
+		clearRect.rect.extent = { (uint32_t)target_fb->GetSpecification().Width, (uint32_t)target_fb->GetSpecification().Height };
 
-		auto& framebuffer = m_PiplineCreateInfo.pTargetFramebuffer->GetVulkanFramebuffer();
+		auto& framebuffer = target_fb->GetVulkanFramebuffer();
 		framebuffer.SetClearColors(clearColors);
 
 		vkCmdClearAttachments(m_CommandBuffer, static_cast<uint32_t>(framebuffer.GetClearAttachments().size()),
@@ -420,6 +423,16 @@ namespace Frostium
 		m_DrawMode = mode;
 	}
 
+	void GraphicsPipeline::SetFramebufferIndex(uint32_t index)
+	{
+		m_FBIndex = index;
+	}
+
+	void GraphicsPipeline::SetFramebufferAttachmentIndex(uint32_t index)
+	{
+		m_FBattachmentIndex = index;
+	}
+
 	const VkPipeline& GraphicsPipeline::GetVkPipeline(DrawMode mode)
 	{
 		return m_VulkanPipeline.GetVkPipeline(mode);
@@ -516,7 +529,7 @@ namespace Frostium
 
 	bool GraphicsPipeline::IsPipelineCreateInfoValid(const GraphicsPipelineCreateInfo* pipelineInfo)
 	{
-		if (pipelineInfo->DescriptorSets < 1 || !pipelineInfo->pTargetFramebuffer)
+		if (pipelineInfo->DescriptorSets < 1 || pipelineInfo->TargetFramebuffers.size() == 0)
 			return false;
 
 		return true;

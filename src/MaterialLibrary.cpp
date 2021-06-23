@@ -77,6 +77,7 @@ namespace Frostium
 
 			newMaterial.Metalness = infoCI->Metallness;
 			newMaterial.Roughness = infoCI->Roughness;
+			newMaterial.EmissionStrength = infoCI->EmissionStrength;
 			newMaterial.Albedro = glm::vec4(infoCI->AlbedroColor, 1.0f);
 		}
 
@@ -124,7 +125,7 @@ namespace Frostium
 		storage << file.rdbuf();
 		{
 			cereal::JSONInputArchive input{ storage };
-			input(copy.Metallness, copy.Roughness, copy.AlbedroPath, copy.NormalPath, copy.MetallnessPath, copy.RoughnessPath,
+			input(copy.Metallness, copy.Roughness, copy.EmissionStrength, copy.AlbedroPath, copy.NormalPath, copy.MetallnessPath, copy.RoughnessPath,
 				copy.AOPath, copy.EmissivePath, copy.HeightPath, copy.AlbedroColor.r, copy.AlbedroColor.g, copy.AlbedroColor.b);
 		}
 
@@ -250,6 +251,11 @@ namespace Frostium
 	void MaterialCreateInfo::SetRoughness(float value)
 	{
 		Roughness = value;
+	}
+
+	void MaterialCreateInfo::SetEmissionStrength(float value)
+	{
+		EmissionStrength = value;
 	}
 
 	void MaterialCreateInfo::SetAlbedro(const glm::vec3& color)

@@ -31,7 +31,8 @@ namespace Frostium
 		BuildDescriptors(shader, pipelineSpec->DescriptorSets);
 
 #ifndef FROSTIUM_OPENGL_IMPL
-		m_TargetRenderPass = pipelineSpec->pTargetFramebuffer->GetVulkanFramebuffer().GetRenderPass();
+		Framebuffer* fb = pipelineSpec->TargetFramebuffers[0];
+		m_TargetRenderPass = fb->GetVulkanFramebuffer().GetRenderPass();
 #endif
 		m_SetLayout.clear();
 		m_SetLayout.reserve(m_Descriptors.size());
@@ -58,7 +59,7 @@ namespace Frostium
 
 	bool VulkanPipeline::CreatePipeline(DrawMode mode)
 	{
-		Framebuffer* fb = m_PipelineSpecification->pTargetFramebuffer;
+		Framebuffer* fb = m_PipelineSpecification->TargetFramebuffers[0];
 		// Create the graphics pipeline
 		// Vulkan uses the concept of rendering pipelines to encapsulate fixed states, replacing OpenGL's complex state machine
 		// A pipeline is then stored and hashed on the GPU making pipeline changes very fast

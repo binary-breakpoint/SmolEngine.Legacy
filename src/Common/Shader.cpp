@@ -58,7 +58,10 @@ namespace Frostium
 			std::ifstream file(path);
 			std::stringstream buffer;
 			if (!file)
-				std::runtime_error("Could not load file " + path);
+			{
+				throw std::runtime_error("Could not load file " + path);
+				abort();
+			}
 
 			buffer << file.rdbuf();
 			src = buffer.str();

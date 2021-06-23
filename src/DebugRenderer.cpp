@@ -413,7 +413,7 @@ namespace Frostium
 			pipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(glm::vec3), layout) };
 			pipelineCI.PipelineDrawModes = { DrawMode::Line, DrawMode::Fan };
 			pipelineCI.bDepthTestEnabled = false;
-			pipelineCI.pTargetFramebuffer = GraphicsContext::GetSingleton()->GetFramebuffer();
+			pipelineCI.TargetFramebuffers = { GraphicsContext::GetSingleton()->GetFramebuffer() };
 			pipelineCI.ShaderCreateInfo = shaderCI;
 
 			assert(s_Data->PrimitivePipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
@@ -434,7 +434,7 @@ namespace Frostium
 			pipelineCI.VertexInputInfos = { vertexInput };
 			pipelineCI.ePolygonMode = PolygonMode::Line;
 			pipelineCI.bDepthTestEnabled = false;
-			pipelineCI.pTargetFramebuffer = GraphicsContext::GetSingleton()->GetFramebuffer();
+			pipelineCI.TargetFramebuffers = { GraphicsContext::GetSingleton()->GetFramebuffer() };
 			pipelineCI.ShaderCreateInfo = shaderCI;
 
 			assert(s_Data->WireframesPipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);

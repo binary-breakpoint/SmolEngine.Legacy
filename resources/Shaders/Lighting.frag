@@ -3,7 +3,9 @@
 layout (location = 0) in vec2 inUV;
 
 // Out
-layout (location = 0) out vec4 outColor;
+layout (location = 0) out vec4 outColor0;
+layout (location = 1) out vec4 outColor1;
+layout (location = 2) out vec4 outColor3;
 
 // Samplers
 layout (binding = 1) uniform sampler2D shadowMap;
@@ -54,7 +56,6 @@ layout (std140, binding = 27) uniform SceneBuffer
     float exoposure;
     float pad;
 
-
 	mat4 projection;
 	mat4 view;
 	mat4 skyBoxMatrix;
@@ -87,14 +88,23 @@ layout(std140, binding = 32) uniform DirLightBuffer
 	uint soft_shadows;
 } dirLight;
 
-layout(std140, binding = 33) uniform SceneState
+layout(std140, binding = 33) uniform LightingProperties
 {   
-	float hdrExposure;
+	float iblScale;
 	uint use_ibl;
 	uint numPointsLights;
 	uint numSpotLights;
 
 } sceneState;
+
+layout(std140, binding = 34) uniform BloomProperties
+{   
+	float exposure;
+	float threshold;
+	float scale;
+	float strength;
+
+} bloomState;
 
 #define MANUAL_SRGB 1
 
@@ -312,7 +322,8 @@ void main()
     vec4 texColor = texture(albedroMap, inUV); // if w is zero, no lighting calculation is required (background)
     if(texColor.w == 0.0)
     {
-        outColor = vec4(texColor.rgb, 1);
+	    outColor0.rgb = texColor.rgb;
+		outColor1 = vec4(0, 0, 0, 1);
         return;
     }
     
@@ -328,6 +339,7 @@ void main()
     float roughness = pbrValues.y;
 	float applyEmission = emission.w;
     float applyAO = normals.w;
+	float emissionStrength = pbrValues.w;
 
 	albedro = pow(albedro, vec3(2.2));
     vec3 V = normalize(sceneData.camPos.xyz - position.xyz);
@@ -339,6 +351,7 @@ void main()
 	if(sceneState.use_ibl == 1)
 	{
 		ambient = CalcIBL(normals.xyz, V, F0, ao, albedro, metallic, roughness);
+		ambient *= sceneState.iblScale;
 	}
 
     vec3 Lo = vec3(0.0);
@@ -379,7 +392,7 @@ void main()
 	{
 		color += emission.rgb;
 	}
-	
+
     // Shadow Mapping
 	//--------------------------------------------
 	float shadow = 0.0;
@@ -401,6 +414,11 @@ void main()
 	// HDR
 	//--------------------------------------------
 	// Color with manual exposure into attachment 0
-
-	outColor = vec4(color, 1.0);
+	outColor0.rgb = vec3(1.0) - exp(-color.rgb * (bloomState.exposure));
+	// Bright parts for bloom into attachment 1
+	float l = dot(outColor0.rgb, vec3(0.2126, 0.7152, 0.0722));
+	float threshold = bloomState.threshold;
+	outColor1.rgb = (l > threshold) ? outColor0.rgb : vec3(0.0);
+	outColor1.a = 1.0;
+	outColor3 = vec4(emissionStrength);
 }

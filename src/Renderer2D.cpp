@@ -261,7 +261,7 @@ namespace Frostium
 			pipelineCI.eColorBlendOp = BlendOp::ADD;
 			pipelineCI.eAlphaBlendOp = BlendOp::SUBTRACT;
 
-			pipelineCI.pTargetFramebuffer = s_Data->MainFB;
+			pipelineCI.TargetFramebuffers = { s_Data->MainFB };
 			pipelineCI.ShaderCreateInfo = shaderCI;
 
 			assert(s_Data->MainPipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
@@ -290,7 +290,7 @@ namespace Frostium
 			pipelineCI.eSrcAlphaBlendFactor = BlendFactor::ONE;
 			pipelineCI.eDstAlphaBlendFactor = BlendFactor::ZERO;
 			pipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(TextVertex), layout) };
-			pipelineCI.pTargetFramebuffer = s_Data->MainFB;
+			pipelineCI.TargetFramebuffers = { s_Data->MainFB };
 			pipelineCI.ShaderCreateInfo = shaderCI;
 
 			assert(s_Data->TextPipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);

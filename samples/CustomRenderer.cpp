@@ -177,7 +177,7 @@ void CustomRenderer::BuildPipelines()
 			DynamicPipelineCI.VertexInputInfos = { vertexMain };
 			DynamicPipelineCI.PipelineName = "MRT_Pipeline";
 			DynamicPipelineCI.ShaderCreateInfo = shaderCI;
-			DynamicPipelineCI.pTargetFramebuffer = &m_Storage.MRT_Framebufer;
+			DynamicPipelineCI.TargetFramebuffers = { &m_Storage.MRT_Framebufer };
 		}
 
 		auto result = m_Storage.MRT_Pipeline.Create(&DynamicPipelineCI);
@@ -223,7 +223,7 @@ void CustomRenderer::BuildPipelines()
 		GraphicsPipelineCreateInfo DynamicPipelineCI = {};
 		DynamicPipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(FullSreenData), FullSreenlayout) };
 		DynamicPipelineCI.ShaderCreateInfo = shaderCI;
-		DynamicPipelineCI.pTargetFramebuffer = m_Context->GetFramebuffer();
+		DynamicPipelineCI.TargetFramebuffers = {m_Context->GetFramebuffer()};
 		DynamicPipelineCI.eCullMode = CullMode::None;
 
 		auto result = m_Storage.Comp_Pipeline.Create(&DynamicPipelineCI);
