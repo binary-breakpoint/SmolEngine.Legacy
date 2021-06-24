@@ -5,7 +5,6 @@ layout (location = 0) in vec2 inUV;
 // Out
 layout (location = 0) out vec4 outColor0;
 layout (location = 1) out vec4 outColor1;
-layout (location = 2) out vec4 outColor3;
 
 // Samplers
 layout (binding = 1) uniform sampler2D shadowMap;
@@ -90,10 +89,9 @@ layout(std140, binding = 32) uniform DirLightBuffer
 
 layout(std140, binding = 33) uniform LightingProperties
 {   
+	vec4 ambientColor;
 	float iblScale;
 	uint use_ibl;
-	uint numPointsLights;
-	uint numSpotLights;
 
 } sceneState;
 
@@ -105,6 +103,12 @@ layout(std140, binding = 34) uniform BloomProperties
 	float strength;
 
 } bloomState;
+
+layout(push_constant) uniform ConstantData
+{
+    uint numPointsLights;
+    uint numSpotLights; 
+};
 
 #define MANUAL_SRGB 1
 
@@ -231,7 +235,7 @@ vec3 CalcIBL(vec3 N, vec3 V, vec3 F0, vec3 ao, vec3 albedo_color, float metallic
 	vec3 specularIrradiance =  textureLod(prefilteredMap, -ReflDirectionWS, roughness_color * specularTextureLevels).rgb;
     vec3 specularIBL = specularIrradiance * (F0 * specularBRDF.x + specularBRDF.y);
     
-	return (diffuseIBL + specularIBL) * ao;
+	return (diffuseIBL + specularIBL) * ao * sceneState.ambientColor.rgb;
 }
 
 vec3 CalcDirLight(vec3 V, vec3 N, vec3 F0, vec3 albedo_color, float metallic_color, float roughness_color, vec3 modelPos)
@@ -331,15 +335,15 @@ void main()
 	vec4 emission = texture(emissionMap, inUV);
     vec4 position = texture(positionsMap, inUV);
     vec4 normals = texture(normalsMap, inUV);
-    vec4 pbrValues = texture(materialsMap, inUV);
+    vec4 materials = texture(materialsMap, inUV);
     vec4 shadowCoord = texture(shadowCoordMap, inUV);
-    vec3 ao = vec3(pbrValues.z);
+    vec3 ao = vec3(materials.z);
 	
-    float metallic = pbrValues.x;
-    float roughness = pbrValues.y;
+    float metallic = materials.x;
+    float roughness = materials.y;
 	float applyEmission = emission.w;
+	float emissionStrength = materials.w;
     float applyAO = normals.w;
-	float emissionStrength = pbrValues.w;
 
 	albedro = pow(albedro, vec3(2.2));
     vec3 V = normalize(sceneData.camPos.xyz - position.xyz);
@@ -364,7 +368,7 @@ void main()
 
     // Point Lighting
 	//--------------------------------------------
-	for(int i = 0; i < sceneState.numPointsLights; i++)
+	for(int i = 0; i < numPointsLights; i++)
 	{
 		if(pointLights[i].is_active == 1)
 		{
@@ -374,7 +378,7 @@ void main()
 
     // Spot Lighting
 	//--------------------------------------------
-	for(int i = 0; i < sceneState.numSpotLights; i++)
+	for(int i = 0; i < numSpotLights; i++)
 	{
 		if(spotLights[i].is_active == 1)
 		{
@@ -391,6 +395,11 @@ void main()
 	if(applyEmission == 1.0)
 	{
 		color += emission.rgb;
+	}
+
+	if(emissionStrength > 0)
+	{
+		color *= exp(color.rgb * emissionStrength);
 	}
 
     // Shadow Mapping
@@ -420,5 +429,4 @@ void main()
 	float threshold = bloomState.threshold;
 	outColor1.rgb = (l > threshold) ? outColor0.rgb : vec3(0.0);
 	outColor1.a = 1.0;
-	outColor3 = vec4(emissionStrength);
 }

@@ -66,14 +66,16 @@ int main(int argc, char** argv)
 	float lightIntensity = 1.0f;
 
 	RendererState state = {};
-	state.SceneLighting.UseIBL = false;
+	state.Lighting.UseIBL = false;
+
 	DirectionalLight dirLight = {};
-	dirLight.IsActive = true;
-	dirLight.IsCastShadows = true;
+	dirLight.IsActive = false;
+	dirLight.IsCastShadows = false;
+	DeferredRenderer::SubmitDirLight(&dirLight);
 
 	PointLight pointLight = {};
-	pointLight.Intensity = 10;
-	pointLight.Raduis = 20;
+	pointLight.Intensity = 20;
+	pointLight.Raduis = 100;
 	pointLight.Color = { 0.2f, 0.2f, 0.7f, 1.0 };
 
 	// Load models
@@ -83,6 +85,10 @@ int main(int argc, char** argv)
 	Mesh::Create("Assets/CesiumMan.gltf", &dummy);
 	Mesh* cube = GraphicsContext::GetSingleton()->GetBoxMesh();
 	Mesh* sphere = GraphicsContext::GetSingleton()->GetSphereMesh();
+
+	Texture dirtMask = {};
+	Texture::Create("Assets/DirtMaskTextureExample.png", &dirtMask);
+	DeferredRenderer::SetDirtMask(&dirtMask, 1.0f);
 
 	// Load Materials
 	uint32_t stoneMat;
@@ -96,7 +102,7 @@ int main(int argc, char** argv)
 			materialCI.SetTexture(MaterialTexture::Roughness, "Assets/materials/stone/Tiles087_1K_Roughness.png");
 			materialCI.SetTexture(MaterialTexture::AO, "Assets/materials/stone/Tiles087_1K_AmbientOcclusion.png");
 			materialCI.SetMetalness(0.1f);
-			materialCI.SetEmissionStrength(10);
+			materialCI.SetEmissionStrength(5.0f);
 			stoneMat = MaterialLibrary::GetSinglenton()->Add(&materialCI, "stone");
 		}
 
@@ -133,6 +139,7 @@ int main(int argc, char** argv)
 			{
 				static int debug_val = 0;
 				static int type  = 0;
+				static bool ibl = true;
 
 				if (ImGui::Combo("##FF", &debug_val, "None\0Albedro\0Position\0Normals\0Materials\0Emission\0ShadowMap\0ShadowMapCood\0AO\0"))
 				{
@@ -149,22 +156,29 @@ int main(int argc, char** argv)
 				if (ImGui::Checkbox("Bloom", &state.bBloom))
 					DeferredRenderer::SetRendererState(&state);
 
+
+				if (ImGui::Checkbox("IBL", &ibl))
+				{
+					state.Lighting.UseIBL = ibl;
+					DeferredRenderer::SetRendererState(&state);
+				}
+
 				if (ImGui::Checkbox("Vertical Bloom", &state.bVerticalBloom))
 					DeferredRenderer::SetRendererState(&state);
 
 				if (ImGui::Checkbox("FXAA", &state.bFXAA))
 					DeferredRenderer::SetRendererState(&state);
 
-				if (ImGui::InputFloat("Exposure", &state.SceneBloom.Exposure))
+				if (ImGui::InputFloat("Exposure", &state.Bloom.Exposure))
 					DeferredRenderer::SetRendererState(&state);
 
-				if (ImGui::InputFloat("Threshold", &state.SceneBloom.Threshold))
+				if (ImGui::InputFloat("Threshold", &state.Bloom.Threshold))
 					DeferredRenderer::SetRendererState(&state);
 
-				if (ImGui::InputFloat("Strength", &state.SceneBloom.Strength))
+				if (ImGui::InputFloat("Strength", &state.Bloom.Strength))
 					DeferredRenderer::SetRendererState(&state);
 
-				if (ImGui::InputFloat("Scale", &state.SceneBloom.Scale))
+				if (ImGui::InputFloat("Scale", &state.Bloom.Scale))
 					DeferredRenderer::SetRendererState(&state);
 
 				ImGui::Checkbox("Debug Draw", &debug);
@@ -205,9 +219,9 @@ int main(int argc, char** argv)
 			DeferredRenderer::BeginScene(&clearInfo);
 			DeferredRenderer::SubmitMesh({ -5, 5, 0 }, { 0, 0, 0 }, { 2, 2, 2, }, sphere, planeMat);
 			DeferredRenderer::SubmitPointLight(&pointLight);
-			DeferredRenderer::SubmitMesh({ -10, 1, 0 }, { 0, 0, 0 }, { 3, 3, 3 }, cube, stoneMat);
-			DeferredRenderer::SubmitMesh({ 0, 3.9f, -3 }, glm::radians(rot), { 1, 1, 1, }, &plane, planeMat);
-			//DeferredRenderer::SubmitMesh({ 3, 2, 0 }, { 0, 0, 0 }, { 5, 5, 5, }, &dummy, stoneMat);
+			DeferredRenderer::SubmitMesh({ -10, 1, 0 }, { 0, 0, 0 }, { 3, 3, 3 }, cube);
+			//DeferredRenderer::SubmitMesh({ 0, 3.9f, -3 }, glm::radians(rot), { 1, 1, 1, }, &plane, planeMat);
+			DeferredRenderer::SubmitMesh({ 3, 2, 0 }, { 0, 0, 0 }, { 5, 5, 5, }, &dummy, stoneMat);
 			DeferredRenderer::EndScene();
 			
 			if (debug)

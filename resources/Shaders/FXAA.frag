@@ -4,29 +4,19 @@ layout (location = 0) in vec2 inUV;
 
 layout (binding = 0) uniform sampler2D lightSampler;
 
-layout(push_constant) uniform ConstantData
-{
-    vec2 inverseScreenSize;
-    uint fxaaEnabled;
-};
-
-layout(std140, binding = 33) uniform SceneState
+layout(std140, binding = 35) uniform FXAAState
 {   
-	float hdrExposure;
-	uint use_ibl;
-	uint numPointsLights;
-	uint numSpotLights;
-
-} sceneState;
+	float      edgeThresholdMin;
+	float      edgeThresholdMax;
+	float      iterations;
+	float      subPixelQuality;
+	vec2       inverseScreenSize;
+};
 
 layout (location = 0) out vec4 outColor;
 
 // Settings for FXAA.
-#define EDGE_THRESHOLD_MIN 0.0312
-#define EDGE_THRESHOLD_MAX 0.125
 #define QUALITY(q) ((q) < 5 ? 1.0 : ((q) > 5 ? ((q) < 10 ? 2.0 : ((q) < 11 ? 4.0 : 8.0)) : 1.5))
-#define ITERATIONS 29
-#define SUBPIXEL_QUALITY 0.75
 
 float rgb2luma(vec3 rgb){
     return sqrt(dot(rgb, vec3(0.299, 0.587, 0.114)));
@@ -34,6 +24,11 @@ float rgb2luma(vec3 rgb){
 
 vec4 FXAA(sampler2D screenTexture, vec2 inUV)
 {
+	float EDGE_THRESHOLD_MIN = edgeThresholdMin;
+    float EDGE_THRESHOLD_MAX = edgeThresholdMax;
+    int ITERATIONS = int(iterations);
+    float SUBPIXEL_QUALITY = subPixelQuality;
+
     vec3 colorCenter = texture(screenTexture,inUV).rgb;
 	
 	// Luma at the current fragment
@@ -226,16 +221,7 @@ vec4 FXAA(sampler2D screenTexture, vec2 inUV)
 
 void main() 
 {
-    vec4 color = vec4(0.0);
-    if(fxaaEnabled == 1)
-    {
-        color = FXAA(lightSampler, inUV);
-    }
-    else
-    {
-        color = texture(lightSampler, inUV);
-    }
-
+    vec4 color = FXAA(lightSampler, inUV);
     outColor = vec4(color.rgb, 1.0);
 }
 

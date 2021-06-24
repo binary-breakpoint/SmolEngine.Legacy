@@ -71,7 +71,7 @@ namespace Frostium
 		uint32_t   IsActive = true;
 		uint32_t   IsCastShadows = false;
 	private:
-		alignas(4) uint32_t pad1 = 0;
+		uint32_t pad1 = 0;
 	};
 
 	struct InstanceData
@@ -85,11 +85,12 @@ namespace Frostium
 
 	struct LightingProperties
 	{
+		glm::vec4   AmbientColor = glm::vec4(1.0f);
 		float       IBLStrength = 1.0f;
 		uint32_t    UseIBL = true;
 	private:
-		uint32_t    NumPointsLights = 0;
-		uint32_t    NumSpotLights = 0;
+		uint32_t    pad1 = 1;
+		uint32_t    pad2 = 1;
 
 		friend class DeferredRenderer;
 	};
@@ -97,11 +98,34 @@ namespace Frostium
 	struct BloomProperties
 	{
 		float Exposure = 1.0f;
-		float Threshold = 0.40f;
-		float Scale = 0.001f;
-		float Strength = 1.0f;
+		float Threshold = 0.10f;
+		float Scale = 1.0f;
+		float Strength = 0.5f;
 	};
 
+	struct FXAAProperties
+	{
+		float      EdgeThresholdMin = 0.0312f;
+		float      EdgeThresholdMax = 0.125f;
+		float      Iterations = 29.0f;
+		float      SubPixelQuality = 0.75f;
+		// don't use! for internal needs
+		glm::vec2  InverseScreenSize = glm::vec2(0.0f);
+	private:
+		float      Pad1 = 1.0f;
+		float      Pad2 = 1.0f;
+
+	};
+
+#pragma endregion
+
+#pragma region Mask
+
+	struct DirtMask
+	{
+		Texture* Mask = nullptr;
+		float    Intensity = 1.0f;
+	};
 #pragma endregion
 
 #pragma region Srotage
@@ -125,11 +149,12 @@ namespace Frostium
 		bool                   bDrawGrid = true;
 		bool                   bFXAA = true;
 		bool                   bSSAO = false;
-		bool                   bBloom = true;
-		bool                   bVerticalBloom = false;
+		bool                   bBloom = false;
+		bool                   bVerticalBloom = true;
 		DebugViewFlags         eDebugView = DebugViewFlags::None;
-		LightingProperties     SceneLighting = {};
-		BloomProperties        SceneBloom = {};
+		LightingProperties     Lighting = {};
+		BloomProperties        Bloom = {};
+		FXAAProperties         FXAA = {};
 	};
 
 	struct CommandBuffer
@@ -171,6 +196,7 @@ namespace Frostium
 		const uint32_t                             m_DirLightBinding = 32;
 		const uint32_t                             m_LightingStateBinding = 33;
 		const uint32_t                             m_BloomStateBinding = 34;
+		const uint32_t                             m_FXAAStateBinding = 35;
 		// Instance Data				           
 		uint32_t                                   m_Objects = 0;
 		uint32_t                                   m_InstanceDataIndex = 0;
@@ -187,6 +213,7 @@ namespace Frostium
 		GraphicsPipeline                           p_Grid = {};
 		GraphicsPipeline                           p_Debug = {};
 		GraphicsPipeline                           p_FXAA = {};
+		GraphicsPipeline                           p_Mask = {};
 		// Framebuffers	
 		Framebuffer*                               f_Main = nullptr;
 		Framebuffer                                f_GBuffer= {};
@@ -194,6 +221,8 @@ namespace Frostium
 		Framebuffer                                f_FXAA = {};
 		Framebuffer                                f_Bloom = {};
 		Framebuffer                                f_Depth = {};
+		// Masks
+		DirtMask                                   m_DirtMask = {};
 		//Meshes						           
 		Mesh                                       m_PlaneMesh = {};
 		// Buffers
