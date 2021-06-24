@@ -216,6 +216,12 @@ namespace Frostium
 					s_Data->p_Lighting.SubmitBuffer(s_Data->m_BloomStateBinding, sizeof(BloomProperties), &s_Data->m_State.Bloom);
 				});
 
+				// Updates Dynamic Sky
+				JobsSystemInstance::Schedule([]()
+				{
+					s_Data->p_Skybox.SubmitBuffer(s_Data->m_DynamicSkyBinding, sizeof(DynamicSky), &s_Data->m_State.DynamicSky);
+				});
+
 				// Updates Directional Lights
 				JobsSystemInstance::Schedule([]()
 				{
@@ -357,6 +363,8 @@ namespace Frostium
 			// SkyBox
 			if (s_Data->m_State.bDrawSkyBox)
 			{
+				uint32_t state = 1;
+				s_Data->p_Skybox.SubmitPushConstant(ShaderType::Fragment, sizeof(uint32_t), &state);
 				s_Data->p_Skybox.Draw(36);
 			}
 

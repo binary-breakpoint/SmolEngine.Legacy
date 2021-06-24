@@ -117,6 +117,39 @@ namespace Frostium
 
 	};
 
+	struct DynamicSky
+	{
+		glm::vec4 primaries = glm::vec4(6.8e-7, 5.5e-7, 4.5e-7, 0);
+		glm::vec4 sunPosition = glm::vec4(0, 200, 0, 0);
+		glm::vec4 mieKCoefficient = glm::vec4(0.686, 0.678, 0.666, 0);
+
+		// Depolarization factor for air wavelength of primaries
+		float depolarizationFactor = 0.035f;
+		float luminance = 1.0f;
+		float mieCoefficient = 0.005f;
+		float mieDirectionalG = 0.8f;
+
+		float mieV = 4.0f;
+		// Optical length at zenith for molecules
+		float mieZenithLength = 1.25e3f;
+		// Number of molecules per unit volume for air at 288.15K and 1013mb (sea level -45 celsius)
+		float numMolecules = 2.542e25f;
+		float rayleigh = 1.0f;
+
+		float rayleighZenithLength = 8.4e3f;
+		float refractiveIndex = 1.0003f;
+		float sunAngularDiameterDegrees = 0.0093333f;
+		float sunIntensityFactor = 1000.0f;
+
+		float sunIntensityFalloffSteepness = 1.5f;
+		float tonemapWeighting = 9.50f;
+		float turbidity = 2.0f;
+
+	private:
+
+		float pad1 = 1.0f;
+	};
+
 #pragma endregion
 
 #pragma region Mask
@@ -155,6 +188,7 @@ namespace Frostium
 		LightingProperties     Lighting = {};
 		BloomProperties        Bloom = {};
 		FXAAProperties         FXAA = {};
+		DynamicSky             DynamicSky = {};
 	};
 
 	struct CommandBuffer
@@ -197,6 +231,7 @@ namespace Frostium
 		const uint32_t                             m_LightingStateBinding = 33;
 		const uint32_t                             m_BloomStateBinding = 34;
 		const uint32_t                             m_FXAAStateBinding = 35;
+		const uint32_t                             m_DynamicSkyBinding = 36;
 		// Instance Data				           
 		uint32_t                                   m_Objects = 0;
 		uint32_t                                   m_InstanceDataIndex = 0;
