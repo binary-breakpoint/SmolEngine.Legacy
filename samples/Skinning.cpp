@@ -102,16 +102,14 @@ int main(int argc, char** argv)
 			materialCI.SetTexture(MaterialTexture::Roughness, "Assets/materials/stone/Tiles087_1K_Roughness.png");
 			materialCI.SetTexture(MaterialTexture::AO, "Assets/materials/stone/Tiles087_1K_AmbientOcclusion.png");
 			materialCI.SetMetalness(0.1f);
-			materialCI.SetEmissionStrength(5.0f);
 			stoneMat = MaterialLibrary::GetSinglenton()->Add(&materialCI, "stone");
 		}
 
 		{
 			materialCI = {};
-			materialCI.SetTexture(MaterialTexture::Albedro, "Assets/materials/plane/Metal021_2K_Color.png");
-			materialCI.SetTexture(MaterialTexture::Normal, "Assets/materials/plane/Metal021_2K_Normal.png");
-			materialCI.SetTexture(MaterialTexture::Roughness, "Assets/materials/plane/Metal021_2K_Roughness.png");
-			materialCI.SetTexture(MaterialTexture::Metallic, "Assets/materials/plane/Metal021_2K_Metalness.png");
+			materialCI.SetMetalness(0.5f);
+			materialCI.SetRoughness(0.3f);
+			materialCI.SetEmissionStrength(5.0f);
 
 			planeMat = MaterialLibrary::GetSinglenton()->Add(&materialCI, "metal");
 		}
@@ -123,6 +121,8 @@ int main(int argc, char** argv)
 	AnimationProperties* defaultProp = plane.GetAnimationProperties(0);
 	AnimationProperties* defaultProp2 = dummy.GetAnimationProperties(0);
 	defaultProp2->SetActive(true);
+
+	static glm::vec3 sunPos = glm::vec4(50, 100, 40, 0);
 
 	while (process)
 	{
@@ -219,7 +219,7 @@ int main(int argc, char** argv)
 			DeferredRenderer::BeginScene(&clearInfo);
 			DeferredRenderer::SubmitMesh({ -5, 5, 0 }, { 0, 0, 0 }, { 2, 2, 2, }, sphere, planeMat);
 			DeferredRenderer::SubmitPointLight(&pointLight);
-			DeferredRenderer::SubmitMesh({ -10, 1, 0 }, { 0, 0, 0 }, { 3, 3, 3 }, cube);
+			DeferredRenderer::SubmitMesh({ -10, 1, 0 }, { 0, 0, 0 }, { 3, 3, 3 }, cube, planeMat);
 			//DeferredRenderer::SubmitMesh({ 0, 3.9f, -3 }, glm::radians(rot), { 1, 1, 1, }, &plane, planeMat);
 			DeferredRenderer::SubmitMesh({ 3, 2, 0 }, { 0, 0, 0 }, { 5, 5, 5, }, &dummy, stoneMat);
 			DeferredRenderer::EndScene();

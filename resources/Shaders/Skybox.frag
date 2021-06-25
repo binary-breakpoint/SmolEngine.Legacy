@@ -1,160 +1,166 @@
 #version 450 core
 
 layout(location = 0) in vec3 v_WorldPos;
-layout(location = 1) in float v_Exposure;
-
 layout (location = 0) out vec4 out_color;
 
 layout (binding = 1) uniform samplerCube samplerCubeMap;
-
-const float PI = 3.141592653589793238462643383279502884197169;
-const vec3 UP = vec3(0.0, 1.0, 0.0);
-
-layout (std140, binding = 36) uniform DynamicSky
+layout (std140, binding = 512) uniform DynamicSky
 {
-	vec4 primaries;
+	vec4 rayOrigin;
 	vec4 sunPosition;
-	vec4 mieKCoefficient;
+	vec4 rayleighScatteringCoeff;
 
-	float depolarizationFactor;
-	float luminance;
-	float mieCoefficient;
-	float mieDirectionalG;
+	float sunIntensity;
+	float planetRadius;
+	float atmosphereRadius;
+	float mieScatteringCoeff;
 
-	float mieV;
-	float mieZenithLength;
-	float numMolecules;
-	float rayleigh;
-
-	float rayleighZenithLength;
-	float refractiveIndex;
-	float sunAngularDiameterDegrees;
-	float sunIntensityFactor;
-
-	float sunIntensityFalloffSteepness;
-	float tonemapWeighting;
-	float turbidity;
+	float rayleighScale;
+	float mieScale;
+	float mieScatteringDirection;
 };
 
-layout (std140, binding = 27) uniform SceneBuffer
-{
-	float nearClip;
-    float farClip;
-    float exoposure;
-    float pad;
-
-	mat4 projection;
-	mat4 view;
-	mat4 skyBoxMatrix;
-	vec4 cameraPos;
-	vec4 ambientColor;
-
-} sceneData;
-
-vec3 totalRayleigh(vec3 lambda)
-{
-	return (8.0 * pow(PI, 3.0) * pow(pow(refractiveIndex, 2.0) - 1.0, 2.0) * (6.0 + 3.0 * depolarizationFactor)) / (3.0 * numMolecules * pow(lambda, vec3(4.0)) * (6.0 - 7.0 * depolarizationFactor));
-}
-
-vec3 totalMie(vec3 lambda, vec3 K, float T)
-{
-	float c = 0.2 * T * 10e-18;
-	return 0.434 * c * PI * pow((2.0 * PI) / lambda, vec3(mieV - 2.0)) * K;
-}
-
-float rayleighPhase(float cosTheta)
-{
-	return (3.0 / (16.0 * PI)) * (1.0 + pow(cosTheta, 2.0));
-}
-
-float henyeyGreensteinPhase(float cosTheta, float g)
-{
-	return (1.0 / (4.0 * PI)) * ((1.0 - pow(g, 2.0)) / pow(1.0 - 2.0 * g * cosTheta + pow(g, 2.0), 1.5));
-}
-
-float sunIntensity(float zenithAngleCos)
-{
-	float cutoffAngle = PI / 1.95; // Earth shadow hack
-	return sunIntensityFactor * max(0.0, 1.0 - exp(-((cutoffAngle - acos(zenithAngleCos)) / sunIntensityFalloffSteepness)));
-}
-
-// Whitescale tonemapping calculation, see http://filmicgames.com/archives/75
-// Also see http://blenderartists.org/forum/showthread.php?321110-Shaders-and-Skybox-madness
-const float A = 0.15; // Shoulder strength
-const float B = 0.50; // Linear strength
-const float C = 0.10; // Linear angle
-const float D = 0.20; // Toe strength
-const float E = 0.02; // Toe numerator
-const float F = 0.30; // Toe denominator
-vec3 Uncharted2Tonemap(vec3 W)
-{
-	return ((W * (A * W + C * B) + D * E) / (W * (A * W + B) + D * F)) - E / F;
-}
-
-layout(push_constant) uniform ConstantData
+layout(push_constant) uniform PushConsts 
 {
 	uint state;
 };
 
+#define PI 3.141592
+#define iSteps 16
+#define jSteps 8
+
+vec2 rsi(vec3 r0, vec3 rd, float sr) {
+    // ray-sphere intersection that assumes
+    // the sphere is centered at the origin.
+    // No intersection when result.x > result.y
+    float a = dot(rd, rd);
+    float b = 2.0 * dot(rd, r0);
+    float c = dot(r0, r0) - (sr * sr);
+    float d = (b*b) - 4.0*a*c;
+    if (d < 0.0) return vec2(1e5,-1e5);
+    return vec2(
+        (-b - sqrt(d))/(2.0*a),
+        (-b + sqrt(d))/(2.0*a)
+    );
+}
+
+// from: https://github.com/wwwtyro/glsl-atmosphere
+vec3 atmosphere(vec3 r, vec3 r0, vec3 pSun, float iSun, float rPlanet, float rAtmos, vec3 kRlh, float kMie, float shRlh, float shMie, float g) {
+    // Normalize the sun and view directions.
+    pSun = normalize(pSun);
+    r = normalize(r);
+
+    // Calculate the step size of the primary ray.
+    vec2 p = rsi(r0, r, rAtmos);
+    if (p.x > p.y) return vec3(0,0,0);
+    p.y = min(p.y, rsi(r0, r, rPlanet).x);
+    float iStepSize = (p.y - p.x) / float(iSteps);
+
+    // Initialize the primary ray time.
+    float iTime = 0.0;
+
+    // Initialize accumulators for Rayleigh and Mie scattering.
+    vec3 totalRlh = vec3(0,0,0);
+    vec3 totalMie = vec3(0,0,0);
+
+    // Initialize optical depth accumulators for the primary ray.
+    float iOdRlh = 0.0;
+    float iOdMie = 0.0;
+
+    // Calculate the Rayleigh and Mie phases.
+    float mu = dot(r, pSun);
+    float mumu = mu * mu;
+    float gg = g * g;
+    float pRlh = 3.0 / (16.0 * PI) * (1.0 + mumu);
+    float pMie = 3.0 / (8.0 * PI) * ((1.0 - gg) * (mumu + 1.0)) / (pow(1.0 + gg - 2.0 * mu * g, 1.5) * (2.0 + gg));
+
+    // Sample the primary ray.
+    for (int i = 0; i < iSteps; i++) {
+
+        // Calculate the primary ray sample position.
+        vec3 iPos = r0 + r * (iTime + iStepSize * 0.5);
+
+        // Calculate the height of the sample.
+        float iHeight = length(iPos) - rPlanet;
+
+        // Calculate the optical depth of the Rayleigh and Mie scattering for this step.
+        float odStepRlh = exp(-iHeight / shRlh) * iStepSize;
+        float odStepMie = exp(-iHeight / shMie) * iStepSize;
+
+        // Accumulate optical depth.
+        iOdRlh += odStepRlh;
+        iOdMie += odStepMie;
+
+        // Calculate the step size of the secondary ray.
+        float jStepSize = rsi(iPos, pSun, rAtmos).y / float(jSteps);
+
+        // Initialize the secondary ray time.
+        float jTime = 0.0;
+
+        // Initialize optical depth accumulators for the secondary ray.
+        float jOdRlh = 0.0;
+        float jOdMie = 0.0;
+
+        // Sample the secondary ray.
+        for (int j = 0; j < jSteps; j++) {
+
+            // Calculate the secondary ray sample position.
+            vec3 jPos = iPos + pSun * (jTime + jStepSize * 0.5);
+
+            // Calculate the height of the sample.
+            float jHeight = length(jPos) - rPlanet;
+
+            // Accumulate the optical depth.
+            jOdRlh += exp(-jHeight / shRlh) * jStepSize;
+            jOdMie += exp(-jHeight / shMie) * jStepSize;
+
+            // Increment the secondary ray time.
+            jTime += jStepSize;
+        }
+
+        // Calculate attenuation.
+        vec3 attn = exp(-(kMie * (iOdMie + jOdMie) + kRlh * (iOdRlh + jOdRlh)));
+
+        // Accumulate scattering.
+        totalRlh += odStepRlh * attn;
+        totalMie += odStepMie * attn;
+
+        // Increment the primary ray time.
+        iTime += iStepSize;
+
+    }
+
+    // Calculate and return the final color.
+    return iSun * (pRlh * kRlh * totalRlh + pMie * kMie * totalMie);
+}
+
 void main()
 {
-	vec4 skyColor = vec4(0);
+	vec4 finalColor = vec4(0);
 	switch(state)
 	{
 		case 0:
 		{
-			vec3 texColor = texture(samplerCubeMap, v_WorldPos).rgb;
-	        skyColor = vec4(texColor, 0.0);
+			finalColor = texture(samplerCubeMap, v_WorldPos);
 			break;
 		}
-
 		case 1:
 		{
-			// Rayleigh coefficient
-	        float sunfade = 1.0 - clamp(1.0 - exp((sunPosition.y / 450000.0)), 0.0, 1.0);
-	        float rayleighCoefficient = rayleigh - (1.0 * (1.0 - sunfade));
-	        vec3 betaR = totalRayleigh(primaries.xyz) * rayleighCoefficient;
-	
-	        // Mie coefficient
-	        vec3 betaM = totalMie(primaries.xyz, mieKCoefficient.xyz, turbidity) * mieCoefficient;
-	        
-	        // Optical length, cutoff angle at 90 to avoid singularity
-	        float zenithAngle = acos(max(0.0, dot(UP, normalize(v_WorldPos - sceneData.cameraPos.xyz))));
-	        float denom = cos(zenithAngle) + 0.15 * pow(93.885 - ((zenithAngle * 180.0) / PI), -1.253);
-	        float sR = rayleighZenithLength / denom;
-	        float sM = mieZenithLength / denom;
-	        
-	        // Combined extinction factor
-	        vec3 Fex = exp(-(betaR * sR + betaM * sM));
-	        
-	        // In-scattering
-	        vec3 sunDirection = normalize(sunPosition.xyz);
-	        float cosTheta = dot(normalize(v_WorldPos - sceneData.cameraPos.xyz), sunDirection);
-	        vec3 betaRTheta = betaR * rayleighPhase(cosTheta * 0.5 + 0.5);
-	        vec3 betaMTheta = betaM * henyeyGreensteinPhase(cosTheta, mieDirectionalG);
-	        float sunE = sunIntensity(dot(sunDirection, UP));
-	        vec3 Lin = pow(sunE * ((betaRTheta + betaMTheta) / (betaR + betaM)) * (1.0 - Fex), vec3(1.5));
-	        Lin *= mix(vec3(1.0), pow(sunE * ((betaRTheta + betaMTheta) / (betaR + betaM)) * Fex, vec3(0.5)), clamp(pow(1.0 - dot(UP, sunDirection), 5.0), 0.0, 1.0));
-	        
-	        // Composition + solar disc
-	        float sunAngularDiameterCos = cos(sunAngularDiameterDegrees);
-	        float sundisk = smoothstep(sunAngularDiameterCos, sunAngularDiameterCos + 0.00002, cosTheta);
-	        vec3 L0 = vec3(0.1) * Fex;
-	        L0 += sunE * 19000.0 * Fex * sundisk;
-	        vec3 texColor = Lin + L0;
-	        texColor *= 0.04;
-	        texColor += vec3(0.0, 0.001, 0.0025) * 0.3;
-	        
-	        // Tonemapping
-	        vec3 whiteScale = 1.0 / Uncharted2Tonemap(vec3(tonemapWeighting));
-	        vec3 curr = Uncharted2Tonemap((log2(2.0 / pow(luminance, 4.0))) * texColor);
-	        vec3 color = curr * whiteScale;
-	        vec3 retColor = pow(color, vec3(1.0 / (1.2 + (1.2 * sunfade))));
-        
-	        skyColor = vec4(retColor, 0.0);
-			break;
+			finalColor.rgb = atmosphere(
+            normalize(-v_WorldPos),         // normalized ray direction
+            rayOrigin.xyz,                  // ray origin
+            sunPosition.xyz,                // position of the sun
+            sunIntensity,                   // intensity of the sun
+            planetRadius,                   // radius of the planet in meters
+            atmosphereRadius,               // radius of the atmosphere in meters
+            rayleighScatteringCoeff.xyz,    // Rayleigh scattering coefficient
+            mieScatteringCoeff,             // Mie scattering coefficient
+            rayleighScale,                  // Rayleigh scale height
+            mieScale,                       // Mie scale height
+            mieScatteringDirection          // Mie preferred scattering direction
+			);     
 		}
 	}
 
-	out_color = skyColor;
+	out_color = vec4(finalColor.rgb, 0.0);
 }

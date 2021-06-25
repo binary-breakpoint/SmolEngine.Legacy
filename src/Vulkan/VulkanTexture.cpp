@@ -81,6 +81,111 @@ namespace Frostium
 		stbi_image_free(data);
 	}
 
+	void VulkanTexture::GenCubeMap(uint32_t width, uint32_t height, TextureFormat format)
+	{
+		m_Format = GetImageFormat(format);
+		m_Width = width;
+		m_Height = height;
+
+		// Create optimal tiled target image
+		VkImageCreateInfo imageCreateInfo = {};
+		{
+			imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+			imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+			imageCreateInfo.format = m_Format;
+			imageCreateInfo.mipLevels = 1;
+			imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+			imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+			imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+			imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			imageCreateInfo.extent = { width, height, 1 };
+			imageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+			// Cube faces count as array layers in Vulkan
+			imageCreateInfo.arrayLayers = 6;
+			// This flag is required for cube map images
+			imageCreateInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+
+			VK_CHECK_RESULT(vkCreateImage(m_Device, &imageCreateInfo, nullptr, &m_Image));
+		}
+
+		VkMemoryRequirements memReqs;
+		vkGetImageMemoryRequirements(m_Device, m_Image, &memReqs);
+		uint32_t typeIndex = VulkanContext::GetDevice().GetMemoryTypeIndex(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		VulkanMemoryAllocator::Allocate(m_Device, memReqs, &m_DeviceMemory, typeIndex);
+		VK_CHECK_RESULT(vkBindImageMemory(m_Device, m_Image, m_DeviceMemory, 0));
+		// View
+		{
+			VkImageViewCreateInfo view = {};
+			view.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+			// Cube map view type
+			view.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
+			view.format = m_Format;
+			view.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
+			view.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+			// 6 array layers (faces)
+			view.subresourceRange.layerCount = 6;
+			// Set number of mip levels
+			view.subresourceRange.levelCount = 1;
+			view.image = m_Image;
+			VK_CHECK_RESULT(vkCreateImageView(m_Device, &view, nullptr, &m_ImageView));
+		}
+
+		// Image barrier for optimal image (target)
+		VkImageSubresourceRange subresourceRange = {};
+		subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		subresourceRange.baseMipLevel = 0;
+		subresourceRange.levelCount = 1;
+		subresourceRange.layerCount = 6;
+
+		CommandBufferStorage cmdStorage{};
+		VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
+		{
+			SetImageLayout(
+				cmdStorage.Buffer,
+				m_Image,
+				VK_IMAGE_LAYOUT_UNDEFINED,
+				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+				subresourceRange);
+		}
+		VulkanCommandBuffer::ExecuteCommandBuffer(&cmdStorage);
+
+		// Sampler
+		{
+			auto& device = VulkanContext::GetDevice();
+
+			// Create sampler
+			VkSamplerCreateInfo samplerCI = {};
+			samplerCI.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+			samplerCI.maxAnisotropy = 1.0f;
+			samplerCI.magFilter = VK_FILTER_LINEAR;
+			samplerCI.minFilter = VK_FILTER_LINEAR;
+			samplerCI.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+			samplerCI.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+			samplerCI.addressModeV = samplerCI.addressModeU;
+			samplerCI.addressModeW = samplerCI.addressModeU;
+			samplerCI.mipLodBias = 0.0f;
+			samplerCI.compareOp = VK_COMPARE_OP_NEVER;
+			samplerCI.minLod = 0.0f;
+			samplerCI.maxLod = 1.0f;
+			samplerCI.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+			samplerCI.maxAnisotropy = 1.0f;
+			if (device.GetDeviceFeatures()->samplerAnisotropy)
+			{
+				samplerCI.maxAnisotropy = device.GetDeviceProperties()->limits.maxSamplerAnisotropy;
+				samplerCI.anisotropyEnable = VK_TRUE;
+			}
+
+			VK_CHECK_RESULT(vkCreateSampler(m_Device, &samplerCI, nullptr, &m_Samper));
+		}
+
+		m_ImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+		m_DescriptorImageInfo = {};
+		m_DescriptorImageInfo.imageLayout = m_ImageLayout;
+		m_DescriptorImageInfo.imageView = m_ImageView;
+		m_DescriptorImageInfo.sampler = m_Samper;
+	}
+
 	void VulkanTexture::LoadCubeMap(const std::string& filePath, TextureFormat format)
 	{
 		ktxResult result;
@@ -725,6 +830,11 @@ namespace Frostium
 	uint32_t VulkanTexture::GetWidth() const
 	{
 		return m_Width;
+	}
+
+	VkImage VulkanTexture::GetVkImage() const
+	{
+		return m_Image;
 	}
 
 	void* VulkanTexture::GetImGuiTextureID() const

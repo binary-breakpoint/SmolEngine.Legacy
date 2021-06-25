@@ -301,6 +301,179 @@ namespace Frostium
 		return true;
 	}
 
+	bool VulkanFramebuffer::CreateCopyFramebuffer(uint32_t width, uint32_t height)
+	{
+		
+		m_Attachments.resize(1);
+		VkImageCreateInfo imageCreateInfo = {};
+		CommandBufferStorage cmdStorage{};
+		VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
+		VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
+
+		// Color
+		{
+			auto& attachment = m_Attachments[0];
+
+			// Color attachment
+			imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+			imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+			imageCreateInfo.format = format;
+			imageCreateInfo.extent.width = width;
+			imageCreateInfo.extent.height = height;
+			imageCreateInfo.extent.depth = 1;
+			imageCreateInfo.mipLevels = 1;
+			imageCreateInfo.arrayLayers = 1;
+			imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+			imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+			// Image of the framebuffer is blit source
+			imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			imageCreateInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+			imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+			VK_CHECK_RESULT(vkCreateImage(m_Device, &imageCreateInfo, nullptr, &attachment.AttachmentVkInfo.image));
+
+			VkMemoryRequirements memReqs;
+			vkGetImageMemoryRequirements(m_Device, attachment.AttachmentVkInfo.image, &memReqs);
+			uint32_t typeIndex = VulkanContext::GetDevice().GetMemoryTypeIndex(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+			VulkanMemoryAllocator::Allocate(m_Device, memReqs, &attachment.AttachmentVkInfo.mem, typeIndex);
+			VK_CHECK_RESULT(vkBindImageMemory(m_Device, attachment.AttachmentVkInfo.image, attachment.AttachmentVkInfo.mem, 0));
+
+			VkImageViewCreateInfo colorImageView = {};
+			colorImageView.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+			colorImageView.viewType = VK_IMAGE_VIEW_TYPE_2D;
+			colorImageView.format = format;
+			colorImageView.flags = 0;
+			colorImageView.subresourceRange = {};
+			colorImageView.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			colorImageView.subresourceRange.baseMipLevel = 0;
+			colorImageView.subresourceRange.levelCount = 1;
+			colorImageView.subresourceRange.baseArrayLayer = 0;
+			colorImageView.subresourceRange.layerCount = 1;
+			colorImageView.image = attachment.AttachmentVkInfo.image;
+
+			VulkanTexture::SetImageLayout(cmdStorage.Buffer, attachment.AttachmentVkInfo.image,
+				VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+			VK_CHECK_RESULT(vkCreateImageView(m_Device, &colorImageView, nullptr, &attachment.AttachmentVkInfo.view));
+
+		}
+
+		// Depth
+		{
+			// Depth stencil attachment
+			imageCreateInfo.format = m_DepthFormat;
+			imageCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+
+			VK_CHECK_RESULT(vkCreateImage(m_Device, &imageCreateInfo, nullptr, &m_DepthAttachment.AttachmentVkInfo.image));
+			VkMemoryRequirements memReqs;
+			vkGetImageMemoryRequirements(m_Device, m_DepthAttachment.AttachmentVkInfo.image, &memReqs);
+			uint32_t typeIndex = VulkanContext::GetDevice().GetMemoryTypeIndex(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+			VulkanMemoryAllocator::Allocate(m_Device, memReqs, &m_DepthAttachment.AttachmentVkInfo.mem, typeIndex);
+			VK_CHECK_RESULT(vkBindImageMemory(m_Device, m_DepthAttachment.AttachmentVkInfo.image, m_DepthAttachment.AttachmentVkInfo.mem, 0));
+
+			VkImageViewCreateInfo depthStencilView = {};
+			depthStencilView.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+			depthStencilView.viewType = VK_IMAGE_VIEW_TYPE_2D;
+			depthStencilView.format = m_DepthFormat;
+			depthStencilView.flags = 0;
+			depthStencilView.subresourceRange = {};
+			depthStencilView.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+			depthStencilView.subresourceRange.baseMipLevel = 0;
+			depthStencilView.subresourceRange.levelCount = 1;
+			depthStencilView.subresourceRange.baseArrayLayer = 0;
+			depthStencilView.subresourceRange.layerCount = 1;
+			depthStencilView.image = m_DepthAttachment.AttachmentVkInfo.image;
+
+			VulkanTexture::SetImageLayout(cmdStorage.Buffer, m_DepthAttachment.AttachmentVkInfo.image,
+				VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+
+			VK_CHECK_RESULT(vkCreateImageView(m_Device, &depthStencilView, nullptr, &m_DepthAttachment.AttachmentVkInfo.view));
+		}
+
+		VulkanCommandBuffer::ExecuteCommandBuffer(&cmdStorage);
+
+		// Render pass
+		{
+			VkAttachmentDescription osAttachments[2] = {};
+
+			osAttachments[0].format = format;
+			osAttachments[0].samples = VK_SAMPLE_COUNT_1_BIT;
+			osAttachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			osAttachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+			osAttachments[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			osAttachments[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			osAttachments[0].initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			osAttachments[0].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+			// Depth attachment
+			osAttachments[1].format = m_DepthFormat;
+			osAttachments[1].samples = VK_SAMPLE_COUNT_1_BIT;
+			osAttachments[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+			osAttachments[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+			osAttachments[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			osAttachments[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			osAttachments[1].initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			osAttachments[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+			VkAttachmentReference colorReference = {};
+			colorReference.attachment = 0;
+			colorReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+			VkAttachmentReference depthReference = {};
+			depthReference.attachment = 1;
+			depthReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+			VkSubpassDescription subpass = {};
+			subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+			subpass.colorAttachmentCount = 1;
+			subpass.pColorAttachments = &colorReference;
+			subpass.pDepthStencilAttachment = &depthReference;
+
+			VkRenderPassCreateInfo renderPassCreateInfo = {};
+			renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+			renderPassCreateInfo.attachmentCount = 2;
+			renderPassCreateInfo.pAttachments = osAttachments;
+			renderPassCreateInfo.subpassCount = 1;
+			renderPassCreateInfo.pSubpasses = &subpass;
+
+			VK_CHECK_RESULT(vkCreateRenderPass(m_Device, &renderPassCreateInfo, nullptr, &m_RenderPass));
+		}
+
+		// Frame buffer
+		{
+			VkImageView attachments[2];
+			attachments[0] = m_Attachments[0].AttachmentVkInfo.view;
+			attachments[1] = m_DepthAttachment.AttachmentVkInfo.view;
+
+			m_VkFrameBuffers.resize(1);
+			VkFramebufferCreateInfo fbufCreateInfo = {};
+			fbufCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+			fbufCreateInfo.renderPass = m_RenderPass;
+			fbufCreateInfo.attachmentCount = 2;
+			fbufCreateInfo.pAttachments = attachments;
+			fbufCreateInfo.width = width;
+			fbufCreateInfo.height = height;
+			fbufCreateInfo.layers = 1;
+
+			VK_CHECK_RESULT(vkCreateFramebuffer(m_Device, &fbufCreateInfo, nullptr, &m_VkFrameBuffers[0]));
+		}
+
+		m_ClearValues.resize(2);
+		m_ClearAttachments.resize(2);
+
+		m_ClearValues[0].color = { { 0.0f, 0.0f, 0.0f, 1.0f} };
+		m_ClearAttachments[0].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		m_ClearAttachments[0].clearValue.color = { { 0.0f, 0.0f, 0.0f, 1.0f} };
+		m_ClearAttachments[0].colorAttachment = 0;
+
+
+		m_ClearValues[1].depthStencil = { 1.0f, 0 };
+		m_ClearAttachments[1].aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+		m_ClearAttachments[1].clearValue.depthStencil = { 1.0f, 0 };
+
+		return true;
+	}
+
 	void VulkanFramebuffer::CreateSampler(VkFilter filter)
 	{
 		VkSamplerCreateInfo samplerCI = {};
@@ -344,6 +517,10 @@ namespace Frostium
 		case FramebufferSpecialisation::None:
 		{
 			return Create(data.Width, data.Height);
+		}
+		case FramebufferSpecialisation::CopyBuffer:
+		{
+			return CreateCopyFramebuffer(data.Width, data.Height);
 		}
 		case FramebufferSpecialisation::ShadowMap:
 		{

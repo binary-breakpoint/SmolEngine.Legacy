@@ -59,6 +59,8 @@ namespace Frostium
 		// Creates 4x4 white texture
 		m_DummyTexure = new Texture();
 		Texture::CreateWhiteTexture(m_DummyTexure);
+		m_DummyCubeMap = new CubeMap();
+		CubeMap::CreateEmpty(m_DummyCubeMap, 5, 5);
 
 		// Initialize ImGUI
 		if (m_State->UseImGUI)
@@ -353,6 +355,11 @@ namespace Frostium
 	float GraphicsContext::GetLastFrameTime() const
 	{
 		return m_LastFrameTime;
+	}
+
+	std::string GraphicsContext::GetResourcesPath() const
+	{
+		return m_ResourcesFolderPath;
 	}
 
 	void GraphicsContext::OnEvent(Event& e)

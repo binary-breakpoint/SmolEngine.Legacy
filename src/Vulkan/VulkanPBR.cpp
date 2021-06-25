@@ -12,7 +12,7 @@
 #include "Common/VertexArray.h"
 #include "Common/VertexBuffer.h"
 #include "Common/IndexBuffer.h"
-#include "Common/CubeTexture.h"
+#include "Common/CubeMap.h"
 #include "Common/Shader.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
@@ -1657,58 +1657,62 @@ namespace Frostium
 			vkFreeMemory(device, obj.DeviceMemory, nullptr);
 	}
 
-	void VulkanPBR::Init(const std::string& cubeMapFile, TextureFormat format)
+	VulkanPBR::VulkanPBR()
 	{
-		m_SkyBox = new VulkanTexture();
-		m_SkyBox->LoadCubeMap(cubeMapFile, format);
+		s_Instance = this;
+	}
+
+	void VulkanPBR::GeneratePBRCubeMaps(CubeMap* environment_map)
+	{
+		Free();
+		VulkanTexture* vulkanTex = environment_map->GetTexture()->GetVulkanTexture();
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 		JobsSystemInstance::BeginSubmition();
 		{
-			JobsSystemInstance::Schedule([]()
+			if (m_BRDFLUT.Image == nullptr)
 			{
-				GenerateBRDFLUT(m_BRDFLUT.Image, m_BRDFLUT.ImageView, m_BRDFLUT.Sampler, m_BRDFLUT.DeviceMemory, m_BRDFLUTImageInfo);
-			});
+				JobsSystemInstance::Schedule([this]()
+				{
+					GenerateBRDFLUT(m_BRDFLUT.Image, m_BRDFLUT.ImageView, m_BRDFLUT.Sampler, m_BRDFLUT.DeviceMemory, m_BRDFLUTImageInfo);
+				});
+			}
 
-			JobsSystemInstance::Schedule([]()
-			{
-				GenerateIrradianceCube(m_Irradiance.Image, m_Irradiance.ImageView, m_Irradiance.Sampler,
-						m_Irradiance.DeviceMemory, m_SkyBox, m_IrradianceImageInfo);
-	        });
+			JobsSystemInstance::Schedule([&, this]()
+				{
+					GenerateIrradianceCube(m_Irradiance.Image, m_Irradiance.ImageView, m_Irradiance.Sampler,
+						m_Irradiance.DeviceMemory, vulkanTex, m_IrradianceImageInfo);
+				});
 
-			JobsSystemInstance::Schedule([]()
-			{
-				GeneratePrefilteredCube(m_PrefilteredCube.Image, m_PrefilteredCube.ImageView,
-						m_PrefilteredCube.Sampler, m_PrefilteredCube.DeviceMemory, m_SkyBox, m_PrefilteredCubeImageInfo);
-			});
+			JobsSystemInstance::Schedule([&, this]()
+				{
+					GeneratePrefilteredCube(m_PrefilteredCube.Image, m_PrefilteredCube.ImageView,
+						m_PrefilteredCube.Sampler, m_PrefilteredCube.DeviceMemory, vulkanTex, m_PrefilteredCubeImageInfo);
+				});
 		}
 		JobsSystemInstance::EndSubmition();
 #else
 
-		GenerateBRDFLUT(m_BRDFLUT.Image, m_BRDFLUT.ImageView, m_BRDFLUT.Sampler, m_BRDFLUT.DeviceMemory, m_BRDFLUTImageInfo);
-
+		if (m_BRDFLUT.Image == nullptr)
+		{
+			GenerateBRDFLUT(m_BRDFLUT.Image, m_BRDFLUT.ImageView, m_BRDFLUT.Sampler, m_BRDFLUT.DeviceMemory, m_BRDFLUTImageInfo);
+		}
 		GenerateIrradianceCube(m_Irradiance.Image, m_Irradiance.ImageView, m_Irradiance.Sampler,
-			m_Irradiance.DeviceMemory, m_SkyBox, m_IrradianceImageInfo);
-
+			m_Irradiance.DeviceMemory, vulkanTex, m_IrradianceImageInfo);
 		GeneratePrefilteredCube(m_PrefilteredCube.Image, m_PrefilteredCube.ImageView,
-			m_PrefilteredCube.Sampler, m_PrefilteredCube.DeviceMemory, m_SkyBox, m_PrefilteredCubeImageInfo);
+			m_PrefilteredCube.Sampler, m_PrefilteredCube.DeviceMemory, vulkanTex, m_PrefilteredCubeImageInfo);
 #endif
-	}
-
-	void VulkanPBR::Reload(const std::string& cubeMapFile, TextureFormat format)
-	{
-		Free();
-		Init(cubeMapFile, format);
 	}
 
 	void VulkanPBR::Free()
 	{
-		delete m_SkyBox;
-		m_SkyBox = nullptr;
-
-		DestroyAttachment(m_BRDFLUT);
 		DestroyAttachment(m_Irradiance);
 		DestroyAttachment(m_PrefilteredCube);
+	}
+
+	VulkanPBR* VulkanPBR::GetSingleton()
+	{
+		return s_Instance;
 	}
 
 	const VkDescriptorImageInfo& VulkanPBR::GetBRDFLUTImageInfo()
@@ -1724,11 +1728,6 @@ namespace Frostium
 	const VkDescriptorImageInfo& VulkanPBR::GetPrefilteredCubeImageInfo()
 	{
 		return m_PrefilteredCubeImageInfo;
-	}
-
-	const VulkanTexture&  VulkanPBR::GetSkyBox()
-	{
-		return *m_SkyBox;
 	}
 }
 #endif

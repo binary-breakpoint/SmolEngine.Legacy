@@ -5,6 +5,7 @@
 #include "Common/Framebuffer.h"
 #include "Common/Texture.h"
 #include "Common/Mesh.h"
+#include "Common/EnvironmentMap.h"
 #include "Common/RendererShared.h"
 #include "Common/Animation.h"
 
@@ -12,6 +13,8 @@
 #include "Utils/GLM.h"
 
 #include <mutex>
+
+class VulkanPBR;
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
@@ -117,39 +120,6 @@ namespace Frostium
 
 	};
 
-	struct DynamicSky
-	{
-		glm::vec4 primaries = glm::vec4(6.8e-7, 5.5e-7, 4.5e-7, 0);
-		glm::vec4 sunPosition = glm::vec4(0, 200, 0, 0);
-		glm::vec4 mieKCoefficient = glm::vec4(0.686, 0.678, 0.666, 0);
-
-		// Depolarization factor for air wavelength of primaries
-		float depolarizationFactor = 0.035f;
-		float luminance = 1.0f;
-		float mieCoefficient = 0.005f;
-		float mieDirectionalG = 0.8f;
-
-		float mieV = 4.0f;
-		// Optical length at zenith for molecules
-		float mieZenithLength = 1.25e3f;
-		// Number of molecules per unit volume for air at 288.15K and 1013mb (sea level -45 celsius)
-		float numMolecules = 2.542e25f;
-		float rayleigh = 1.0f;
-
-		float rayleighZenithLength = 8.4e3f;
-		float refractiveIndex = 1.0003f;
-		float sunAngularDiameterDegrees = 0.0093333f;
-		float sunIntensityFactor = 1000.0f;
-
-		float sunIntensityFalloffSteepness = 1.5f;
-		float tonemapWeighting = 9.50f;
-		float turbidity = 2.0f;
-
-	private:
-
-		float pad1 = 1.0f;
-	};
-
 #pragma endregion
 
 #pragma region Mask
@@ -188,7 +158,6 @@ namespace Frostium
 		LightingProperties     Lighting = {};
 		BloomProperties        Bloom = {};
 		FXAAProperties         FXAA = {};
-		DynamicSky             DynamicSky = {};
 	};
 
 	struct CommandBuffer
@@ -285,7 +254,9 @@ namespace Frostium
 		glm::mat4                                  m_GridModel{};
 		Frustum*                                   m_Frustum = nullptr;
 		SceneData*                                 m_SceneData = nullptr;
+		VulkanPBR*                                 m_VulkanPBR = nullptr;
 		PushConstant                               m_MainPushConstant = {};
+		Ref<EnvironmentMap>                        m_EnvironmentMap = nullptr;
 		// Sizes						           
 		const size_t                               m_PushConstantSize = sizeof(PushConstant);
 	};

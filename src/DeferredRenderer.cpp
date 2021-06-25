@@ -216,12 +216,6 @@ namespace Frostium
 					s_Data->p_Lighting.SubmitBuffer(s_Data->m_BloomStateBinding, sizeof(BloomProperties), &s_Data->m_State.Bloom);
 				});
 
-				// Updates Dynamic Sky
-				JobsSystemInstance::Schedule([]()
-				{
-					s_Data->p_Skybox.SubmitBuffer(s_Data->m_DynamicSkyBinding, sizeof(DynamicSky), &s_Data->m_State.DynamicSky);
-				});
-
 				// Updates Directional Lights
 				JobsSystemInstance::Schedule([]()
 				{
@@ -363,7 +357,7 @@ namespace Frostium
 			// SkyBox
 			if (s_Data->m_State.bDrawSkyBox)
 			{
-				uint32_t state = 1;
+				uint32_t state = s_Data->m_EnvironmentMap->IsDynamic();
 				s_Data->p_Skybox.SubmitPushConstant(ShaderType::Fragment, sizeof(uint32_t), &state);
 				s_Data->p_Skybox.Draw(36);
 			}
@@ -566,12 +560,48 @@ namespace Frostium
 		s_Data->m_DirtMask.Intensity = intensity;
 	}
 
+	void DeferredRenderer::SetEnvironmentCube(CubeMap* cube)
+	{
+		s_Data->m_EnvironmentMap->GenerateStatic(cube);
+		auto map = s_Data->m_EnvironmentMap->GetCubeMap();
+		s_Data->m_VulkanPBR->GeneratePBRCubeMaps(map);
+
+		// Update Descriptors
+		s_Data->p_Lighting.UpdateVulkanImageDescriptor(2, s_Data->m_VulkanPBR->GetIrradianceImageInfo());
+		s_Data->p_Lighting.UpdateVulkanImageDescriptor(3, s_Data->m_VulkanPBR->GetBRDFLUTImageInfo());
+		s_Data->p_Lighting.UpdateVulkanImageDescriptor(4, s_Data->m_VulkanPBR->GetPrefilteredCubeImageInfo());
+		s_Data->p_Skybox.UpdateVulkanImageDescriptor(1, map->GetTexture()->GetVulkanTexture()->GetVkDescriptorImageInfo());
+	}
+
+	void DeferredRenderer::SetDynamicSkyboxProperties(DynamicSkyProperties& properties, bool regeneratePBRmaps)
+	{
+		auto& ref = s_Data->m_EnvironmentMap->GetDynamicSkyProperties();
+		ref = properties;
+
+		if (regeneratePBRmaps)
+		{
+			s_Data->m_EnvironmentMap->GenerateDynamic();
+			auto map = s_Data->m_EnvironmentMap->GetCubeMap();
+			s_Data->m_VulkanPBR->GeneratePBRCubeMaps(map);
+
+			// Update Descriptors
+			s_Data->p_Lighting.UpdateVulkanImageDescriptor(2, s_Data->m_VulkanPBR->GetIrradianceImageInfo());
+			s_Data->p_Lighting.UpdateVulkanImageDescriptor(3, s_Data->m_VulkanPBR->GetBRDFLUTImageInfo());
+			s_Data->p_Lighting.UpdateVulkanImageDescriptor(4, s_Data->m_VulkanPBR->GetPrefilteredCubeImageInfo());
+			s_Data->p_Skybox.UpdateVulkanImageDescriptor(1, map->GetTexture()->GetVulkanTexture()->GetVkDescriptorImageInfo());
+		}
+	}
+
 	void DeferredRenderer::InitPBR()
 	{
-#ifdef FROSTIUM_OPENGL_IMPL
-#else
-		VulkanPBR::Init(GraphicsContext::s_Instance->m_ResourcesFolderPath + "Skyboxes/uffizi_cube.ktx", TextureFormat::R16G16B16A16_SFLOAT);
-#endif
+		s_Data->m_VulkanPBR = new VulkanPBR();
+		s_Data->m_EnvironmentMap = std::make_shared<EnvironmentMap>();
+
+		s_Data->m_EnvironmentMap->Initialize();
+		s_Data->m_EnvironmentMap->GenerateDynamic();
+
+		auto map = s_Data->m_EnvironmentMap->GetCubeMap();
+		s_Data->m_VulkanPBR->GeneratePBRCubeMaps(map);
 	}
 
 	void DeferredRenderer::InitPipelines()
@@ -699,9 +729,9 @@ namespace Frostium
 
 			s_Data->p_Lighting.UpdateSampler(&s_Data->f_Depth, 1, "Depth_Attachment");
 #ifndef FROSTIUM_OPENGL_IMPL
-			s_Data->p_Lighting.UpdateVulkanImageDescriptor(2, VulkanPBR::GetIrradianceImageInfo());
-			s_Data->p_Lighting.UpdateVulkanImageDescriptor(3, VulkanPBR::GetBRDFLUTImageInfo());
-			s_Data->p_Lighting.UpdateVulkanImageDescriptor(4, VulkanPBR::GetPrefilteredCubeImageInfo());
+			s_Data->p_Lighting.UpdateVulkanImageDescriptor(2, s_Data->m_VulkanPBR->GetIrradianceImageInfo());
+			s_Data->p_Lighting.UpdateVulkanImageDescriptor(3, s_Data->m_VulkanPBR->GetBRDFLUTImageInfo());
+			s_Data->p_Lighting.UpdateVulkanImageDescriptor(4, s_Data->m_VulkanPBR->GetPrefilteredCubeImageInfo());
 #endif
 			s_Data->p_Lighting.UpdateSampler(&s_Data->f_GBuffer, 5, "albedro");
 			s_Data->p_Lighting.UpdateSampler(&s_Data->f_GBuffer, 6, "position");
@@ -719,13 +749,13 @@ namespace Frostium
 			JobsSystemInstance::Schedule([&]()
 			{
 					Utils::ComposeTransform(glm::vec3(0), glm::vec3(0), { 100, 1, 100 }, s_Data->m_GridModel);
-					Mesh::Create(GraphicsContext::GetSingleton()->m_ResourcesFolderPath + "Models/plane_v2.gltf", &s_Data->m_PlaneMesh);
+					Mesh::Create(s_Data->m_Path + "Models/plane_v2.gltf", &s_Data->m_PlaneMesh);
 
 					GraphicsPipelineCreateInfo pipelineCI = {};
 					GraphicsPipelineShaderCreateInfo shaderCI = {};
 					{
-						shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::GetSingleton()->m_ResourcesFolderPath + "Shaders/Grid.vert";
-						shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::GetSingleton()->m_ResourcesFolderPath + "Shaders/Grid.frag";
+						shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/Grid.vert";
+						shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Grid.frag";
 					};
 
 					pipelineCI.PipelineName = "Grid";
@@ -770,7 +800,9 @@ namespace Frostium
 					auto result = s_Data->p_Skybox.Create(&DynamicPipelineCI);
 					assert(result == PipelineCreateResult::SUCCESS);
 #ifndef FROSTIUM_OPENGL_IMPL
-					s_Data->p_Skybox.UpdateVulkanImageDescriptor(1, VulkanPBR::GetSkyBox().GetVkDescriptorImageInfo());
+					auto map = s_Data->m_EnvironmentMap->GetCubeMap();
+					s_Data->p_Skybox.UpdateVulkanImageDescriptor(1,
+						map->GetTexture()->GetVulkanTexture()->GetVkDescriptorImageInfo());
 #endif
 					Ref<VertexBuffer> skyBoxFB = std::make_shared<VertexBuffer>();
 					VertexBuffer::Create(skyBoxFB.get(), skyboxVertices, sizeof(skyboxVertices));

@@ -11,6 +11,7 @@ namespace Frostium
 {
 	class Mesh;
 	class Framebuffer;
+	class CubeMap;
 	struct MeshComponent;
 	enum class ShadowMapSize : uint16_t;
 
@@ -30,6 +31,8 @@ namespace Frostium
 		static void SubmitSpotLight(SpotLight* light);
 		static void SetRendererState(RendererState* state);
 		static void SetDirtMask(Texture* mask, float intensity);
+		static void SetEnvironmentCube(CubeMap* cube);
+		static void SetDynamicSkyboxProperties(DynamicSkyProperties& properties, bool regeneratePBRmaps = true);
 
 		static Framebuffer* GetFramebuffer();
 		static uint32_t GetNumObjects();

@@ -9,7 +9,7 @@
 #endif
 
 #include "Common/Framebuffer.h"
-#include "Common/CubeTexture.h"
+#include "Common/CubeMap.h"
 #include "Common/Shader.h"
 #include "Common/Mesh.h"
 

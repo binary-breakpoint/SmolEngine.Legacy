@@ -193,7 +193,8 @@
     <ClInclude Include="include\Common\Camera.h" />
     <ClInclude Include="include\Common\Common.h" />
     <ClInclude Include="include\Common\Core.h" />
-    <ClInclude Include="include\Common\CubeTexture.h" />
+    <ClInclude Include="include\Common\CubeMap.h" />
+    <ClInclude Include="include\Common\EnvironmentMap.h" />
     <ClInclude Include="include\Common\Events.h" />
     <ClInclude Include="include\Common\Flags.h" />
     <ClInclude Include="include\Common\Framebuffer.h" />
@@ -909,7 +910,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Common\Common.cpp" />
-    <ClCompile Include="src\Common\CubeTexture.cpp" />
+    <ClCompile Include="src\Common\CubeMap.cpp" />
+    <ClCompile Include="src\Common\EnvironmentMap.cpp" />
     <ClCompile Include="src\Common\Events.cpp" />
     <ClCompile Include="src\Common\Framebuffer.cpp" />
     <ClCompile Include="src\Common\IndexBuffer.cpp" />

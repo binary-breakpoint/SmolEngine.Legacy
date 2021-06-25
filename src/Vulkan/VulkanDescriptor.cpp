@@ -3,7 +3,7 @@
 #include "Vulkan/VulkanDescriptor.h"
 
 #include "Common/Texture.h"
-#include "Common/CubeTexture.h"
+#include "Common/CubeMap.h"
 #include "GraphicsContext.h"
 
 #include "Vulkan/VulkanShader.h"
@@ -207,34 +207,24 @@ namespace Frostium
 		{
 			if (res.Dimension == 3) // cubeMap
 			{
-				auto& skyBox = VulkanPBR::GetSkyBox();
-				assert(skyBox.IsActive());
-
-				if (skyBox.IsActive())
+				auto& cube = GraphicsContext::GetSingleton()->m_DummyCubeMap;
+				VkWriteDescriptorSet writeSet = {};
 				{
-					VkWriteDescriptorSet writeSet = {};
-					{
-						writeSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-						writeSet.dstSet = m_DescriptorSet;
-						writeSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-						writeSet.dstBinding = res.BindingPoint;
-						writeSet.dstArrayElement = 0;
-						writeSet.descriptorCount = 1;
-						writeSet.pImageInfo = &skyBox.m_DescriptorImageInfo;
-					}
-
-					m_WriteSets.push_back(writeSet);
-
-					auto& kek = m_WriteSets.back();
-					vkUpdateDescriptorSets(m_Device, 1, &m_WriteSets.back(), 0, nullptr);
+					writeSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					writeSet.dstSet = m_DescriptorSet;
+					writeSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+					writeSet.dstBinding = res.BindingPoint;
+					writeSet.dstArrayElement = 0;
+					writeSet.descriptorCount = 1;
+					writeSet.pImageInfo = &cube->GetTexture()->GetVulkanTexture()->m_DescriptorImageInfo;
 				}
-				else
-				{
-					NATIVE_ERROR("GraphicsPipeline: Skybox is nullptr!");
-					abort();
-				}
+
+				m_WriteSets.push_back(writeSet);
+
+				auto& kek = m_WriteSets.back();
+				vkUpdateDescriptorSets(m_Device, 1, &m_WriteSets.back(), 0, nullptr);
 			}
-			else // sampler2d
+			else
 			{
 				std::vector<VkDescriptorImageInfo> infos;
 
