@@ -88,7 +88,7 @@ int main(int argc, char** argv)
 
 	Texture dirtMask = {};
 	Texture::Create("Assets/DirtMaskTextureExample.png", &dirtMask);
-	DeferredRenderer::SetDirtMask(&dirtMask, 1.0f);
+	DeferredRenderer::SetDirtMask(&dirtMask, 1.0f, 0.1f);
 
 	// Load Materials
 	uint32_t stoneMat;
@@ -218,9 +218,8 @@ int main(int argc, char** argv)
 
 			DeferredRenderer::BeginScene(&clearInfo);
 			DeferredRenderer::SubmitMesh({ -5, 5, 0 }, { 0, 0, 0 }, { 2, 2, 2, }, sphere, planeMat);
-			DeferredRenderer::SubmitPointLight(&pointLight);
 			DeferredRenderer::SubmitMesh({ -10, 1, 0 }, { 0, 0, 0 }, { 3, 3, 3 }, cube, planeMat);
-			//DeferredRenderer::SubmitMesh({ 0, 3.9f, -3 }, glm::radians(rot), { 1, 1, 1, }, &plane, planeMat);
+			DeferredRenderer::SubmitMesh({ 0, 3.9f, -3 }, glm::radians(rot), { 1, 1, 1, }, &plane, planeMat);
 			DeferredRenderer::SubmitMesh({ 3, 2, 0 }, { 0, 0, 0 }, { 5, 5, 5, }, &dummy, stoneMat);
 			DeferredRenderer::EndScene();
 			

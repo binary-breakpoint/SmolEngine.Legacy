@@ -458,14 +458,16 @@ namespace Frostium
 						uint32_t state;
 						uint32_t is_vertical_blur;
 						uint32_t is_is_dirt_mask;
-						float dirt_mask_intensity;
+						float mask_intensity;
+						float mask_normal_intensity;
 					} pc;
 
 					// temp
 					pc.state = s_Data->m_State.bBloom ? 1: 0;
 					pc.is_vertical_blur = s_Data->m_State.bVerticalBloom;
 					pc.is_is_dirt_mask = s_Data->m_DirtMask.Mask != nullptr;
-					pc.dirt_mask_intensity = s_Data->m_DirtMask.Intensity;
+					pc.mask_intensity = s_Data->m_DirtMask.Intensity;
+					pc.mask_normal_intensity = s_Data->m_DirtMask.BaseIntensity;
 
 					s_Data->p_Combination.SubmitPushConstant(ShaderType::Fragment, sizeof(push_constant), &pc);
 					s_Data->p_Combination.Draw(3);
@@ -554,10 +556,11 @@ namespace Frostium
 		s_Data->m_State = *state;
 	}
 
-	void DeferredRenderer::SetDirtMask(Texture* mask, float intensity)
+	void DeferredRenderer::SetDirtMask(Texture* mask, float intensity, float baseIntensity)
 	{
 		s_Data->m_DirtMask.Mask = mask;
 		s_Data->m_DirtMask.Intensity = intensity;
+		s_Data->m_DirtMask.BaseIntensity = baseIntensity;
 	}
 
 	void DeferredRenderer::SetEnvironmentCube(CubeMap* cube)
@@ -580,7 +583,9 @@ namespace Frostium
 
 		if (regeneratePBRmaps)
 		{
-			s_Data->m_EnvironmentMap->GenerateDynamic();
+			auto& sceneData = GraphicsContext::GetSingleton()->m_SceneData;
+
+			s_Data->m_EnvironmentMap->GenerateDynamic(sceneData.Projection);
 			auto map = s_Data->m_EnvironmentMap->GetCubeMap();
 			s_Data->m_VulkanPBR->GeneratePBRCubeMaps(map);
 
@@ -590,6 +595,8 @@ namespace Frostium
 			s_Data->p_Lighting.UpdateVulkanImageDescriptor(4, s_Data->m_VulkanPBR->GetPrefilteredCubeImageInfo());
 			s_Data->p_Skybox.UpdateVulkanImageDescriptor(1, map->GetTexture()->GetVulkanTexture()->GetVkDescriptorImageInfo());
 		}
+		else
+			s_Data->m_EnvironmentMap->UpdateDescriptors();
 	}
 
 	void DeferredRenderer::InitPBR()

@@ -4,6 +4,7 @@
 #include "Common/CubeMap.h"
 
 #include "GraphicsPipeline.h"
+#include <glm/glm.hpp>
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
@@ -14,7 +15,7 @@ namespace Frostium
 	struct DynamicSkyProperties
 	{
 		glm::vec4 RayOrigin = glm::vec4(0, 6372e3f, 0, 0);
-		glm::vec4 SunPosition = glm::vec4(400.000, 20, 40, 0);
+		glm::vec4 SunPosition = glm::vec4(100.0f, 100.0f, 22, 0);
 		glm::vec4 RayleighScatteringCoeff = glm::vec4(5.5e-6, 13.0e-6, 22.4e-6, 0);
 
 		float SunIntensity = 22.0f;
@@ -22,7 +23,7 @@ namespace Frostium
 		float PlanetRadius = 6371e3f;
 		// Radius of the atmosphere in meters
 		float AtmosphereRadius = 6471e3;
-		float MieScatteringCoeff = 21e-6;
+		float MieScatteringCoeff = 21e-6f;
 
 		// Rayleigh scale height
 		float RayleighScale = 8e3f;
@@ -41,7 +42,8 @@ namespace Frostium
 	public:
 		void                    Initialize();
 		void                    GenerateStatic(CubeMap* cubeMap);
-		void                    GenerateDynamic();
+		void                    GenerateDynamic(const glm::mat4& cameraProj = glm::mat4(0));
+		void                    UpdateDescriptors();
 			                    
 		bool                    IsReady() const;
 		bool                    IsDynamic() const;

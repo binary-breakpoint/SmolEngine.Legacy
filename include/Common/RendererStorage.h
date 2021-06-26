@@ -128,6 +128,7 @@ namespace Frostium
 	{
 		Texture* Mask = nullptr;
 		float    Intensity = 1.0f;
+		float    BaseIntensity = 0.1f;
 	};
 #pragma endregion
 
@@ -148,7 +149,7 @@ namespace Frostium
 
 	struct RendererState
 	{
-		bool                   bDrawSkyBox = false;
+		bool                   bDrawSkyBox = true;
 		bool                   bDrawGrid = true;
 		bool                   bFXAA = true;
 		bool                   bSSAO = false;

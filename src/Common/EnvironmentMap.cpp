@@ -117,7 +117,7 @@ namespace Frostium
 		instance->GeneratePBRCubeMaps(m_CubeMap);
 	}
 
-	void EnvironmentMap::GenerateDynamic()
+	void EnvironmentMap::GenerateDynamic(const glm::mat4& cameraProj)
 	{
 		Free();
 		m_IsDynamic = true;
@@ -133,9 +133,9 @@ namespace Frostium
 		CommandBufferStorage cmdStorage = {};
 		VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
 		{
+			UpdateDescriptors();
 			m_GraphicsPipeline.SetCommandBuffer(cmdStorage.Buffer);
-			m_GraphicsPipeline.SubmitBuffer(512, sizeof(DynamicSkyProperties), &m_UBO);
-			pc.proj = glm::perspective(glm::radians(60.0f), 1.0f, 0.1f, 1000.0f);
+			pc.proj = cameraProj == glm::mat4(0.0f) ? glm::perspective(glm::radians(75.0f), 1.0f, 0.1f, 1000.0f): cameraProj;
 
 			for (uint32_t face = 0; face < 6; face++)
 			{
@@ -145,11 +145,11 @@ namespace Frostium
 				switch (face)
 				{
 				case 0: // POSITIVE_X
-					viewMatrix = glm::rotate(viewMatrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+					viewMatrix = glm::rotate(viewMatrix, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 					viewMatrix = glm::rotate(viewMatrix, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 					break;
 				case 1:	// NEGATIVE_X
-					viewMatrix = glm::rotate(viewMatrix, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+					viewMatrix = glm::rotate(viewMatrix, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 					viewMatrix = glm::rotate(viewMatrix, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 					break;
 				case 2:	// POSITIVE_Y
@@ -159,10 +159,10 @@ namespace Frostium
 					viewMatrix = glm::rotate(viewMatrix, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 					break;
 				case 4:	// POSITIVE_Z
-					viewMatrix = glm::rotate(viewMatrix, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+					viewMatrix = glm::rotate(viewMatrix, glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 					break;
 				case 5:	// NEGATIVE_Z
-					viewMatrix = glm::rotate(viewMatrix, glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+					viewMatrix = glm::rotate(viewMatrix, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 					break;
 				}
 				pc.view = viewMatrix;
@@ -248,6 +248,11 @@ namespace Frostium
 			}
 		}
 		VulkanCommandBuffer::ExecuteCommandBuffer(&cmdStorage);
+	}
+
+	void EnvironmentMap::UpdateDescriptors()
+	{
+		m_GraphicsPipeline.SubmitBuffer(512, sizeof(DynamicSkyProperties), &m_UBO);
 	}
 
 	CubeMap* EnvironmentMap::GetCubeMap() const

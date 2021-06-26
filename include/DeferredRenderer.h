@@ -30,7 +30,7 @@ namespace Frostium
 		static void SubmitPointLight(PointLight* light);
 		static void SubmitSpotLight(SpotLight* light);
 		static void SetRendererState(RendererState* state);
-		static void SetDirtMask(Texture* mask, float intensity);
+		static void SetDirtMask(Texture* mask, float intensity, float baseIntensity);
 		static void SetEnvironmentCube(CubeMap* cube);
 		static void SetDynamicSkyboxProperties(DynamicSkyProperties& properties, bool regeneratePBRmaps = true);
 

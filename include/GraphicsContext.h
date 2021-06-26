@@ -152,5 +152,6 @@ namespace Frostium
 		friend class VulkanPBR;
 		friend class VulkanDescriptor;
 		friend class Window;
+		friend class EnvironmentMap;
 	};
 }
