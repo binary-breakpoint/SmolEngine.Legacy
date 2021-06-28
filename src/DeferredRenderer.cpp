@@ -456,7 +456,6 @@ namespace Frostium
 					struct push_constant
 					{
 						uint32_t state;
-						uint32_t is_vertical_blur;
 						uint32_t is_is_dirt_mask;
 						float mask_intensity;
 						float mask_normal_intensity;
@@ -464,7 +463,6 @@ namespace Frostium
 
 					// temp
 					pc.state = s_Data->m_State.bBloom ? 1: 0;
-					pc.is_vertical_blur = s_Data->m_State.bVerticalBloom;
 					pc.is_is_dirt_mask = s_Data->m_DirtMask.Mask != nullptr;
 					pc.mask_intensity = s_Data->m_DirtMask.Intensity;
 					pc.mask_normal_intensity = s_Data->m_DirtMask.BaseIntensity;
@@ -744,8 +742,7 @@ namespace Frostium
 			s_Data->p_Lighting.UpdateSampler(&s_Data->f_GBuffer, 6, "position");
 			s_Data->p_Lighting.UpdateSampler(&s_Data->f_GBuffer, 7, "normals");
 			s_Data->p_Lighting.UpdateSampler(&s_Data->f_GBuffer, 8, "materials");
-			s_Data->p_Lighting.UpdateSampler(&s_Data->f_GBuffer, 9, "emission");
-			s_Data->p_Lighting.UpdateSampler(&s_Data->f_GBuffer, 10, "shadow_coord");
+			s_Data->p_Lighting.UpdateSampler(&s_Data->f_GBuffer, 9, "shadow_coord");
 		}
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
@@ -875,6 +872,7 @@ namespace Frostium
 				assert(result == PipelineCreateResult::SUCCESS);
 				s_Data->p_Combination.UpdateSampler(&s_Data->f_FXAA, 0);
 				s_Data->p_Combination.UpdateSampler(&s_Data->f_Bloom, 1);
+				s_Data->p_Combination.UpdateSampler(&s_Data->f_GBuffer, 3, "materials");
 			});
 
 			// Debug
@@ -898,8 +896,7 @@ namespace Frostium
 				s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 6, "position");
 				s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 7, "normals");
 				s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 8, "materials");
-				s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 9, "emission");
-				s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 10, "shadow_coord");
+				s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 9, "shadow_coord");
 			});
 
 
@@ -926,6 +923,7 @@ namespace Frostium
 				assert(result == PipelineCreateResult::SUCCESS);
 
 				s_Data->p_Bloom.UpdateSampler(&s_Data->f_Lighting, 0, "color_2");
+				s_Data->p_Bloom.UpdateSampler(&s_Data->f_GBuffer, 2, "materials");
 			});
 
 		}
@@ -1050,6 +1048,7 @@ namespace Frostium
 			assert(result == PipelineCreateResult::SUCCESS);
 			s_Data->p_Combination.UpdateSampler(&s_Data->f_FXAA, 0);
 			s_Data->p_Combination.UpdateSampler(&s_Data->f_Bloom, 1);
+			s_Data->p_Combination.UpdateSampler(&s_Data->f_GBuffer, 3, "materials");
 		}
 
 		// Debug
@@ -1072,8 +1071,7 @@ namespace Frostium
 			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 6, "position");
 			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 7, "normals");
 			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 8, "materials");
-			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 9, "emission");
-			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 10, "shadow_coord");
+			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 9, "shadow_coord");
 		}
 
 
@@ -1099,6 +1097,7 @@ namespace Frostium
 			assert(result == PipelineCreateResult::SUCCESS);
 
 			s_Data->p_Bloom.UpdateSampler(&s_Data->f_Lighting, 0, "color_2");
+			s_Data->p_Bloom.UpdateSampler(&s_Data->f_GBuffer, 2, "materials");
 		}
 #endif
 	}
@@ -1121,14 +1120,13 @@ namespace Frostium
 					FramebufferAttachment position = FramebufferAttachment(AttachmentFormat::SFloat4_16, ClearOp, "position");
 					FramebufferAttachment normals = FramebufferAttachment(AttachmentFormat::SFloat4_16, ClearOp, "normals");
 					FramebufferAttachment materials = FramebufferAttachment(AttachmentFormat::SFloat4_32, ClearOp, "materials");
-					FramebufferAttachment emission = FramebufferAttachment(AttachmentFormat::SFloat4_16, ClearOp, "emission");
 					FramebufferAttachment shadow_coord = FramebufferAttachment(AttachmentFormat::SFloat4_32, ClearOp, "shadow_coord");
 
 					FramebufferSpecification framebufferCI = {};
 					framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
 					framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
 					framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
-					framebufferCI.Attachments = { albedro, position, normals, materials, emission, shadow_coord};
+					framebufferCI.Attachments = { albedro, position, normals, materials, shadow_coord};
 
 					Framebuffer::Create(framebufferCI, &s_Data->f_GBuffer);
 				}
@@ -1217,14 +1215,13 @@ namespace Frostium
 			FramebufferAttachment position = FramebufferAttachment(AttachmentFormat::SFloat4_16, ClearOp, "position");
 			FramebufferAttachment normals = FramebufferAttachment(AttachmentFormat::SFloat4_16, ClearOp, "normals");
 			FramebufferAttachment materials = FramebufferAttachment(AttachmentFormat::SFloat4_32, ClearOp, "materials");
-			FramebufferAttachment emission = FramebufferAttachment(AttachmentFormat::SFloat4_16, ClearOp, "emission");
 			FramebufferAttachment shadow_coord = FramebufferAttachment(AttachmentFormat::SFloat4_32, ClearOp, "shadow_coord");
 
 			FramebufferSpecification framebufferCI = {};
 			framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
 			framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
 			framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
-			framebufferCI.Attachments = { albedro, position, normals, materials, emission, shadow_coord };
+			framebufferCI.Attachments = { albedro, position, normals, materials, shadow_coord };
 
 			Framebuffer::Create(framebufferCI, &s_Data->f_GBuffer);
 		}
@@ -1372,8 +1369,7 @@ namespace Frostium
 			s_Data->p_Lighting.UpdateSampler(&s_Data->f_GBuffer, 6, "position");
 			s_Data->p_Lighting.UpdateSampler(&s_Data->f_GBuffer, 7, "normals");
 			s_Data->p_Lighting.UpdateSampler(&s_Data->f_GBuffer, 8, "materials");
-			s_Data->p_Lighting.UpdateSampler(&s_Data->f_GBuffer, 9, "emission");
-			s_Data->p_Lighting.UpdateSampler(&s_Data->f_GBuffer, 10, "shadow_coord");
+			s_Data->p_Lighting.UpdateSampler(&s_Data->f_GBuffer, 9, "shadow_coord");
 
 			// Debug view pipeline
 			s_Data->p_Debug.UpdateSampler(&s_Data->f_Depth, 1, "Depth_Attachment");
@@ -1381,8 +1377,10 @@ namespace Frostium
 			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 6, "position");
 			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 7, "normals");
 			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 8, "materials");
-			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 9, "emission");
-			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 10, "shadow_coord");
+			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 9, "shadow_coord");
+
+			// Bloom
+			s_Data->p_Bloom.UpdateSampler(&s_Data->f_GBuffer, 2, "materials");
 		}
 
 		s_Data->f_Lighting.OnResize(width, height);
@@ -1393,6 +1391,7 @@ namespace Frostium
 		s_Data->f_FXAA.OnResize(width, height);
 		{
 			s_Data->p_Combination.UpdateSampler(&s_Data->f_FXAA, 0);
+			s_Data->p_Combination.UpdateSampler(&s_Data->f_GBuffer, 3, "materials");
 		}
 
 		s_Data->f_Bloom.OnResize(width, height);

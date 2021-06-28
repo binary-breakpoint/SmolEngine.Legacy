@@ -66,12 +66,11 @@ int main(int argc, char** argv)
 	float lightIntensity = 1.0f;
 
 	RendererState state = {};
-	state.Lighting.UseIBL = false;
 
 	DirectionalLight dirLight = {};
-	dirLight.IsActive = false;
-	dirLight.IsCastShadows = false;
-	DeferredRenderer::SubmitDirLight(&dirLight);
+	dirLight.IsActive = true;
+	dirLight.Color = { 0.6, 0.2, 0.4, 1 };
+	//dirLight.IsCastShadows = false;
 
 	PointLight pointLight = {};
 	pointLight.Intensity = 20;
@@ -102,14 +101,14 @@ int main(int argc, char** argv)
 			materialCI.SetTexture(MaterialTexture::Roughness, "Assets/materials/stone/Tiles087_1K_Roughness.png");
 			materialCI.SetTexture(MaterialTexture::AO, "Assets/materials/stone/Tiles087_1K_AmbientOcclusion.png");
 			materialCI.SetMetalness(0.1f);
+			materialCI.SetEmissionStrength(1.1f);
 			stoneMat = MaterialLibrary::GetSinglenton()->Add(&materialCI, "stone");
 		}
 
 		{
 			materialCI = {};
 			materialCI.SetMetalness(0.5f);
-			materialCI.SetRoughness(0.3f);
-			materialCI.SetEmissionStrength(5.0f);
+			materialCI.SetRoughness(0.9f);
 
 			planeMat = MaterialLibrary::GetSinglenton()->Add(&materialCI, "metal");
 		}
@@ -163,9 +162,6 @@ int main(int argc, char** argv)
 					DeferredRenderer::SetRendererState(&state);
 				}
 
-				if (ImGui::Checkbox("Vertical Bloom", &state.bVerticalBloom))
-					DeferredRenderer::SetRendererState(&state);
-
 				if (ImGui::Checkbox("FXAA", &state.bFXAA))
 					DeferredRenderer::SetRendererState(&state);
 
@@ -183,10 +179,8 @@ int main(int argc, char** argv)
 
 				ImGui::Checkbox("Debug Draw", &debug);
 
-				if (ImGui::DragFloat3("LightDir", glm::value_ptr(lightDir)))
+				if (ImGui::DragFloat4("LightDir", glm::value_ptr(dirLight.Direction)))
 				{
-					pointLight.Position = glm::vec4(lightDir, 1);
-					DeferredRenderer::SubmitPointLight(&pointLight);
 				}
 
 				if (ImGui::Checkbox("Play", &playAnim))
@@ -217,6 +211,7 @@ int main(int argc, char** argv)
 			ImGui::End();
 
 			DeferredRenderer::BeginScene(&clearInfo);
+			DeferredRenderer::SubmitDirLight(&dirLight);
 			DeferredRenderer::SubmitMesh({ -5, 5, 0 }, { 0, 0, 0 }, { 2, 2, 2, }, sphere, planeMat);
 			DeferredRenderer::SubmitMesh({ -10, 1, 0 }, { 0, 0, 0 }, { 3, 3, 3 }, cube, planeMat);
 			DeferredRenderer::SubmitMesh({ 0, 3.9f, -3 }, glm::radians(rot), { 1, 1, 1, }, &plane, planeMat);

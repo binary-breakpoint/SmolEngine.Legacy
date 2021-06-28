@@ -22,16 +22,13 @@ struct MaterialData
     uint UseAOTex;
 
 	uint UseEmissiveTex;
-	uint UseHeightTex;
 	uint AlbedroTexIndex;
 	uint NormalTexIndex;
-
 	uint MetallicTexIndex;
+
 	uint RoughnessTexIndex;
 	uint AOTexIndex;
 	uint EmissiveTexIndex;
-	
-	uint HeightTexIndex;
 };
 
 struct InstanceData

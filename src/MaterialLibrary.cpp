@@ -62,7 +62,6 @@ namespace Frostium
 				JobsSystemInstance::Schedule([&]() {newMaterial.RoughnessTexIndex = AddTexture(infoCI->RoughnessPath, newMaterial.UseRoughnessTex); });
 				JobsSystemInstance::Schedule([&]() {newMaterial.AOTexIndex = AddTexture(infoCI->AOPath, newMaterial.UseAOTex); });
 				JobsSystemInstance::Schedule([&]() {newMaterial.EmissiveTexIndex = AddTexture(infoCI->EmissivePath, newMaterial.UseEmissiveTex); });
-				JobsSystemInstance::Schedule([&]() {newMaterial.HeightTexIndex = AddTexture(infoCI->HeightPath, newMaterial.UseHeightTex); });
 			}
 			JobsSystemInstance::EndSubmition();
 #else
@@ -72,7 +71,6 @@ namespace Frostium
 			newMaterial.RoughnessTexIndex = AddTexture(infoCI->RoughnessPath, newMaterial.UseRoughnessTex);
 			newMaterial.AOTexIndex = AddTexture(infoCI->AOPath, newMaterial.UseAOTex);
 			newMaterial.EmissiveTexIndex = AddTexture(infoCI->EmissivePath, newMaterial.UseEmissiveTex);
-			newMaterial.HeightTexIndex = AddTexture(infoCI->HeightPath, newMaterial.UseHeightTex);
 #endif
 
 			newMaterial.Metalness = infoCI->Metallness;
@@ -126,7 +124,7 @@ namespace Frostium
 		{
 			cereal::JSONInputArchive input{ storage };
 			input(copy.Metallness, copy.Roughness, copy.EmissionStrength, copy.AlbedroPath, copy.NormalPath, copy.MetallnessPath, copy.RoughnessPath,
-				copy.AOPath, copy.EmissivePath, copy.HeightPath, copy.AlbedroColor.r, copy.AlbedroColor.g, copy.AlbedroColor.b);
+				copy.AOPath, copy.EmissivePath, copy.AlbedroColor.r, copy.AlbedroColor.g, copy.AlbedroColor.b);
 		}
 
 		out_info = copy;
@@ -285,9 +283,6 @@ namespace Frostium
 		case MaterialTexture::Emissive:
 			EmissivePath = filePath;
 			break;
-		case MaterialTexture::Height:
-			HeightPath = filePath;
-			break;
 		default:
 			break;
 		}
@@ -323,11 +318,6 @@ namespace Frostium
 		if (EmissivePath.empty() == false)
 		{
 			out_hashmap[MaterialTexture::Emissive] = &EmissivePath;
-		}
-
-		if (HeightPath.empty() == false)
-		{
-			out_hashmap[MaterialTexture::Height] = &HeightPath;
 		}
 	}
 }

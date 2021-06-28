@@ -247,7 +247,7 @@ namespace Frostium
 			{
 				pc.Offset = 0;
 				pc.Size = static_cast<uint32_t>(compiler.get_declared_struct_size(type));
-				pc.Stage |= shaderType;
+				pc.Stage = shaderType;
 			}
 
 			m_ReflectData.PushConstant = pc;
