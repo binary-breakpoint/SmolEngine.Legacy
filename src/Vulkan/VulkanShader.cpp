@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #ifndef FROSTIUM_OPENGL_IMPL
+#include "Common/Common.h"
 #include "Vulkan/VulkanShader.h"
 #include "Vulkan/VulkanContext.h"
 
@@ -93,17 +94,28 @@ namespace Frostium
 
     VkShaderStageFlagBits VulkanShader::GetVkShaderStage(ShaderType type)
     {
-        switch (type)
-        {
-        case ShaderType::Vertex:               return VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT;
-        case ShaderType::Fragment:             return VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT;
-        case ShaderType::Compute:              return VkShaderStageFlagBits::VK_SHADER_STAGE_COMPUTE_BIT;
-        case ShaderType::Geometry:             return VkShaderStageFlagBits::VK_SHADER_STAGE_GEOMETRY_BIT;
-        default:                                return VkShaderStageFlagBits::VK_SHADER_STAGE_ALL;
+        VkShaderStageFlags flags = 0;
 
+        if ((type & ShaderType::Vertex) == ShaderType::Vertex)
+        {
+            flags |= VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT;
         }
 
-        return VkShaderStageFlagBits::VK_SHADER_STAGE_ALL;
+        if ((type & ShaderType::Fragment) == ShaderType::Fragment)
+        {
+            flags |= VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT;
+        }
+
+        if ((type & ShaderType::Compute) == ShaderType::Compute)
+        {
+            flags |= VkShaderStageFlagBits::VK_SHADER_STAGE_COMPUTE_BIT;
+        }
+        if ((type & ShaderType::Geometry) == ShaderType::Geometry)
+        {
+            flags |= VkShaderStageFlagBits::VK_SHADER_STAGE_GEOMETRY_BIT;
+        }
+
+        return (VkShaderStageFlagBits)flags;
     }
 
     std::vector<VkPipelineShaderStageCreateInfo>& VulkanShader::GetVkPipelineShaderStages()

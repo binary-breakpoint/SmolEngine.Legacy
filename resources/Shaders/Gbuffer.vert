@@ -118,13 +118,11 @@ void main()
 	v_CameraPos = sceneData.camPos.xyz;
 	v_WorldPos = vec4(a_Position, 1.0);
 	v_UV = a_UV;
-
+	
+	v_Material =  materials[materialIndex];
 	v_Normal =  mat3(transpose(inverse(modelSkin))) * a_Normal;
 	v_Tangent = normalize(vec3(modelSkin * vec4(a_Tangent, 0.0)));
 	v_ShadowCoord = ( biasMat * lightSpace * modelSkin) * vec4(a_Position, 1.0);	
-
-	// Materials
-	v_Material =  materials[materialIndex];
 
 	gl_Position =  sceneData.projection * sceneData.view * model * skinMat * vec4(a_Position, 1.0);
 }

@@ -986,7 +986,9 @@ namespace Frostium
 			auto result = s_Data->p_Skybox.Create(&DynamicPipelineCI);
 			assert(result == PipelineCreateResult::SUCCESS);
 #ifndef FROSTIUM_OPENGL_IMPL
-			s_Data->p_Skybox.UpdateVulkanImageDescriptor(1, VulkanPBR::GetSkyBox().GetVkDescriptorImageInfo());
+			auto map = s_Data->m_EnvironmentMap->GetCubeMap();
+			s_Data->p_Skybox.UpdateVulkanImageDescriptor(1,
+				map->GetTexture()->GetVulkanTexture()->GetVkDescriptorImageInfo());
 #endif
 			Ref<VertexBuffer> skyBoxFB = std::make_shared<VertexBuffer>();
 			VertexBuffer::Create(skyBoxFB.get(), skyboxVertices, sizeof(skyboxVertices));

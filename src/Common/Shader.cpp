@@ -155,75 +155,89 @@ namespace Frostium
 		spirv_cross::Compiler compiler(binaryData);
 		spirv_cross::ShaderResources resources = compiler.get_shader_resources();
 
-		uint32_t bufferIndex = 0;
 		for (const auto& res : resources.uniform_buffers)
 		{
 			auto& type = compiler.get_type(res.base_type_id);
-			uint32_t bufferElements = static_cast<uint32_t>(type.member_types.size());
+			uint32_t binding = compiler.get_decoration(res.id, spv::DecorationBinding);
 
-			ShaderBuffer buffer = {};
+			auto& it = m_ReflectData.Buffers.find(binding);
+			if (it != m_ReflectData.Buffers.end())
 			{
-				buffer.Type = BufferType::Uniform;
-				buffer.Name = res.name;
-				buffer.ObjectName = "UBO";
-				buffer.BindingPoint = compiler.get_decoration(res.id, spv::DecorationBinding);
-				buffer.Size = compiler.get_declared_struct_size(type);
-				buffer.Index = bufferIndex;
-				buffer.Stage = shaderType;
-
-				buffer.Uniforms.reserve(bufferElements);
+				it->second.Stage |= shaderType;
 			}
-
-			for (uint32_t i = 0; i < bufferElements; ++i)
+			else
 			{
-				Uniform uniform = {};
+				uint32_t bufferElements = static_cast<uint32_t>(type.member_types.size());
+
+				ShaderBuffer buffer = {};
 				{
-					uniform.Name = compiler.get_member_name(type.self, i);
-					//uniform.Type = compiler.get_type(type.member_types[i]);
-					uniform.Size = compiler.get_declared_struct_member_size(type, i);
-					uniform.Offset = compiler.type_struct_member_offset(type, i);
+					buffer.Type = BufferType::Uniform;
+					buffer.Name = res.name;
+					buffer.ObjectName = "UBO";
+					buffer.BindingPoint = compiler.get_decoration(res.id, spv::DecorationBinding);
+					buffer.Size = compiler.get_declared_struct_size(type);
+					buffer.Stage = shaderType;
+
+					buffer.Uniforms.reserve(bufferElements);
 				}
 
-				buffer.Uniforms.push_back(uniform);
-			}
+				for (uint32_t i = 0; i < bufferElements; ++i)
+				{
+					Uniform uniform = {};
+					{
+						uniform.Name = compiler.get_member_name(type.self, i);
+						//uniform.Type = compiler.get_type(type.member_types[i]);
+						uniform.Size = compiler.get_declared_struct_member_size(type, i);
+						uniform.Offset = compiler.type_struct_member_offset(type, i);
+					}
 
-			m_ReflectData.Buffers[buffer.BindingPoint] = std::move(buffer);
-			bufferIndex++;
-	}
+					buffer.Uniforms.push_back(uniform);
+				}
+
+				m_ReflectData.Buffers[buffer.BindingPoint] = std::move(buffer);
+			}
+		}
 
 		for (const auto& res : resources.storage_buffers)
 		{
 			auto& type = compiler.get_type(res.base_type_id);
-			uint32_t bufferElements = static_cast<uint32_t>(type.member_types.size());
+			uint32_t binding = compiler.get_decoration(res.id, spv::DecorationBinding);
 
-			ShaderBuffer buffer = {};
+			auto& it = m_ReflectData.Buffers.find(binding);
+			if (it != m_ReflectData.Buffers.end())
 			{
-				buffer.Type = BufferType::Storage;
-				buffer.Name = res.name;
-				buffer.ObjectName = "SSBO";
-				buffer.BindingPoint = compiler.get_decoration(res.id, spv::DecorationBinding);
-				buffer.Size = compiler.get_declared_struct_size(type);
-				buffer.Index = bufferIndex;
-				buffer.Stage = shaderType;
-
-				buffer.Uniforms.reserve(bufferElements);
+				it->second.Stage |= shaderType;
 			}
-
-			for (uint32_t i = 0; i < bufferElements; ++i)
+			else
 			{
-				Uniform uniform = {};
+				uint32_t bufferElements = static_cast<uint32_t>(type.member_types.size());
+				ShaderBuffer buffer = {};
 				{
-					uniform.Name = compiler.get_member_name(type.self, i);
-					//uniform.Type = compiler.get_type(type.member_types[i]);
-					uniform.Size = compiler.get_declared_struct_member_size(type, i);
-					uniform.Offset = compiler.type_struct_member_offset(type, i);
+					buffer.Type = BufferType::Storage;
+					buffer.Name = res.name;
+					buffer.ObjectName = "SSBO";
+					buffer.BindingPoint = binding;
+					buffer.Size = compiler.get_declared_struct_size(type);
+					buffer.Stage = shaderType;
+
+					buffer.Uniforms.reserve(bufferElements);
 				}
 
-				buffer.Uniforms.push_back(uniform);
-			}
+				for (uint32_t i = 0; i < bufferElements; ++i)
+				{
+					Uniform uniform = {};
+					{
+						uniform.Name = compiler.get_member_name(type.self, i);
+						//uniform.Type = compiler.get_type(type.member_types[i]);
+						uniform.Size = compiler.get_declared_struct_member_size(type, i);
+						uniform.Offset = compiler.type_struct_member_offset(type, i);
+					}
 
-			m_ReflectData.Buffers[buffer.BindingPoint] = std::move(buffer);
-			bufferIndex++;
+					buffer.Uniforms.push_back(uniform);
+				}
+
+				m_ReflectData.Buffers[buffer.BindingPoint] = std::move(buffer);
+			}
 		}
 
 		for (const auto& res : resources.push_constant_buffers)
@@ -233,29 +247,35 @@ namespace Frostium
 			{
 				pc.Offset = 0;
 				pc.Size = static_cast<uint32_t>(compiler.get_declared_struct_size(type));
-				pc.Stage = shaderType;
+				pc.Stage |= shaderType;
 			}
 
 			m_ReflectData.PushConstant = pc;
 		}
 
-		int32_t sampler = 0;
 		for (const auto& res : resources.sampled_images)
 		{
 			auto& type = compiler.get_type(res.base_type_id);
+			uint32_t binding = compiler.get_decoration(res.id, spv::DecorationBinding);
 
-			UniformResource resBuffer = {};
+			auto& it = m_ReflectData.Resources.find(binding);
+			if (it != m_ReflectData.Resources.end())
 			{
-				resBuffer.BindingPoint = compiler.get_decoration(res.id, spv::DecorationBinding);
-				resBuffer.Location = compiler.get_decoration(res.id, spv::DecorationLocation);
-				resBuffer.Dimension = compiler.get_type(res.type_id).image.dim;
-				resBuffer.Stage = shaderType;
-				resBuffer.Sampler = sampler;
-				resBuffer.ArraySize = compiler.get_type(res.type_id).array[0];
+				it->second.Stage |= shaderType;
 			}
+			else
+			{
+				UniformResource resBuffer = {};
+				{
+					resBuffer.BindingPoint = compiler.get_decoration(res.id, spv::DecorationBinding);
+					resBuffer.Location = compiler.get_decoration(res.id, spv::DecorationLocation);
+					resBuffer.Dimension = compiler.get_type(res.type_id).image.dim;
+					resBuffer.Stage = shaderType;
+					resBuffer.ArraySize = compiler.get_type(res.type_id).array[0];
+				}
 
-			m_ReflectData.Resources[resBuffer.BindingPoint] = std::move(resBuffer);
-			sampler++;
+				m_ReflectData.Resources[resBuffer.BindingPoint] = std::move(resBuffer);
+			}
 		}
 	}
 
