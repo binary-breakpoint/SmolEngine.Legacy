@@ -411,8 +411,8 @@ void main()
 	outColor0.rgb = vec3(1.0) - exp(-color.rgb * (bloomState.exposure));
 
 	// Bright parts for bloom into attachment 1
-	float l = dot(Lo, vec3(0.2126, 0.7152, 0.0722));
+	float l = dot(outColor0.rgb, vec3(0.2126, 0.7152, 0.0722));
 	float threshold = bloomState.threshold;
-	outColor1.rgb = (l > threshold) ? Lo : vec3(0.0);
+	outColor1.rgb = (l > threshold) ? outColor0.rgb : vec3(0.0);
 	outColor1.a = 1.0;
 }
