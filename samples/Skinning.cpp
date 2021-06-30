@@ -139,10 +139,16 @@ int main(int argc, char** argv)
 				static int debug_val = 0;
 				static int type  = 0;
 				static bool ibl = true;
+				static bool ssao = true;
 
 				if (ImGui::Combo("##FF", &debug_val, "None\0Albedro\0Position\0Normals\0Materials\0Emission\0ShadowMap\0ShadowMapCood\0AO\0"))
 				{
 					state.eDebugView = (DebugViewFlags)debug_val;
+					DeferredRenderer::SetRendererState(&state);
+				}
+
+				if (ImGui::Checkbox("SSAO", &state.bSSAO))
+				{
 					DeferredRenderer::SetRendererState(&state);
 				}
 
@@ -156,9 +162,8 @@ int main(int argc, char** argv)
 					DeferredRenderer::SetRendererState(&state);
 
 
-				if (ImGui::Checkbox("IBL", &ibl))
+				if (ImGui::Checkbox("IBL", &state.bIBL))
 				{
-					state.Lighting.UseIBL = ibl;
 					DeferredRenderer::SetRendererState(&state);
 				}
 

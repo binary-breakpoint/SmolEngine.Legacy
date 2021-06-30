@@ -9,6 +9,7 @@
 #include "Common/Common.h"
 
 #include "Utils/glTFImporter.h"
+#include "Utils/SSAOGenerator.h"
 #include "Utils/Utils.h"
 
 #ifdef FROSTIUM_OPENGL_IMPL
@@ -63,6 +64,7 @@ namespace Frostium
 		s_Data->p_FXAA.BeginCommandBuffer(mainCmd);
 		s_Data->p_Bloom.BeginCommandBuffer(mainCmd);
 		s_Data->p_Debug.BeginCommandBuffer(mainCmd);
+		s_Data->p_SSAO.BeginCommandBuffer(mainCmd);
 
 		s_Data->p_Combination.BeginRenderPass();
 		s_Data->p_Combination.ClearColors(clearInfo->color);
@@ -381,6 +383,14 @@ namespace Frostium
 		}
 		s_Data->p_Gbuffer.EndRenderPass();
 
+		// SSAO pass
+		if (s_Data->m_State.bSSAO)
+		{
+			s_Data->p_SSAO.BeginRenderPass();
+			s_Data->p_SSAO.Draw(3);
+			s_Data->p_SSAO.EndRenderPass();
+		}
+
 		// Debug View
 		if (s_Data->m_State.eDebugView != DebugViewFlags::None)
 		{
@@ -413,13 +423,12 @@ namespace Frostium
 			s_Data->p_Lighting.EndRenderPass();
 		}
 
-		// Post-Processing: FXAA, Bloom, Blur
+		// Post-Processing: FXAA, Bloom
 		{
 			// FXAA
 			if(s_Data->m_State.bFXAA)
 			{
 				s_Data->p_Combination.UpdateSampler(&s_Data->f_FXAA, 0);
-
 				s_Data->p_FXAA.BeginRenderPass();
 				{
 					s_Data->p_FXAA.Draw(3);
@@ -432,7 +441,7 @@ namespace Frostium
 				s_Data->p_Combination.UpdateSampler(&s_Data->f_Lighting, 0, "color_1");
 			}
 
-			// Bloom or Blur
+			// Bloom
 			{
 				if (s_Data->m_State.bBloom)
 				{
@@ -551,7 +560,10 @@ namespace Frostium
 	void DeferredRenderer::SetRendererState(RendererState* state)
 	{
 		assert(state != nullptr);
+
 		s_Data->m_State = *state;
+		s_Data->m_State.Lighting.UseIBL  = state->bIBL;
+		s_Data->m_State.Lighting.UseSSAO = state->bSSAO;
 	}
 
 	void DeferredRenderer::SetDirtMask(Texture* mask, float intensity, float baseIntensity)
@@ -743,6 +755,34 @@ namespace Frostium
 			s_Data->p_Lighting.UpdateSampler(&s_Data->f_GBuffer, 7, "normals");
 			s_Data->p_Lighting.UpdateSampler(&s_Data->f_GBuffer, 8, "materials");
 			s_Data->p_Lighting.UpdateSampler(&s_Data->f_GBuffer, 9, "shadow_coord");
+			s_Data->p_Lighting.UpdateSampler(&s_Data->f_SSAO, 10);
+		}
+
+		// SSAO
+		{
+			s_Data->m_SSAOData.NoiseTexture = std::make_shared<Texture>();
+			SSAOGenerator::Generate(s_Data->m_SSAOData.NoiseTexture, s_Data->m_SSAOData.Kernel);
+
+			GraphicsPipelineShaderCreateInfo shaderCI = {};
+			shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/GenTriangle.vert";
+			shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/SSAO.frag";
+			shaderCI.BufferInfos[10].bGlobal = false;
+
+			GraphicsPipelineCreateInfo DynamicPipelineCI = {};
+			{
+				DynamicPipelineCI.PipelineName = "SSAO";
+				DynamicPipelineCI.ShaderCreateInfo = shaderCI;
+				DynamicPipelineCI.TargetFramebuffers = { &s_Data->f_SSAO };
+			}
+
+			auto result = s_Data->p_SSAO.Create(&DynamicPipelineCI);
+			assert(result == PipelineCreateResult::SUCCESS);
+
+			s_Data->p_SSAO.SubmitBuffer(1, sizeof(glm::vec4) * 32, s_Data->m_SSAOData.Kernel.data());
+
+			s_Data->p_SSAO.UpdateSampler(&s_Data->f_GBuffer, 0, "position");
+			s_Data->p_SSAO.UpdateSampler(&s_Data->f_GBuffer, 1, "normals");
+			s_Data->p_SSAO.UpdateSampler(s_Data->m_SSAOData.NoiseTexture.get(), 2);
 		}
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
@@ -897,6 +937,7 @@ namespace Frostium
 				s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 7, "normals");
 				s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 8, "materials");
 				s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 9, "shadow_coord");
+				s_Data->p_Debug.UpdateSampler(&s_Data->f_SSAO, 10);
 			});
 
 
@@ -1072,6 +1113,7 @@ namespace Frostium
 			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 7, "normals");
 			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 8, "materials");
 			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 9, "shadow_coord");
+			s_Data->p_Debug.UpdateSampler(&s_Data->f_SSAO, 10);
 		}
 
 
@@ -1169,6 +1211,21 @@ namespace Frostium
 
 			JobsSystemInstance::Schedule([&]()
 			{
+				// SSAO
+				{
+					FramebufferSpecification framebufferCI = {};
+					framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
+					framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
+					framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
+					framebufferCI.Attachments = { FramebufferAttachment(AttachmentFormat::UNORM_8, true) };
+
+					Framebuffer::Create(framebufferCI, &s_Data->f_SSAO);
+				}
+
+			});
+
+			JobsSystemInstance::Schedule([&]()
+			{
 				// Depth
 				{
 					FramebufferSpecification framebufferCI = {};
@@ -1240,6 +1297,17 @@ namespace Frostium
 
 			Framebuffer::Create(framebufferCI, &s_Data->f_Lighting);
         }
+
+		// SSAO
+		{
+			FramebufferSpecification framebufferCI = {};
+			framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
+			framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
+			framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
+			framebufferCI.Attachments = { FramebufferAttachment(AttachmentFormat::UNORM_8, true) };
+
+			Framebuffer::Create(framebufferCI, &s_Data->f_SSAO);
+		}
 
 		// FXAA
 		{
@@ -1362,6 +1430,7 @@ namespace Frostium
 
 	void DeferredRenderer::OnResize(uint32_t width, uint32_t height)
 	{
+		s_Data->f_SSAO.OnResize(width, height);
 		s_Data->f_GBuffer.OnResize(width, height);
 		{
 			// Lighting pipeline
@@ -1370,6 +1439,7 @@ namespace Frostium
 			s_Data->p_Lighting.UpdateSampler(&s_Data->f_GBuffer, 7, "normals");
 			s_Data->p_Lighting.UpdateSampler(&s_Data->f_GBuffer, 8, "materials");
 			s_Data->p_Lighting.UpdateSampler(&s_Data->f_GBuffer, 9, "shadow_coord");
+			s_Data->p_Lighting.UpdateSampler(&s_Data->f_SSAO, 10);
 
 			// Debug view pipeline
 			s_Data->p_Debug.UpdateSampler(&s_Data->f_Depth, 1, "Depth_Attachment");
@@ -1378,6 +1448,11 @@ namespace Frostium
 			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 7, "normals");
 			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 8, "materials");
 			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 9, "shadow_coord");
+
+			// SSAO
+			s_Data->p_SSAO.UpdateSampler(&s_Data->f_GBuffer, 0, "position");
+			s_Data->p_SSAO.UpdateSampler(&s_Data->f_GBuffer, 1, "normals");
+			s_Data->p_Debug.UpdateSampler(&s_Data->f_SSAO, 10);
 
 			// Bloom
 			s_Data->p_Bloom.UpdateSampler(&s_Data->f_GBuffer, 2, "materials");

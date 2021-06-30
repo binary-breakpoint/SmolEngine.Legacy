@@ -918,7 +918,7 @@
     <ClCompile Include="src\Common\Input.cpp" />
     <ClCompile Include="src\Common\Mesh.cpp" />
     <ClCompile Include="src\Common\SLog.cpp" />
-    <ClCompile Include="src\Common\SSAOGenerator.cpp" />
+    <ClCompile Include="src\Utils\SSAOGenerator.cpp" />
     <ClCompile Include="src\Common\Shader.cpp" />
     <ClCompile Include="src\Common\SubTexture.cpp" />
     <ClCompile Include="src\Common\Text.cpp" />

@@ -2406,9 +2406,6 @@
     <ClCompile Include="src\Common\SLog.cpp">
       <Filter>src\Common</Filter>
     </ClCompile>
-    <ClCompile Include="src\Common\SSAOGenerator.cpp">
-      <Filter>src\Common</Filter>
-    </ClCompile>
     <ClCompile Include="src\Common\Shader.cpp">
       <Filter>src\Common</Filter>
     </ClCompile>
@@ -2588,6 +2585,9 @@
     </ClCompile>
     <ClCompile Include="src\Common\EnvironmentMap.cpp" />
     <ClCompile Include="src\Common\CubeMap.cpp">
+      <Filter>src\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Utils\SSAOGenerator.cpp">
       <Filter>src\Common</Filter>
     </ClCompile>
   </ItemGroup>
