@@ -448,7 +448,7 @@ namespace Frostium
 			{
 				if (s_Data->m_DirtMask.Mask != nullptr)
 				{
-					s_Data->p_Combination.UpdateSampler(s_Data->m_DirtMask.Mask, 2);
+					s_Data->p_Combination.UpdateSampler(s_Data->m_DirtMask.Mask, 4);
 				}
 
 				s_Data->p_Combination.BeginRenderPass();
@@ -466,6 +466,10 @@ namespace Frostium
 					pc.is_is_dirt_mask = s_Data->m_DirtMask.Mask != nullptr;
 					pc.mask_intensity = s_Data->m_DirtMask.Intensity;
 					pc.mask_normal_intensity = s_Data->m_DirtMask.BaseIntensity;
+					if(s_Data->m_DirLight.IsActive == 1)
+					{
+
+					}
 
 					s_Data->p_Combination.SubmitPushConstant(ShaderType::Fragment, sizeof(push_constant), &pc);
 					s_Data->p_Combination.Draw(3);
@@ -872,9 +876,11 @@ namespace Frostium
 
 				auto result = s_Data->p_Combination.Create(&DynamicPipelineCI);
 				assert(result == PipelineCreateResult::SUCCESS);
+
 				s_Data->p_Combination.UpdateSampler(&s_Data->f_FXAA, 0);
 				s_Data->p_Combination.UpdateSampler(&s_Data->f_Bloom, 1);
-				s_Data->p_Combination.UpdateSampler(&s_Data->f_GBuffer, 3, "materials");
+				s_Data->p_Combination.UpdateSampler(&s_Data->f_GBuffer, 2, "materials");
+				s_Data->p_Combination.UpdateSampler(&s_Data->f_Lighting, 3, "occlusion");
 			});
 
 			// Debug
@@ -923,9 +929,7 @@ namespace Frostium
 				DynamicPipelineCI.PipelineName = "Bloom";
 				auto result = s_Data->p_Bloom.Create(&DynamicPipelineCI);
 				assert(result == PipelineCreateResult::SUCCESS);
-
 				s_Data->p_Bloom.UpdateSampler(&s_Data->f_Lighting, 0, "color_2");
-				s_Data->p_Bloom.UpdateSampler(&s_Data->f_GBuffer, 2, "materials");
 			});
 
 		}
@@ -1050,7 +1054,8 @@ namespace Frostium
 			assert(result == PipelineCreateResult::SUCCESS);
 			s_Data->p_Combination.UpdateSampler(&s_Data->f_FXAA, 0);
 			s_Data->p_Combination.UpdateSampler(&s_Data->f_Bloom, 1);
-			s_Data->p_Combination.UpdateSampler(&s_Data->f_GBuffer, 3, "materials");
+			s_Data->p_Combination.UpdateSampler(&s_Data->f_GBuffer, 2, "materials");
+			s_Data->p_Combination.UpdateSampler(&s_Data->f_Lighting, 3, "occlusion");
 		}
 
 		// Debug
@@ -1097,9 +1102,7 @@ namespace Frostium
 			DynamicPipelineCI.PipelineName = "Bloom";
 			auto result = s_Data->p_Bloom.Create(&DynamicPipelineCI);
 			assert(result == PipelineCreateResult::SUCCESS);
-
 			s_Data->p_Bloom.UpdateSampler(&s_Data->f_Lighting, 0, "color_2");
-			s_Data->p_Bloom.UpdateSampler(&s_Data->f_GBuffer, 2, "materials");
 		}
 #endif
 	}
@@ -1139,15 +1142,16 @@ namespace Frostium
 			{
 				// Lighting
 				{
-					FramebufferAttachment color_1 = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "color_1");
-					FramebufferAttachment color_2 = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "color_2");
+					FramebufferAttachment color = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "color_1");
+					FramebufferAttachment bloom = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "color_2");
+					FramebufferAttachment occlusion = FramebufferAttachment(AttachmentFormat::Color, true, "occlusion");
 
 					FramebufferSpecification framebufferCI = {};
 					framebufferCI.eSamplerFiltering = SamplerFilter::LINEAR;
 					framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
 					framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
 					framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
-					framebufferCI.Attachments = { color_1, color_2 };
+					framebufferCI.Attachments = { color, bloom, occlusion };
 
 					Framebuffer::Create(framebufferCI, &s_Data->f_Lighting);
 				}
@@ -1231,15 +1235,16 @@ namespace Frostium
 
 		// Lighting
 		{
-			FramebufferAttachment color_1 = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "color_1");
-			FramebufferAttachment color_2 = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "color_2");
+			FramebufferAttachment color = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "color_1");
+			FramebufferAttachment bloom = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "color_2");
+			FramebufferAttachment occlusion = FramebufferAttachment(AttachmentFormat::Color, true, "occlusion");
 
 			FramebufferSpecification framebufferCI = {};
 			framebufferCI.eSamplerFiltering = SamplerFilter::LINEAR;
 			framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
 			framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
 			framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
-			framebufferCI.Attachments = { color_1, color_2 };
+			framebufferCI.Attachments = { color, bloom, occlusion };
 
 			Framebuffer::Create(framebufferCI, &s_Data->f_Lighting);
         }
@@ -1366,6 +1371,10 @@ namespace Frostium
 	void DeferredRenderer::OnResize(uint32_t width, uint32_t height)
 	{
 		s_Data->f_GBuffer.OnResize(width, height);
+		s_Data->f_FXAA.OnResize(width, height);
+		s_Data->f_Bloom.OnResize(width, height);
+		s_Data->f_Lighting.OnResize(width, height);
+
 		{
 			// Lighting pipeline
 			s_Data->p_Lighting.UpdateSampler(&s_Data->f_GBuffer, 5, "albedro");
@@ -1381,28 +1390,17 @@ namespace Frostium
 			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 7, "normals");
 			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 8, "materials");
 			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 9, "shadow_coord");
-
-			// Bloom
-			s_Data->p_Bloom.UpdateSampler(&s_Data->f_GBuffer, 2, "materials");
-		}
-
-		s_Data->f_Lighting.OnResize(width, height);
-		{
-			s_Data->p_FXAA.UpdateSampler(&s_Data->f_Lighting, 0);
-		}
-
-		s_Data->f_FXAA.OnResize(width, height);
-		{
+			// FXAA
+			s_Data->p_FXAA.UpdateSampler(&s_Data->f_Lighting, 0, "color_1");
+			// Combination
 			s_Data->p_Combination.UpdateSampler(&s_Data->f_FXAA, 0);
-			s_Data->p_Combination.UpdateSampler(&s_Data->f_GBuffer, 3, "materials");
+			s_Data->p_Combination.UpdateSampler(&s_Data->f_Bloom, 1);
+			s_Data->p_Combination.UpdateSampler(&s_Data->f_GBuffer, 2, "materials");
+			s_Data->p_Combination.UpdateSampler(&s_Data->f_Lighting, 3, "occlusion");
+			// Bloon
+			s_Data->p_Bloom.UpdateSampler(&s_Data->f_Lighting, 0, "color_2");
 		}
 
-		s_Data->f_Bloom.OnResize(width, height);
-		s_Data->p_Bloom.UpdateSampler(&s_Data->f_Lighting, 0, "color_2");
-		s_Data->p_Bloom.UpdateSampler(&s_Data->f_Lighting, 1, "color_3");
-		{
-			s_Data->p_Combination.UpdateSampler(&s_Data->f_Bloom, 1);
-		}
 	}
 
 	void DeferredRenderer::Reset()
