@@ -147,11 +147,6 @@ int main(int argc, char** argv)
 					DeferredRenderer::SetRendererState(&state);
 				}
 
-				if (ImGui::Checkbox("SSAO", &state.bSSAO))
-				{
-					DeferredRenderer::SetRendererState(&state);
-				}
-
 				if (ImGui::Checkbox("Grid", &state.bDrawGrid))
 					DeferredRenderer::SetRendererState(&state);
 
