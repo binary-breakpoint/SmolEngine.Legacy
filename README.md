@@ -1,7 +1,6 @@
 Screenshots
 =====
 ![Sponza](https://i.imgur.com/2hoI5Wt.png)
-![Sponza](https://i.imgur.com/3CJDZqY.png)
 ![PBR](https://i.imgur.com/Pzsbolf.png)
 ## Core Features
   - Multiple rendering API backends: Vulkan - 100%, OpenGL - 70%
@@ -119,8 +118,6 @@ And finally load resources and run main update loop:
 		context->SwapBuffers();
 	}
 ```
-## Result
-![result](https://i.imgur.com/cu9Ib8P.png)
 
 More samples can be found [here.](https://github.com/YellowDummy/Frostium3D/tree/main/samples)
 
