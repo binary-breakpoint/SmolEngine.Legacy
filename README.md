@@ -23,12 +23,13 @@ Screenshots
 
 - Water and Terrain Rendering
 - Particle System
-- Real-Time Global Illumination
+- Global Illumination
 - Real-Time Ray Tracing
 - Android/IOS/Linux Support
 - Dynamic Day/Night Cycle
 - Weather System
 - Unit Tests
+- Documentation
 
 ## Usage
 The first step is to initialize graphics context class:
@@ -132,6 +133,7 @@ And finally load resources and run main update loop:
 		context->SwapBuffers();
 	}
 ```
+![result](https://i.imgur.com/EOYtgZ2.png)
 
 More samples can be found [here.](https://github.com/YellowDummy/Frostium3D/tree/main/samples)
 
