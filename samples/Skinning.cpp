@@ -107,6 +107,12 @@ int main(int argc, char** argv)
 
 		{
 			materialCI = {};
+
+			materialCI.SetTexture(MaterialTexture::Albedro, "Assets/materials/metal_2/Metal012_1K_Color.png");
+			materialCI.SetTexture(MaterialTexture::Normal, "Assets/materials/metal_2/Metal012_1K_Normal.png");
+			materialCI.SetTexture(MaterialTexture::Roughness, "Assets/materials/metal_2/Metal012_1K_Roughness.png");
+			materialCI.SetTexture(MaterialTexture::Metallic, "Assets/materials/metal_2/Metal012_1K_Metalness.png");
+
 			materialCI.SetMetalness(0.5f);
 			materialCI.SetRoughness(0.9f);
 

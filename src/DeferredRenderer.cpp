@@ -61,7 +61,6 @@ namespace Frostium
 		s_Data->p_Combination.BeginCommandBuffer(mainCmd);
 		s_Data->p_Skybox.BeginCommandBuffer(mainCmd);
 		s_Data->p_DepthPass.BeginCommandBuffer(mainCmd);
-		s_Data->p_FXAA.BeginCommandBuffer(mainCmd);
 		s_Data->p_Bloom.BeginCommandBuffer(mainCmd);
 		s_Data->p_Debug.BeginCommandBuffer(mainCmd);
 
@@ -205,10 +204,10 @@ namespace Frostium
 				// Updates FXAA State
 				JobsSystemInstance::Schedule([]()
 				{
-					float width = 1.0f / static_cast<float>(s_Data->f_FXAA.GetSpecification().Width);
-					float height = 1.0f / static_cast<float>(s_Data->f_FXAA.GetSpecification().Height);
+					float width = 1.0f / static_cast<float>(s_Data->f_Main->GetSpecification().Width);
+					float height = 1.0f / static_cast<float>(s_Data->f_Main->GetSpecification().Height);
 					s_Data->m_State.FXAA.InverseScreenSize = glm::vec2(width, height);
-					s_Data->p_FXAA.SubmitBuffer(s_Data->m_FXAAStateBinding, sizeof(FXAAProperties), &s_Data->m_State.FXAA);
+					s_Data->p_Combination.SubmitBuffer(s_Data->m_FXAAStateBinding, sizeof(FXAAProperties), &s_Data->m_State.FXAA);
 				});
 
 				// Updates Bloom State
@@ -277,10 +276,10 @@ namespace Frostium
 			s_Data->p_Lighting.SubmitBuffer(s_Data->m_LightingStateBinding, sizeof(LightingProperties), &s_Data->m_State.Lighting);
 			// Updates FXAA State
 			{
-				float width = 1.0f / static_cast<float>(s_Data->f_FXAA.GetSpecification().Width);
-				float height = 1.0f / static_cast<float>(s_Data->f_FXAA.GetSpecification().Height);
+				float width = 1.0f / static_cast<float>(s_Data->f_Main->GetSpecification().Width);
+				float height = 1.0f / static_cast<float>(s_Data->f_Main->GetSpecification().Height);
 				s_Data->m_State.FXAA.InverseScreenSize = glm::vec2(width, height);
-				s_Data->p_FXAA.SubmitBuffer(s_Data->m_FXAAStateBinding, sizeof(FXAAProperties), &s_Data->m_State.FXAA);
+				s_Data->p_Combination.SubmitBuffer(s_Data->m_FXAAStateBinding, sizeof(FXAAProperties), &s_Data->m_State.FXAA);
 			}
 
 			// Updates Bloom State
@@ -416,22 +415,6 @@ namespace Frostium
 
 		// Post-Processing: FXAA, Bloom
 		{
-			// FXAA
-			if(s_Data->m_State.bFXAA)
-			{
-				s_Data->p_Combination.UpdateSampler(&s_Data->f_FXAA, 0);
-				s_Data->p_FXAA.BeginRenderPass();
-				{
-					s_Data->p_FXAA.Draw(3);
-				}
-				s_Data->p_FXAA.EndRenderPass();
-			}
-			else
-			{
-				// Updates discriptors for combination pass
-				s_Data->p_Combination.UpdateSampler(&s_Data->f_Lighting, 0, "color_1");
-			}
-
 			// Bloom
 			{
 				if (s_Data->m_State.bBloom)
@@ -444,11 +427,11 @@ namespace Frostium
 				}
 			}
 
-			// Composition
+			// FXAA + Composition
 			{
 				if (s_Data->m_DirtMask.Mask != nullptr)
 				{
-					s_Data->p_Combination.UpdateSampler(s_Data->m_DirtMask.Mask, 4);
+					s_Data->p_Combination.UpdateSampler(s_Data->m_DirtMask.Mask, 2);
 				}
 
 				s_Data->p_Combination.BeginRenderPass();
@@ -456,20 +439,18 @@ namespace Frostium
 					struct push_constant
 					{
 						uint32_t state;
-						uint32_t is_is_dirt_mask;
-						float mask_intensity;
-						float mask_normal_intensity;
+						uint32_t enabledFXAA;
+						uint32_t enabledMask;
+						float maskIntensity;
+						float maskBaseIntensity;
 					} pc;
 
 					// temp
 					pc.state = s_Data->m_State.bBloom ? 1: 0;
-					pc.is_is_dirt_mask = s_Data->m_DirtMask.Mask != nullptr;
-					pc.mask_intensity = s_Data->m_DirtMask.Intensity;
-					pc.mask_normal_intensity = s_Data->m_DirtMask.BaseIntensity;
-					if(s_Data->m_DirLight.IsActive == 1)
-					{
-
-					}
+					pc.enabledMask = s_Data->m_DirtMask.Mask != nullptr;
+					pc.enabledFXAA = s_Data->m_State.bFXAA;
+					pc.maskIntensity = s_Data->m_DirtMask.Intensity;
+					pc.maskBaseIntensity= s_Data->m_DirtMask.BaseIntensity;
 
 					s_Data->p_Combination.SubmitPushConstant(ShaderType::Fragment, sizeof(push_constant), &pc);
 					s_Data->p_Combination.Draw(3);
@@ -843,24 +824,6 @@ namespace Frostium
 				}
 			});
 
-			// FXAA
-			JobsSystemInstance::Schedule([&]()
-			{
-				GraphicsPipelineCreateInfo DynamicPipelineCI = {};
-				DynamicPipelineCI.eCullMode = CullMode::None;
-
-				GraphicsPipelineShaderCreateInfo shaderCI = {};
-				shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/GenTriangle.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/FXAA.frag";
-				DynamicPipelineCI.ShaderCreateInfo = shaderCI;
-				DynamicPipelineCI.PipelineName = "FXAA";
-				DynamicPipelineCI.TargetFramebuffers = { &s_Data->f_FXAA };
-
-				auto result = s_Data->p_FXAA.Create(&DynamicPipelineCI);
-				assert(result == PipelineCreateResult::SUCCESS);
-				s_Data->p_FXAA.UpdateSampler(&s_Data->f_Lighting, 0);
-			});
-
 			// Combination
 			JobsSystemInstance::Schedule([&]()
 			{
@@ -877,10 +840,8 @@ namespace Frostium
 				auto result = s_Data->p_Combination.Create(&DynamicPipelineCI);
 				assert(result == PipelineCreateResult::SUCCESS);
 
-				s_Data->p_Combination.UpdateSampler(&s_Data->f_FXAA, 0);
+				s_Data->p_Combination.UpdateSampler(&s_Data->f_Lighting, 0);
 				s_Data->p_Combination.UpdateSampler(&s_Data->f_Bloom, 1);
-				s_Data->p_Combination.UpdateSampler(&s_Data->f_GBuffer, 2, "materials");
-				s_Data->p_Combination.UpdateSampler(&s_Data->f_Lighting, 3, "occlusion");
 			});
 
 			// Debug
@@ -1021,23 +982,6 @@ namespace Frostium
 			}
 		}
 
-		// FXAA
-		{
-			GraphicsPipelineCreateInfo DynamicPipelineCI = {};
-			DynamicPipelineCI.eCullMode = CullMode::None;
-
-			GraphicsPipelineShaderCreateInfo shaderCI = {};
-			shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/GenTriangle.vert";
-			shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/FXAA.frag";
-			DynamicPipelineCI.ShaderCreateInfo = shaderCI;
-			DynamicPipelineCI.PipelineName = "FXAA";
-			DynamicPipelineCI.TargetFramebuffers = { &s_Data->f_FXAA };
-
-			auto result = s_Data->p_FXAA.Create(&DynamicPipelineCI);
-			assert(result == PipelineCreateResult::SUCCESS);
-			s_Data->p_FXAA.UpdateSampler(&s_Data->f_Lighting, 0);
-		}
-
 		// Combination
 		{
 			GraphicsPipelineCreateInfo DynamicPipelineCI = {};
@@ -1052,10 +996,8 @@ namespace Frostium
 
 			auto result = s_Data->p_Combination.Create(&DynamicPipelineCI);
 			assert(result == PipelineCreateResult::SUCCESS);
-			s_Data->p_Combination.UpdateSampler(&s_Data->f_FXAA, 0);
+			s_Data->p_Combination.UpdateSampler(&s_Data->f_Lighting, 0);
 			s_Data->p_Combination.UpdateSampler(&s_Data->f_Bloom, 1);
-			s_Data->p_Combination.UpdateSampler(&s_Data->f_GBuffer, 2, "materials");
-			s_Data->p_Combination.UpdateSampler(&s_Data->f_Lighting, 3, "occlusion");
 		}
 
 		// Debug
@@ -1144,35 +1086,18 @@ namespace Frostium
 				{
 					FramebufferAttachment color = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "color_1");
 					FramebufferAttachment bloom = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "color_2");
-					FramebufferAttachment occlusion = FramebufferAttachment(AttachmentFormat::Color, true, "occlusion");
 
 					FramebufferSpecification framebufferCI = {};
 					framebufferCI.eSamplerFiltering = SamplerFilter::LINEAR;
 					framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
 					framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
 					framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
-					framebufferCI.Attachments = { color, bloom, occlusion };
+					framebufferCI.Attachments = { color, bloom };
 
 					Framebuffer::Create(framebufferCI, &s_Data->f_Lighting);
 				}
 
 			});
-
-			JobsSystemInstance::Schedule([&]()
-			{
-				// FXAA
-				{
-					FramebufferSpecification framebufferCI = {};
-					framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
-					framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
-					framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
-					framebufferCI.Attachments = { FramebufferAttachment(AttachmentFormat::SFloat4_16, true) };
-
-					Framebuffer::Create(framebufferCI, &s_Data->f_FXAA);
-				}
-
-			});
-
 
 			JobsSystemInstance::Schedule([&]()
 			{
@@ -1237,28 +1162,16 @@ namespace Frostium
 		{
 			FramebufferAttachment color = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "color_1");
 			FramebufferAttachment bloom = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "color_2");
-			FramebufferAttachment occlusion = FramebufferAttachment(AttachmentFormat::Color, true, "occlusion");
 
 			FramebufferSpecification framebufferCI = {};
 			framebufferCI.eSamplerFiltering = SamplerFilter::LINEAR;
 			framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
 			framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
 			framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
-			framebufferCI.Attachments = { color, bloom, occlusion };
+			framebufferCI.Attachments = { color, bloom };
 
 			Framebuffer::Create(framebufferCI, &s_Data->f_Lighting);
         }
-
-		// FXAA
-		{
-			FramebufferSpecification framebufferCI = {};
-			framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
-			framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
-			framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
-			framebufferCI.Attachments = { FramebufferAttachment(AttachmentFormat::SFloat4_16, true) };
-
-			Framebuffer::Create(framebufferCI, &s_Data->f_FXAA);
-		}
 
 		// Depth
 		{
@@ -1370,9 +1283,8 @@ namespace Frostium
 
 	void DeferredRenderer::OnResize(uint32_t width, uint32_t height)
 	{
-		s_Data->f_GBuffer.OnResize(width, height);
-		s_Data->f_FXAA.OnResize(width, height);
 		s_Data->f_Bloom.OnResize(width, height);
+		s_Data->f_GBuffer.OnResize(width, height);
 		s_Data->f_Lighting.OnResize(width, height);
 
 		{
@@ -1382,7 +1294,6 @@ namespace Frostium
 			s_Data->p_Lighting.UpdateSampler(&s_Data->f_GBuffer, 7, "normals");
 			s_Data->p_Lighting.UpdateSampler(&s_Data->f_GBuffer, 8, "materials");
 			s_Data->p_Lighting.UpdateSampler(&s_Data->f_GBuffer, 9, "shadow_coord");
-
 			// Debug view pipeline
 			s_Data->p_Debug.UpdateSampler(&s_Data->f_Depth, 1, "Depth_Attachment");
 			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 5, "albedro");
@@ -1390,13 +1301,10 @@ namespace Frostium
 			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 7, "normals");
 			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 8, "materials");
 			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 9, "shadow_coord");
-			// FXAA
-			s_Data->p_FXAA.UpdateSampler(&s_Data->f_Lighting, 0, "color_1");
+
 			// Combination
-			s_Data->p_Combination.UpdateSampler(&s_Data->f_FXAA, 0);
+			s_Data->p_Combination.UpdateSampler(&s_Data->f_Lighting, 0);
 			s_Data->p_Combination.UpdateSampler(&s_Data->f_Bloom, 1);
-			s_Data->p_Combination.UpdateSampler(&s_Data->f_GBuffer, 2, "materials");
-			s_Data->p_Combination.UpdateSampler(&s_Data->f_Lighting, 3, "occlusion");
 			// Bloon
 			s_Data->p_Bloom.UpdateSampler(&s_Data->f_Lighting, 0, "color_2");
 		}
