@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "Common/VertexBuffer.h"
+#include "Primitives/VertexBuffer.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine

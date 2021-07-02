@@ -1,7 +1,7 @@
 #pragma once
 
 #ifndef FROSTIUM_OPENGL_IMPL
-#include <ImGUI/ImGuiVulkanImpl.h>
+#include <Extensions/ImGuiVulkanImpl.h>
 #endif
 #include "Common/Events.h"
 

@@ -1,13 +1,6 @@
 #include "Skinning.h"
 
-#include <Common/Mesh.h>
-#include <Common/Input.h>
-#include <GraphicsContext.h>
-#include <MaterialLibrary.h>
-#include <DebugRenderer.h>
-#include <DeferredRenderer.h>
-
-#include <Utils/Utils.h>
+#include <FrostiumCore.h>
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 using namespace SmolEngine;

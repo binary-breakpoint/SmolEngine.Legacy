@@ -1,8 +1,8 @@
 #include "stdafx.h"
-#include "Common/Mesh.h"
-#include "Common/VertexArray.h"
-#include "Common/VertexBuffer.h"
-#include "Common/IndexBuffer.h"
+#include "Primitives/Mesh.h"
+#include "Primitives/VertexArray.h"
+#include "Primitives/VertexBuffer.h"
+#include "Primitives/IndexBuffer.h"
 
 #include "Utils/Utils.h"
 #include "Utils/glTFImporter.h"

@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #ifndef FROSTIUM_OPENGL_IMPL
 
-#include "ImGUI/ImGuiVulkanImpl.h"
+#include "Extensions/ImGuiVulkanImpl.h"
 
 #include "Vulkan/VulkanContext.h"
 #include "Vulkan/VulkanStagingBuffer.h"

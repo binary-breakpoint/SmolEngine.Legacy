@@ -1,5 +1,6 @@
 #include "stdafx.h"
-#include "ImGUI/ImGuiContext.h"
+#include "Extensions/ImGuiContext.h"
+
 #include "GraphicsContext.h"
 
 #include <imgui/imgui.h>

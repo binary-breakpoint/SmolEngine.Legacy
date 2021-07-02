@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "Common/CubeMap.h"
+#include "Primitives/CubeMap.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine

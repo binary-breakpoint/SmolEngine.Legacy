@@ -187,6 +187,9 @@
     <Filter Include="include\OpenGL">
       <UniqueIdentifier>{9D649317-8932-871D-72C6-F7435E336382}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\Primitives">
+      <UniqueIdentifier>{C4C52D69-B0A9-EEBE-190A-E911050DD940}</UniqueIdentifier>
+    </Filter>
     <Filter Include="include\Utils">
       <UniqueIdentifier>{A9730EA4-1534-8ADA-DE6E-D3574AEECEB6}</UniqueIdentifier>
     </Filter>
@@ -207,6 +210,9 @@
     </Filter>
     <Filter Include="src\OpenGL">
       <UniqueIdentifier>{C15FA925-AD17-EB72-161F-C4CE02F68563}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Primitives">
+      <UniqueIdentifier>{E8B2543A-D480-4840-BD14-B966A98124A5}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Utils">
       <UniqueIdentifier>{4D9AFFB3-B904-B42A-0243-65D06EEC917F}</UniqueIdentifier>
@@ -243,13 +249,13 @@
     <ClInclude Include="include\Common\Core.h">
       <Filter>include\Common</Filter>
     </ClInclude>
+    <ClInclude Include="include\Common\EnvironmentMap.h">
+      <Filter>include\Common</Filter>
+    </ClInclude>
     <ClInclude Include="include\Common\Events.h">
       <Filter>include\Common</Filter>
     </ClInclude>
     <ClInclude Include="include\Common\Flags.h">
-      <Filter>include\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Common\Framebuffer.h">
       <Filter>include\Common</Filter>
     </ClInclude>
     <ClInclude Include="include\Common\FramebufferSpecification.h">
@@ -258,16 +264,10 @@
     <ClInclude Include="include\Common\GraphicsPipelineInfos.h">
       <Filter>include\Common</Filter>
     </ClInclude>
-    <ClInclude Include="include\Common\IndexBuffer.h">
-      <Filter>include\Common</Filter>
-    </ClInclude>
     <ClInclude Include="include\Common\Input.h">
       <Filter>include\Common</Filter>
     </ClInclude>
     <ClInclude Include="include\Common\InputCodes.h">
-      <Filter>include\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Common\Mesh.h">
       <Filter>include\Common</Filter>
     </ClInclude>
     <ClInclude Include="include\Common\Renderer2DStorage.h">
@@ -285,25 +285,13 @@
     <ClInclude Include="include\Common\SPIRVReflection.h">
       <Filter>include\Common</Filter>
     </ClInclude>
-    <ClInclude Include="include\Common\Shader.h">
-      <Filter>include\Common</Filter>
-    </ClInclude>
     <ClInclude Include="include\Common\SubTexture.h">
       <Filter>include\Common</Filter>
     </ClInclude>
     <ClInclude Include="include\Common\Text.h">
       <Filter>include\Common</Filter>
     </ClInclude>
-    <ClInclude Include="include\Common\Texture.h">
-      <Filter>include\Common</Filter>
-    </ClInclude>
     <ClInclude Include="include\Common\Time.h">
-      <Filter>include\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Common\VertexArray.h">
-      <Filter>include\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Common\VertexBuffer.h">
       <Filter>include\Common</Filter>
     </ClInclude>
     <ClInclude Include="include\Common\Window.h">
@@ -324,17 +312,14 @@
     <ClInclude Include="include\Extensions\Profiler.h">
       <Filter>include\Extensions</Filter>
     </ClInclude>
+    <ClInclude Include="include\FrostiumCore.h">
+      <Filter>include</Filter>
+    </ClInclude>
     <ClInclude Include="include\GraphicsContext.h">
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="include\GraphicsPipeline.h">
       <Filter>include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ImGUI\ImGuiContext.h">
-      <Filter>include\ImGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ImGUI\ImGuiVulkanImpl.h">
-      <Filter>include\ImGUI</Filter>
     </ClInclude>
     <ClInclude Include="include\Libraries\cereal\include\cereal\external\rapidjson\allocators.h">
       <Filter>include\Libraries\cereal\include\cereal\external\rapidjson</Filter>
@@ -2280,6 +2265,30 @@
     <ClInclude Include="include\OpenGL\OpenglVertexArray.h">
       <Filter>include\OpenGL</Filter>
     </ClInclude>
+    <ClInclude Include="include\Primitives\CubeMap.h">
+      <Filter>include\Primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Primitives\Framebuffer.h">
+      <Filter>include\Primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Primitives\IndexBuffer.h">
+      <Filter>include\Primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Primitives\Mesh.h">
+      <Filter>include\Primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Primitives\Shader.h">
+      <Filter>include\Primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Primitives\Texture.h">
+      <Filter>include\Primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Primitives\VertexArray.h">
+      <Filter>include\Primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Primitives\VertexBuffer.h">
+      <Filter>include\Primitives</Filter>
+    </ClInclude>
     <ClInclude Include="include\RayTracer.h">
       <Filter>include</Filter>
     </ClInclude>
@@ -2379,49 +2388,33 @@
     <ClInclude Include="src\stdafx.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="include\Common\EnvironmentMap.h" />
-    <ClInclude Include="include\Common\CubeMap.h">
-      <Filter>include\Common</Filter>
+    <ClInclude Include="include\Extensions\ImGuiContext.h">
+      <Filter>include\ImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Extensions\ImGuiVulkanImpl.h">
+      <Filter>include\ImGUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Common\Common.cpp">
       <Filter>src\Common</Filter>
     </ClCompile>
+    <ClCompile Include="src\Common\EnvironmentMap.cpp">
+      <Filter>src\Common</Filter>
+    </ClCompile>
     <ClCompile Include="src\Common\Events.cpp">
-      <Filter>src\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Common\Framebuffer.cpp">
-      <Filter>src\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Common\IndexBuffer.cpp">
       <Filter>src\Common</Filter>
     </ClCompile>
     <ClCompile Include="src\Common\Input.cpp">
       <Filter>src\Common</Filter>
     </ClCompile>
-    <ClCompile Include="src\Common\Mesh.cpp">
-      <Filter>src\Common</Filter>
-    </ClCompile>
     <ClCompile Include="src\Common\SLog.cpp">
-      <Filter>src\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Common\Shader.cpp">
       <Filter>src\Common</Filter>
     </ClCompile>
     <ClCompile Include="src\Common\SubTexture.cpp">
       <Filter>src\Common</Filter>
     </ClCompile>
     <ClCompile Include="src\Common\Text.cpp">
-      <Filter>src\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Common\Texture.cpp">
-      <Filter>src\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Common\VertexArray.cpp">
-      <Filter>src\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Common\VertexBuffer.cpp">
       <Filter>src\Common</Filter>
     </ClCompile>
     <ClCompile Include="src\Common\Window.cpp">
@@ -2448,15 +2441,6 @@
     <ClCompile Include="src\GraphicsPipeline.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\ImGUI\ImGuiBuid.cpp">
-      <Filter>src\ImGUI</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ImGUI\ImGuiContext.cpp">
-      <Filter>src\ImGUI</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ImGUI\ImGuiVulkanImpl.cpp">
-      <Filter>src\ImGUI</Filter>
-    </ClCompile>
     <ClCompile Include="src\MaterialLibrary.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -2481,6 +2465,30 @@
     <ClCompile Include="src\OpenGL\OpenglVertexArray.cpp">
       <Filter>src\OpenGL</Filter>
     </ClCompile>
+    <ClCompile Include="src\Primitives\CubeMap.cpp">
+      <Filter>src\Primitives</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Primitives\Framebuffer.cpp">
+      <Filter>src\Primitives</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Primitives\IndexBuffer.cpp">
+      <Filter>src\Primitives</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Primitives\Mesh.cpp">
+      <Filter>src\Primitives</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Primitives\Shader.cpp">
+      <Filter>src\Primitives</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Primitives\Texture.cpp">
+      <Filter>src\Primitives</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Primitives\VertexArray.cpp">
+      <Filter>src\Primitives</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Primitives\VertexBuffer.cpp">
+      <Filter>src\Primitives</Filter>
+    </ClCompile>
     <ClCompile Include="src\RayTracer.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -2491,6 +2499,9 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\Utils\Frustum.cpp">
+      <Filter>src\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Utils\SSAOGenerator.cpp">
       <Filter>src\Utils</Filter>
     </ClCompile>
     <ClCompile Include="src\Utils\Utils.cpp">
@@ -2583,12 +2594,14 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
-    <ClCompile Include="src\Common\EnvironmentMap.cpp" />
-    <ClCompile Include="src\Common\CubeMap.cpp">
-      <Filter>src\Common</Filter>
+    <ClCompile Include="src\Extensions\ImGuiBuid.cpp">
+      <Filter>src\ImGUI</Filter>
     </ClCompile>
-    <ClCompile Include="src\Utils\SSAOGenerator.cpp">
-      <Filter>src\Common</Filter>
+    <ClCompile Include="src\Extensions\ImGuiContext.cpp">
+      <Filter>src\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Extensions\ImGuiVulkanImpl.cpp">
+      <Filter>src\ImGUI</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

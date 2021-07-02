@@ -8,10 +8,10 @@
 #include "Vulkan/VulkanBufferPool.h"
 #endif
 
-#include "Common/Framebuffer.h"
-#include "Common/CubeMap.h"
-#include "Common/Shader.h"
-#include "Common/Mesh.h"
+#include "Primitives/Framebuffer.h"
+#include "Primitives/CubeMap.h"
+#include "Primitives/Shader.h"
+#include "Primitives/Mesh.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine

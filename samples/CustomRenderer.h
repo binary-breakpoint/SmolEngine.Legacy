@@ -1,8 +1,11 @@
 #pragma once
-#include <GraphicsPipeline.h>
-#include <MaterialLibrary.h>
-#include <Common/Mesh.h>
-#include <Common/Framebuffer.h>
+
+int main(int argc, char** argv)
+{
+
+}
+
+#if 0
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 using namespace SmolEngine;
@@ -10,7 +13,8 @@ using namespace SmolEngine;
 using namespace Frostium;
 #endif
 
-int main(int argc, char** argv);
+#include <FrostiumCore.h>
+
 
 struct RendererData
 {
@@ -59,4 +63,6 @@ private:
 	CameraUBO                    m_CameraUBO = {};
 	std::vector<InstanceUBO>     m_Instances;
 	std::vector<uint32_t>        m_MaterialsIDs;
-};							   
+};		
+
+#endif

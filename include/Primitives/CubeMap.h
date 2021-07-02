@@ -1,7 +1,7 @@
 #pragma once
 #include "Common/Core.h"
 #include "Common/Common.h"
-#include "Common/Texture.h"
+#include "Primitives/Texture.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine

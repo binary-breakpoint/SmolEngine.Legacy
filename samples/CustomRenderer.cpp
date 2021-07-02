@@ -1,9 +1,6 @@
 #include "CustomRenderer.h"
 
-#include <Common/Input.h>
-#include <GraphicsContext.h>
-#include <MaterialLibrary.h>
-#include <Utils/Utils.h>
+#if 0
 
 #include <Vulkan/VulkanPBR.h>
 
@@ -233,9 +230,9 @@ void CustomRenderer::BuildPipelines()
 		m_Storage.Comp_Pipeline.UpdateSampler(&m_Storage.MRT_Framebufer, 1, "position");
 		m_Storage.Comp_Pipeline.UpdateSampler(&m_Storage.MRT_Framebufer, 2, "normals");
 
-		m_Storage.Comp_Pipeline.UpdateVulkanImageDescriptor(3, VulkanPBR::GetIrradianceImageInfo());
-		m_Storage.Comp_Pipeline.UpdateVulkanImageDescriptor(4, VulkanPBR::GetBRDFLUTImageInfo());
-		m_Storage.Comp_Pipeline.UpdateVulkanImageDescriptor(5, VulkanPBR::GetPrefilteredCubeImageInfo());
+		m_Storage.Comp_Pipeline.UpdateVulkanImageDescriptor(3, VulkanPBR::GetSingleton()->GetIrradianceImageInfo());
+		m_Storage.Comp_Pipeline.UpdateVulkanImageDescriptor(4, VulkanPBR::GetSingleton()->GetBRDFLUTImageInfo());
+		m_Storage.Comp_Pipeline.UpdateVulkanImageDescriptor(5, VulkanPBR::GetSingleton()->GetPrefilteredCubeImageInfo());
 
 		m_Storage.Comp_Pipeline.SetVertexBuffers({ vb });
 		m_Storage.Comp_Pipeline.SetIndexBuffers({ ib });
@@ -258,11 +255,6 @@ void CustomRenderer::BuildFramebuffers()
 		framebufferCI.Attachments = { albedro, position, normals };
 
 		Framebuffer::Create(framebufferCI, &m_Storage.MRT_Framebufer);
-	}
-
-	// PBR
-	{
-		VulkanPBR::Init("../resources/Skyboxes/uffizi_cube.ktx", TextureFormat::R16G16B16A16_SFLOAT);
 	}
 }
 
@@ -341,3 +333,5 @@ void CustomRenderer::BuildMaterials()
 		m_MaterialsIDs.push_back(id);
 	}
 }
+
+#endif

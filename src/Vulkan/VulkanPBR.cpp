@@ -9,11 +9,10 @@
 
 #include "GraphicsContext.h"
 #include "Common/BufferLayout.h"
-#include "Common/VertexArray.h"
-#include "Common/VertexBuffer.h"
-#include "Common/IndexBuffer.h"
-#include "Common/CubeMap.h"
-#include "Common/Shader.h"
+#include "Primitives/VertexBuffer.h"
+#include "Primitives/IndexBuffer.h"
+#include "Primitives/CubeMap.h"
+#include "Primitives/Shader.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 #include "Extensions/JobsSystemInstance.h"

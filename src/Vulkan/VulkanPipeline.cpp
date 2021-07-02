@@ -6,7 +6,7 @@
 #include "Vulkan/VulkanContext.h"
 
 #include "GraphicsPipeline.h"
-#include "Common/Framebuffer.h"
+#include "Primitives/Framebuffer.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine

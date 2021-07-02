@@ -505,28 +505,40 @@ namespace Frostium
 		std::string        error, warning;
 
 		bool fileLoaded = gltfContext.LoadASCIIFromFile(&glTFInput, &error, &warning, filePath);
-		if (fileLoaded)
-		{
-			const tinygltf::Scene& scene = glTFInput.scenes[0];
-			for (size_t i = 0; i < scene.nodes.size(); i++)
-			{
-				const tinygltf::Node node = glTFInput.nodes[scene.nodes[i]];
-				LoadNode(node, glTFInput, nullptr, scene.nodes[i], out_data);
-			}
-			LoadSkins(glTFInput, out_data);
-			LoadAnimations(glTFInput, out_data);
-
-			glTFAnimation* activeAnim = nullptr;
-			if (out_data->Animations.size() > 0)
-				activeAnim = &out_data->Animations[out_data->ActiveAnimation];
-
-			// Calculate initial pose
-			for (auto node : out_data->Nodes)
-			{
-				out_data->UpdateJoints(node, &activeAnim->Properties);
-			}
-		}
-
+		if (fileLoaded) { Import(&glTFInput, out_data); }
 		return fileLoaded;
+	}
+
+	bool glTFImporter::ImportFromString(const std::string& src, ImportedDataGlTF* out_data)
+	{
+		tinygltf::Model    glTFInput;
+		tinygltf::TinyGLTF gltfContext;
+		std::string        error, warning;
+
+		bool fileLoaded = gltfContext.LoadASCIIFromString(&glTFInput, &error, &warning, src.c_str(), strlen(src.c_str()), GetBaseDir(src));
+		if (fileLoaded) { Import(&glTFInput, out_data); }
+		return fileLoaded;
+	}
+
+	void glTFImporter::Import(tinygltf::Model* model, ImportedDataGlTF* out_data)
+	{
+		const tinygltf::Scene& scene = model->scenes[0];
+		for (size_t i = 0; i < scene.nodes.size(); i++)
+		{
+			const tinygltf::Node node = model->nodes[scene.nodes[i]];
+			LoadNode(node, *model, nullptr, scene.nodes[i], out_data);
+		}
+		LoadSkins(*model, out_data);
+		LoadAnimations(*model, out_data);
+
+		glTFAnimation* activeAnim = nullptr;
+		if (out_data->Animations.size() > 0)
+			activeAnim = &out_data->Animations[out_data->ActiveAnimation];
+
+		// Calculate initial pose
+		for (auto node : out_data->Nodes)
+		{
+			out_data->UpdateJoints(node, &activeAnim->Properties);
+		}
 	}
 }

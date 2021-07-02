@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "Common/IndexBuffer.h"
+#include "Primitives/IndexBuffer.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine

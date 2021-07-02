@@ -1,8 +1,9 @@
 #include "stdafx.h"
-#include "Common/Texture.h"
+#include "Primitives/Texture.h"
+#include "Primitives/Shader.h"
+
 #include "Common/Core.h"
 #include "Common/SLog.h"
-#include "Common/Shader.h"
 
 #include "Utils/Utils.h"
 

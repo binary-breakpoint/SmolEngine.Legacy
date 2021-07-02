@@ -1,15 +1,6 @@
 #include "2D.h"
 
-#include <Common/Mesh.h>
-#include <Common/Input.h>
-#include <Common/Text.h>
-#include <Utils/Utils.h>
-#include <GraphicsContext.h>
-#include <Renderer2D.h>
-
-#include <DebugRenderer.h>
-
-#include <imgui/imgui.h>
+#include <FrostiumCore.h>
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 using namespace SmolEngine;

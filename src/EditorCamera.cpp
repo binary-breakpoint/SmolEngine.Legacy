@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "EditorCamera.h"
 #include "Common/Input.h"
-#include "Common/Framebuffer.h"
+#include "Primitives/Framebuffer.h"
 #include "Utils/Utils.h"
 
 #define GLM_ENABLE_EXPERIMENTAL

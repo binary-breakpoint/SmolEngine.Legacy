@@ -6,7 +6,7 @@
 #include "Vulkan/VulkanMemoryAllocator.h"
 #include "Vulkan/VulkanTexture.h"
 #include "Vulkan/VulkanSemaphore.h"
-#include "Common/Framebuffer.h"
+#include "Primitives/Framebuffer.h"
 
 #include <imgui/examples/imgui_impl_vulkan.h>
 

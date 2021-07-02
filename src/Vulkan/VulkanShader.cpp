@@ -5,6 +5,7 @@
 #include "Vulkan/VulkanContext.h"
 
 #include "Utils/Utils.h"
+#include <shaderc/shaderc.hpp>
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine

@@ -2,10 +2,10 @@
 #include "DeferredRenderer.h"
 #include "MaterialLibrary.h"
 
-#include "Common/VertexArray.h"
-#include "Common/VertexBuffer.h"
-#include "Common/IndexBuffer.h"
-#include "Common/Shader.h"
+#include "Primitives/VertexArray.h"
+#include "Primitives/VertexBuffer.h"
+#include "Primitives/IndexBuffer.h"
+#include "Primitives/Shader.h"
 #include "Common/Common.h"
 
 #include "Utils/glTFImporter.h"

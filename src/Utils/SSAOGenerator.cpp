@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "Utils/SSAOGenerator.h"
-#include "Common/Texture.h"
+#include "Primitives/Texture.h"
 
 #include <random>
 

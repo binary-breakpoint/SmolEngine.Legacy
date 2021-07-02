@@ -1,10 +1,6 @@
 #include "CSharpBinding.h"
 
-#include <Common/Mesh.h>
-#include <Common/Input.h>
-#include <GraphicsContext.h>
-#include <MaterialLibrary.h>
-#include <DeferredRenderer.h>
+#include <FrostiumCore.h>
 
 #include <mono/metadata/assembly.h>
 #include <mono/jit/jit.h>

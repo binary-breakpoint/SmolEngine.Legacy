@@ -1,6 +1,6 @@
 #include "stdafx.h"
+#include "Primitives/Shader.h"
 
-#include "Common/Shader.h"
 #include "Common/SLog.h"
 #include "Utils/Utils.h"
 

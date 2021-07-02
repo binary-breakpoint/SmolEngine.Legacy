@@ -1,15 +1,6 @@
 #include "PBR.h"
 
-#include <GraphicsContext.h>
-#include <MaterialLibrary.h>
-#include <DeferredRenderer.h>
-
-#include <Common/Mesh.h>
-#include <Common/Input.h>
-#include <Common/Texture.h>
-#include <Utils/Utils.h>
-
-#include <imgui/imgui.h>
+#include <FrostiumCore.h>
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 using namespace SmolEngine;
@@ -86,6 +77,13 @@ int main(int argc, char** argv)
 	std::vector<Chunk> chunks;
 	LoadMaterials(materialIDs);
 	GenerateMap(chunks, materialIDs);
+
+
+	RendererState state = {};
+	state.Bloom.Strength = 0.2f;
+	state.bBloom = true;
+	state.bDrawGrid = false;
+	DeferredRenderer::SetRendererState(&state);
 
 	DirectionalLight dirLight = {};
 	dirLight.IsActive = true;

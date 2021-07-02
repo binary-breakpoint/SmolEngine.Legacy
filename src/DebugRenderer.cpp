@@ -1,8 +1,9 @@
 #include "stdafx.h"
 #include "DebugRenderer.h"
 
-#include "Common/Framebuffer.h"
-#include "Common/Mesh.h"
+#include "Primitives/Framebuffer.h"
+#include "Primitives/Mesh.h"
+
 #include "Utils/Utils.h"
 #include "GraphicsPipeline.h"
 

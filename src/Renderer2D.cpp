@@ -2,7 +2,7 @@
 #include "Renderer2D.h"
 #include "GraphicsPipeline.h"
 
-#include "Common/Mesh.h"
+#include "Primitives/Mesh.h"
 #include "Common/Text.h"
 #include "Utils/Utils.h"
 

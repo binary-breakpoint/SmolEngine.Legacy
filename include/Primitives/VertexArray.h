@@ -2,8 +2,8 @@
 
 #include "Common/Core.h"
 #include "Common/BufferLayout.h"
-#include "Common/VertexBuffer.h"
-#include "Common/IndexBuffer.h"
+#include "Primitives/VertexBuffer.h"
+#include "Primitives/IndexBuffer.h"
 
 #include <vector>
 #include <string>

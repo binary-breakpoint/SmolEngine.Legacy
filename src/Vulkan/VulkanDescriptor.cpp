@@ -2,8 +2,8 @@
 #ifndef FROSTIUM_OPENGL_IMPL
 #include "Vulkan/VulkanDescriptor.h"
 
-#include "Common/Texture.h"
-#include "Common/CubeMap.h"
+#include "Primitives/Texture.h"
+#include "Primitives/CubeMap.h"
 #include "GraphicsContext.h"
 
 #include "Vulkan/VulkanShader.h"

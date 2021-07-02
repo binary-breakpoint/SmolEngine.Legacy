@@ -1,6 +1,6 @@
 #include "stdafx.h"
-#include "Common/Framebuffer.h"
 #include "Common/SLog.h"
+#include "Primitives/Framebuffer.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine

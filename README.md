@@ -34,11 +34,7 @@ Screenshots
 ## Usage
 The first step is to initialize graphics context class:
 ```cpp
-#include <Common/Mesh.h>
-#include <GraphicsContext.h>
-#include <DeferredRenderer.h>
-
-#include <imgui/imgui.h>
+#include <FrostiumCore.h>
 
 using namespace Frostium;
 
