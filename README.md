@@ -3,18 +3,32 @@ Screenshots
 ![Sponza](https://i.imgur.com/2hoI5Wt.png)
 ![PBR](https://i.imgur.com/Pzsbolf.png)
 ## Core Features
-  - Multiple rendering API backends: Vulkan - 100%, OpenGL - 70%
+  - Multiple rendering API backends (Vulkan - 100%, OpenGL - 80%)
+  - Own abstraction layer on top of OpenGL/Vulkan API
   - Physically Based Rendering (Metalness-Roughness workflow)
   - Deferred Shading Rendering Path
   - Dynamic/Static Environment Maps
-  - Shadow Mapping
-  - MSAA / FXAA, HDR, Bloom\Blur
-  - IBL, Point, Spot and Directional Lighting
-  - 2D, 3D and debug renderers
+  - Full HDR Lighting
+  - Anti-aliasing: MSAA and FXAA
+  - Post-Processing: Bloom, Blur
+  - IBL, Point/Spot/Directional Lighting
+  - Basic Shadow Mapping
+  - 2D/3D/Debug renderers
   - ImGUI Integration
   - Text Rendering (SDF)
   - glTF 2.0
   - Skeleton Animations
+
+## Features to come
+
+- Water and Terrain Rendering
+- Particle System
+- Real-Time Global Illumination
+- Real-Time Ray Tracing
+- Android/IOS/Linux Support
+- Dynamic Day/Night Cycle
+- Weather System
+- Unit Tests
 
 ## Usage
 The first step is to initialize graphics context class:
