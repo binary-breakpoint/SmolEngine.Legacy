@@ -515,7 +515,7 @@ namespace Frostium
 		tinygltf::TinyGLTF gltfContext;
 		std::string        error, warning;
 
-		bool fileLoaded = gltfContext.LoadASCIIFromString(&glTFInput, &error, &warning, src.c_str(), strlen(src.c_str()), GetBaseDir(src));
+		bool fileLoaded = gltfContext.LoadASCIIFromString(&glTFInput, &error, &warning, src.c_str(), static_cast<unsigned int>(strlen(src.c_str())), GetBaseDir(src));
 		if (fileLoaded) { Import(&glTFInput, out_data); }
 		return fileLoaded;
 	}

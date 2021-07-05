@@ -69,11 +69,13 @@ namespace Frostium
 			m_ImGuiContext->Init(info);
 		}
 
+		m_DefaultMeshes = new DefaultMeshes();
+		m_DefaultMeshes->Init(info->ResourcesFolderPath);
+
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 		m_JobsSystem = new JobsSystemInstance();
 #endif
-		LoadMeshes();
-		// Creates main framebuffer
+		// Creates default framebuffer
 		m_Framebuffer = new Framebuffer();
 		FramebufferSpecification framebufferCI = {};
 		{
@@ -228,8 +230,7 @@ namespace Frostium
 				delete m_RendererStorage;
 
 			delete m_MaterialLibrary, m_DummyTexure, m_State,
-				m_Framebuffer, m_Window, m_ImGuiContext,
-				m_BoxMesh, m_SphereMesh, m_CapsuleMesh;
+				m_Framebuffer, m_Window, m_ImGuiContext, m_DefaultMeshes;
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 			delete m_JobsSystem;
@@ -292,19 +293,9 @@ namespace Frostium
 		return m_Frustum;
 	}
 
-	Mesh* GraphicsContext::GetBoxMesh() const
+	DefaultMeshes* GraphicsContext::GetDefaultMeshes() const
 	{
-		return m_BoxMesh;
-	}
-
-	Mesh* GraphicsContext::GetCapsuleMesh() const
-	{
-		return m_CapsuleMesh;
-	}
-
-	Mesh* GraphicsContext::GetSphereMesh() const
-	{
-		return m_SphereMesh;
+		return m_DefaultMeshes;
 	}
 
 	Texture* GraphicsContext::GetWhiteTexture() const
@@ -387,18 +378,6 @@ namespace Frostium
 
 		if(m_EventCallback != nullptr)
 			m_EventCallback(std::forward<Event>(e));
-	}
-
-	bool GraphicsContext::LoadMeshes()
-	{
-		m_BoxMesh = new Mesh();
-		m_CapsuleMesh = new Mesh();
-		m_SphereMesh = new Mesh();
-
-		Mesh::Create(m_ResourcesFolderPath + "Models/box.gltf", m_BoxMesh);
-		Mesh::Create(m_ResourcesFolderPath + "Models/capsule.gltf", m_CapsuleMesh);
-		Mesh::Create(m_ResourcesFolderPath + "Models/sphere.gltf", m_SphereMesh);
-		return true;
 	}
 
 #ifdef FROSTIUM_OPENGL_IMPL

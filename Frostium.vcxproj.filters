@@ -2394,6 +2394,7 @@
     <ClInclude Include="include\Extensions\ImGuiVulkanImpl.h">
       <Filter>include\ImGUI</Filter>
     </ClInclude>
+    <ClInclude Include="include\Common\DefaultMeshes.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Common\Common.cpp">
@@ -2603,5 +2604,6 @@
     <ClCompile Include="src\Extensions\ImGuiVulkanImpl.cpp">
       <Filter>src\ImGUI</Filter>
     </ClCompile>
+    <ClCompile Include="src\Common\DefaultMeshes.cpp" />
   </ItemGroup>
 </Project>

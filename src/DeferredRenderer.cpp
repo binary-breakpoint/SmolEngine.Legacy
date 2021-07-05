@@ -122,7 +122,7 @@ namespace Frostium
 
 					if (animated && mesh->m_ImportedData)
 					{
-						ImportedDataGlTF* imported = mesh->m_ImportedData;
+						Ref<ImportedDataGlTF> imported = mesh->m_ImportedData;
 						glTFAnimation* activeAnim = &imported->Animations[imported->ActiveAnimation];
 						if (mesh->IsRootNode())
 						{

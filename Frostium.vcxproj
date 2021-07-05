@@ -193,6 +193,7 @@
     <ClInclude Include="include\Common\Camera.h" />
     <ClInclude Include="include\Common\Common.h" />
     <ClInclude Include="include\Common\Core.h" />
+    <ClInclude Include="include\Common\DefaultMeshes.h" />
     <ClInclude Include="include\Common\EnvironmentMap.h" />
     <ClInclude Include="include\Common\Events.h" />
     <ClInclude Include="include\Common\Flags.h" />
@@ -911,6 +912,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Common\Common.cpp" />
+    <ClCompile Include="src\Common\DefaultMeshes.cpp" />
     <ClCompile Include="src\Common\EnvironmentMap.cpp" />
     <ClCompile Include="src\Common\Events.cpp" />
     <ClCompile Include="src\Common\Input.cpp" />

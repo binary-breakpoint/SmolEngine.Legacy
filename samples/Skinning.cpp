@@ -75,8 +75,6 @@ int main(int argc, char** argv)
 	Mesh dummy = {};
 	Mesh::Create("Assets/plane.gltf", &plane);
 	Mesh::Create("Assets/CesiumMan.gltf", &dummy);
-	Mesh* cube = GraphicsContext::GetSingleton()->GetBoxMesh();
-	Mesh* sphere = GraphicsContext::GetSingleton()->GetSphereMesh();
 
 	Texture dirtMask = {};
 	Texture::Create("Assets/DirtMaskTextureExample.png", &dirtMask);
@@ -211,8 +209,6 @@ int main(int argc, char** argv)
 
 			DeferredRenderer::BeginScene(&clearInfo);
 			DeferredRenderer::SubmitDirLight(&dirLight);
-			DeferredRenderer::SubmitMesh({ -5, 5, 0 }, { 0, 0, 0 }, { 2, 2, 2, }, sphere, planeMat);
-			DeferredRenderer::SubmitMesh({ -10, 1, 0 }, { 0, 0, 0 }, { 3, 3, 3 }, cube, planeMat);
 			DeferredRenderer::SubmitMesh({ 0, 3.9f, -3 }, glm::radians(rot), { 1, 1, 1, }, &plane, planeMat);
 			DeferredRenderer::SubmitMesh({ 3, 2, 0 }, { 0, 0, 0 }, { 5, 5, 5, }, &dummy, stoneMat);
 			DeferredRenderer::EndScene();
@@ -220,7 +216,6 @@ int main(int argc, char** argv)
 			if (debug)
 			{
 				DebugRenderer::BeginDebug();
-				DebugRenderer::DrawWireframes({ 0, 1, 0 }, { 0, 0, 0 }, { 50, 1, 50, }, cube);
 				DebugRenderer::DrawCapsule(1, 2, 1, { 1, 2, 1 }, { 3,2,0 }, { 1, 1, 1 });
 				DebugRenderer::EndDebug();
 			}

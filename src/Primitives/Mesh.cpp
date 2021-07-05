@@ -15,8 +15,7 @@ namespace Frostium
 {
     Mesh::~Mesh()
     {
-        if (m_ImportedData != nullptr)
-            delete m_ImportedData;
+
     }
 
     void Mesh::Create(const std::string& filePath, Mesh* obj)
@@ -26,8 +25,8 @@ namespace Frostium
             if (obj->m_Initialized)
                 return;
 
-            obj->m_ImportedData = new ImportedDataGlTF();
-            ImportedDataGlTF* data = obj->m_ImportedData;
+            obj->m_ImportedData = std::make_shared<ImportedDataGlTF>();
+            ImportedDataGlTF* data = obj->m_ImportedData.get();
 
             if (glTFImporter::Import(filePath, data))
             {
@@ -183,6 +182,11 @@ namespace Frostium
     bool Mesh::IsRootNode() const
     {
         return m_Root == nullptr;
+    }
+
+    bool Mesh::IsReady() const
+    {
+        return m_VertexCount > 0;
     }
 
     void Mesh::ResetAnimation(uint32_t index)

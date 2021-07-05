@@ -64,7 +64,7 @@ int main(int argc, char** argv)
 	context = new GraphicsContext(&info);
 
 	ClearInfo clearInfo = {};
-	Mesh* cube = GraphicsContext::GetSingleton()->GetBoxMesh();
+	Mesh* cube = context->GetDefaultMeshes()->Cube;
 	bool process = true;
 
 	context->SetEventCallback([&](Event& e) 
