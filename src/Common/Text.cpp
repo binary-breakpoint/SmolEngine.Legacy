@@ -155,7 +155,7 @@ namespace Frostium
 		}
 
 		// Generate host accessible buffers for the text vertices and indices and upload the data
-		if (m_VertexBuffer.IsInitialized())
+		if (m_VertexBuffer.IsReady())
 		{
 			m_VertexBuffer = {};
 			m_IndexBuffer = {};

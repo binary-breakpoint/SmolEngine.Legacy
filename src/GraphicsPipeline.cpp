@@ -259,7 +259,7 @@ namespace Frostium
 			m_VulkanPipeline.GetVkPipelineLayot(), 0, 1,
 			&descriptorSets, 0, nullptr);
 
-		vkCmdDrawIndexed(m_CommandBuffer, m_IndexBuffers[indexBufferIndex]->GetVulkanIndexBuffer().GetCount(), 1, 0, 0, 1);
+		vkCmdDrawIndexed(m_CommandBuffer, m_IndexBuffers[indexBufferIndex]->GetVulkanIndexBuffer().GetElementsCount(), 1, 0, 0, 1);
 #endif
 	}
 
@@ -279,7 +279,7 @@ namespace Frostium
 			m_VulkanPipeline.GetVkPipelineLayot(), 0, 1,
 			&descriptorSets, 0, nullptr);
 
-		vkCmdDrawIndexed(m_CommandBuffer, ib->GetVulkanIndexBuffer().GetCount(), 1, 0, 0, 1);
+		vkCmdDrawIndexed(m_CommandBuffer, ib->GetVulkanIndexBuffer().GetElementsCount(), 1, 0, 0, 1);
 #endif
 	}
 
@@ -398,16 +398,6 @@ namespace Frostium
 	}
 
 #ifndef FROSTIUM_OPENGL_IMPL
-	void GraphicsPipeline::CmdUpdateVertextBuffer(const void* data, size_t size, uint32_t bufferIndex, uint32_t offset)
-	{
-		m_VertexBuffers[bufferIndex]->CmdUpdateData(m_CommandBuffer, data, size, offset);
-	}
-
-	void GraphicsPipeline::CmdUpdateIndexBuffer(uint32_t* indices, size_t count, uint32_t bufferIndex, uint32_t offset)
-	{
-		m_IndexBuffers[bufferIndex]->CmdUpdateData(m_CommandBuffer, indices, sizeof(uint32_t) * count, offset);
-	}
-
 	bool GraphicsPipeline::UpdateVulkanImageDescriptor(uint32_t bindingPoint, const VkDescriptorImageInfo& imageInfo)
 	{
 		return m_VulkanPipeline.m_Descriptors[m_DescriptorIndex].UpdateImageResource(bindingPoint, imageInfo);
