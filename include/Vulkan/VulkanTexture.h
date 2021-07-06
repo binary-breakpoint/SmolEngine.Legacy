@@ -15,11 +15,12 @@ namespace Frostium
 	enum class AddressMode : int;
 	enum class BorderColor : int;
 	struct TextureCreateInfo;
+	struct TextureInfo;
 
 	class VulkanTexture
 	{
 	public:
-		VulkanTexture();
+		VulkanTexture(TextureInfo* info);
 		~VulkanTexture();
 
 		void LoadTexture(const TextureCreateInfo* info);
@@ -31,7 +32,6 @@ namespace Frostium
 
 		// Getters
 		const VkDescriptorImageInfo& GetVkDescriptorImageInfo() const;
-		void* GetImGuiTextureID() const;
 		VkImage GetVkImage() const;
 
 		static VkImage CreateVkImage(uint32_t width, uint32_t height, int32_t mipLevels,
@@ -90,13 +90,10 @@ namespace Frostium
 		VkImageView                  m_ImageView;
 		VkImageLayout                m_ImageLayout;
 		VkDeviceMemory               m_DeviceMemory;
-		void*                        m_ImGuiTextureID = nullptr;
-		uint32_t                     m_Height = 0;
-		uint32_t                     m_Width = 0;
 
+		TextureInfo*                 m_Info = nullptr;
 	private:
 
-		friend class Texture;
 		friend class VulkanPipeline;
 		friend class VulkanPBR;
 		friend class VulkanDescriptor;

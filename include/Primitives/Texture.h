@@ -59,7 +59,6 @@ namespace Frostium
 		std::string    FilePath = "";
 
 	public:
-
 		bool           Save(const std::string& filePath);
 		bool           Load(const std::string& filePath);
 
@@ -73,6 +72,14 @@ namespace Frostium
 		}
 	};
 
+	struct TextureInfo
+	{
+		uint32_t ID = 0;
+		uint32_t Width = 0;
+		uint32_t Height = 0;
+		void*    ImHandle = nullptr; // imgui texture id
+	};
+
 #ifdef  FROSTIUM_OPENGL_IMPL
 	class Texture: OpenglTexture2D
 #else
@@ -80,27 +87,24 @@ namespace Frostium
 #endif
 	{
 	public:
-		Texture() = default;
+		Texture();
 		~Texture() = default;
 
-		void             Bind(uint32_t slot = 0) const;
-		void             UnBind() const;
-		bool             IsReady() const; 
-				         
-		uint32_t         GetHeight() const;
-		uint32_t         GetWidth() const;
-	    uint32_t         GetID() const;
-		void*            GetImGuiTexture() const;
+		void                Bind(uint32_t slot = 0) const;
+		void                UnBind() const;
+		bool                IsReady() const; 
+		const TextureInfo&  GetInfo() const;
+		void*               GetImGuiTexture() const;
 #ifndef  FROSTIUM_OPENGL_IMPL
-		VulkanTexture*   GetVulkanTexture();
+		VulkanTexture*      GetVulkanTexture();
 #endif
 		// Factory
-		static void      CreateWhiteTexture(Texture* out_texture);
-		static void      Create(const TextureCreateInfo* ifno, Texture* out_texture);
-		static void      Create(const void* data, uint32_t size, const uint32_t width, const uint32_t height, Texture* out_texture, TextureFormat format = TextureFormat::R8G8B8A8_UNORM);
+		static void         CreateWhiteTexture(Texture* out_texture);
+		static void         Create(const TextureCreateInfo* ifno, Texture* out_texture);
+		static void         Create(const void* data, uint32_t size, uint32_t width, uint32_t height, 
+			                Texture* out_texture, TextureFormat format = TextureFormat::R8G8B8A8_UNORM);
 
 	private:
-
-		uint32_t         m_ID = 0;
+		TextureInfo         m_Info = {};
 	};
 }

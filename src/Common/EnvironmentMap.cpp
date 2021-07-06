@@ -214,8 +214,8 @@ namespace Frostium
 					copyRegion.dstSubresource.layerCount = 1;
 					copyRegion.dstOffset = { 0, 0, 0 };
 
-					copyRegion.extent.width = m_CubeMap->GetTexture()->GetWidth();
-					copyRegion.extent.height = m_CubeMap->GetTexture()->GetHeight();
+					copyRegion.extent.width = m_CubeMap->GetTexture()->GetInfo().Width;
+					copyRegion.extent.height = m_CubeMap->GetTexture()->GetInfo().Height;
 					copyRegion.extent.depth = 1;
 
 					// Put image copy into command buffer

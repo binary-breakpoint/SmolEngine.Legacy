@@ -17,6 +17,15 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
+	Texture::Texture()
+#ifdef  FROSTIUM_OPENGL_IMPL
+#else
+		:VulkanTexture(&m_Info)
+#endif
+	{
+
+	}
+
 	void Texture::Bind(uint32_t slot) const
 	{
 #ifdef  FROSTIUM_OPENGL_IMPL
@@ -33,31 +42,17 @@ namespace Frostium
 
 	bool Texture::IsReady() const
 	{
-		return m_Width > 0;
+		return m_Info.Height > 0;
 	}
 
-	uint32_t Texture::GetHeight() const
+	const TextureInfo& Texture::GetInfo() const
 	{
-		return m_Height;
-	}
-
-	uint32_t Texture::GetWidth() const
-	{
-		return m_Width;
-	}
-
-	uint32_t Texture::GetID() const
-	{
-		return m_ID;
+		return m_Info;
 	}
 
 	void* Texture::GetImGuiTexture() const
 	{
-#ifdef  FROSTIUM_OPENGL_IMPL
-		return reinterpret_cast<void*>(GetID());
-#else
-		return GetImGuiTextureID();
-#endif
+		return m_Info.ImHandle;
 	}
 
 #ifndef FROSTIUM_OPENGL_IMPL
@@ -70,7 +65,8 @@ namespace Frostium
 	void Texture::Create(const TextureCreateInfo* info, Texture* out_texture)
 	{
 		std::hash<std::string_view> hasher{};
-		out_texture->m_ID = static_cast<uint32_t>(hasher(info->FilePath));
+		out_texture->m_Info.ID = static_cast<uint32_t>(hasher(info->FilePath));
+
 #ifdef  FROSTIUM_OPENGL_IMPL
 		out_texture->Init(filePath);
 #else
@@ -78,33 +74,29 @@ namespace Frostium
 #endif
 	}
 
-	void Texture::Create(const void* data, uint32_t size, const uint32_t width, const uint32_t height, Texture* out_texture, TextureFormat format)
+	void Texture::Create(const void* data, uint32_t size, uint32_t width, uint32_t height, Texture* out_texture, TextureFormat format)
 	{
-		if (out_texture)
-		{
-			std::hash<const void*> hasher{};
-			out_texture->m_ID = static_cast<uint32_t>(hasher(data));
+		std::hash<const void*> hasher{};
+		out_texture->m_Info.ID = static_cast<uint32_t>(hasher(data));
+
 #ifdef  FROSTIUM_OPENGL_IMPL
 #else
-			out_texture->GenTexture(data, size, width, height, format);
+		out_texture->GenTexture(data, size, width, height, format);
 #endif
-		}
 	}
 
 	void Texture::CreateWhiteTexture(Texture* out_texture)
 	{
-		if (out_texture)
-		{
-			std::hash<std::string_view> hasher{};
-			out_texture->m_ID = static_cast<uint32_t>(hasher("WhiteTexture"));
+		std::hash<std::string_view> hasher{};
+		out_texture->m_Info.ID = static_cast<uint32_t>(hasher("WhiteTexture"));
+
 #ifdef  FROSTIUM_OPENGL_IMPL
-			uint32_t whiteTextureData = 0xffffffff;
-			out_texture->Init(4, 4);
-			out_texture->SetData(&whiteTextureData, sizeof(uint32_t));
+		uint32_t whiteTextureData = 0xffffffff;
+		out_texture->Init(4, 4);
+		out_texture->SetData(&whiteTextureData, sizeof(uint32_t));
 #else
-			out_texture->GenWhiteTetxure(4, 4);
+		out_texture->GenWhiteTetxure(4, 4);
 #endif
-		}
 	}
 
 	bool TextureCreateInfo::Save(const std::string& filePath)

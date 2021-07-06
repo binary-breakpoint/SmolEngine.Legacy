@@ -101,7 +101,7 @@ namespace Frostium
 		std::vector<uint32_t> indices;
 		uint32_t indexOffset = 0;
 
-		float w = static_cast<float>(m_SDFTexture.GetWidth());
+		float w = static_cast<float>(m_SDFTexture.GetInfo().Width);
 
 		float posx = 0.0f;
 		float posy = 0.0f;

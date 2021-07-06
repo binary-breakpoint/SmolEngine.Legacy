@@ -285,9 +285,6 @@
     <ClInclude Include="include\Common\SPIRVReflection.h">
       <Filter>include\Common</Filter>
     </ClInclude>
-    <ClInclude Include="include\Common\SubTexture.h">
-      <Filter>include\Common</Filter>
-    </ClInclude>
     <ClInclude Include="include\Common\Text.h">
       <Filter>include\Common</Filter>
     </ClInclude>
@@ -2410,9 +2407,6 @@
       <Filter>src\Common</Filter>
     </ClCompile>
     <ClCompile Include="src\Common\SLog.cpp">
-      <Filter>src\Common</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Common\SubTexture.cpp">
       <Filter>src\Common</Filter>
     </ClCompile>
     <ClCompile Include="src\Common\Text.cpp">

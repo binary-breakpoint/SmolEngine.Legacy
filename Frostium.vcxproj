@@ -206,7 +206,6 @@
     <ClInclude Include="include\Common\RendererStorage.h" />
     <ClInclude Include="include\Common\SLog.h" />
     <ClInclude Include="include\Common\SPIRVReflection.h" />
-    <ClInclude Include="include\Common\SubTexture.h" />
     <ClInclude Include="include\Common\Text.h" />
     <ClInclude Include="include\Common\Time.h" />
     <ClInclude Include="include\Common\Window.h" />
@@ -917,7 +916,6 @@
     <ClCompile Include="src\Common\Events.cpp" />
     <ClCompile Include="src\Common\Input.cpp" />
     <ClCompile Include="src\Common\SLog.cpp" />
-    <ClCompile Include="src\Common\SubTexture.cpp" />
     <ClCompile Include="src\Common\Text.cpp" />
     <ClCompile Include="src\Common\Window.cpp" />
     <ClCompile Include="src\DebugRenderer.cpp" />

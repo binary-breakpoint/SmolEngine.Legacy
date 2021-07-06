@@ -17,9 +17,11 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
-	VulkanTexture::VulkanTexture()
+	VulkanTexture::VulkanTexture(TextureInfo* info)
+		: m_Info(info), 
+		  m_Device(VulkanContext::GetDevice().GetLogicalDevice())
 	{
-		m_Device = VulkanContext::GetDevice().GetLogicalDevice();
+
 	}
 
 	VulkanTexture::~VulkanTexture()
@@ -53,8 +55,8 @@ namespace Frostium
 		TextureCreateInfo info = {};
 		
 		m_Format = GetImageFormat(info.eFormat);
-		m_Width = width;
-		m_Height = height;
+		m_Info->Width = width;
+		m_Info->Height = height;
 
 		CreateTexture(width, height, 1, &whiteTextureData, &info);
 	}
@@ -78,8 +80,8 @@ namespace Frostium
 		const uint32_t mipLevels = static_cast<uint32_t>(floor(log2(std::max(width, height)))) + 1;
 
 		m_Format = GetImageFormat(info->eFormat);
-		m_Width = width;
-		m_Height = height;
+		m_Info->Width = width;
+		m_Info->Height = height;
 		m_Filter = info->eFilter == ImageFilter::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
 		m_AddressMode = GetVkSamplerAddressMode(info->eAddressMode);
 		m_BorderColor = GetVkBorderColor(info->eBorderColor);
@@ -91,8 +93,8 @@ namespace Frostium
 	void VulkanTexture::GenCubeMap(uint32_t width, uint32_t height, TextureFormat format)
 	{
 		m_Format = GetImageFormat(format);
-		m_Width = width;
-		m_Height = height;
+		m_Info->Width  = width;
+		m_Info->Height = height;
 
 		// Create optimal tiled target image
 		VkImageCreateInfo imageCreateInfo = {};
@@ -208,8 +210,8 @@ namespace Frostium
 		ktx_size_t ktxTextureSize = ktxTexture_GetSize(ktxTexture);
 
 		m_Format = GetImageFormat(info->eFormat);
-		m_Width = width;
-		m_Height = height;
+		m_Info->Width = width;
+		m_Info->Height  = height;
 		m_Filter = info->eFilter == ImageFilter::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
 		m_AddressMode = GetVkSamplerAddressMode(info->eAddressMode);
 		m_BorderColor = GetVkBorderColor(info->eBorderColor);
@@ -459,13 +461,13 @@ namespace Frostium
 		CreateSamplerAndImageView(mipMaps, m_Format, info->bAnisotropyEnable);
 
 		if (info->bImGUIHandle)
-			m_ImGuiTextureID = ImGui_ImplVulkan_AddTexture(m_DescriptorImageInfo);
+			m_Info->ImHandle = ImGui_ImplVulkan_AddTexture(m_DescriptorImageInfo);
 	}
 
 	void VulkanTexture::CreateFromBuffer(const void* data, VkDeviceSize size, uint32_t width, uint32_t height)
 	{
-		m_Width = width;
-		m_Height = height;
+		m_Info->Width = width;
+		m_Info-> Height = height;
 
 		VulkanBuffer stagingBuffer;
 		stagingBuffer.CreateBuffer(size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
@@ -863,11 +865,6 @@ namespace Frostium
 	VkImage VulkanTexture::GetVkImage() const
 	{
 		return m_Image;
-	}
-
-	void* VulkanTexture::GetImGuiTextureID() const
-	{
-		return m_ImGuiTextureID;
 	}
 }
 #endif
