@@ -258,9 +258,6 @@
     <ClInclude Include="include\Common\Flags.h">
       <Filter>include\Common</Filter>
     </ClInclude>
-    <ClInclude Include="include\Common\FramebufferSpecification.h">
-      <Filter>include\Common</Filter>
-    </ClInclude>
     <ClInclude Include="include\Common\GraphicsPipelineInfos.h">
       <Filter>include\Common</Filter>
     </ClInclude>

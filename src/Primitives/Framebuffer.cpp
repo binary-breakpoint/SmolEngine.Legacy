@@ -10,83 +10,41 @@ namespace Frostium
 {
 	void Framebuffer::Create(const FramebufferSpecification& data, Framebuffer* out_fb)
 	{
-		if (out_fb)
-		{
-#ifdef FROSTIUM_OPENGL_IMPL
-			out_fb->m_OpenglFramebuffer.Init(data);
-#else
-			out_fb->m_VulkanFrameBuffer.Init(data);
-#endif
-		}
+		out_fb->m_Info = data;
+		out_fb->Init(&out_fb->m_Info);
 	}
 
 	void Framebuffer::Bind()
 	{
-#ifdef FROSTIUM_OPENGL_IMPL
-		m_OpenglFramebuffer.Bind();
-#else
-#endif
-	}
 
-	void Framebuffer::BindColorAttachment(uint32_t slot)
-	{
-#ifdef FROSTIUM_OPENGL_IMPL
-		m_OpenglFramebuffer.BindColorAttachment(slot);
-#else
-#endif
 	}
 
 	void Framebuffer::UnBind()
 	{
-#ifdef FROSTIUM_OPENGL_IMPL
-		m_OpenglFramebuffer.UnBind();
-#else
-#endif
+
 	}
 
 	void Framebuffer::OnResize(const uint32_t width, const uint32_t height)
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
-		m_OpenglFramebuffer.OnResize(width, height);
+
 #else
-		m_VulkanFrameBuffer.OnResize(width, height);
+		SetSize(width, height);
 #endif
 	}
 
 	const FramebufferSpecification& Framebuffer::GetSpecification() const
 	{
-#ifdef FROSTIUM_OPENGL_IMPL
-		return m_OpenglFramebuffer.GetSpecification();
-#else
-		return m_VulkanFrameBuffer.GetSpecification();
-#endif
-	}
-
-	uint32_t Framebuffer::GetColorAttachmentID() const
-	{
-#ifdef FROSTIUM_OPENGL_IMPL
-		return m_OpenglFramebuffer.GetColorAttachmentID();
-#else
-		return 0;
-#endif
+		return m_Info;
 	}
 
 	void* Framebuffer::GetImGuiTextureID(uint32_t index)
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
 
-		return reinterpret_cast<void*>(m_OpenglFramebuffer.GetColorAttachmentID());
+		return reinterpret_cast<void*>(GetColorAttachmentID());
 #else
-		return m_VulkanFrameBuffer.GetAttachment(index)->ImGuiID;
-#endif
-	}
-
-	uint32_t Framebuffer::GetRendererID() const
-	{
-#ifdef FROSTIUM_OPENGL_IMPL
-		return m_OpenglFramebuffer.GetRendererID();
-#else
-		return 0;
+		return GetAttachment(index)->ImGuiID;
 #endif
 	}
 }

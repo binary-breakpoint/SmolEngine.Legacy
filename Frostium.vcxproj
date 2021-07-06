@@ -197,7 +197,6 @@
     <ClInclude Include="include\Common\EnvironmentMap.h" />
     <ClInclude Include="include\Common\Events.h" />
     <ClInclude Include="include\Common\Flags.h" />
-    <ClInclude Include="include\Common\FramebufferSpecification.h" />
     <ClInclude Include="include\Common\GraphicsPipelineInfos.h" />
     <ClInclude Include="include\Common\Input.h" />
     <ClInclude Include="include\Common\InputCodes.h" />

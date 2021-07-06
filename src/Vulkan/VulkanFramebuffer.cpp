@@ -30,14 +30,14 @@ namespace Frostium
 
 	bool VulkanFramebuffer::Create(uint32_t width, uint32_t height)
 	{
-		if (m_Specification.Attachments.size() > 1 && m_Specification.bTargetsSwapchain || m_Specification.Attachments.size() == 0)
+		if (m_Spec->Attachments.size() > 1 && m_Spec->bTargetsSwapchain || m_Spec->Attachments.size() == 0)
 			return false;
 
-		m_Specification.Width = width;
-		m_Specification.Height = height;
+		m_Spec->Width = width;
+		m_Spec->Height = height;
 
 		uint32_t lastImageViewIndex = 0;
-		uint32_t bufferSize = static_cast<uint32_t>(m_Specification.Attachments.size());
+		uint32_t bufferSize = static_cast<uint32_t>(m_Spec->Attachments.size());
 		uint32_t attachmentsCount = IsUseMSAA() ? (bufferSize * 2) + 1 : bufferSize + 1;
 
 		m_Attachments.resize(bufferSize);
@@ -49,12 +49,12 @@ namespace Frostium
 		VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
 
 		// Sampler
-		CreateSampler(m_Specification.eFiltering == ImageFilter::LINEAR ? VK_FILTER_LINEAR: VK_FILTER_NEAREST);
+		CreateSampler(m_Spec->eFiltering == ImageFilter::LINEAR ? VK_FILTER_LINEAR: VK_FILTER_NEAREST);
 
 		// Color Attachments
 		for (uint32_t i = 0; i < bufferSize; ++i)
 		{
-			auto& info = m_Specification.Attachments[i];
+			auto& info = m_Spec->Attachments[i];
 			auto& vkInfo = m_Attachments[i];
 
 			VkImageUsageFlags usage = IsUseMSAA() ? VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT :
@@ -69,7 +69,7 @@ namespace Frostium
 				vkInfo.ImageInfo.imageView = vkInfo.AttachmentVkInfo.view;
 				vkInfo.ImageInfo.sampler = m_Sampler;
 
-				if (m_Specification.bUsedByImGui)
+				if (m_Spec->bUsedByImGui)
 				{
 					vkInfo.ImGuiID = ImGui_ImplVulkan_AddTexture(vkInfo.ImageInfo);
 				}
@@ -91,17 +91,17 @@ namespace Frostium
 		}
 
 		// Use swapchain image as resolve attachment - no need to create attachment 
-		if (IsUseMSAA() && m_Specification.bTargetsSwapchain)
+		if (IsUseMSAA() && m_Spec->bTargetsSwapchain)
 			lastImageViewIndex++;
 
 		// Create resolve attachment if MSAA enabled and swapchain is not target
-		if (IsUseMSAA() && !m_Specification.bTargetsSwapchain)
+		if (IsUseMSAA() && !m_Spec->bTargetsSwapchain)
 		{
 			m_ResolveAttachments.resize(bufferSize);
 			for (uint32_t i = 0; i < bufferSize; ++i)
 			{
 				auto& resolve = m_ResolveAttachments[i];
-				auto& info = m_Specification.Attachments[i];
+				auto& info = m_Spec->Attachments[i];
 				VkImageUsageFlags usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 
 				AddAttachment(width, height, VK_SAMPLE_COUNT_1_BIT, usage, GetAttachmentFormat(info.Format),
@@ -115,7 +115,7 @@ namespace Frostium
 				VulkanTexture::SetImageLayout(cmdStorage.Buffer, resolve.AttachmentVkInfo.image,
 					VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-				if (m_Specification.bUsedByImGui)
+				if (m_Spec->bUsedByImGui)
 					resolve.ImGuiID = ImGui_ImplVulkan_AddTexture(resolve.ImageInfo);
 
 				attachments[lastImageViewIndex] = resolve.AttachmentVkInfo.view;
@@ -129,7 +129,7 @@ namespace Frostium
 			}
 		}
 
-		if (m_Specification.bTargetsSwapchain)
+		if (m_Spec->bTargetsSwapchain)
 		{
 			m_ClearValues[lastImageViewIndex].color = { { 0.0f, 0.0f, 0.0f, 1.0f} };
 			m_ClearAttachments[lastImageViewIndex].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -161,11 +161,11 @@ namespace Frostium
 				renderPassGenInfo.DepthFormat = m_DepthFormat;
 				renderPassGenInfo.MSAASamples = m_MSAASamples;
 				renderPassGenInfo.NumColorAttachments = static_cast<uint32_t>(m_Attachments.size());
-				renderPassGenInfo.NumResolveAttachments = m_Specification.bTargetsSwapchain && IsUseMSAA() ? 1 : static_cast<uint32_t>(m_ResolveAttachments.size());
+				renderPassGenInfo.NumResolveAttachments = m_Spec->bTargetsSwapchain && IsUseMSAA() ? 1 : static_cast<uint32_t>(m_ResolveAttachments.size());
 				renderPassGenInfo.NumDepthAttachments = 1;
 			}
 
-			VulkanRenderPass::Create(&m_Specification, &renderPassGenInfo, m_RenderPass);
+			VulkanRenderPass::Create(m_Spec, &renderPassGenInfo, m_RenderPass);
 		}
 
 		VkFramebufferCreateInfo fbufCreateInfo = {};
@@ -175,12 +175,12 @@ namespace Frostium
 			fbufCreateInfo.renderPass = m_RenderPass;
 			fbufCreateInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
 			fbufCreateInfo.pAttachments = attachments.data();
-			fbufCreateInfo.width = m_Specification.Width;
-			fbufCreateInfo.height = m_Specification.Height;
+			fbufCreateInfo.width = m_Spec->Width;
+			fbufCreateInfo.height = m_Spec->Height;
 			fbufCreateInfo.layers = 1;
 		}
 
-		if (m_Specification.bTargetsSwapchain)
+		if (m_Spec->bTargetsSwapchain)
 		{
 			uint32_t count = VulkanContext::GetSwapchain().m_ImageCount;
 			m_VkFrameBuffers.resize(count);
@@ -503,37 +503,37 @@ namespace Frostium
 		}
 	}
 
-	bool VulkanFramebuffer::Init(const FramebufferSpecification& data)
+	bool VulkanFramebuffer::Init(FramebufferSpecification* data)
 	{
-		m_Specification = data;
-		m_MSAASamples = GetVkMSAASamples(data.eMSAASampels);
+		m_Spec = data;
+		m_MSAASamples = GetVkMSAASamples(data->eMSAASampels);
 
 		m_Device = VulkanContext::GetDevice().GetLogicalDevice();
 		m_ColorFormat = VulkanContext::GetSwapchain().GetColorFormat();
 		m_DepthFormat = VulkanContext::GetSwapchain().GetDepthFormat();
 
-		switch (m_Specification.eSpecialisation)
+		switch (data->eSpecialisation)
 		{
 		case FramebufferSpecialisation::None:
 		{
-			return Create(data.Width, data.Height);
+			return Create(data->Width, data->Height);
 		}
 		case FramebufferSpecialisation::CopyBuffer:
 		{
-			return CreateCopyFramebuffer(data.Width, data.Height);
+			return CreateCopyFramebuffer(data->Width, data->Height);
 		}
 		case FramebufferSpecialisation::ShadowMap:
 		{
-			return CreateShadow(data.Width, data.Height);
+			return CreateShadow(data->Width, data->Height);
 		}
 		default:
 			return false;
 		}
 	}
 
-	void VulkanFramebuffer::OnResize(uint32_t width, uint32_t height)
+	void VulkanFramebuffer::SetSize(uint32_t width, uint32_t height)
 	{
-		if (m_Specification.bResizable)
+		if (m_Spec->bResizable)
 		{
 			FreeResources();
 			Create(width, height);
@@ -609,7 +609,7 @@ namespace Frostium
 
 	bool VulkanFramebuffer::IsUseMSAA()
 	{
-		return m_Specification.eMSAASampels != MSAASamples::SAMPLE_COUNT_1;
+		return m_Spec->eMSAASampels != MSAASamples::SAMPLE_COUNT_1;
 	}
 
 	VkBool32 VulkanFramebuffer::IsFormatIsFilterable(VkPhysicalDevice physicalDevice, VkFormat format, VkImageTiling tiling)
@@ -756,15 +756,10 @@ namespace Frostium
 		return m_ClearValues;
 	}
 
-	const FramebufferSpecification& VulkanFramebuffer::GetSpecification() const
-	{
-		return m_Specification;
-	}
-
 	const VkFramebuffer VulkanFramebuffer::GetCurrentVkFramebuffer() const
 	{
 		uint32_t index;
-		m_Specification.bTargetsSwapchain ? index = VulkanContext::GetSwapchain().GetCurrentBufferIndex() :
+		m_Spec->bTargetsSwapchain ? index = VulkanContext::GetSwapchain().GetCurrentBufferIndex() :
 			index = 0;
 		return m_VkFrameBuffers[index];
 	}

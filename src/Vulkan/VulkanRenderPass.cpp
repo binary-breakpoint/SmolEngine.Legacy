@@ -105,31 +105,29 @@ namespace Frostium
 				subpass.pResolveAttachments = resolveReferences.data();
 		}
 
-		std::vector<VkSubpassDependency> dependencies(framebufferSpec->NumSubpassDependencies * 2);
+		std::vector<VkSubpassDependency> dependencies;
+		if (framebufferSpec->bAutoSync)
 		{
-			int32_t subPassIndex = 0;
-			for (int32_t i = 0; i < framebufferSpec->NumSubpassDependencies * 2; ++i)
-			{
-				dependencies[i].srcSubpass = VK_SUBPASS_EXTERNAL;
-				dependencies[i].dstSubpass = subPassIndex;
-				dependencies[i].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-				dependencies[i].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-				dependencies[i].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-				dependencies[i].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-				dependencies[i].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+			// Use subpass dependencies for attachment layout transitions
+			dependencies.resize(2);
 
-				i++;
+			dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+			dependencies[0].dstSubpass = 0;
+			dependencies[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+			dependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			dependencies[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+			dependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
-				dependencies[i].srcSubpass = subPassIndex;
-				dependencies[i].dstSubpass = VK_SUBPASS_EXTERNAL;
-				dependencies[i].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-				dependencies[i].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-				dependencies[i].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-				dependencies[i].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-				dependencies[i].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+			dependencies[1].srcSubpass = 0;
+			dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+			dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			dependencies[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+			dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			dependencies[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+			dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
-				subPassIndex++;
-			}
+
 		}
 
 		VkRenderPassCreateInfo renderPassCI = {};
