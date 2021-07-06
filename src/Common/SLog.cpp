@@ -24,7 +24,12 @@ namespace Frostium
 	void SLog::InitLog()
 	{
 		spdlog::set_pattern("%^[%T] %n: %v%$");
-		s_Instance->m_NativeLogger = spdlog::stdout_color_mt("Engine");
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+		s_Instance->m_NativeLogger = spdlog::stdout_color_mt("SmolEngine");
+#else
+		s_Instance->m_NativeLogger = spdlog::stdout_color_mt("Frostium");
+#endif
+
 		s_Instance->m_NativeLogger->set_level(spdlog::level::trace);
 	}
 

@@ -76,8 +76,11 @@ int main(int argc, char** argv)
 	Mesh::Create("Assets/plane.gltf", &plane);
 	Mesh::Create("Assets/CesiumMan.gltf", &dummy);
 
+	TextureCreateInfo textureCI = {};
+	textureCI.FilePath = "Assets/DirtMaskTextureExample.png";
+
 	Texture dirtMask = {};
-	Texture::Create("Assets/DirtMaskTextureExample.png", &dirtMask);
+	Texture::Create(&textureCI, &dirtMask);
 	DeferredRenderer::SetDirtMask(&dirtMask, 1.0f, 0.1f);
 
 	// Load Materials
@@ -87,10 +90,18 @@ int main(int argc, char** argv)
 		MaterialCreateInfo materialCI = {};
 
 		{
-			materialCI.SetTexture(MaterialTexture::Albedro, "Assets/materials/stone/Tiles087_1K_Color.png");
-			materialCI.SetTexture(MaterialTexture::Normal, "Assets/materials/stone/Tiles087_1K_Normal.png");
-			materialCI.SetTexture(MaterialTexture::Roughness, "Assets/materials/stone/Tiles087_1K_Roughness.png");
-			materialCI.SetTexture(MaterialTexture::AO, "Assets/materials/stone/Tiles087_1K_AmbientOcclusion.png");
+			textureCI.FilePath = "Assets/materials/stone/Tiles087_1K_Color.png";
+			materialCI.SetTexture(MaterialTexture::Albedro, &textureCI);
+
+			textureCI.FilePath = "Assets/materials/stone/Tiles087_1K_Normal.png";
+			materialCI.SetTexture(MaterialTexture::Normal, &textureCI);
+
+			textureCI.FilePath = "Assets/materials/stone/Tiles087_1K_Roughness.png";
+			materialCI.SetTexture(MaterialTexture::Roughness, &textureCI);
+
+			textureCI.FilePath = "Assets/materials/stone/Tiles087_1K_AmbientOcclusion.png";
+			materialCI.SetTexture(MaterialTexture::AO, &textureCI);
+
 			materialCI.SetMetalness(0.1f);
 			materialCI.SetEmissionStrength(1.1f);
 			stoneMat = MaterialLibrary::GetSinglenton()->Add(&materialCI, "stone");
@@ -99,10 +110,17 @@ int main(int argc, char** argv)
 		{
 			materialCI = {};
 
-			materialCI.SetTexture(MaterialTexture::Albedro, "Assets/materials/metal_2/Metal012_1K_Color.png");
-			materialCI.SetTexture(MaterialTexture::Normal, "Assets/materials/metal_2/Metal012_1K_Normal.png");
-			materialCI.SetTexture(MaterialTexture::Roughness, "Assets/materials/metal_2/Metal012_1K_Roughness.png");
-			materialCI.SetTexture(MaterialTexture::Metallic, "Assets/materials/metal_2/Metal012_1K_Metalness.png");
+			textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Color.png";
+			materialCI.SetTexture(MaterialTexture::Albedro, &textureCI);
+
+			textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Normal.png";
+			materialCI.SetTexture(MaterialTexture::Normal, &textureCI);
+
+			textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Roughness.png";
+			materialCI.SetTexture(MaterialTexture::Roughness, &textureCI);
+
+			textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Metalness.png";
+			materialCI.SetTexture(MaterialTexture::Metallic, &textureCI);
 
 			materialCI.SetMetalness(0.5f);
 			materialCI.SetRoughness(0.9f);

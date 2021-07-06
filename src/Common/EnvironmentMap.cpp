@@ -20,7 +20,7 @@ namespace Frostium
 			framebufferCI.Width = 1024;
 			framebufferCI.Height = 1024;
 			framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
-			framebufferCI.eSamplerFiltering = SamplerFilter::LINEAR;
+			framebufferCI.eFiltering = ImageFilter::LINEAR;
 			framebufferCI.eSpecialisation = FramebufferSpecialisation::CopyBuffer;
 			framebufferCI.Attachments = { FramebufferAttachment(AttachmentFormat::Color, true) };
 
@@ -122,7 +122,7 @@ namespace Frostium
 		Free();
 		m_IsDynamic = true;
 		m_CubeMap = new CubeMap();
-		CubeMap::CreateEmpty(m_CubeMap, 1024, 1024);
+		CubeMap::CreateEmpty(m_CubeMap, m_Dimension, m_Dimension);
 
 		struct push_constant
 		{
@@ -255,6 +255,11 @@ namespace Frostium
 		m_GraphicsPipeline.SubmitBuffer(512, sizeof(DynamicSkyProperties), &m_UBO);
 	}
 
+	void EnvironmentMap::SetDimension(uint32_t dim)
+	{
+		m_Dimension = dim;
+	}
+
 	CubeMap* EnvironmentMap::GetCubeMap() const
 	{
 		return m_CubeMap;
@@ -276,7 +281,7 @@ namespace Frostium
 
 	bool EnvironmentMap::IsReady() const
 	{
-		return m_CubeMap->GetTexture()->IsInitialized();
+		return m_CubeMap->GetTexture()->IsReady();
 	}
 
 	bool EnvironmentMap::IsDynamic() const

@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #ifndef FROSTIUM_OPENGL_IMPL
-#include "Vulkan/VulkanTexture.h"
+#include "Primitives/Texture.h"
 #include "Vulkan/VulkanContext.h"
 #include "Vulkan/VulkanStagingBuffer.h"
 #include "Vulkan/VulkanMemoryAllocator.h"
@@ -43,28 +43,31 @@ namespace Frostium
 	void VulkanTexture::GenTexture(const void* data, uint32_t size, uint32_t width, uint32_t height, TextureFormat format)
 	{
 		m_Format = GetImageFormat(format);
+
 		CreateFromBuffer(data, size, width, height);
 	}
 
 	void VulkanTexture::GenWhiteTetxure(uint32_t width, uint32_t height)
 	{
 		uint32_t whiteTextureData = 0xffffffff;
-		m_Format = GetImageFormat(TextureFormat::R8G8B8A8_UNORM);
-		CreateTexture(width, height, 1, &whiteTextureData, m_Format, false);
-
+		TextureCreateInfo info = {};
+		
+		m_Format = GetImageFormat(info.eFormat);
 		m_Width = width;
 		m_Height = height;
+
+		CreateTexture(width, height, 1, &whiteTextureData, &info);
 	}
 
-	void VulkanTexture::LoadTexture(const std::string& filePath, TextureFormat format, bool flip, bool imgui_handler)
+	void VulkanTexture::LoadTexture(const TextureCreateInfo* info)
 	{
 		int height, width, channels;
-		if(flip)
+		if(info->bVerticalFlip)
 			stbi_set_flip_vertically_on_load(1);
 
 		stbi_uc* data = nullptr;
 		{
-			data = stbi_load(filePath.c_str(), &width, &height, &channels, 4);
+			data = stbi_load(info->FilePath.c_str(), &width, &height, &channels, 4);
 			if (!data)
 			{
 				NATIVE_ERROR("VulkanTexture:: Texture not found! file: {}, line: {}", __FILE__, __LINE__);
@@ -73,11 +76,15 @@ namespace Frostium
 		}
 
 		const uint32_t mipLevels = static_cast<uint32_t>(floor(log2(std::max(width, height)))) + 1;
-		m_Format = GetImageFormat(format);
+
+		m_Format = GetImageFormat(info->eFormat);
 		m_Width = width;
 		m_Height = height;
+		m_Filter = info->eFilter == ImageFilter::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
+		m_AddressMode = GetVkSamplerAddressMode(info->eAddressMode);
+		m_BorderColor = GetVkBorderColor(info->eBorderColor);
 
-		CreateTexture(width, height, mipLevels, data, m_Format, imgui_handler);
+		CreateTexture(width, height, mipLevels, data, info);
 		stbi_image_free(data);
 	}
 
@@ -186,13 +193,11 @@ namespace Frostium
 		m_DescriptorImageInfo.sampler = m_Samper;
 	}
 
-	void VulkanTexture::LoadCubeMap(const std::string& filePath, TextureFormat format)
+	void VulkanTexture::LoadCubeMap(const TextureCreateInfo* info)
 	{
 		ktxResult result;
 		ktxTexture* ktxTexture;
-		m_Format = GetImageFormat(format);
-
-		result = ktxTexture_CreateFromNamedFile(filePath.c_str(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &ktxTexture);
+		result = ktxTexture_CreateFromNamedFile(info->FilePath.c_str(), KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &ktxTexture);
 		assert(result == KTX_SUCCESS);
 
 		uint32_t width = ktxTexture->baseWidth;
@@ -201,6 +206,13 @@ namespace Frostium
 
 		ktx_uint8_t* ktxTextureData = ktxTexture_GetData(ktxTexture);
 		ktx_size_t ktxTextureSize = ktxTexture_GetSize(ktxTexture);
+
+		m_Format = GetImageFormat(info->eFormat);
+		m_Width = width;
+		m_Height = height;
+		m_Filter = info->eFilter == ImageFilter::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
+		m_AddressMode = GetVkSamplerAddressMode(info->eAddressMode);
+		m_BorderColor = GetVkBorderColor(info->eBorderColor);
 
 		VulkanBuffer stagingBuffer;
 		stagingBuffer.CreateBuffer(ktxTextureSize, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
@@ -303,19 +315,19 @@ namespace Frostium
 			VkSamplerCreateInfo samplerCI = {};
 			samplerCI.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 			samplerCI.maxAnisotropy = 1.0f;
-			samplerCI.magFilter = VK_FILTER_LINEAR;
-			samplerCI.minFilter = VK_FILTER_LINEAR;
+			samplerCI.magFilter = m_Filter;
+			samplerCI.minFilter = m_Filter;
 			samplerCI.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-			samplerCI.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+			samplerCI.addressModeU = m_AddressMode;
 			samplerCI.addressModeV = samplerCI.addressModeU;
 			samplerCI.addressModeW = samplerCI.addressModeU;
 			samplerCI.mipLodBias = 0.0f;
 			samplerCI.compareOp = VK_COMPARE_OP_NEVER;
 			samplerCI.minLod = 0.0f;
 			samplerCI.maxLod = static_cast<float>(mipLevels);
-			samplerCI.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+			samplerCI.borderColor = m_BorderColor;
 			samplerCI.maxAnisotropy = 1.0f;
-			if (device.GetDeviceFeatures()->samplerAnisotropy)
+			if (device.GetDeviceFeatures()->samplerAnisotropy && info->bAnisotropyEnable)
 			{
 				samplerCI.maxAnisotropy = device.GetDeviceProperties()->limits.maxSamplerAnisotropy;
 				samplerCI.anisotropyEnable = VK_TRUE;
@@ -345,10 +357,6 @@ namespace Frostium
 		m_DescriptorImageInfo.imageLayout = m_ImageLayout;
 		m_DescriptorImageInfo.imageView = m_ImageView;
 		m_DescriptorImageInfo.sampler = m_Samper;
-
-		m_Width = width;
-		m_Height = height;
-
 		ktxTexture_Destroy(ktxTexture);
 	}
 
@@ -386,7 +394,7 @@ namespace Frostium
 		return image;
 	}
 
-	void VulkanTexture::CreateTexture(uint32_t width, uint32_t height, uint32_t mipMaps, const void* data, VkFormat format, bool imgui_handler)
+	void VulkanTexture::CreateTexture(uint32_t width, uint32_t height, uint32_t mipMaps, const void* data, const TextureCreateInfo* info)
 	{
 		const VkDeviceSize size = width * height * 4;
 
@@ -394,7 +402,7 @@ namespace Frostium
 		stagingBuffer.CreateBuffer(size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
 		stagingBuffer.SetData(data, size);
 
-		m_Image = CreateVkImage(width, height, mipMaps, VK_SAMPLE_COUNT_1_BIT, format,
+		m_Image = CreateVkImage(width, height, mipMaps, VK_SAMPLE_COUNT_1_BIT, m_Format,
 			VK_IMAGE_TILING_OPTIMAL,
 			VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, m_DeviceMemory);
 
@@ -448,9 +456,9 @@ namespace Frostium
 		VulkanCommandBuffer::ExecuteCommandBuffer(&cmdStorage);
 
 		m_ImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		CreateSamplerAndImageView(mipMaps, format);
+		CreateSamplerAndImageView(mipMaps, m_Format, info->bAnisotropyEnable);
 
-		if (imgui_handler)
+		if (info->bImGUIHandle)
 			m_ImGuiTextureID = ImGui_ImplVulkan_AddTexture(m_DescriptorImageInfo);
 	}
 
@@ -620,7 +628,7 @@ namespace Frostium
 			1, &imageMemoryBarrier);
 	}
 
-	void VulkanTexture::CreateSamplerAndImageView(uint32_t mipMaps, VkFormat format)
+	void VulkanTexture::CreateSamplerAndImageView(uint32_t mipMaps, VkFormat format, bool anisotropy)
 	{
 		/// Samplers
 	    /// https://vulkan-tutorial.com/Texture_mapping/Image_view_and_sampler
@@ -631,19 +639,20 @@ namespace Frostium
 
 			samplerCI.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 			samplerCI.maxAnisotropy = 1.0f;
-			samplerCI.magFilter = VK_FILTER_LINEAR;
-			samplerCI.minFilter = VK_FILTER_LINEAR;
+			samplerCI.magFilter = m_Filter;
+			samplerCI.minFilter = m_Filter;
 			samplerCI.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-			samplerCI.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-			samplerCI.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-			samplerCI.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+			samplerCI.addressModeU = m_AddressMode;
+			samplerCI.addressModeV = m_AddressMode;
+			samplerCI.addressModeW = m_AddressMode;
 			samplerCI.compareOp = VK_COMPARE_OP_NEVER;
 			samplerCI.mipLodBias = 0.0f;
 			samplerCI.minLod = 0.0f;
 			samplerCI.maxLod = static_cast<float>(mipMaps);
 			samplerCI.maxAnisotropy = 1.0;
-			samplerCI.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-			if (device.GetDeviceFeatures()->samplerAnisotropy)
+			samplerCI.borderColor = m_BorderColor;
+
+			if (device.GetDeviceFeatures()->samplerAnisotropy && anisotropy)
 			{
 				samplerCI.maxAnisotropy = device.GetDeviceProperties()->limits.maxSamplerAnisotropy;
 				samplerCI.anisotropyEnable = VK_TRUE;
@@ -817,19 +826,38 @@ namespace Frostium
 		}
 	}
 
+	VkSamplerAddressMode VulkanTexture::GetVkSamplerAddressMode(AddressMode mode)
+	{
+		switch (mode)
+		{
+		case AddressMode::CLAMP_TO_BORDER: return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+		case AddressMode::CLAMP_TO_EDGE: return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		case AddressMode::MIRRORED_REPEAT: return VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+		case AddressMode::MIRROR_CLAMP_TO_EDGE: return VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE;
+		case AddressMode::REPEAT: return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		}
+
+		return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	}
+
+	VkBorderColor VulkanTexture::GetVkBorderColor(BorderColor color)
+	{
+		switch (color)
+		{
+		case BorderColor::FLOAT_OPAQUE_BLACK: return VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
+		case BorderColor::FLOAT_OPAQUE_WHITE: return VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+		case BorderColor::FLOAT_TRANSPARENT_BLACK: return VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
+		case BorderColor::INT_OPAQUE_BLACK: return VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+		case BorderColor::INT_OPAQUE_WHITE: return VK_BORDER_COLOR_INT_OPAQUE_WHITE;
+		case BorderColor::INT_TRANSPARENT_BLACK: return VK_BORDER_COLOR_INT_TRANSPARENT_BLACK;
+		}
+
+		return VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+	}
+
 	const VkDescriptorImageInfo& VulkanTexture::GetVkDescriptorImageInfo() const
 	{
 		return m_DescriptorImageInfo;
-	}
-
-	uint32_t VulkanTexture::GetHeight() const
-	{
-		return m_Height;
-	}
-
-	uint32_t VulkanTexture::GetWidth() const
-	{
-		return m_Width;
 	}
 
 	VkImage VulkanTexture::GetVkImage() const
@@ -840,11 +868,6 @@ namespace Frostium
 	void* VulkanTexture::GetImGuiTextureID() const
 	{
 		return m_ImGuiTextureID;
-	}
-
-	bool VulkanTexture::IsActive() const
-	{
-		return m_Samper != nullptr;
 	}
 }
 #endif

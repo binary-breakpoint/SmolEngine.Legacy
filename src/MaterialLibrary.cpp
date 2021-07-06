@@ -56,21 +56,21 @@ namespace Frostium
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 			JobsSystemInstance::BeginSubmition();
 			{
-				JobsSystemInstance::Schedule([&]() {newMaterial.AlbedroTexIndex = AddTexture(infoCI->AlbedroPath, newMaterial.UseAlbedroTex); });
-				JobsSystemInstance::Schedule([&]() {newMaterial.NormalTexIndex = AddTexture(infoCI->NormalPath, newMaterial.UseNormalTex); });
-				JobsSystemInstance::Schedule([&]() {newMaterial.MetallicTexIndex = AddTexture(infoCI->MetallnessPath, newMaterial.UseMetallicTex); });
-				JobsSystemInstance::Schedule([&]() {newMaterial.RoughnessTexIndex = AddTexture(infoCI->RoughnessPath, newMaterial.UseRoughnessTex); });
-				JobsSystemInstance::Schedule([&]() {newMaterial.AOTexIndex = AddTexture(infoCI->AOPath, newMaterial.UseAOTex); });
-				JobsSystemInstance::Schedule([&]() {newMaterial.EmissiveTexIndex = AddTexture(infoCI->EmissivePath, newMaterial.UseEmissiveTex); });
+				JobsSystemInstance::Schedule([&]() {newMaterial.AlbedroTexIndex = AddTexture(&infoCI->AlbedroTex, newMaterial.UseAlbedroTex); });
+				JobsSystemInstance::Schedule([&]() {newMaterial.NormalTexIndex = AddTexture(&infoCI->NormalTex, newMaterial.UseNormalTex); });
+				JobsSystemInstance::Schedule([&]() {newMaterial.MetallicTexIndex = AddTexture(&infoCI->MetallnessTex, newMaterial.UseMetallicTex); });
+				JobsSystemInstance::Schedule([&]() {newMaterial.RoughnessTexIndex = AddTexture(&infoCI->RoughnessTex, newMaterial.UseRoughnessTex); });
+				JobsSystemInstance::Schedule([&]() {newMaterial.AOTexIndex = AddTexture(&infoCI->AOTex, newMaterial.UseAOTex); });
+				JobsSystemInstance::Schedule([&]() {newMaterial.EmissiveTexIndex = AddTexture(&infoCI->EmissiveTex, newMaterial.UseEmissiveTex); });
 			}
 			JobsSystemInstance::EndSubmition();
 #else
-			newMaterial.AlbedroTexIndex = AddTexture(infoCI->AlbedroPath, newMaterial.UseAlbedroTex);
-			newMaterial.NormalTexIndex = AddTexture(infoCI->NormalPath, newMaterial.UseNormalTex);
-			newMaterial.MetallicTexIndex = AddTexture(infoCI->MetallnessPath, newMaterial.UseMetallicTex);
-			newMaterial.RoughnessTexIndex = AddTexture(infoCI->RoughnessPath, newMaterial.UseRoughnessTex);
-			newMaterial.AOTexIndex = AddTexture(infoCI->AOPath, newMaterial.UseAOTex);
-			newMaterial.EmissiveTexIndex = AddTexture(infoCI->EmissivePath, newMaterial.UseEmissiveTex);
+			newMaterial.AlbedroTexIndex = AddTexture(&infoCI->AlbedroTex, newMaterial.UseAlbedroTex);
+			newMaterial.NormalTexIndex = AddTexture(&infoCI->NormalTex, newMaterial.UseNormalTex);
+			newMaterial.MetallicTexIndex = AddTexture(&infoCI->MetallnessTex, newMaterial.UseMetallicTex);
+			newMaterial.RoughnessTexIndex = AddTexture(&infoCI->RoughnessTex, newMaterial.UseRoughnessTex);
+			newMaterial.AOTexIndex = AddTexture(&infoCI->AOTex, newMaterial.UseAOTex);
+			newMaterial.EmissiveTexIndex = AddTexture(&infoCI->EmissiveTex, newMaterial.UseEmissiveTex);
 #endif
 
 			newMaterial.Metalness = infoCI->Metallness;
@@ -109,59 +109,18 @@ namespace Frostium
 		m_MaterialMap.clear();
 	}
 
-	bool MaterialLibrary::Load(const std::string& filePath, MaterialCreateInfo& out_info)
-	{
-		std::stringstream storage;
-		std::ifstream file(filePath);
-		if (!file)
-		{
-			NATIVE_ERROR("Could not open the file: {}", filePath);
-			return false;
-		}
-
-		MaterialCreateInfo copy = out_info;
-		storage << file.rdbuf();
-		{
-			cereal::JSONInputArchive input{ storage };
-			input(copy.Metallness, copy.Roughness, copy.EmissionStrength, copy.AlbedroPath, copy.NormalPath, copy.MetallnessPath, copy.RoughnessPath,
-				copy.AOPath, copy.EmissivePath, copy.AlbedroColor.r, copy.AlbedroColor.g, copy.AlbedroColor.b);
-		}
-
-		out_info = copy;
-		return true;
-	}
-
-	bool MaterialLibrary::Save(const std::string& filePath, MaterialCreateInfo& info)
-	{
-		std::stringstream storage;
-		{
-			cereal::JSONOutputArchive output{ storage };
-			info.serialize(output);
-		}
-
-		std::ofstream myfile(filePath);
-		if (myfile.is_open())
-		{
-			myfile << storage.str();
-			myfile.close();
-			return true;
-		}
-
-		return false;
-	}
-
 	MaterialLibrary* MaterialLibrary::GetSinglenton()
 	{
 		return s_Instance;
 	}
 
-	uint32_t MaterialLibrary::AddTexture(const std::string& path, uint32_t& useTetxure)
+	uint32_t MaterialLibrary::AddTexture(const TextureCreateInfo* info, uint32_t& useTetxure)
 	{
 		uint32_t index = 0;
-		if (!path.empty())
+		if (info->FilePath.empty() == false)
 		{
 			Texture* tex = new Texture();
-			Texture::Create(path, tex);
+			Texture::Create(info, tex);
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 			{
@@ -261,63 +220,102 @@ namespace Frostium
 		AlbedroColor = color;
 	}
 
-	void MaterialCreateInfo::SetTexture(MaterialTexture type, const std::string& filePath)
+	void MaterialCreateInfo::SetTexture(MaterialTexture type, const TextureCreateInfo* info)
 	{
 		switch (type)
 		{
 		case MaterialTexture::Albedro:
-			AlbedroPath = filePath;
+			AlbedroTex = *info;
 			break;
 		case MaterialTexture::Normal:
-			NormalPath = filePath;
+			NormalTex = *info;
 			break;
 		case MaterialTexture::Metallic:
-			MetallnessPath = filePath;
+			MetallnessTex = *info;
 			break;
 		case MaterialTexture::Roughness:
-			RoughnessPath = filePath;
+			RoughnessTex = *info;
 			break;
 		case MaterialTexture::AO:
-			AOPath = filePath;
+			AOTex = *info;
 			break;
 		case MaterialTexture::Emissive:
-			EmissivePath = filePath;
+			EmissiveTex = *info;
 			break;
 		default:
 			break;
 		}
 	}
 
-	void MaterialCreateInfo::GetTextures(std::unordered_map<MaterialTexture, std::string*>& out_hashmap)
+	void MaterialCreateInfo::GetTextures(std::unordered_map<MaterialTexture, TextureCreateInfo*>& out_hashmap)
 	{
-		if (AlbedroPath.empty() == false)
+		if (AlbedroTex.FilePath.empty() == false)
 		{
-			out_hashmap[MaterialTexture::Albedro] = &AlbedroPath;
+			out_hashmap[MaterialTexture::Albedro] = &AlbedroTex;
 		}
 
-		if (NormalPath.empty() == false)
+		if (NormalTex.FilePath.empty() == false)
 		{
-			out_hashmap[MaterialTexture::Normal] = &NormalPath;
+			out_hashmap[MaterialTexture::Normal] = &NormalTex;
 		}
 
-		if (MetallnessPath.empty() == false)
+		if (MetallnessTex.FilePath.empty() == false)
 		{
-			out_hashmap[MaterialTexture::Metallic] = &MetallnessPath;
+			out_hashmap[MaterialTexture::Metallic] = &MetallnessTex;
 		}
 
-		if (RoughnessPath.empty() == false)
+		if (RoughnessTex.FilePath.empty() == false)
 		{
-			out_hashmap[MaterialTexture::Roughness] = &RoughnessPath;
+			out_hashmap[MaterialTexture::Roughness] = &RoughnessTex;
 		}
 
-		if (AOPath.empty() == false)
+		if (AOTex.FilePath.empty() == false)
 		{
-			out_hashmap[MaterialTexture::AO] = &AOPath;
+			out_hashmap[MaterialTexture::AO] = &AOTex;
 		}
 
-		if (EmissivePath.empty() == false)
+		if (EmissiveTex.FilePath.empty() == false)
 		{
-			out_hashmap[MaterialTexture::Emissive] = &EmissivePath;
+			out_hashmap[MaterialTexture::Emissive] = &EmissiveTex;
 		}
+	}
+
+	bool MaterialCreateInfo::Load(const std::string& filePath)
+	{
+		std::stringstream storage;
+		std::ifstream file(filePath);
+		if (!file)
+		{
+			NATIVE_ERROR("Could not open the file: {}", filePath);
+			return false;
+		}
+
+		storage << file.rdbuf();
+		{
+			cereal::JSONInputArchive input{ storage };
+			input(Metallness, Roughness, EmissionStrength, AlbedroTex, NormalTex, MetallnessTex, RoughnessTex,
+				AOTex, EmissiveTex, AlbedroColor.r, AlbedroColor.g, AlbedroColor.b);
+		}
+
+		return true;
+	}
+
+	bool MaterialCreateInfo::Save(const std::string& filePath)
+	{
+		std::stringstream storage;
+		{
+			cereal::JSONOutputArchive output{ storage };
+			serialize(output);
+		}
+
+		std::ofstream myfile(filePath);
+		if (myfile.is_open())
+		{
+			myfile << storage.str();
+			myfile.close();
+			return true;
+		}
+
+		return false;
 	}
 }

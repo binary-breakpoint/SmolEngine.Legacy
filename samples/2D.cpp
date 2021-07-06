@@ -51,8 +51,13 @@ int main(int argc, char** argv)
 
 	Texture texture = {};
 	Texture texture2 = {};
-	Texture::Create("Assets/Background.png", &texture);
-	Texture::Create("Assets/Bricks.png", &texture2);
+	TextureCreateInfo textureCI = {};
+
+	textureCI.FilePath = "Assets/Background.png";
+	Texture::Create(&textureCI, &texture);
+
+	textureCI.FilePath = "Assets/Bricks.png";
+	Texture::Create(&textureCI, &texture2);
 
 	ClearInfo clearInfo = {};
 	clearInfo.bClear = true;

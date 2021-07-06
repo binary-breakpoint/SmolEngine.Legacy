@@ -18,7 +18,6 @@ namespace Frostium
 	class Framebuffer
 	{
 	public:
-
 		Framebuffer() = default;
 		~Framebuffer() = default;
 
@@ -39,7 +38,6 @@ namespace Frostium
 		VulkanFramebuffer& GetVulkanFramebuffer() { return m_VulkanFrameBuffer; }
 #endif
 		// Factory
-		static Ref<Framebuffer> Create(const FramebufferSpecification& data);
 		static void Create(const FramebufferSpecification& data, Framebuffer* out_fb);
 
 	private:

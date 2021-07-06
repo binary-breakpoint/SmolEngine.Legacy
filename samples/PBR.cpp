@@ -169,20 +169,23 @@ void LoadMaterials(std::vector<uint32_t>& materialsIDs)
 	std::string metalPath = "";
 
 	MaterialCreateInfo materialCI = {};
+	TextureCreateInfo textureCI = {};
 
 	// Wood
 	{
-		albedroPath = "Assets/materials/wood/WoodFloor041_1K_Color.png"; 
-		normalPath = "Assets/materials/wood/WoodFloor041_1K_Normal.png";
-		roughnessPath = "Assets/materials/wood/WoodFloor041_1K_Roughness.png";
-		aoPath = "Assets/materials/wood/WoodFloor041_1K_AmbientOcclusion.png";
+		textureCI.FilePath = "Assets/materials/wood/WoodFloor041_1K_Color.png";
+		materialCI.SetTexture(MaterialTexture::Albedro, &textureCI);
 
-		materialCI.SetTexture(MaterialTexture::Albedro, albedroPath);
-		materialCI.SetTexture(MaterialTexture::Normal, normalPath);
-		materialCI.SetTexture(MaterialTexture::Roughness, roughnessPath);
-		materialCI.SetTexture(MaterialTexture::AO,aoPath);
+		textureCI.FilePath = "Assets/materials/wood/WoodFloor041_1K_Normal.png";
+		materialCI.SetTexture(MaterialTexture::Normal, &textureCI);
+
+		textureCI.FilePath = "Assets/materials/wood/WoodFloor041_1K_Roughness.png";
+		materialCI.SetTexture(MaterialTexture::Roughness, &textureCI);
+
+		textureCI.FilePath = "Assets/materials/wood/WoodFloor041_1K_AmbientOcclusion.png";
+		materialCI.SetTexture(MaterialTexture::AO, &textureCI);
+
 		materialCI.SetMetalness(0.2f);
-		 
 		uint32_t id = lib->Add(&materialCI, "wood");
 		materialsIDs.push_back(id);
 	}
@@ -191,17 +194,19 @@ void LoadMaterials(std::vector<uint32_t>& materialsIDs)
 	{
 		materialCI = {};
 
-		albedroPath = "Assets/materials/stone/Tiles087_1K_Color.png";
-		normalPath = "Assets/materials/stone/Tiles087_1K_Normal.png";
-		roughnessPath = "Assets/materials/stone/Tiles087_1K_Roughness.png";
-		aoPath = "Assets/materials/stone/Tiles087_1K_AmbientOcclusion.png";
+		textureCI.FilePath  = "Assets/materials/stone/Tiles087_1K_Color.png";
+		materialCI.SetTexture(MaterialTexture::Albedro, &textureCI);
 
-		materialCI.SetTexture(MaterialTexture::Albedro, albedroPath);
-		materialCI.SetTexture(MaterialTexture::Normal, normalPath);
-		materialCI.SetTexture(MaterialTexture::Roughness, roughnessPath);
-		materialCI.SetTexture(MaterialTexture::AO, aoPath);
+		textureCI.FilePath = normalPath = "Assets/materials/stone/Tiles087_1K_Normal.png";
+		materialCI.SetTexture(MaterialTexture::Normal, &textureCI);
+
+		textureCI.FilePath = "Assets/materials/stone/Tiles087_1K_Roughness.png";
+		materialCI.SetTexture(MaterialTexture::Roughness, &textureCI);
+
+		textureCI.FilePath = "Assets/materials/stone/Tiles087_1K_AmbientOcclusion.png";
+		materialCI.SetTexture(MaterialTexture::AO, &textureCI);
+
 		materialCI.SetMetalness(1.0f);
-
 		uint32_t id = lib->Add(&materialCI, "stone");
 		materialsIDs.push_back(id);
 	}
@@ -210,15 +215,17 @@ void LoadMaterials(std::vector<uint32_t>& materialsIDs)
 	{
 		materialCI = {};
 
-		albedroPath = "Assets/materials/metal_1/Metal033_1K_Color.png";
-		normalPath = "Assets/materials/metal_1/Metal033_1K_Normal.png";
-		roughnessPath = "Assets/materials/metal_1/Metal033_1K_Roughness.png";
-		metalPath = "Assets/materials/metal_1/Metal033_1K_Metalness.png";
+		textureCI.FilePath  = "Assets/materials/metal_1/Metal033_1K_Color.png";
+		materialCI.SetTexture(MaterialTexture::Albedro, &textureCI);
 
-		materialCI.SetTexture(MaterialTexture::Albedro, albedroPath);
-		materialCI.SetTexture(MaterialTexture::Normal, normalPath);
-		materialCI.SetTexture(MaterialTexture::Roughness, roughnessPath);
-		materialCI.SetTexture(MaterialTexture::Metallic, metalPath);
+		textureCI.FilePath =  "Assets/materials/metal_1/Metal033_1K_Normal.png";
+		materialCI.SetTexture(MaterialTexture::Normal, &textureCI);
+
+		textureCI.FilePath = "Assets/materials/metal_1/Metal033_1K_Roughness.png";
+		materialCI.SetTexture(MaterialTexture::Roughness, &textureCI);
+
+		textureCI.FilePath = "Assets/materials/metal_1/Metal033_1K_Metalness.png";
+		materialCI.SetTexture(MaterialTexture::Metallic, &textureCI);
 
 		uint32_t id = lib->Add(&materialCI, "metal1");
 		materialsIDs.push_back(id);
@@ -228,15 +235,17 @@ void LoadMaterials(std::vector<uint32_t>& materialsIDs)
 	{
 		materialCI = {};
 
-		albedroPath = "Assets/materials/metal_2/Metal012_1K_Color.png";
-		normalPath = "Assets/materials/metal_2/Metal012_1K_Normal.png";
-		roughnessPath = "Assets/materials/metal_2/Metal012_1K_Roughness.png";
-		metalPath = "Assets/materials/metal_2/Metal012_1K_Metalness.png";
+		textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Color.png";
+		materialCI.SetTexture(MaterialTexture::Albedro, &textureCI);
 
-		materialCI.SetTexture(MaterialTexture::Albedro, albedroPath);
-		materialCI.SetTexture(MaterialTexture::Normal, normalPath);
-		materialCI.SetTexture(MaterialTexture::Roughness,  roughnessPath);
-		materialCI.SetTexture(MaterialTexture::Metallic,  metalPath);
+		textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Normal.png";
+		materialCI.SetTexture(MaterialTexture::Normal, &textureCI);
+
+		textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Roughness.png";
+		materialCI.SetTexture(MaterialTexture::Roughness, &textureCI);
+
+		textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Metalness.png";
+		materialCI.SetTexture(MaterialTexture::Metallic, &textureCI);
 
 		uint32_t id = lib->Add(&materialCI, "metal2");
 		materialsIDs.push_back(id);

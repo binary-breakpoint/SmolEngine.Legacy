@@ -7,32 +7,27 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
-	void CubeMap::Create(CubeMap* out_tex, const std::string& filePath, TextureFormat format)
+	void CubeMap::Create(const TextureCreateInfo* info, CubeMap* out_tex)
 	{
-		if (out_tex)
-		{
-			out_tex->m_Texture = std::make_shared<Texture>();
 #ifdef  FROSTIUM_OPENGL_IMPL
 #else
-			out_tex->m_Texture->GetVulkanTexture()->LoadCubeMap(filePath, format);
+		out_tex->GetVulkanTexture()->LoadCubeMap(info);
 #endif
-		}
 	}
 
 	void CubeMap::CreateEmpty(CubeMap* out_tex, uint32_t width, uint32_t height, TextureFormat format)
 	{
 		if (out_tex)
 		{
-			out_tex->m_Texture = std::make_shared<Texture>();
 #ifdef  FROSTIUM_OPENGL_IMPL
 #else
-			out_tex->m_Texture->GetVulkanTexture()->GenCubeMap(width, height, format);
+			out_tex->GetVulkanTexture()->GenCubeMap(width, height, format);
 #endif
 		}
 	}
 
-	Texture* CubeMap::GetTexture() const
+	Texture* CubeMap::GetTexture()
 	{
-		return m_Texture.get();
+		return dynamic_cast<Texture*>(this);
 	}
 }

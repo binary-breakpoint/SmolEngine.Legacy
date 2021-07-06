@@ -8,17 +8,6 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
-	Ref<Framebuffer> Framebuffer::Create(const FramebufferSpecification& data)
-	{
-		Ref<Framebuffer> framebuffer = std::make_shared<Framebuffer>();
-#ifdef FROSTIUM_OPENGL_IMPL
-		framebuffer->m_OpenglFramebuffer.Init(data);
-#else
-		framebuffer->m_VulkanFrameBuffer.Init(data);
-#endif
-		return framebuffer;
-	}
-
 	void Framebuffer::Create(const FramebufferSpecification& data, Framebuffer* out_fb)
 	{
 		if (out_fb)

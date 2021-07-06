@@ -21,7 +21,7 @@ namespace Frostium
 			std::filebuf fileBuffer;
 			fileBuffer.open(sdfPath, std::ios::in);
 			std::istream istream(&fileBuffer);
-			if (!istream.good() || out_text->m_Initialized)
+			if (!istream.good() || out_text->m_SDFTexture.IsReady())
 				return;
 
 			while (!istream.eof())
@@ -50,18 +50,17 @@ namespace Frostium
 				}
 			}
 
-			Texture::Create(texturePath, &out_text->m_SDFTexture, TextureFormat::R8G8B8A8_UNORM, false);
-			out_text->m_Initialized = true;
+			TextureCreateInfo createCI = {};
+			createCI.bVerticalFlip = false;
+			createCI.FilePath = texturePath;
+			Texture::Create(&createCI, &out_text->m_SDFTexture);
 		}
 	}
 
 	void Text::SetText(const std::string& text)
 	{
-		if (m_Initialized)
-		{
-			m_Text = text;
-			GenerateText(text);
-		}
+		m_Text = text;
+		GenerateText(text);
 	}
 
 	void Text::SetColor(const glm::vec4& color)

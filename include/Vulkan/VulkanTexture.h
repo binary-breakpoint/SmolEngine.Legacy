@@ -11,27 +11,28 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
+	enum class TextureFormat : int;
+	enum class AddressMode : int;
+	enum class BorderColor : int;
+	struct TextureCreateInfo;
+
 	class VulkanTexture
 	{
 	public:
-
 		VulkanTexture();
 		~VulkanTexture();
 
-		void LoadTexture(const std::string& filePath, TextureFormat format, bool flip, bool imgui_handler);
-		void LoadCubeMap(const std::string& filePath, TextureFormat format);
-		void GenTexture(const void* data, uint32_t size, uint32_t width, uint32_t height, TextureFormat format);
+		void LoadTexture(const TextureCreateInfo* info);
+		void LoadCubeMap(const TextureCreateInfo* info);
 		void GenWhiteTetxure(uint32_t width, uint32_t height);
 		void GenCubeMap(uint32_t width, uint32_t height, TextureFormat format);
-		void CreateTexture(uint32_t width, uint32_t height, uint32_t mipMaps, const void* data, VkFormat format, bool imgui_handler);
+		void GenTexture(const void* data, uint32_t size, uint32_t width, uint32_t height, TextureFormat format);
+		void CreateTexture(uint32_t width, uint32_t height, uint32_t mipMaps, const void* data, const TextureCreateInfo* info);
 
 		// Getters
 		const VkDescriptorImageInfo& GetVkDescriptorImageInfo() const;
 		void* GetImGuiTextureID() const;
-		uint32_t GetHeight() const;
-		uint32_t GetWidth() const;
 		VkImage GetVkImage() const;
-		bool IsActive() const;
 
 		static VkImage CreateVkImage(uint32_t width, uint32_t height, int32_t mipLevels,
 			VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling,
@@ -70,15 +71,20 @@ namespace Frostium
 
 		void GenerateMipMaps(VkImage image, VkCommandBuffer cmd, int32_t width, int32_t height, int32_t mipMaps, VkImageSubresourceRange& range);
 		void CreateFromBuffer(const void* data, VkDeviceSize size, uint32_t width, uint32_t height);
-		void CreateSamplerAndImageView(uint32_t mipMaps, VkFormat format);
+		void CreateSamplerAndImageView(uint32_t mipMaps, VkFormat format, bool anisotropy = true);
+
 		VkFormat GetImageFormat(TextureFormat format);
+		VkSamplerAddressMode GetVkSamplerAddressMode(AddressMode mode);
+		VkBorderColor GetVkBorderColor(BorderColor color);
 
 	private:
 
 		VkDescriptorImageInfo        m_DescriptorImageInfo;
 		VkImage                      m_Image;
 		VkFormat                     m_Format;
-
+		VkFilter                     m_Filter = VK_FILTER_LINEAR;
+		VkSamplerAddressMode         m_AddressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		VkBorderColor                m_BorderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
 		VkDevice                     m_Device;
 		VkSampler                    m_Samper;
 		VkImageView                  m_ImageView;
@@ -90,6 +96,7 @@ namespace Frostium
 
 	private:
 
+		friend class Texture;
 		friend class VulkanPipeline;
 		friend class VulkanPBR;
 		friend class VulkanDescriptor;

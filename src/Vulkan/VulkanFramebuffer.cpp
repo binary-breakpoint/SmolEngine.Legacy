@@ -49,7 +49,7 @@ namespace Frostium
 		VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
 
 		// Sampler
-		CreateSampler(m_Specification.eSamplerFiltering == SamplerFilter::LINEAR ? VK_FILTER_LINEAR: VK_FILTER_NEAREST);
+		CreateSampler(m_Specification.eFiltering == ImageFilter::LINEAR ? VK_FILTER_LINEAR: VK_FILTER_NEAREST);
 
 		// Color Attachments
 		for (uint32_t i = 0; i < bufferSize; ++i)

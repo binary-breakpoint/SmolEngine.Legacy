@@ -1088,7 +1088,7 @@ namespace Frostium
 					FramebufferAttachment bloom = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "color_2");
 
 					FramebufferSpecification framebufferCI = {};
-					framebufferCI.eSamplerFiltering = SamplerFilter::LINEAR;
+					framebufferCI.eFiltering = ImageFilter::LINEAR;
 					framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
 					framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
 					framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
@@ -1129,7 +1129,7 @@ namespace Frostium
 					FramebufferAttachment color = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "color_1");
 
 					FramebufferSpecification framebufferCI = {};
-					framebufferCI.eSamplerFiltering = SamplerFilter::LINEAR;
+					framebufferCI.eFiltering = ImageFilter::LINEAR;
 					framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
 					framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
 					framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
@@ -1164,7 +1164,7 @@ namespace Frostium
 			FramebufferAttachment bloom = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "color_2");
 
 			FramebufferSpecification framebufferCI = {};
-			framebufferCI.eSamplerFiltering = SamplerFilter::LINEAR;
+			framebufferCI.eFiltering = ImageFilter::LINEAR;
 			framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
 			framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
 			framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
@@ -1198,7 +1198,7 @@ namespace Frostium
 			FramebufferAttachment color = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "color_1");
 
 			FramebufferSpecification framebufferCI = {};
-			framebufferCI.eSamplerFiltering = SamplerFilter::LINEAR;
+			framebufferCI.eFiltering = ImageFilter::LINEAR;
 			framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
 			framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
 			framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;

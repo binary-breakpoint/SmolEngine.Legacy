@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Common/Core.h"
+#include "Common/Common.h"
 
 #include <string>
 #include <vector>
@@ -71,14 +72,7 @@ namespace Frostium
 		SAMPLE_COUNT_4,
 		SAMPLE_COUNT_8,
 		SAMPLE_COUNT_16,
-
 		SAMPLE_COUNT_MAX_SUPPORTED
-	};
-
-	enum class SamplerFilter
-	{
-		LINEAR,
-		NEAREST
 	};
 
 	struct FramebufferAttachment
@@ -98,7 +92,7 @@ namespace Frostium
 	{
 		MSAASamples                                eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
 		FramebufferSpecialisation                  eSpecialisation = FramebufferSpecialisation::None;
-		SamplerFilter                              eSamplerFiltering = SamplerFilter::NEAREST;
+		ImageFilter                                eFiltering = ImageFilter::NEAREST;
 		bool                                       bTargetsSwapchain = false;
 		bool                                       bUsedByImGui = false;
 		bool                                       bResizable = true;
