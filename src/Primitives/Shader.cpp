@@ -121,23 +121,19 @@ namespace Frostium
 		obj->m_CreateInfo = *shaderCI;
 #ifdef FROSTIUM_OPENGL_IMPL
 #else
-		obj->m_VulkanShader.Init(binaryData, &obj->m_ReflectData, &obj->m_CreateInfo);
+		obj->Init(binaryData, &obj->m_ReflectData, &obj->m_CreateInfo);
 #endif
 
 	}
 
 	void Shader::Bind() const
 	{
-#ifdef FROSTIUM_OPENGL_IMPL
-		m_OpenglShader.Bind();
-#endif
+
 	}
 
 	void Shader::UnBind() const
 	{
-#ifdef FROSTIUM_OPENGL_IMPL
-		m_OpenglShader.UnBind();
-#endif
+
 	}
 
 	bool Shader::Realod()
@@ -277,23 +273,5 @@ namespace Frostium
 				m_ReflectData.Resources[resBuffer.BindingPoint] = std::move(resBuffer);
 			}
 		}
-	}
-
-	uint32_t Shader::GetProgramID()
-	{
-#ifdef FROSTIUM_OPENGL_IMPL
-		return m_OpenglShader.GetProgramID();
-#else
-		return 0;
-#endif
-	}
-
-	const std::string Shader::GetName()
-	{
-#ifdef FROSTIUM_OPENGL_IMPL
-		return m_OpenglShader.GetName();
-#else
-		return std::string("None");
-#endif
 	}
 }
