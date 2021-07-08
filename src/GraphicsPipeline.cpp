@@ -387,14 +387,19 @@ namespace Frostium
 #endif
 	}
 
-	void GraphicsPipeline::SetVertexBuffers(const std::vector<Ref<VertexBuffer>>& buffer)
+	void GraphicsPipeline::SetFramebuffers(const std::vector<Framebuffer*>& fb)
 	{
-		m_VertexBuffers = buffer;
+		m_PiplineCreateInfo.TargetFramebuffers = fb;
 	}
 
-	void GraphicsPipeline::SetIndexBuffers(const std::vector<Ref<IndexBuffer>>& buffer)
+	void GraphicsPipeline::SetVertexBuffers(const std::vector<Ref<VertexBuffer>>& vb)
 	{
-		m_IndexBuffers = buffer;
+		m_VertexBuffers = vb;
+	}
+
+	void GraphicsPipeline::SetIndexBuffers(const std::vector<Ref<IndexBuffer>>& ib)
+	{
+		m_IndexBuffers = ib;
 	}
 
 #ifndef FROSTIUM_OPENGL_IMPL

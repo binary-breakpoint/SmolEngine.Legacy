@@ -73,7 +73,7 @@ namespace Frostium
 			const shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(src, GetShaderType(type), path.c_str(), options);
 			if (result.GetCompilationStatus() != shaderc_compilation_status_success)
 			{
-				NATIVE_ERROR(result.GetErrorMessage());
+				NATIVE_ERROR(result.GetErrorMessage().c_str());
 				assert(false);
 			}
 

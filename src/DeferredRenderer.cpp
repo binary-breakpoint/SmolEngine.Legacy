@@ -75,6 +75,15 @@ namespace Frostium
 		Flush();
 	}
 
+	void DeferredRenderer::DrawOffscreen(Framebuffer* fb)
+	{
+		s_Data->p_Combination.SetFramebuffers({ fb });
+		{
+			Flush();
+		}
+		s_Data->p_Combination.SetFramebuffers({ GraphicsContext::GetSingleton()->GetFramebuffer() });
+	}
+
 	void DeferredRenderer::Flush()
 	{
 #ifdef FROSTIUM_SMOLENGINE_IMPL

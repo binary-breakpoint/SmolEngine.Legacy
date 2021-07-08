@@ -287,6 +287,7 @@ namespace Frostium
 		if (!file)
 		{
 			NATIVE_ERROR("Could not open the file: {}", filePath);
+
 			return false;
 		}
 

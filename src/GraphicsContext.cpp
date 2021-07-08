@@ -24,6 +24,7 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
+	static int result = 0;
 	GraphicsContext* GraphicsContext::s_Instance = nullptr;
 
 	GraphicsContext::GraphicsContext(GraphicsContextInitInfo* info)
@@ -31,8 +32,12 @@ namespace Frostium
 		if (m_State != nullptr || !info->pWindowCI)
 			return;
 
-		m_State = new GraphicsContextState(info->pDefaultCamera != nullptr,
-			info->Flags & Features_ImGui_Flags, info->bTargetsSwapchain, info->bAutoResize);
+		// Creates spdlog intanance if not present
+		SLog* log = SLog::s_Instance;
+		if (log == nullptr)
+		{
+			log = new SLog();
+		}
 
 		s_Instance = this;
 		m_Flags = info->Flags;
@@ -40,6 +45,8 @@ namespace Frostium
 		m_ResourcesFolderPath = info->ResourcesFolderPath;
 		m_DefaultCamera = info->pDefaultCamera;
 		m_EventHandler.OnEventFn = std::bind(&GraphicsContext::OnEvent, this, std::placeholders::_1);
+		m_State = new GraphicsContextState(info->pDefaultCamera != nullptr,
+			info->Flags & Features_ImGui_Flags, info->bTargetsSwapchain, info->bAutoResize);
 
 		// Creates GLFW window
 		m_Window = new Window();
@@ -56,11 +63,11 @@ namespace Frostium
 		// Creates default frustum
 		m_Frustum = new Frustum();
 
-		// Creates 4x4 white texture
+		// Creates 4x4 white textures
 		m_DummyTexure = new Texture();
 		Texture::CreateWhiteTexture(m_DummyTexure);
 		m_DummyCubeMap = new CubeMap();
-		CubeMap::CreateEmpty(m_DummyCubeMap, 5, 5);
+		CubeMap::CreateEmpty(m_DummyCubeMap, 4, 4);
 
 		// Initialize ImGUI
 		if (m_State->UseImGUI)
