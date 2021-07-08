@@ -63,6 +63,7 @@ namespace Frostium
 		s_Data->p_DepthPass.BeginCommandBuffer(mainCmd);
 		s_Data->p_Bloom.BeginCommandBuffer(mainCmd);
 		s_Data->p_Debug.BeginCommandBuffer(mainCmd);
+		s_Data->p_Grid.BeginCommandBuffer(mainCmd);
 
 		s_Data->p_Combination.BeginRenderPass();
 		s_Data->p_Combination.ClearColors(clearInfo->color);
@@ -75,16 +76,205 @@ namespace Frostium
 		Flush();
 	}
 
-	void DeferredRenderer::DrawOffscreen(Framebuffer* fb)
+	void DeferredRenderer::DrawOffscreen(Framebuffer* fb, BeginSceneInfo* info)
 	{
+		SceneData oldScene = *s_Data->m_SceneData;
+		CommandBufferStorage cmdStorage = {};
+		VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
 		s_Data->p_Combination.SetFramebuffers({ fb });
-		{
-			Flush();
-		}
+
+		s_Data->p_Gbuffer.SetCommandBuffer(cmdStorage.Buffer);
+		s_Data->p_Lighting.SetCommandBuffer(cmdStorage.Buffer);
+		s_Data->p_Combination.SetCommandBuffer(cmdStorage.Buffer);
+		s_Data->p_Skybox.SetCommandBuffer(cmdStorage.Buffer);
+		s_Data->p_DepthPass.SetCommandBuffer(cmdStorage.Buffer);
+		s_Data->p_Bloom.SetCommandBuffer(cmdStorage.Buffer);
+		s_Data->p_Debug.SetCommandBuffer(cmdStorage.Buffer);
+		s_Data->p_Grid.SetCommandBuffer(cmdStorage.Buffer);
+
+		s_Data->m_SceneData->View = info->View;
+		s_Data->m_SceneData->Projection = info->Proj;
+		s_Data->m_SceneData->CamPos = glm::vec4(info->Pos, 1);
+		s_Data->m_SceneData->SkyBoxMatrix = glm::mat4(glm::mat3(info->View));
+		s_Data->m_SceneData->NearClip = info->NearClip;
+		s_Data->m_SceneData->FarClip = info->FarClip;
+		s_Data->m_Frustum->Update(s_Data->m_SceneData->Projection * s_Data->m_SceneData->View);
+		s_Data->p_Gbuffer.SubmitBuffer(s_Data->m_SceneDataBinding, sizeof(SceneData), s_Data->m_SceneData);
+
+		// Submit work
+		Render();
+		VulkanCommandBuffer::ExecuteCommandBuffer(&cmdStorage);
+
+		// Reset
+		bool mainCmd = true;
+		s_Data->p_Gbuffer.BeginCommandBuffer(mainCmd);
+		s_Data->p_Lighting.BeginCommandBuffer(mainCmd);
+		s_Data->p_Combination.BeginCommandBuffer(mainCmd);
+		s_Data->p_Skybox.BeginCommandBuffer(mainCmd);
+		s_Data->p_DepthPass.BeginCommandBuffer(mainCmd);
+		s_Data->p_Bloom.BeginCommandBuffer(mainCmd);
+		s_Data->p_Debug.BeginCommandBuffer(mainCmd);
+		s_Data->p_Grid.BeginCommandBuffer(mainCmd);
 		s_Data->p_Combination.SetFramebuffers({ GraphicsContext::GetSingleton()->GetFramebuffer() });
+
+		*s_Data->m_SceneData = oldScene;
+		s_Data->m_Frustum->Update(s_Data->m_SceneData->Projection * s_Data->m_SceneData->View);
+		s_Data->p_Gbuffer.SubmitBuffer(s_Data->m_SceneDataBinding, sizeof(SceneData), s_Data->m_SceneData);
 	}
 
 	void DeferredRenderer::Flush()
+	{
+		BuildDrawList();
+		UpdateUniforms();
+		Render();
+	}
+
+	void DeferredRenderer::Render()
+	{
+		uint32_t cmdCount = static_cast<uint32_t>(s_Data->m_UsedMeshes.size());
+
+		// Depth Pass
+		if (s_Data->m_DirLight.IsActive && s_Data->m_DirLight.IsCastShadows)
+		{
+#ifndef FROSTIUM_OPENGL_IMPL
+			VkCommandBuffer cmdBuffer = s_Data->p_DepthPass.GetVkCommandBuffer();
+#endif
+			s_Data->p_DepthPass.BeginRenderPass();
+			{
+#ifndef FROSTIUM_OPENGL_IMPL
+				// Set depth bias (aka "Polygon offset")
+				// Required to avoid shadow mapping artifacts
+				vkCmdSetDepthBias(cmdBuffer, 1.25f, 0.0f, 1.75f);
+#endif
+				struct PushConstant
+				{
+					glm::mat4 depthMVP;
+					uint32_t offset;
+
+				} static pc;
+
+				pc.depthMVP = s_Data->m_MainPushConstant.DepthMVP;
+				for (uint32_t i = 0; i < cmdCount; ++i)
+				{
+					auto& cmd = s_Data->m_DrawList[i];
+					pc.offset = cmd.Offset;
+
+					s_Data->p_DepthPass.SubmitPushConstant(ShaderType::Vertex, sizeof(PushConstant), &pc);
+					s_Data->p_DepthPass.DrawMeshIndexed(cmd.Mesh, cmd.InstancesCount);
+				}
+			}
+			s_Data->p_DepthPass.EndRenderPass();
+		}
+
+		// G-Buffer Pass
+		s_Data->p_Gbuffer.BeginRenderPass();
+		{
+			// SkyBox
+			if (s_Data->m_State.bDrawSkyBox)
+			{
+				uint32_t state = s_Data->m_EnvironmentMap->IsDynamic();
+				s_Data->p_Skybox.SubmitPushConstant(ShaderType::Fragment, sizeof(uint32_t), &state);
+				s_Data->p_Skybox.Draw(36);
+			}
+
+			// Grid
+			if (s_Data->m_State.bDrawGrid)
+			{
+				s_Data->p_Grid.SubmitPushConstant(ShaderType::Vertex, sizeof(glm::mat4), &s_Data->m_GridModel);
+				s_Data->p_Grid.DrawMeshIndexed(&s_Data->m_PlaneMesh);
+			}
+
+			for (uint32_t i = 0; i < cmdCount; ++i)
+			{
+				auto& cmd = s_Data->m_DrawList[i];
+
+				s_Data->m_MainPushConstant.DataOffset = cmd.Offset;
+				s_Data->p_Gbuffer.SubmitPushConstant(ShaderType::Vertex, s_Data->m_PushConstantSize, &s_Data->m_MainPushConstant);
+				s_Data->p_Gbuffer.DrawMeshIndexed(cmd.Mesh, cmd.InstancesCount);
+			}
+		}
+		s_Data->p_Gbuffer.EndRenderPass();
+
+		// Debug View
+		if (s_Data->m_State.eDebugView != DebugViewFlags::None)
+		{
+			s_Data->p_Debug.BeginRenderPass();
+			{
+				uint32_t state = (uint32_t)s_Data->m_State.eDebugView;
+				s_Data->p_Debug.SubmitPushConstant(ShaderType::Fragment, sizeof(uint32_t), &state);
+				s_Data->p_Debug.Draw(3);
+			}
+			s_Data->p_Debug.EndRenderPass();
+
+			return;
+		}
+
+		// Lighting Pass
+		{
+			s_Data->p_Lighting.BeginRenderPass();
+			{
+				struct push_constant
+				{
+					uint32_t numPointLights;
+					uint32_t numSpotLights;
+				} pc;
+
+				pc.numPointLights = s_Data->m_PointLightIndex;
+				pc.numSpotLights = s_Data->m_SpotLightIndex;
+				s_Data->p_Lighting.SubmitPushConstant(ShaderType::Fragment, sizeof(push_constant), &pc);
+				s_Data->p_Lighting.Draw(3);
+			}
+			s_Data->p_Lighting.EndRenderPass();
+		}
+
+		// Post-Processing: FXAA, Bloom
+		{
+			// Bloom
+			{
+				if (s_Data->m_State.bBloom)
+				{
+					s_Data->p_Bloom.BeginRenderPass();
+					{
+						s_Data->p_Bloom.Draw(3);
+					}
+					s_Data->p_Bloom.EndRenderPass();
+				}
+			}
+
+			// FXAA + Composition
+			{
+				if (s_Data->m_DirtMask.Mask != nullptr)
+				{
+					s_Data->p_Combination.UpdateSampler(s_Data->m_DirtMask.Mask, 2);
+				}
+
+				s_Data->p_Combination.BeginRenderPass();
+				{
+					struct push_constant
+					{
+						uint32_t state;
+						uint32_t enabledFXAA;
+						uint32_t enabledMask;
+						float maskIntensity;
+						float maskBaseIntensity;
+					} pc;
+
+					// temp
+					pc.state = s_Data->m_State.bBloom ? 1 : 0;
+					pc.enabledMask = s_Data->m_DirtMask.Mask != nullptr;
+					pc.enabledFXAA = s_Data->m_State.bFXAA;
+					pc.maskIntensity = s_Data->m_DirtMask.Intensity;
+					pc.maskBaseIntensity = s_Data->m_DirtMask.BaseIntensity;
+
+					s_Data->p_Combination.SubmitPushConstant(ShaderType::Fragment, sizeof(push_constant), &pc);
+					s_Data->p_Combination.Draw(3);
+				}
+				s_Data->p_Combination.EndRenderPass();
+			}
+		}
+	}
+
+	void DeferredRenderer::BuildDrawList()
 	{
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 		JobsSystemInstance::BeginSubmition();
@@ -171,7 +361,7 @@ namespace Frostium
 							instanceUBO.IsAnimated = animated;
 							instanceUBO.AnimOffset = animStartOffset;
 							instanceUBO.EntityID = 0; // temp
-					});
+						});
 #else
 					Utils::ComposeTransform(*package.WorldPos, *package.Rotation, *package.Scale, instanceUBO.ModelView);
 
@@ -191,27 +381,28 @@ namespace Frostium
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 		JobsSystemInstance::EndSubmition();
 #endif
+	}
 
-		// Updates UBOs and SSBOs 
-		{
+	void DeferredRenderer::UpdateUniforms()
+	{
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 
-			JobsSystemInstance::BeginSubmition();
-			{
-				// Updates Scene Data
-				JobsSystemInstance::Schedule([]()
+		JobsSystemInstance::BeginSubmition();
+		{
+			// Updates Scene Data
+			JobsSystemInstance::Schedule([]()
 				{
 					s_Data->p_Gbuffer.SubmitBuffer(s_Data->m_SceneDataBinding, sizeof(SceneData), s_Data->m_SceneData);
 				});
 
-				// Updates Lighting State
-				JobsSystemInstance::Schedule([]()
+			// Updates Lighting State
+			JobsSystemInstance::Schedule([]()
 				{
 					s_Data->p_Lighting.SubmitBuffer(s_Data->m_LightingStateBinding, sizeof(LightingProperties), &s_Data->m_State.Lighting);
 				});
 
-				// Updates FXAA State
-				JobsSystemInstance::Schedule([]()
+			// Updates FXAA State
+			JobsSystemInstance::Schedule([]()
 				{
 					float width = 1.0f / static_cast<float>(s_Data->f_Main->GetSpecification().Width);
 					float height = 1.0f / static_cast<float>(s_Data->f_Main->GetSpecification().Height);
@@ -219,14 +410,14 @@ namespace Frostium
 					s_Data->p_Combination.SubmitBuffer(s_Data->m_FXAAStateBinding, sizeof(FXAAProperties), &s_Data->m_State.FXAA);
 				});
 
-				// Updates Bloom State
-				JobsSystemInstance::Schedule([]()
+			// Updates Bloom State
+			JobsSystemInstance::Schedule([]()
 				{
 					s_Data->p_Lighting.SubmitBuffer(s_Data->m_BloomStateBinding, sizeof(BloomProperties), &s_Data->m_State.Bloom);
 				});
 
-				// Updates Directional Lights
-				JobsSystemInstance::Schedule([]()
+			// Updates Directional Lights
+			JobsSystemInstance::Schedule([]()
 				{
 					s_Data->p_Lighting.SubmitBuffer(s_Data->m_DirLightBinding, sizeof(DirectionalLight), &s_Data->m_DirLight);
 					if (s_Data->m_DirLight.IsCastShadows)
@@ -236,8 +427,8 @@ namespace Frostium
 					}
 				});
 
-				// Updates Point Lights
-				JobsSystemInstance::Schedule([]()
+			// Updates Point Lights
+			JobsSystemInstance::Schedule([]()
 				{
 					if (s_Data->m_PointLightIndex > 0)
 					{
@@ -246,18 +437,18 @@ namespace Frostium
 					}
 				});
 
-				// Updates Spot Lights
-				JobsSystemInstance::Schedule([]()
+			// Updates Spot Lights
+			JobsSystemInstance::Schedule([]()
 				{
 					if (s_Data->m_SpotLightIndex > 0)
 					{
 						s_Data->p_Lighting.SubmitBuffer(s_Data->m_SpotLightBinding,
 							sizeof(SpotLight) * s_Data->m_SpotLightIndex, s_Data->m_SpotLights.data());
-		            }
-			    });
+					}
+				});
 
-				// Updates Animation joints
-				JobsSystemInstance::Schedule([]()
+			// Updates Animation joints
+			JobsSystemInstance::Schedule([]()
 				{
 					if (s_Data->m_LastAnimationOffset > 0)
 					{
@@ -266,8 +457,8 @@ namespace Frostium
 					}
 				});
 
-				// Updates Batch Data
-				JobsSystemInstance::Schedule([]()
+			// Updates Batch Data
+			JobsSystemInstance::Schedule([]()
 				{
 					if (s_Data->m_InstanceDataIndex > 0)
 					{
@@ -276,197 +467,55 @@ namespace Frostium
 					}
 				});
 
-			}
-			JobsSystemInstance::EndSubmition();
+		}
+		JobsSystemInstance::EndSubmition();
 #else
-			// Updates Scene Data
-			s_Data->p_Gbuffer.SubmitBuffer(s_Data->m_SceneDataBinding, sizeof(SceneData), s_Data->m_SceneData);
-			// Updates Lighting State
-			s_Data->p_Lighting.SubmitBuffer(s_Data->m_LightingStateBinding, sizeof(LightingProperties), &s_Data->m_State.Lighting);
-			// Updates FXAA State
-			{
-				float width = 1.0f / static_cast<float>(s_Data->f_Main->GetSpecification().Width);
-				float height = 1.0f / static_cast<float>(s_Data->f_Main->GetSpecification().Height);
-				s_Data->m_State.FXAA.InverseScreenSize = glm::vec2(width, height);
-				s_Data->p_Combination.SubmitBuffer(s_Data->m_FXAAStateBinding, sizeof(FXAAProperties), &s_Data->m_State.FXAA);
-			}
+		// Updates Scene Data
+		s_Data->p_Gbuffer.SubmitBuffer(s_Data->m_SceneDataBinding, sizeof(SceneData), s_Data->m_SceneData);
+		// Updates Lighting State
+		s_Data->p_Lighting.SubmitBuffer(s_Data->m_LightingStateBinding, sizeof(LightingProperties), &s_Data->m_State.Lighting);
+		// Updates FXAA State
+		{
+			float width = 1.0f / static_cast<float>(s_Data->f_Main->GetSpecification().Width);
+			float height = 1.0f / static_cast<float>(s_Data->f_Main->GetSpecification().Height);
+			s_Data->m_State.FXAA.InverseScreenSize = glm::vec2(width, height);
+			s_Data->p_Combination.SubmitBuffer(s_Data->m_FXAAStateBinding, sizeof(FXAAProperties), &s_Data->m_State.FXAA);
+		}
 
-			// Updates Bloom State
-			s_Data->p_Lighting.SubmitBuffer(s_Data->m_BloomStateBinding, sizeof(BloomProperties), &s_Data->m_State.Bloom);
-			// Updates Directional Lights
-			s_Data->p_Lighting.SubmitBuffer(s_Data->m_DirLightBinding, sizeof(DirectionalLight), &s_Data->m_DirLight);
-			if (s_Data->m_DirLight.IsCastShadows)
-			{
-				// Calculate Depth
-				CalculateDepthMVP(s_Data->m_MainPushConstant.DepthMVP);
-			}
-			// Updates Point Lights
-			if (s_Data->m_PointLightIndex > 0)
-			{
-				s_Data->p_Lighting.SubmitBuffer(s_Data->m_PointLightBinding,
-					sizeof(PointLight) * s_Data->m_PointLightIndex, s_Data->m_PointLights.data());
-			}
-			// Updates Spot Lights
-			if (s_Data->m_SpotLightIndex > 0)
-			{
-				s_Data->p_Lighting.SubmitBuffer(s_Data->m_SpotLightBinding,
-					sizeof(SpotLight) * s_Data->m_SpotLightIndex, s_Data->m_SpotLights.data());
-			}
-			// Updates Animation joints
-			if (s_Data->m_LastAnimationOffset > 0)
-			{
-				s_Data->p_Gbuffer.SubmitBuffer(s_Data->m_AnimBinding,
-					sizeof(glm::mat4) * s_Data->m_LastAnimationOffset, s_Data->m_AnimationJoints.data());
-			}
-			// Updates Batch Data
-			if (s_Data->m_InstanceDataIndex > 0)
-			{
-				s_Data->p_Gbuffer.SubmitBuffer(s_Data->m_ShaderDataBinding,
-					sizeof(InstanceData) * s_Data->m_InstanceDataIndex, s_Data->m_InstancesData.data());
-			}
+		// Updates Bloom State
+		s_Data->p_Lighting.SubmitBuffer(s_Data->m_BloomStateBinding, sizeof(BloomProperties), &s_Data->m_State.Bloom);
+		// Updates Directional Lights
+		s_Data->p_Lighting.SubmitBuffer(s_Data->m_DirLightBinding, sizeof(DirectionalLight), &s_Data->m_DirLight);
+		if (s_Data->m_DirLight.IsCastShadows)
+		{
+			// Calculate Depth
+			CalculateDepthMVP(s_Data->m_MainPushConstant.DepthMVP);
+		}
+		// Updates Point Lights
+		if (s_Data->m_PointLightIndex > 0)
+		{
+			s_Data->p_Lighting.SubmitBuffer(s_Data->m_PointLightBinding,
+				sizeof(PointLight) * s_Data->m_PointLightIndex, s_Data->m_PointLights.data());
+		}
+		// Updates Spot Lights
+		if (s_Data->m_SpotLightIndex > 0)
+		{
+			s_Data->p_Lighting.SubmitBuffer(s_Data->m_SpotLightBinding,
+				sizeof(SpotLight) * s_Data->m_SpotLightIndex, s_Data->m_SpotLights.data());
+		}
+		// Updates Animation joints
+		if (s_Data->m_LastAnimationOffset > 0)
+		{
+			s_Data->p_Gbuffer.SubmitBuffer(s_Data->m_AnimBinding,
+				sizeof(glm::mat4) * s_Data->m_LastAnimationOffset, s_Data->m_AnimationJoints.data());
+		}
+		// Updates Batch Data
+		if (s_Data->m_InstanceDataIndex > 0)
+		{
+			s_Data->p_Gbuffer.SubmitBuffer(s_Data->m_ShaderDataBinding,
+				sizeof(InstanceData) * s_Data->m_InstanceDataIndex, s_Data->m_InstancesData.data());
+		}
 #endif
-		}
-
-		// Depth Pass
-		if (s_Data->m_DirLight.IsActive && s_Data->m_DirLight.IsCastShadows)
-		{
-#ifndef FROSTIUM_OPENGL_IMPL
-			VkCommandBuffer cmdBuffer = s_Data->p_DepthPass.GetVkCommandBuffer();
-#endif
-			s_Data->p_DepthPass.BeginRenderPass();
-			{
-#ifndef FROSTIUM_OPENGL_IMPL
-				// Set depth bias (aka "Polygon offset")
-				// Required to avoid shadow mapping artifacts
-				vkCmdSetDepthBias(cmdBuffer, 1.25f, 0.0f, 1.75f);
-#endif
-				struct PushConstant
-				{
-					glm::mat4 depthMVP;
-					uint32_t offset;
-
-				} static pc;
-
-				pc.depthMVP = s_Data->m_MainPushConstant.DepthMVP;
-				for (uint32_t i = 0; i < cmdCount; ++i)
-				{
-					auto& cmd = s_Data->m_DrawList[i];
-					pc.offset = cmd.Offset;
-
-					s_Data->p_DepthPass.SubmitPushConstant(ShaderType::Vertex, sizeof(PushConstant), &pc);
-					s_Data->p_DepthPass.DrawMeshIndexed(cmd.Mesh, cmd.InstancesCount);
-				}
-			}
-			s_Data->p_DepthPass.EndRenderPass();
-		}
-
-		// G-Buffer Pass
-		s_Data->p_Gbuffer.BeginRenderPass();
-		{
-			// SkyBox
-			if (s_Data->m_State.bDrawSkyBox)
-			{
-				uint32_t state = s_Data->m_EnvironmentMap->IsDynamic();
-				s_Data->p_Skybox.SubmitPushConstant(ShaderType::Fragment, sizeof(uint32_t), &state);
-				s_Data->p_Skybox.Draw(36);
-			}
-
-			// Grid
-			if (s_Data->m_State.bDrawGrid)
-			{
-				s_Data->p_Grid.BeginCommandBuffer(true);
-				s_Data->p_Grid.SubmitPushConstant(ShaderType::Vertex, sizeof(glm::mat4), &s_Data->m_GridModel);
-				s_Data->p_Grid.DrawMeshIndexed(&s_Data->m_PlaneMesh);
-			}
-
-			for (uint32_t i = 0; i < cmdCount; ++i)
-			{
-				auto& cmd = s_Data->m_DrawList[i];
-
-				s_Data->m_MainPushConstant.DataOffset = cmd.Offset;
-				s_Data->p_Gbuffer.SubmitPushConstant(ShaderType::Vertex, s_Data->m_PushConstantSize, &s_Data->m_MainPushConstant);
-				s_Data->p_Gbuffer.DrawMeshIndexed(cmd.Mesh, cmd.InstancesCount);
-			}
-		}
-		s_Data->p_Gbuffer.EndRenderPass();
-
-		// Debug View
-		if (s_Data->m_State.eDebugView != DebugViewFlags::None)
-		{
-			s_Data->p_Debug.BeginRenderPass();
-			{
-				uint32_t state = (uint32_t)s_Data->m_State.eDebugView;
-				s_Data->p_Debug.SubmitPushConstant(ShaderType::Fragment, sizeof(uint32_t), &state);
-				s_Data->p_Debug.Draw(3);
-			}
-			s_Data->p_Debug.EndRenderPass();
-
-			return;
-		}
-
-		// Lighting Pass
-		{
-			s_Data->p_Lighting.BeginRenderPass();
-			{
-				struct push_constant
-				{
-					uint32_t numPointLights;
-					uint32_t numSpotLights;
-				} pc;
-
-				pc.numPointLights = s_Data->m_PointLightIndex;
-				pc.numSpotLights = s_Data->m_SpotLightIndex;
-				s_Data->p_Lighting.SubmitPushConstant(ShaderType::Fragment, sizeof(push_constant), &pc);
-				s_Data->p_Lighting.Draw(3);
-			}
-			s_Data->p_Lighting.EndRenderPass();
-		}
-
-		// Post-Processing: FXAA, Bloom
-		{
-			// Bloom
-			{
-				if (s_Data->m_State.bBloom)
-				{
-					s_Data->p_Bloom.BeginRenderPass();
-					{
-						s_Data->p_Bloom.Draw(3);
-					}
-					s_Data->p_Bloom.EndRenderPass();
-				}
-			}
-
-			// FXAA + Composition
-			{
-				if (s_Data->m_DirtMask.Mask != nullptr)
-				{
-					s_Data->p_Combination.UpdateSampler(s_Data->m_DirtMask.Mask, 2);
-				}
-
-				s_Data->p_Combination.BeginRenderPass();
-				{
-					struct push_constant
-					{
-						uint32_t state;
-						uint32_t enabledFXAA;
-						uint32_t enabledMask;
-						float maskIntensity;
-						float maskBaseIntensity;
-					} pc;
-
-					// temp
-					pc.state = s_Data->m_State.bBloom ? 1: 0;
-					pc.enabledMask = s_Data->m_DirtMask.Mask != nullptr;
-					pc.enabledFXAA = s_Data->m_State.bFXAA;
-					pc.maskIntensity = s_Data->m_DirtMask.Intensity;
-					pc.maskBaseIntensity= s_Data->m_DirtMask.BaseIntensity;
-
-					s_Data->p_Combination.SubmitPushConstant(ShaderType::Fragment, sizeof(push_constant), &pc);
-					s_Data->p_Combination.Draw(3);
-				}
-				s_Data->p_Combination.EndRenderPass();
-			}
-		}
 	}
 
 	void DeferredRenderer::StartNewBacth()
@@ -478,7 +527,7 @@ namespace Frostium
 	void DeferredRenderer::SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation,
 		const glm::vec3& scale, Mesh* mesh, const uint32_t& materialID)
 	{
-		if (s_Data->m_Frustum->CheckSphere(pos, 10.0f) && mesh != nullptr)
+		if (s_Data->m_Frustum->CheckSphere(pos, s_Data->m_State.FrustumRadius) && mesh != nullptr)
 		{
 			AddMesh(pos, rotation, scale, mesh, materialID == 0 ? mesh->m_MaterialID: materialID);
 		}
@@ -486,7 +535,7 @@ namespace Frostium
 
 	void DeferredRenderer::SubmitMeshEx(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Mesh* mesh, const uint32_t& PBRmaterialID)
 	{
-		if (s_Data->m_Frustum->CheckSphere(pos, 10.0f) && mesh != nullptr)
+		if (s_Data->m_Frustum->CheckSphere(pos, s_Data->m_State.FrustumRadius) && mesh != nullptr)
 		{
 			if (s_Data->m_Objects >= max_objects)
 				StartNewBacth();
