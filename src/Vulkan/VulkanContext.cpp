@@ -148,8 +148,15 @@ namespace Frostium
 
 		// VK_IMAGE_LAYOUT_PRESENT_SRC_KHR for presenting it to the windowing system
 		VK_CHECK_RESULT(vkEndCommandBuffer(m_CurrentVkCmdBuffer));
+
 		// Submit to the graphics queue passing a wait fence
+#ifdef FROSTIUM_SMOLENGINE_IMPL
+		VulkanCommandBuffer::m_Mutex->lock();
 		VK_CHECK_RESULT(vkQueueSubmit(m_Device.GetQueue(), 1, &submitInfo, m_Semaphore.GetVkFences()[m_Swapchain.GetCurrentBufferIndex()]));
+		VulkanCommandBuffer::m_Mutex->unlock();
+#else
+		VK_CHECK_RESULT(vkQueueSubmit(m_Device.GetQueue(), 1, &submitInfo, m_Semaphore.GetVkFences()[m_Swapchain.GetCurrentBufferIndex()]));
+#endif
 		// Present the current buffer to the swap chain
 		// Pass the semaphore signaled by the command buffer submission from the submit info as the wait semaphore for swap chain presentation
 		// This ensures that the image is not presented to the windowing system until all commands have been submitted

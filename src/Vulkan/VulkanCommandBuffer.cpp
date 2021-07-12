@@ -12,14 +12,11 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
-#ifdef FROSTIUM_SMOLENGINE_IMPL
-	std::mutex* s_Mutex = nullptr;
-#endif
 
 	VulkanCommandBuffer::VulkanCommandBuffer()
 	{
 #ifdef FROSTIUM_SMOLENGINE_IMPL
-		s_Mutex = new std::mutex();
+		m_Mutex = new std::mutex();
 #endif
 	}
 
@@ -139,10 +136,9 @@ namespace Frostium
 			}
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
-			{
-				const std::lock_guard<std::mutex> lock(*s_Mutex);
-				VK_CHECK_RESULT(vkQueueSubmit(VulkanContext::GetDevice().GetQueue(), 1, &submitInfo, fence));
-			}
+			m_Mutex->lock();
+			VK_CHECK_RESULT(vkQueueSubmit(VulkanContext::GetDevice().GetQueue(), 1, &submitInfo, fence));
+			m_Mutex->unlock();
 
 			VK_CHECK_RESULT(vkWaitForFences(device, 1, &fence, VK_TRUE, time_out));
 			vkDestroyFence(device, fence, nullptr);

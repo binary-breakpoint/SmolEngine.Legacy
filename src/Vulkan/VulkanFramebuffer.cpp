@@ -80,10 +80,11 @@ namespace Frostium
 
 			attachments[lastImageViewIndex] = vkInfo.AttachmentVkInfo.view;
 
-			m_ClearValues[lastImageViewIndex].color = { { 0.0f, 0.0f, 0.0f, 1.0f} };
+			m_ClearValues[lastImageViewIndex].color = { { info.ClearColor.r,info.ClearColor.g, info.ClearColor.b, info.ClearColor.a } };
 			m_ClearAttachments[lastImageViewIndex].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			m_ClearAttachments[lastImageViewIndex].clearValue.color = { { 0.0f, 0.0f, 0.0f, 1.0f} };
+			m_ClearAttachments[lastImageViewIndex].clearValue = m_ClearValues[lastImageViewIndex];
 			m_ClearAttachments[lastImageViewIndex].colorAttachment = lastImageViewIndex;
+
 			if (!info.Name.empty())
 				m_AttachmentsMap[info.Name] = i;
 
@@ -119,9 +120,11 @@ namespace Frostium
 					resolve.ImGuiID = ImGui_ImplVulkan_AddTexture(resolve.ImageInfo);
 
 				attachments[lastImageViewIndex] = resolve.AttachmentVkInfo.view;
-				m_ClearValues[lastImageViewIndex].color = { { 0.0f, 0.0f, 0.0f, 1.0f} };
+
+				m_ClearValues[lastImageViewIndex].color = { { info.ClearColor.r,info.ClearColor.g, info.ClearColor.b, info.ClearColor.a } };
 				m_ClearAttachments[lastImageViewIndex].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-				m_ClearAttachments[lastImageViewIndex].clearValue.color = { { 0.1f, 0.1f, 0.1f, 1.0f} };
+				m_ClearAttachments[lastImageViewIndex].clearValue = m_ClearValues[lastImageViewIndex];
+
 				if (!info.Name.empty())
 					m_AttachmentsMap[info.Name + "_resolve"] = i;
 
@@ -131,9 +134,9 @@ namespace Frostium
 
 		if (m_Spec->bTargetsSwapchain)
 		{
-			m_ClearValues[lastImageViewIndex].color = { { 0.0f, 0.0f, 0.0f, 1.0f} };
+			m_ClearValues[lastImageViewIndex].color = { { 0.1f, 0.1f, 0.1f, 1.0f} };
 			m_ClearAttachments[lastImageViewIndex].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			m_ClearAttachments[lastImageViewIndex].clearValue.color = { { 0.1f, 0.1f, 0.1f, 1.0f} };
+			m_ClearAttachments[lastImageViewIndex].clearValue = m_ClearValues[lastImageViewIndex];
 		}
 
 		// Depth stencil attachment
