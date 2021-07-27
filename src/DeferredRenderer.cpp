@@ -646,6 +646,9 @@ namespace Frostium
 	{
 		s_Data->m_VulkanPBR = new VulkanPBR();
 		s_Data->m_EnvironmentMap = std::make_shared<EnvironmentMap>();
+		auto& config = s_Data->m_EnvironmentMap->GetDynamicSkyProperties();
+		config.SunPosition = glm::vec4(1, -11, 0, 0);
+		config.NumCirrusCloudsIterations = 0;
 
 		s_Data->m_EnvironmentMap->Initialize();
 		s_Data->m_EnvironmentMap->GenerateDynamic();

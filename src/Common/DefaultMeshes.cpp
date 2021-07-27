@@ -7,29 +7,16 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
-	DefaultMeshes::~DefaultMeshes()
+	SmolEngine::DefaultMeshes::DefaultMeshes(const std::string& root)
 	{
-		if (Cube != nullptr)
-		{
-			delete Cube, Sphere, Capsule, Torus;
+		Cube = std::make_shared<Mesh>();
+		Sphere = std::make_shared<Mesh>();
+		Capsule = std::make_shared<Mesh>();
+		Torus = std::make_shared<Mesh>();
 
-			Cube = nullptr;
-			Sphere = nullptr;
-			Capsule = nullptr;
-			Torus = nullptr;
-		}
-	}
-
-	void DefaultMeshes::Init(const std::string& root)
-	{
-		Cube = new Mesh();
-		Sphere = new Mesh();
-		Capsule = new Mesh();
-		Torus = new Mesh();
-
-		Mesh::Create(root + "Models/cube.gltf", Cube);
-		Mesh::Create(root + "Models/sphere.gltf", Sphere);
-		Mesh::Create(root + "Models/capsule.gltf", Capsule);
-		Mesh::Create(root + "Models/torus.gltf", Torus);
+		Mesh::Create(root + "Models/cube.gltf", Cube.get());
+		Mesh::Create(root + "Models/sphere.gltf", Sphere.get());
+		Mesh::Create(root + "Models/capsule.gltf", Capsule.get());
+		Mesh::Create(root + "Models/torus.gltf", Torus.get());
 	}
 }

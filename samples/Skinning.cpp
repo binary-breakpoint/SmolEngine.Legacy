@@ -129,6 +129,9 @@ int main(int argc, char** argv)
 		}
 	}
 
+	DynamicSkyProperties sky;
+	DeferredRenderer::SetDynamicSkyboxProperties(sky);
+
 	DeferredRenderer::UpdateMaterials();
 	plane.SetMaterialID(planeMat, true);
 

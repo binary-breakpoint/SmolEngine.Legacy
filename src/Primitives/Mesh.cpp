@@ -38,6 +38,8 @@ namespace Frostium
                     obj->m_Name = primitve->MeshName;
                     obj->m_ID = static_cast<uint32_t>(hasher(filePath));
                     Init(obj, nullptr,  primitve);
+
+                    obj->m_Scene.emplace_back(obj);
                 }
 
                 // Children
@@ -49,7 +51,9 @@ namespace Frostium
                     Primitive* primitve = &data->Primitives[i + 1];
                     mesh->m_AABB = primitve->AABB;
                     mesh->m_Name = primitve->MeshName;
+
                     Init(mesh, obj, primitve);
+                    obj->m_Scene.emplace_back(mesh);
                 }
             }
 
@@ -77,6 +81,11 @@ namespace Frostium
     {
         if (m_ImportedData->Animations.size() > 0)
             m_ImportedData->UpdateAnimation();
+    }
+
+    std::vector<Mesh*>& Mesh::GetScene()
+    {
+        return m_Scene;
     }
 
     std::vector<Mesh>& Mesh::GetChilds()

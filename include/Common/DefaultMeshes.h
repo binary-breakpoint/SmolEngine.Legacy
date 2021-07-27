@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Common/Core.h"
 #include "Primitives/Mesh.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
@@ -11,17 +12,14 @@ namespace Frostium
 	class DefaultMeshes
 	{
 	public:
-		~DefaultMeshes();
+		DefaultMeshes(const std::string& root);
 
-		Mesh* Cube = nullptr;
-		Mesh* Sphere = nullptr;
-		Mesh* Capsule = nullptr;
-		Mesh* Torus = nullptr;
+		Ref<Mesh> Cube = nullptr;
+		Ref<Mesh> Sphere = nullptr;
+		Ref<Mesh> Capsule = nullptr;
+		Ref<Mesh> Torus = nullptr;
 
 	private:
-
-		void Init(const std::string& root);
-
 		friend class GraphicsContext;
 	};
 }

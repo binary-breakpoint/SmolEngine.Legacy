@@ -76,8 +76,7 @@ namespace Frostium
 			m_ImGuiContext->Init(info);
 		}
 
-		m_DefaultMeshes = new DefaultMeshes();
-		m_DefaultMeshes->Init(info->ResourcesFolderPath);
+		m_DefaultMeshes = new DefaultMeshes(info->ResourcesFolderPath);
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 		m_JobsSystem = new JobsSystemInstance();

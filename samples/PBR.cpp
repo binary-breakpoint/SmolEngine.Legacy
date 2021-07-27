@@ -64,7 +64,7 @@ int main(int argc, char** argv)
 	context = new GraphicsContext(&info);
 
 	ClearInfo clearInfo = {};
-	Mesh* cube = context->GetDefaultMeshes()->Cube;
+	auto cube = context->GetDefaultMeshes()->Cube;
 	bool process = true;
 
 	context->SetEventCallback([&](Event& e) 
@@ -84,6 +84,9 @@ int main(int argc, char** argv)
 	state.bBloom = true;
 	state.bDrawGrid = false;
 	DeferredRenderer::SetRendererState(&state);
+
+	DynamicSkyProperties sky;
+	DeferredRenderer::SetDynamicSkyboxProperties(sky);
 
 	DirectionalLight dirLight = {};
 	dirLight.IsActive = true;
@@ -133,7 +136,7 @@ int main(int argc, char** argv)
 			DeferredRenderer::BeginScene(&clearInfo);
 			{
 				for (const auto& c : chunks)
-					DeferredRenderer::SubmitMesh(c.Pos, c.Rot, c.Scale, cube, c.MaterialID);
+					DeferredRenderer::SubmitMesh(c.Pos, c.Rot, c.Scale, cube.get(), c.MaterialID);
 
 				objects = DeferredRenderer::GetNumObjects();
 			}

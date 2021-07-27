@@ -31,7 +31,8 @@ namespace Frostium
 		// Setters
 		void                  SetMaterialID(int32_t materialID, bool apply_to_children = false);
 		void                  SetActiveAnimation(uint32_t index);
-		// Getters			  
+		// Getters		
+		std::vector<Mesh*>&   GetScene();
 		std::vector<Mesh>&    GetChilds();
 		BoundingBox&          GetAABB();
 		uint32_t              GetVertexCount() const;
@@ -52,13 +53,13 @@ namespace Frostium
 		void                  ResetAnimation(uint32_t index);
 		// Factory			  
 		static void           Create(const std::string& filePath, Mesh* mesh);
-							  
-	private:				  
+
+	private:
 		static bool           Init(Mesh* mesh, Mesh* parent, Primitive* primitive);
 		void                  UpdateAnimations();
 
 	private:
-		Mesh*                 m_Root = nullptr;
+		Mesh* m_Root = nullptr;
 		Ref<VertexBuffer>     m_VertexBuffer = nullptr;
 		Ref<IndexBuffer>      m_IndexBuffer = nullptr;
 		Ref<ImportedDataGlTF> m_ImportedData = nullptr;
@@ -69,6 +70,7 @@ namespace Frostium
 		std::string           m_Name = "";
 		BoundingBox           m_AABB = {};
 		std::vector<Mesh>     m_Childs;
+		std::vector<Mesh*>    m_Scene;
 
 	private:
 		friend class DeferredRenderer;
