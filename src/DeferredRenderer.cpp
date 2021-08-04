@@ -76,33 +76,38 @@ namespace Frostium
 		Flush();
 	}
 
-	void DeferredRenderer::DrawOffscreen(Framebuffer* fb, BeginSceneInfo* info)
+	void DeferredRenderer::DrawOffscreen(Framebuffer* fb, BeginSceneInfo* info, RendererStateEX* state)
 	{
 		SceneData oldScene = *s_Data->m_SceneData;
+		RendererStateEX oldState = s_Data->m_State;
 		CommandBufferStorage cmdStorage = {};
 		VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
-		s_Data->p_Combination.SetFramebuffers({ fb });
+		{
+			s_Data->p_Combination.SetFramebuffers({ fb });
+			// Update
+			{
+				s_Data->p_Gbuffer.SetCommandBuffer(cmdStorage.Buffer);
+				s_Data->p_Lighting.SetCommandBuffer(cmdStorage.Buffer);
+				s_Data->p_Combination.SetCommandBuffer(cmdStorage.Buffer);
+				s_Data->p_Skybox.SetCommandBuffer(cmdStorage.Buffer);
+				s_Data->p_DepthPass.SetCommandBuffer(cmdStorage.Buffer);
+				s_Data->p_Bloom.SetCommandBuffer(cmdStorage.Buffer);
+				s_Data->p_Debug.SetCommandBuffer(cmdStorage.Buffer);
+				s_Data->p_Grid.SetCommandBuffer(cmdStorage.Buffer);
 
-		s_Data->p_Gbuffer.SetCommandBuffer(cmdStorage.Buffer);
-		s_Data->p_Lighting.SetCommandBuffer(cmdStorage.Buffer);
-		s_Data->p_Combination.SetCommandBuffer(cmdStorage.Buffer);
-		s_Data->p_Skybox.SetCommandBuffer(cmdStorage.Buffer);
-		s_Data->p_DepthPass.SetCommandBuffer(cmdStorage.Buffer);
-		s_Data->p_Bloom.SetCommandBuffer(cmdStorage.Buffer);
-		s_Data->p_Debug.SetCommandBuffer(cmdStorage.Buffer);
-		s_Data->p_Grid.SetCommandBuffer(cmdStorage.Buffer);
+				s_Data->m_State = *state;
+				s_Data->m_SceneData->View = info->View;
+				s_Data->m_SceneData->Projection = info->Proj;
+				s_Data->m_SceneData->CamPos = glm::vec4(info->Pos, 1);
+				s_Data->m_SceneData->SkyBoxMatrix = glm::mat4(glm::mat3(info->View));
+				s_Data->m_SceneData->NearClip = info->NearClip;
+				s_Data->m_SceneData->FarClip = info->FarClip;
+				s_Data->m_Frustum->Update(s_Data->m_SceneData->Projection * s_Data->m_SceneData->View);
+			}
 
-		s_Data->m_SceneData->View = info->View;
-		s_Data->m_SceneData->Projection = info->Proj;
-		s_Data->m_SceneData->CamPos = glm::vec4(info->Pos, 1);
-		s_Data->m_SceneData->SkyBoxMatrix = glm::mat4(glm::mat3(info->View));
-		s_Data->m_SceneData->NearClip = info->NearClip;
-		s_Data->m_SceneData->FarClip = info->FarClip;
-		s_Data->m_Frustum->Update(s_Data->m_SceneData->Projection * s_Data->m_SceneData->View);
-		s_Data->p_Gbuffer.SubmitBuffer(s_Data->m_SceneDataBinding, sizeof(SceneData), s_Data->m_SceneData);
-
-		// Submit work
-		Render();
+			UpdateUniforms();
+			Render();
+		}
 		VulkanCommandBuffer::ExecuteCommandBuffer(&cmdStorage);
 
 		// Reset
@@ -118,8 +123,10 @@ namespace Frostium
 		s_Data->p_Combination.SetFramebuffers({ GraphicsContext::GetSingleton()->GetFramebuffer() });
 
 		*s_Data->m_SceneData = oldScene;
+		s_Data->m_State = oldState;
+
 		s_Data->m_Frustum->Update(s_Data->m_SceneData->Projection * s_Data->m_SceneData->View);
-		s_Data->p_Gbuffer.SubmitBuffer(s_Data->m_SceneDataBinding, sizeof(SceneData), s_Data->m_SceneData);
+		UpdateUniforms();
 	}
 
 	void DeferredRenderer::Flush()
@@ -391,81 +398,81 @@ namespace Frostium
 		{
 			// Updates Scene Data
 			JobsSystemInstance::Schedule([]()
-				{
-					s_Data->p_Gbuffer.SubmitBuffer(s_Data->m_SceneDataBinding, sizeof(SceneData), s_Data->m_SceneData);
-				});
+			{
+				s_Data->p_Gbuffer.SubmitBuffer(s_Data->m_SceneDataBinding, sizeof(SceneData), s_Data->m_SceneData);
+			});
 
 			// Updates Lighting State
 			JobsSystemInstance::Schedule([]()
-				{
-					s_Data->p_Lighting.SubmitBuffer(s_Data->m_LightingStateBinding, sizeof(LightingProperties), &s_Data->m_State.Lighting);
-				});
+			{
+				s_Data->p_Lighting.SubmitBuffer(s_Data->m_LightingStateBinding, sizeof(IBLProperties), &s_Data->m_State.IBL);
+			});
 
 			// Updates FXAA State
 			JobsSystemInstance::Schedule([]()
-				{
-					float width = 1.0f / static_cast<float>(s_Data->f_Main->GetSpecification().Width);
-					float height = 1.0f / static_cast<float>(s_Data->f_Main->GetSpecification().Height);
-					s_Data->m_State.FXAA.InverseScreenSize = glm::vec2(width, height);
-					s_Data->p_Combination.SubmitBuffer(s_Data->m_FXAAStateBinding, sizeof(FXAAProperties), &s_Data->m_State.FXAA);
-				});
+			{
+				float width = 1.0f / static_cast<float>(s_Data->f_Main->GetSpecification().Width);
+				float height = 1.0f / static_cast<float>(s_Data->f_Main->GetSpecification().Height);
+				s_Data->m_State.FXAA.InverseScreenSize = glm::vec2(width, height);
+				s_Data->p_Combination.SubmitBuffer(s_Data->m_FXAAStateBinding, sizeof(FXAAProperties), &s_Data->m_State.FXAA);
+			});
 
 			// Updates Bloom State
 			JobsSystemInstance::Schedule([]()
-				{
-					s_Data->p_Lighting.SubmitBuffer(s_Data->m_BloomStateBinding, sizeof(BloomProperties), &s_Data->m_State.Bloom);
-				});
+			{
+				s_Data->p_Lighting.SubmitBuffer(s_Data->m_BloomStateBinding, sizeof(BloomProperties), &s_Data->m_State.Bloom);
+			});
 
 			// Updates Directional Lights
 			JobsSystemInstance::Schedule([]()
+			{
+				s_Data->p_Lighting.SubmitBuffer(s_Data->m_DirLightBinding, sizeof(DirectionalLight), &s_Data->m_DirLight);
+				if (s_Data->m_DirLight.IsCastShadows)
 				{
-					s_Data->p_Lighting.SubmitBuffer(s_Data->m_DirLightBinding, sizeof(DirectionalLight), &s_Data->m_DirLight);
-					if (s_Data->m_DirLight.IsCastShadows)
-					{
-						// Calculate Depth
-						CalculateDepthMVP(s_Data->m_MainPushConstant.DepthMVP);
-					}
-				});
+					// Calculate Depth
+					CalculateDepthMVP(s_Data->m_MainPushConstant.DepthMVP);
+				}
+			});
 
 			// Updates Point Lights
 			JobsSystemInstance::Schedule([]()
+			{
+				if (s_Data->m_PointLightIndex > 0)
 				{
-					if (s_Data->m_PointLightIndex > 0)
-					{
-						s_Data->p_Lighting.SubmitBuffer(s_Data->m_PointLightBinding,
-							sizeof(PointLight) * s_Data->m_PointLightIndex, s_Data->m_PointLights.data());
-					}
-				});
+					s_Data->p_Lighting.SubmitBuffer(s_Data->m_PointLightBinding,
+						sizeof(PointLight) * s_Data->m_PointLightIndex, s_Data->m_PointLights.data());
+				}
+			});
 
 			// Updates Spot Lights
 			JobsSystemInstance::Schedule([]()
+			{
+				if (s_Data->m_SpotLightIndex > 0)
 				{
-					if (s_Data->m_SpotLightIndex > 0)
-					{
-						s_Data->p_Lighting.SubmitBuffer(s_Data->m_SpotLightBinding,
-							sizeof(SpotLight) * s_Data->m_SpotLightIndex, s_Data->m_SpotLights.data());
-					}
-				});
+					s_Data->p_Lighting.SubmitBuffer(s_Data->m_SpotLightBinding,
+						sizeof(SpotLight) * s_Data->m_SpotLightIndex, s_Data->m_SpotLights.data());
+				}
+			});
 
 			// Updates Animation joints
 			JobsSystemInstance::Schedule([]()
+			{
+				if (s_Data->m_LastAnimationOffset > 0)
 				{
-					if (s_Data->m_LastAnimationOffset > 0)
-					{
-						s_Data->p_Gbuffer.SubmitBuffer(s_Data->m_AnimBinding,
-							sizeof(glm::mat4) * s_Data->m_LastAnimationOffset, s_Data->m_AnimationJoints.data());
-					}
-				});
+					s_Data->p_Gbuffer.SubmitBuffer(s_Data->m_AnimBinding,
+						sizeof(glm::mat4) * s_Data->m_LastAnimationOffset, s_Data->m_AnimationJoints.data());
+				}
+			});
 
 			// Updates Batch Data
 			JobsSystemInstance::Schedule([]()
+			{
+				if (s_Data->m_InstanceDataIndex > 0)
 				{
-					if (s_Data->m_InstanceDataIndex > 0)
-					{
-						s_Data->p_Gbuffer.SubmitBuffer(s_Data->m_ShaderDataBinding,
-							sizeof(InstanceData) * s_Data->m_InstanceDataIndex, s_Data->m_InstancesData.data());
-					}
-				});
+					s_Data->p_Gbuffer.SubmitBuffer(s_Data->m_ShaderDataBinding,
+						sizeof(InstanceData) * s_Data->m_InstanceDataIndex, s_Data->m_InstancesData.data());
+				}
+			});
 
 		}
 		JobsSystemInstance::EndSubmition();
@@ -473,7 +480,7 @@ namespace Frostium
 		// Updates Scene Data
 		s_Data->p_Gbuffer.SubmitBuffer(s_Data->m_SceneDataBinding, sizeof(SceneData), s_Data->m_SceneData);
 		// Updates Lighting State
-		s_Data->p_Lighting.SubmitBuffer(s_Data->m_LightingStateBinding, sizeof(LightingProperties), &s_Data->m_State.Lighting);
+		s_Data->p_Lighting.SubmitBuffer(s_Data->m_LightingStateBinding, sizeof(IBLProperties), &s_Data->m_State.IBL);
 		// Updates FXAA State
 		{
 			float width = 1.0f / static_cast<float>(s_Data->f_Main->GetSpecification().Width);
@@ -591,14 +598,6 @@ namespace Frostium
 		s_Data->m_SpotLightIndex++;
 	}
 
-	void DeferredRenderer::SetRendererState(RendererState* state)
-	{
-		assert(state != nullptr);
-
-		s_Data->m_State = *state;
-		s_Data->m_State.Lighting.UseIBL  = state->bIBL;
-	}
-
 	void DeferredRenderer::SetDirtMask(Texture* mask, float intensity, float baseIntensity)
 	{
 		s_Data->m_DirtMask.Mask = mask;
@@ -640,6 +639,52 @@ namespace Frostium
 		}
 		else
 			s_Data->m_EnvironmentMap->UpdateDescriptors();
+	}
+
+	void DeferredRenderer::SetDebugView(DebugViewFlags flag)
+	{
+		s_Data->m_State.eDebugView = flag;
+	}
+
+	void DeferredRenderer::SetGridActive(bool active)
+	{
+		s_Data->m_State.bDrawGrid = active;
+	}
+
+	void DeferredRenderer::SetBloomActive(bool active)
+	{
+		s_Data->m_State.bBloom = active;
+	}
+
+	void DeferredRenderer::SetFxaaActive(bool active)
+	{
+		s_Data->m_State.bFXAA = active;
+	}
+
+	void DeferredRenderer::SetIblActive(bool active)
+	{
+		s_Data->m_State.bIBL = active;
+		s_Data->m_State.IBL.UseIBL = active;
+	}
+
+	void DeferredRenderer::SetFrustumRadius(float radius)
+	{
+		s_Data->m_State.FrustumRadius = radius;
+	}
+
+	void DeferredRenderer::SetIBLProperties(IBLProperties& properties)
+	{
+		s_Data->m_State.IBL = properties;
+	}
+
+	void DeferredRenderer::SetBloomProperties(BloomProperties& properties)
+	{
+		s_Data->m_State.Bloom = properties;
+	}
+
+	void DeferredRenderer::SetFxaaProperties(FXAAProperties& properties)
+	{
+		s_Data->m_State.FXAA = properties;
 	}
 
 	void DeferredRenderer::InitPBR()
@@ -1389,6 +1434,11 @@ namespace Frostium
 			s_Data->m_IsInitialized = false;
 	}
 
+	RendererStateEX& DeferredRenderer::GetState()
+	{
+		return s_Data->m_State;
+	}
+
 	Framebuffer* DeferredRenderer::GetFramebuffer()
 	{
 		return s_Data->f_Main;
@@ -1398,5 +1448,4 @@ namespace Frostium
 	{
 		return s_Data->m_Objects;
 	}
-
 }

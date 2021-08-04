@@ -87,7 +87,7 @@ namespace Frostium
 		glm::mat4      ModelView = glm::mat4(1.0f);
 	};
 
-	struct LightingProperties
+	struct IBLProperties
 	{
 		glm::vec4   AmbientColor = glm::vec4(1.0f);
 		float       IBLStrength = 1.0f;
@@ -148,7 +148,7 @@ namespace Frostium
 		AO
 	};
 
-	struct RendererState
+	struct RendererStateEX
 	{
 		bool                   bDrawSkyBox = true;
 		bool                   bDrawGrid = true;
@@ -157,7 +157,7 @@ namespace Frostium
 		bool                   bIBL = true;
 		float                  FrustumRadius = 20.0f;
 		DebugViewFlags         eDebugView = DebugViewFlags::None;
-		LightingProperties     Lighting = {};
+		IBLProperties          IBL = {};
 		BloomProperties        Bloom = {};
 		FXAAProperties         FXAA = {};
 	};
@@ -230,7 +230,7 @@ namespace Frostium
 		//Meshes						           
 		Mesh                                       m_PlaneMesh = {};
 		// Buffers
-		RendererState                              m_State{};
+		RendererStateEX                            m_State{};
 		DirectionalLight                           m_DirLight{};
 		std::vector<Mesh*>                         m_UsedMeshes;
 		std::vector<CommandBuffer>                 m_DrawList;

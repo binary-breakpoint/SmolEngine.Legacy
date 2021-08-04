@@ -77,9 +77,9 @@ namespace Frostium
 		Compute   = 4,
 		Geometry  = 8,
 
-		RayGen    = 10,
-		RayMiss   = 20,
-		RayHit    = 40,
+		RayGen    = 16,
+		RayMiss   = 32,
+		RayHit    = 64,
 	};
 
 	inline ShaderType operator~ (ShaderType a) { return (ShaderType)~(int)a; }

@@ -58,7 +58,7 @@ int main(int argc, char** argv)
 	float animSpeed = 1.0f;
 	float lightIntensity = 1.0f;
 
-	RendererState state = {};
+	RendererStateEX& state = DeferredRenderer::GetState();
 
 	DirectionalLight dirLight = {};
 	dirLight.IsActive = true;
@@ -162,44 +162,19 @@ int main(int argc, char** argv)
 				if (ImGui::Combo("##FF", &debug_val, "None\0Albedro\0Position\0Normals\0Materials\0Emission\0ShadowMap\0ShadowMapCood\0AO\0"))
 				{
 					state.eDebugView = (DebugViewFlags)debug_val;
-					DeferredRenderer::SetRendererState(&state);
 				}
 
-				if (ImGui::Checkbox("Grid", &state.bDrawGrid))
-					DeferredRenderer::SetRendererState(&state);
-
-				if (ImGui::Checkbox("Skybox", &state.bDrawSkyBox))
-					DeferredRenderer::SetRendererState(&state);
-
-				if (ImGui::Checkbox("Bloom", &state.bBloom))
-					DeferredRenderer::SetRendererState(&state);
-
-
-				if (ImGui::Checkbox("IBL", &state.bIBL))
-				{
-					DeferredRenderer::SetRendererState(&state);
-				}
-
-				if (ImGui::Checkbox("FXAA", &state.bFXAA))
-					DeferredRenderer::SetRendererState(&state);
-
-				if (ImGui::InputFloat("Exposure", &state.Bloom.Exposure))
-					DeferredRenderer::SetRendererState(&state);
-
-				if (ImGui::InputFloat("Threshold", &state.Bloom.Threshold))
-					DeferredRenderer::SetRendererState(&state);
-
-				if (ImGui::InputFloat("Strength", &state.Bloom.Strength))
-					DeferredRenderer::SetRendererState(&state);
-
-				if (ImGui::InputFloat("Scale", &state.Bloom.Scale))
-					DeferredRenderer::SetRendererState(&state);
-
+				ImGui::Checkbox("Grid", &state.bDrawGrid);
+				ImGui::Checkbox("Skybox", &state.bDrawSkyBox);
+				ImGui::Checkbox("Bloom", &state.bBloom);
+				ImGui::Checkbox("IBL", &state.bIBL);
+				ImGui::Checkbox("FXAA", &state.bFXAA);
+				ImGui::InputFloat("Exposure", &state.Bloom.Exposure);
+				ImGui::InputFloat("Threshold", &state.Bloom.Threshold);
+				ImGui::InputFloat("Strength", &state.Bloom.Strength);
+				ImGui::InputFloat("Scale", &state.Bloom.Scale);
 				ImGui::Checkbox("Debug Draw", &debug);
-
-				if (ImGui::DragFloat4("LightDir", glm::value_ptr(dirLight.Direction)))
-				{
-				}
+				ImGui::DragFloat4("LightDir", glm::value_ptr(dirLight.Direction));
 
 				if (ImGui::Checkbox("Play", &playAnim))
 				{

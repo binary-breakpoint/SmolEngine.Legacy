@@ -7,7 +7,7 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
-	SmolEngine::DefaultMeshes::DefaultMeshes(const std::string& root)
+	DefaultMeshes::DefaultMeshes(const std::string& root)
 	{
 		Cube = std::make_shared<Mesh>();
 		Sphere = std::make_shared<Mesh>();

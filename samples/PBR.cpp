@@ -79,11 +79,10 @@ int main(int argc, char** argv)
 	GenerateMap(chunks, materialIDs);
 
 
-	RendererState state = {};
+	RendererStateEX& state = DeferredRenderer::GetState();
 	state.Bloom.Strength = 0.2f;
 	state.bBloom = true;
 	state.bDrawGrid = false;
-	DeferredRenderer::SetRendererState(&state);
 
 	DynamicSkyProperties sky;
 	DeferredRenderer::SetDynamicSkyboxProperties(sky);
