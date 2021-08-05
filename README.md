@@ -14,10 +14,11 @@ Screenshots
   - IBL, Point/Spot/Directional Lighting
   - Basic Shadow Mapping
   - 2D/3D/Debug renderers
-  - ImGUI Integration
-  - Text Rendering (SDF)
-  - glTF 2.0
   - Skeleton Animations
+  - Text Rendering (SDF)
+  - ImGUI Integration
+  - glTF 2.0
+  - Multithreading
 
 ## Features to come
 

@@ -14,9 +14,7 @@
 #include "Primitives/CubeMap.h"
 #include "Primitives/Shader.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 #include "Multithreading/JobsSystemInstance.h"
-#endif
 
 #include <glm/glm.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
@@ -1666,7 +1664,6 @@ namespace Frostium
 		Free();
 		VulkanTexture* vulkanTex = environment_map->GetTexture()->GetVulkanTexture();
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 		JobsSystemInstance::BeginSubmition();
 		{
 			if (m_BRDFLUT.Image == nullptr)
@@ -1678,29 +1675,18 @@ namespace Frostium
 			}
 
 			JobsSystemInstance::Schedule([&, this]()
-				{
-					GenerateIrradianceCube(m_Irradiance.Image, m_Irradiance.ImageView, m_Irradiance.Sampler,
-						m_Irradiance.DeviceMemory, vulkanTex, m_IrradianceImageInfo);
-				});
+			{
+				GenerateIrradianceCube(m_Irradiance.Image, m_Irradiance.ImageView, m_Irradiance.Sampler,
+					m_Irradiance.DeviceMemory, vulkanTex, m_IrradianceImageInfo);
+			});
 
 			JobsSystemInstance::Schedule([&, this]()
-				{
-					GeneratePrefilteredCube(m_PrefilteredCube.Image, m_PrefilteredCube.ImageView,
-						m_PrefilteredCube.Sampler, m_PrefilteredCube.DeviceMemory, vulkanTex, m_PrefilteredCubeImageInfo);
-				});
+			{
+				GeneratePrefilteredCube(m_PrefilteredCube.Image, m_PrefilteredCube.ImageView,
+					m_PrefilteredCube.Sampler, m_PrefilteredCube.DeviceMemory, vulkanTex, m_PrefilteredCubeImageInfo);
+			});
 		}
 		JobsSystemInstance::EndSubmition();
-#else
-
-		if (m_BRDFLUT.Image == nullptr)
-		{
-			GenerateBRDFLUT(m_BRDFLUT.Image, m_BRDFLUT.ImageView, m_BRDFLUT.Sampler, m_BRDFLUT.DeviceMemory, m_BRDFLUTImageInfo);
-		}
-		GenerateIrradianceCube(m_Irradiance.Image, m_Irradiance.ImageView, m_Irradiance.Sampler,
-			m_Irradiance.DeviceMemory, vulkanTex, m_IrradianceImageInfo);
-		GeneratePrefilteredCube(m_PrefilteredCube.Image, m_PrefilteredCube.ImageView,
-			m_PrefilteredCube.Sampler, m_PrefilteredCube.DeviceMemory, vulkanTex, m_PrefilteredCubeImageInfo);
-#endif
 	}
 
 	void VulkanPBR::Free()

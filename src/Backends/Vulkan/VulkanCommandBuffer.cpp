@@ -12,18 +12,14 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
-
 	VulkanCommandBuffer::VulkanCommandBuffer()
 	{
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 		m_Mutex = new std::mutex();
-#endif
 	}
 
 	bool VulkanCommandBuffer::Init(VulkanDevice* device)
 	{
 		m_Device = device;
-
 		return Create();
 	}
 
@@ -83,8 +79,6 @@ namespace Frostium
 		if (data)
 		{
 			VkDevice device = VulkanContext::GetDevice().GetLogicalDevice();
-
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 			VkCommandPoolCreateInfo poolInfo = {};
 			{
 				poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -92,9 +86,6 @@ namespace Frostium
 				poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 				VK_CHECK_RESULT(vkCreateCommandPool(device, &poolInfo, nullptr, &data->Pool));
 			}
-#else
-			data->Pool = VulkanContext::GetCommandBuffer().m_CommandPool;
-#endif
 
 			VkCommandBufferAllocateInfo allocInfo = {};
 			allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -135,21 +126,15 @@ namespace Frostium
 				VK_CHECK_RESULT(vkCreateFence(device, &fenceCI, nullptr, &fence));
 			}
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
-			m_Mutex->lock();
-			VK_CHECK_RESULT(vkQueueSubmit(VulkanContext::GetDevice().GetQueue(), 1, &submitInfo, fence));
-			m_Mutex->unlock();
+			{
+				std::lock_guard<std::mutex> lock(*m_Mutex);
+				VK_CHECK_RESULT(vkQueueSubmit(VulkanContext::GetDevice().GetQueue(), 1, &submitInfo, fence));
+			}
 
 			VK_CHECK_RESULT(vkWaitForFences(device, 1, &fence, VK_TRUE, time_out));
 			vkDestroyFence(device, fence, nullptr);
 			vkFreeCommandBuffers(device, data->Pool, 1, &data->Buffer);
 			vkDestroyCommandPool(device, data->Pool, nullptr);
-#else
-			VK_CHECK_RESULT(vkQueueSubmit(VulkanContext::GetDevice().GetQueue(), 1, &submitInfo, fence));
-			VK_CHECK_RESULT(vkWaitForFences(device, 1, &fence, VK_TRUE, time_out));
-			vkDestroyFence(device, fence, nullptr);
-			vkFreeCommandBuffers(device, data->Pool, 1, &data->Buffer);
-#endif
 		}
 	}
 

@@ -3,16 +3,11 @@
 #include "Common/SLog.h"
 
 #include <filesystem>
-#include <mutex>
 #include <cereal/cereal.hpp>
 #include <cereal/types/vector.hpp>
 #include <cereal/archives/json.hpp>
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
-std::mutex* s_Mutex = nullptr;
 #include "Multithreading/JobsSystemInstance.h"
-
-#endif
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
@@ -21,23 +16,16 @@ namespace Frostium
 #endif
 {
 	const uint32_t maxTextures = 4096;
-	MaterialLibrary* MaterialLibrary::s_Instance = nullptr;
 
 	MaterialLibrary::MaterialLibrary()
 	{
 		s_Instance = this;
-#ifdef FROSTIUM_SMOLENGINE_IMPL
-		s_Mutex = new std::mutex();
-#endif
 		m_Textures.resize(maxTextures);
 	}
 
 	MaterialLibrary::~MaterialLibrary()
 	{
 		s_Instance = nullptr;
-#ifdef FROSTIUM_SMOLENGINE_IMPL
-		delete s_Mutex;
-#endif
 	}
 
 	uint32_t MaterialLibrary::Add(MaterialCreateInfo* infoCI, const std::string& name)
@@ -54,38 +42,26 @@ namespace Frostium
 		}
 
 		PBRMaterial newMaterial = {};
+		newMaterial.AlbedroTexIndex = AddTexture(&infoCI->AlbedroTex, newMaterial.UseAlbedroTex);
+		newMaterial.NormalTexIndex = AddTexture(&infoCI->NormalTex, newMaterial.UseNormalTex);
+		newMaterial.MetallicTexIndex = AddTexture(&infoCI->MetallnessTex, newMaterial.UseMetallicTex);
+		newMaterial.RoughnessTexIndex = AddTexture(&infoCI->RoughnessTex, newMaterial.UseRoughnessTex);
+		newMaterial.AOTexIndex = AddTexture(&infoCI->AOTex, newMaterial.UseAOTex);
+		newMaterial.EmissiveTexIndex = AddTexture(&infoCI->EmissiveTex, newMaterial.UseEmissiveTex);
+		newMaterial.Metalness = infoCI->Metallness;
+		newMaterial.Roughness = infoCI->Roughness;
+		newMaterial.EmissionStrength = infoCI->EmissionStrength;
+		newMaterial.Albedro = glm::vec4(infoCI->AlbedroColor, 1.0f);
+
 		{
+			std::lock_guard<std::mutex> lock(m_Mutex);
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
-			JobsSystemInstance::BeginSubmition();
-			{
-				JobsSystemInstance::Schedule([&]() {newMaterial.AlbedroTexIndex = AddTexture(&infoCI->AlbedroTex, newMaterial.UseAlbedroTex); });
-				JobsSystemInstance::Schedule([&]() {newMaterial.NormalTexIndex = AddTexture(&infoCI->NormalTex, newMaterial.UseNormalTex); });
-				JobsSystemInstance::Schedule([&]() {newMaterial.MetallicTexIndex = AddTexture(&infoCI->MetallnessTex, newMaterial.UseMetallicTex); });
-				JobsSystemInstance::Schedule([&]() {newMaterial.RoughnessTexIndex = AddTexture(&infoCI->RoughnessTex, newMaterial.UseRoughnessTex); });
-				JobsSystemInstance::Schedule([&]() {newMaterial.AOTexIndex = AddTexture(&infoCI->AOTex, newMaterial.UseAOTex); });
-				JobsSystemInstance::Schedule([&]() {newMaterial.EmissiveTexIndex = AddTexture(&infoCI->EmissiveTex, newMaterial.UseEmissiveTex); });
-			}
-			JobsSystemInstance::EndSubmition();
-#else
-			newMaterial.AlbedroTexIndex = AddTexture(&infoCI->AlbedroTex, newMaterial.UseAlbedroTex);
-			newMaterial.NormalTexIndex = AddTexture(&infoCI->NormalTex, newMaterial.UseNormalTex);
-			newMaterial.MetallicTexIndex = AddTexture(&infoCI->MetallnessTex, newMaterial.UseMetallicTex);
-			newMaterial.RoughnessTexIndex = AddTexture(&infoCI->RoughnessTex, newMaterial.UseRoughnessTex);
-			newMaterial.AOTexIndex = AddTexture(&infoCI->AOTex, newMaterial.UseAOTex);
-			newMaterial.EmissiveTexIndex = AddTexture(&infoCI->EmissiveTex, newMaterial.UseEmissiveTex);
-#endif
-
-			newMaterial.Metalness = infoCI->Metallness;
-			newMaterial.Roughness = infoCI->Roughness;
-			newMaterial.EmissionStrength = infoCI->EmissionStrength;
-			newMaterial.Albedro = glm::vec4(infoCI->AlbedroColor, 1.0f);
+			materialID = m_MaterialIndex;
+			m_Materials.emplace_back(newMaterial);
+			m_MaterialMap.insert({ hashID, materialID });
+			m_MaterialIndex++;
 		}
 
-		materialID = m_MaterialIndex;
-		m_Materials.emplace_back(newMaterial);
-		m_MaterialMap.insert({ hashID, materialID });
-		m_MaterialIndex++;
 		return materialID;
 	}
 
@@ -124,21 +100,13 @@ namespace Frostium
 		{
 			Texture* tex = new Texture();
 			Texture::Create(info, tex);
-
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 			{
-				const std::lock_guard<std::mutex> lock(*s_Mutex);
+				std::lock_guard<std::mutex> lock(m_Mutex);
 
 				index = m_TextureIndex;
 				m_Textures[index] = tex;
 				m_TextureIndex++;
 			}
-#else
-
-			index = m_TextureIndex;
-			m_Textures[index] = tex;
-			m_TextureIndex++;
-#endif
 
 			useTetxure = true;
 			return index;

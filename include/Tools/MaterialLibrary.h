@@ -8,6 +8,7 @@
 #include <optional>
 #include <unordered_map>
 #include <vector>
+#include <mutex>
 
 namespace cereal
 {
@@ -98,14 +99,12 @@ namespace Frostium
 	class MaterialLibrary
 	{
 	public:
-
 		MaterialLibrary();
 		~MaterialLibrary();
 								              
 		uint32_t                              Add(MaterialCreateInfo* infoCI, const std::string& name);
 		bool                                  Delete(const std::string& name);
-		void                                  Reset();
-								              
+		void                                  Reset();              
 		// Getters				              
 		static MaterialLibrary*               GetSinglenton();
 		PBRMaterial*                          GetMaterial(uint32_t ID);
@@ -119,12 +118,13 @@ namespace Frostium
 		uint32_t                              AddTexture(const TextureCreateInfo* info, uint32_t& useTetxure);
 
 	private:
-		static MaterialLibrary*               s_Instance;
+		inline static MaterialLibrary*        s_Instance = nullptr;
 		uint32_t                              m_MaterialIndex = 0;
 		uint32_t                              m_TextureIndex = 0;
 		std::unordered_map<size_t, uint32_t>  m_MaterialMap;
 		std::vector<PBRMaterial>              m_Materials;
 		std::vector<Texture*>                 m_Textures;
 		std::hash<std::string_view>           m_Hash{};
+		std::mutex                            m_Mutex{};
 	};
 }

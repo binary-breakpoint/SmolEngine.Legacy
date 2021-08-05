@@ -2,14 +2,17 @@
 #include "Renderer/DeferredRenderer.h"
 #include "Tools/MaterialLibrary.h"
 
+#include "Common/Common.h"
+#include "Utils/Utils.h"
+
 #include "Primitives/VertexArray.h"
 #include "Primitives/VertexBuffer.h"
 #include "Primitives/IndexBuffer.h"
 #include "Primitives/Shader.h"
 
 #include "Import/glTFImporter.h"
-#include "Utils/Utils.h"
-#include "Common/Common.h"
+
+#include "Multithreading/JobsSystemInstance.h"
 
 #ifdef FROSTIUM_OPENGL_IMPL
 #include "Backends/OpenGL/OpenglShader.h"
@@ -18,9 +21,6 @@
 #include "Backends/Vulkan/VulkanPBR.h"
 #endif
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
-#include "Multithreading/JobsSystemInstance.h"
-#endif
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
@@ -279,84 +279,82 @@ namespace Frostium
 
 	void DeferredRenderer::BuildDrawList()
 	{
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 		JobsSystemInstance::BeginSubmition();
-#endif
-		if (s_Data->m_UsedMeshes.size() > s_Data->m_DrawList.size())
 		{
-			s_Data->m_DrawList.resize(s_Data->m_UsedMeshes.size());
-		}
-
-		uint32_t cmdCount = static_cast<uint32_t>(s_Data->m_UsedMeshes.size());
-		for (uint32_t i = 0; i < cmdCount; ++i)
-		{
-			// Getting values
-			Mesh* mesh = s_Data->m_UsedMeshes[i];
-			InstancePackage& instance = s_Data->m_Packages[mesh];
-			CommandBuffer& cmd = s_Data->m_DrawList[i];
-
-			// Setting draw list command
-			cmd.Offset = s_Data->m_InstanceDataIndex;
-			cmd.Mesh = mesh;
-			cmd.InstancesCount = instance.CurrentIndex;
-
-			for (uint32_t x = 0; x < instance.CurrentIndex; ++x)
+			if (s_Data->m_UsedMeshes.size() > s_Data->m_DrawList.size())
 			{
-				InstancePackage::Package& package = instance.Packages[x];
-				InstanceData& instanceUBO = s_Data->m_InstancesData[s_Data->m_InstanceDataIndex];
-				AnimationProperties* props = nullptr;
+				s_Data->m_DrawList.resize(s_Data->m_UsedMeshes.size());
+			}
 
-				uint32_t animStartOffset = 0;
-				const bool animated = mesh->IsAnimated();
-				bool animActive = false;
+			uint32_t cmdCount = static_cast<uint32_t>(s_Data->m_UsedMeshes.size());
+			for (uint32_t i = 0; i < cmdCount; ++i)
+			{
+				// Getting values
+				Mesh* mesh = s_Data->m_UsedMeshes[i];
+				InstancePackage& instance = s_Data->m_Packages[mesh];
+				CommandBuffer& cmd = s_Data->m_DrawList[i];
 
-				// Animations
+				// Setting draw list command
+				cmd.Offset = s_Data->m_InstanceDataIndex;
+				cmd.Mesh = mesh;
+				cmd.InstancesCount = instance.CurrentIndex;
+
+				for (uint32_t x = 0; x < instance.CurrentIndex; ++x)
 				{
-					for (uint32_t y = 0; y < mesh->GetAnimationsCount(); ++y)
+					InstancePackage::Package& package = instance.Packages[x];
+					InstanceData& instanceUBO = s_Data->m_InstancesData[s_Data->m_InstanceDataIndex];
+					AnimationProperties* props = nullptr;
+
+					uint32_t animStartOffset = 0;
+					const bool animated = mesh->IsAnimated();
+					bool animActive = false;
+
+					// Animations
 					{
-						props = mesh->GetAnimationProperties(y);
-						if (props->IsActive())
+						for (uint32_t y = 0; y < mesh->GetAnimationsCount(); ++y)
 						{
-							animActive = true;
-							break;
-						}
-					}
-
-					if (animated && mesh->m_ImportedData)
-					{
-						Ref<ImportedDataGlTF> imported = mesh->m_ImportedData;
-						glTFAnimation* activeAnim = &imported->Animations[imported->ActiveAnimation];
-						if (mesh->IsRootNode())
-						{
-							animStartOffset = s_Data->m_LastAnimationOffset;
-							s_Data->m_RootOffsets[mesh] = animStartOffset;
-
-							if (animActive)
+							props = mesh->GetAnimationProperties(y);
+							if (props->IsActive())
 							{
-								mesh->UpdateAnimations();
-							}
-
-							uint32_t jointCount = static_cast<uint32_t>(props->Joints.size());
-							for (uint32_t x = 0; x < jointCount; ++x)
-							{
-								s_Data->m_AnimationJoints[s_Data->m_LastAnimationOffset] = props->Joints[x];
-								s_Data->m_LastAnimationOffset++;
+								animActive = true;
+								break;
 							}
 						}
 
-						if (animated && !mesh->IsRootNode())
+						if (animated && mesh->m_ImportedData)
 						{
-							auto& it = s_Data->m_RootOffsets.find(mesh->m_Root);
-							if (it != s_Data->m_RootOffsets.end())
-								animStartOffset = it->second;
+							Ref<ImportedDataGlTF> imported = mesh->m_ImportedData;
+							glTFAnimation* activeAnim = &imported->Animations[imported->ActiveAnimation];
+							if (mesh->IsRootNode())
+							{
+								animStartOffset = s_Data->m_LastAnimationOffset;
+								s_Data->m_RootOffsets[mesh] = animStartOffset;
+
+								if (animActive)
+								{
+									mesh->UpdateAnimations();
+								}
+
+								uint32_t jointCount = static_cast<uint32_t>(props->Joints.size());
+								for (uint32_t x = 0; x < jointCount; ++x)
+								{
+									s_Data->m_AnimationJoints[s_Data->m_LastAnimationOffset] = props->Joints[x];
+									s_Data->m_LastAnimationOffset++;
+								}
+							}
+
+							if (animated && !mesh->IsRootNode())
+							{
+								auto& it = s_Data->m_RootOffsets.find(mesh->m_Root);
+								if (it != s_Data->m_RootOffsets.end())
+									animStartOffset = it->second;
+							}
 						}
 					}
-				}
 
-				// Transform
-				{
-#ifdef FROSTIUM_SMOLENGINE_IMPL
-					JobsSystemInstance::Schedule([animated, animStartOffset, &package, &instanceUBO]()
+					// Transform
+					{
+						JobsSystemInstance::Schedule([animated, animStartOffset, &package, &instanceUBO]()
 						{
 							Utils::ComposeTransform(*package.WorldPos, *package.Rotation, *package.Scale, instanceUBO.ModelView);
 
@@ -365,31 +363,20 @@ namespace Frostium
 							instanceUBO.AnimOffset = animStartOffset;
 							instanceUBO.EntityID = 0; // temp
 						});
-#else
-					Utils::ComposeTransform(*package.WorldPos, *package.Rotation, *package.Scale, instanceUBO.ModelView);
+					}
 
-					instanceUBO.MaterialID = package.MaterialID;
-					instanceUBO.IsAnimated = animated;
-					instanceUBO.AnimOffset = animStartOffset;
-					instanceUBO.EntityID = 0; // temp
-#endif
+					s_Data->m_InstanceDataIndex++;
 				}
 
-				s_Data->m_InstanceDataIndex++;
+				instance.CurrentIndex = 0;
 			}
-
-			instance.CurrentIndex = 0;
 		}
-
-#ifdef FROSTIUM_SMOLENGINE_IMPL
+	
 		JobsSystemInstance::EndSubmition();
-#endif
 	}
 
 	void DeferredRenderer::UpdateUniforms()
 	{
-#ifdef FROSTIUM_SMOLENGINE_IMPL
-
 		JobsSystemInstance::BeginSubmition();
 		{
 			// Updates Scene Data
@@ -472,53 +459,6 @@ namespace Frostium
 
 		}
 		JobsSystemInstance::EndSubmition();
-#else
-		// Updates Scene Data
-		s_Data->p_Gbuffer.SubmitBuffer(s_Data->m_SceneDataBinding, sizeof(SceneData), s_Data->m_SceneData);
-		// Updates Lighting State
-		s_Data->p_Lighting.SubmitBuffer(s_Data->m_LightingStateBinding, sizeof(IBLProperties), &s_Data->m_State.IBL);
-		// Updates FXAA State
-		{
-			float width = 1.0f / static_cast<float>(s_Data->f_Main->GetSpecification().Width);
-			float height = 1.0f / static_cast<float>(s_Data->f_Main->GetSpecification().Height);
-			s_Data->m_State.FXAA.InverseScreenSize = glm::vec2(width, height);
-			s_Data->p_Combination.SubmitBuffer(s_Data->m_FXAAStateBinding, sizeof(FXAAProperties), &s_Data->m_State.FXAA);
-		}
-
-		// Updates Bloom State
-		s_Data->p_Lighting.SubmitBuffer(s_Data->m_BloomStateBinding, sizeof(BloomProperties), &s_Data->m_State.Bloom);
-		// Updates Directional Lights
-		s_Data->p_Lighting.SubmitBuffer(s_Data->m_DirLightBinding, sizeof(DirectionalLight), &s_Data->m_DirLight);
-		if (s_Data->m_DirLight.IsCastShadows)
-		{
-			// Calculate Depth
-			CalculateDepthMVP(s_Data->m_MainPushConstant.DepthMVP);
-		}
-		// Updates Point Lights
-		if (s_Data->m_PointLightIndex > 0)
-		{
-			s_Data->p_Lighting.SubmitBuffer(s_Data->m_PointLightBinding,
-				sizeof(PointLight) * s_Data->m_PointLightIndex, s_Data->m_PointLights.data());
-		}
-		// Updates Spot Lights
-		if (s_Data->m_SpotLightIndex > 0)
-		{
-			s_Data->p_Lighting.SubmitBuffer(s_Data->m_SpotLightBinding,
-				sizeof(SpotLight) * s_Data->m_SpotLightIndex, s_Data->m_SpotLights.data());
-		}
-		// Updates Animation joints
-		if (s_Data->m_LastAnimationOffset > 0)
-		{
-			s_Data->p_Gbuffer.SubmitBuffer(s_Data->m_AnimBinding,
-				sizeof(glm::mat4) * s_Data->m_LastAnimationOffset, s_Data->m_AnimationJoints.data());
-		}
-		// Updates Batch Data
-		if (s_Data->m_InstanceDataIndex > 0)
-		{
-			s_Data->p_Gbuffer.SubmitBuffer(s_Data->m_ShaderDataBinding,
-				sizeof(InstanceData) * s_Data->m_InstanceDataIndex, s_Data->m_InstancesData.data());
-		}
-#endif
 	}
 
 	void DeferredRenderer::StartNewBacth()
@@ -834,72 +774,70 @@ namespace Frostium
 			s_Data->p_Lighting.UpdateSampler(&s_Data->f_GBuffer, 9, "shadow_coord");
 		}
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
-
 		JobsSystemInstance::BeginSubmition();
 		{
 			// Grid
 			JobsSystemInstance::Schedule([&]()
 			{
-					Utils::ComposeTransform(glm::vec3(0), glm::vec3(0), { 100, 1, 100 }, s_Data->m_GridModel);
-					Mesh::Create(s_Data->m_Path + "Models/plane_v2.gltf", &s_Data->m_PlaneMesh);
+				Utils::ComposeTransform(glm::vec3(0), glm::vec3(0), { 100, 1, 100 }, s_Data->m_GridModel);
+				Mesh::Create(s_Data->m_Path + "Models/plane_v2.gltf", &s_Data->m_PlaneMesh);
 
-					GraphicsPipelineCreateInfo pipelineCI = {};
-					GraphicsPipelineShaderCreateInfo shaderCI = {};
-					{
-						shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/Grid.vert";
-						shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Grid.frag";
-					};
+				GraphicsPipelineCreateInfo pipelineCI = {};
+				GraphicsPipelineShaderCreateInfo shaderCI = {};
+				{
+					shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/Grid.vert";
+					shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Grid.frag";
+				};
 
-					pipelineCI.PipelineName = "Grid";
-					pipelineCI.eCullMode = CullMode::None;
-					pipelineCI.VertexInputInfos = { vertexMain };
-					pipelineCI.bDepthTestEnabled = false;
-					pipelineCI.bDepthWriteEnabled = false;
-					pipelineCI.TargetFramebuffers = { &s_Data->f_GBuffer};
-					pipelineCI.ShaderCreateInfo = shaderCI;
-					assert(s_Data->p_Grid.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
+				pipelineCI.PipelineName = "Grid";
+				pipelineCI.eCullMode = CullMode::None;
+				pipelineCI.VertexInputInfos = { vertexMain };
+				pipelineCI.bDepthTestEnabled = false;
+				pipelineCI.bDepthWriteEnabled = false;
+				pipelineCI.TargetFramebuffers = { &s_Data->f_GBuffer };
+				pipelineCI.ShaderCreateInfo = shaderCI;
+				assert(s_Data->p_Grid.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
 			});
 
 			// Skybox
 			JobsSystemInstance::Schedule([&]()
 			{
-					GraphicsPipelineShaderCreateInfo shaderCI = {};
-					{
-						shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/Skybox.vert";
-						shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Skybox.frag";
-					};
+				GraphicsPipelineShaderCreateInfo shaderCI = {};
+				{
+					shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/Skybox.vert";
+					shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Skybox.frag";
+				};
 
-					struct SkyBoxData
-					{
-						glm::vec3 pos;
-					};
+				struct SkyBoxData
+				{
+					glm::vec3 pos;
+				};
 
-					BufferLayout layout =
-					{
-						{ DataTypes::Float3, "aPos" }
-					};
+				BufferLayout layout =
+				{
+					{ DataTypes::Float3, "aPos" }
+				};
 
-					GraphicsPipelineCreateInfo DynamicPipelineCI = {};
-					{
-						DynamicPipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(SkyBoxData), layout) };
-						DynamicPipelineCI.PipelineName = "Skybox_Pipiline";
-						DynamicPipelineCI.ShaderCreateInfo = shaderCI;
-						DynamicPipelineCI.bDepthTestEnabled = false;
-						DynamicPipelineCI.bDepthWriteEnabled = false;
-						DynamicPipelineCI.TargetFramebuffers = { &s_Data->f_GBuffer };
-					}
+				GraphicsPipelineCreateInfo DynamicPipelineCI = {};
+				{
+					DynamicPipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(SkyBoxData), layout) };
+					DynamicPipelineCI.PipelineName = "Skybox_Pipiline";
+					DynamicPipelineCI.ShaderCreateInfo = shaderCI;
+					DynamicPipelineCI.bDepthTestEnabled = false;
+					DynamicPipelineCI.bDepthWriteEnabled = false;
+					DynamicPipelineCI.TargetFramebuffers = { &s_Data->f_GBuffer };
+				}
 
-					auto result = s_Data->p_Skybox.Create(&DynamicPipelineCI);
-					assert(result == PipelineCreateResult::SUCCESS);
+				auto result = s_Data->p_Skybox.Create(&DynamicPipelineCI);
+				assert(result == PipelineCreateResult::SUCCESS);
 #ifndef FROSTIUM_OPENGL_IMPL
-					auto map = s_Data->m_EnvironmentMap->GetCubeMap();
-					s_Data->p_Skybox.UpdateVulkanImageDescriptor(1,
-						map->GetTexture()->GetVulkanTexture()->GetVkDescriptorImageInfo());
+				auto map = s_Data->m_EnvironmentMap->GetCubeMap();
+				s_Data->p_Skybox.UpdateVulkanImageDescriptor(1,
+					map->GetTexture()->GetVulkanTexture()->GetVkDescriptorImageInfo());
 #endif
-					Ref<VertexBuffer> skyBoxFB = std::make_shared<VertexBuffer>();
-					VertexBuffer::Create(skyBoxFB.get(), skyboxVertices, sizeof(skyboxVertices));
-					s_Data->p_Skybox.SetVertexBuffers({ skyBoxFB });
+				Ref<VertexBuffer> skyBoxFB = std::make_shared<VertexBuffer>();
+				VertexBuffer::Create(skyBoxFB.get(), skyboxVertices, sizeof(skyboxVertices));
+				s_Data->p_Skybox.SetVertexBuffers({ skyBoxFB });
 			});
 
 
@@ -988,7 +926,7 @@ namespace Frostium
 				DynamicPipelineCI.eSrcAlphaBlendFactor = BlendFactor::SRC_ALPHA;
 				DynamicPipelineCI.eDstAlphaBlendFactor = BlendFactor::DST_ALPHA;
 
-				DynamicPipelineCI.TargetFramebuffers = { &s_Data->f_Bloom};
+				DynamicPipelineCI.TargetFramebuffers = { &s_Data->f_Bloom };
 				DynamicPipelineCI.PipelineName = "Bloom";
 				auto result = s_Data->p_Bloom.Create(&DynamicPipelineCI);
 				assert(result == PipelineCreateResult::SUCCESS);
@@ -998,165 +936,12 @@ namespace Frostium
 		}
 
 		JobsSystemInstance::EndSubmition();
-
-#else
-		// Grid
-		{
-			Utils::ComposeTransform(glm::vec3(0), glm::vec3(0), { 100, 1, 100 }, s_Data->m_GridModel);
-			Mesh::Create(GraphicsContext::GetSingleton()->m_ResourcesFolderPath + "Models/plane_v2.gltf", &s_Data->m_PlaneMesh);
-
-			GraphicsPipelineCreateInfo pipelineCI = {};
-			GraphicsPipelineShaderCreateInfo shaderCI = {};
-			{
-				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::GetSingleton()->m_ResourcesFolderPath + "Shaders/Grid.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::GetSingleton()->m_ResourcesFolderPath + "Shaders/Grid.frag";
-			};
-
-			pipelineCI.PipelineName = "Grid";
-			pipelineCI.eCullMode = CullMode::None;
-			pipelineCI.VertexInputInfos = { vertexMain };
-			pipelineCI.bDepthTestEnabled = false;
-			pipelineCI.bDepthWriteEnabled = false;
-			pipelineCI.TargetFramebuffers = { &s_Data->f_GBuffer };
-			pipelineCI.ShaderCreateInfo = shaderCI;
-			assert(s_Data->p_Grid.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
-		}
-
-		// Sky Box
-		{
-			GraphicsPipelineShaderCreateInfo shaderCI = {};
-			{
-				shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/Skybox.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Skybox.frag";
-			};
-
-			struct SkyBoxData
-			{
-				glm::vec3 pos;
-			};
-
-			BufferLayout layout =
-			{
-				{ DataTypes::Float3, "aPos" }
-			};
-
-			GraphicsPipelineCreateInfo DynamicPipelineCI = {};
-			{
-				DynamicPipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(SkyBoxData), layout) };
-				DynamicPipelineCI.PipelineName = "Skybox_Pipiline";
-				DynamicPipelineCI.ShaderCreateInfo = shaderCI;
-				DynamicPipelineCI.bDepthTestEnabled = false;
-				DynamicPipelineCI.bDepthWriteEnabled = false;
-				DynamicPipelineCI.TargetFramebuffers = { &s_Data->f_GBuffer };
-			}
-
-			auto result = s_Data->p_Skybox.Create(&DynamicPipelineCI);
-			assert(result == PipelineCreateResult::SUCCESS);
-#ifndef FROSTIUM_OPENGL_IMPL
-			auto map = s_Data->m_EnvironmentMap->GetCubeMap();
-			s_Data->p_Skybox.UpdateVulkanImageDescriptor(1,
-				map->GetTexture()->GetVulkanTexture()->GetVkDescriptorImageInfo());
-#endif
-			Ref<VertexBuffer> skyBoxFB = std::make_shared<VertexBuffer>();
-			VertexBuffer::Create(skyBoxFB.get(), skyboxVertices, sizeof(skyboxVertices));
-			s_Data->p_Skybox.SetVertexBuffers({ skyBoxFB });
-		}
-
-		// Depth Pass
-		{
-			GraphicsPipelineShaderCreateInfo shaderCI = {};
-			{
-				shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/DepthPass.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/DepthPass.frag";
-			};
-
-			GraphicsPipelineCreateInfo DynamicPipelineCI = {};
-			{
-				DynamicPipelineCI.VertexInputInfos = { vertexMain };
-				DynamicPipelineCI.PipelineName = "DepthPass_Pipeline";
-				DynamicPipelineCI.ShaderCreateInfo = shaderCI;
-				DynamicPipelineCI.TargetFramebuffers = { &s_Data->f_Depth };
-				DynamicPipelineCI.bDepthBiasEnabled = true;
-				DynamicPipelineCI.StageCount = 1;
-
-				auto result = s_Data->p_DepthPass.Create(&DynamicPipelineCI);
-				assert(result == PipelineCreateResult::SUCCESS);
-			}
-		}
-
-		// Combination
-		{
-			GraphicsPipelineCreateInfo DynamicPipelineCI = {};
-			DynamicPipelineCI.eCullMode = CullMode::None;
-			DynamicPipelineCI.TargetFramebuffers = { s_Data->f_Main };
-
-			GraphicsPipelineShaderCreateInfo shaderCI = {};
-			shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/GenTriangle.vert";
-			shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Combination.frag";
-			DynamicPipelineCI.ShaderCreateInfo = shaderCI;
-			DynamicPipelineCI.PipelineName = "Combination";
-
-			auto result = s_Data->p_Combination.Create(&DynamicPipelineCI);
-			assert(result == PipelineCreateResult::SUCCESS);
-			s_Data->p_Combination.UpdateSampler(&s_Data->f_Lighting, 0);
-			s_Data->p_Combination.UpdateSampler(&s_Data->f_Bloom, 1);
-		}
-
-		// Debug
-		{
-			GraphicsPipelineCreateInfo DynamicPipelineCI = {};
-			DynamicPipelineCI.eCullMode = CullMode::None;
-			DynamicPipelineCI.TargetFramebuffers = { s_Data->f_Main };
-
-			GraphicsPipelineShaderCreateInfo shaderCI = {};
-			shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/GenTriangle.vert";
-			shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/DebugView.frag";
-			DynamicPipelineCI.ShaderCreateInfo = shaderCI;
-			DynamicPipelineCI.PipelineName = "Debug";
-
-			auto result = s_Data->p_Debug.Create(&DynamicPipelineCI);
-			assert(result == PipelineCreateResult::SUCCESS);
-
-			s_Data->p_Debug.UpdateSampler(&s_Data->f_Depth, 1, "Depth_Attachment");
-			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 5, "albedro");
-			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 6, "position");
-			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 7, "normals");
-			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 8, "materials");
-			s_Data->p_Debug.UpdateSampler(&s_Data->f_GBuffer, 9, "shadow_coord");
-		}
-
-
-		// Bloom
-		{
-			GraphicsPipelineCreateInfo DynamicPipelineCI = {};
-			DynamicPipelineCI.eCullMode = CullMode::None;
-
-			GraphicsPipelineShaderCreateInfo shaderCI = {};
-			shaderCI.FilePaths[ShaderType::Vertex] = s_Data->m_Path + "Shaders/GenTriangle.vert";
-			shaderCI.FilePaths[ShaderType::Fragment] = s_Data->m_Path + "Shaders/Bloom.frag";
-			DynamicPipelineCI.ShaderCreateInfo = shaderCI;
-			DynamicPipelineCI.eColorBlendOp = BlendOp::ADD;
-			DynamicPipelineCI.eSrcColorBlendFactor = BlendFactor::ONE;
-			DynamicPipelineCI.eDstColorBlendFactor = BlendFactor::ONE;
-			DynamicPipelineCI.eAlphaBlendOp = BlendOp::ADD;
-			DynamicPipelineCI.eSrcAlphaBlendFactor = BlendFactor::SRC_ALPHA;
-			DynamicPipelineCI.eDstAlphaBlendFactor = BlendFactor::DST_ALPHA;
-
-			DynamicPipelineCI.TargetFramebuffers = { &s_Data->f_Bloom };
-			DynamicPipelineCI.PipelineName = "Bloom";
-			auto result = s_Data->p_Bloom.Create(&DynamicPipelineCI);
-			assert(result == PipelineCreateResult::SUCCESS);
-			s_Data->p_Bloom.UpdateSampler(&s_Data->f_Lighting, 0, "color_2");
-		}
-#endif
 	}
 
 	void DeferredRenderer::InitFramebuffers()
 	{
 		// Main
 		s_Data->f_Main = GraphicsContext::GetSingleton()->GetFramebuffer();
-
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 
 		JobsSystemInstance::BeginSubmition();
 		{
@@ -1175,11 +960,11 @@ namespace Frostium
 					framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
 					framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
 					framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
-					framebufferCI.Attachments = { albedro, position, normals, materials, shadow_coord};
+					framebufferCI.Attachments = { albedro, position, normals, materials, shadow_coord };
 
 					Framebuffer::Create(framebufferCI, &s_Data->f_GBuffer);
 				}
-				
+
 			});
 
 			JobsSystemInstance::Schedule([&]()
@@ -1228,88 +1013,19 @@ namespace Frostium
 			// Bloom
 			JobsSystemInstance::Schedule([&]()
 			{
-					FramebufferAttachment color = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "color_1");
+				FramebufferAttachment color = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "color_1");
 
-					FramebufferSpecification framebufferCI = {};
-					framebufferCI.eFiltering = ImageFilter::LINEAR;
-					framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
-					framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
-					framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
-					framebufferCI.Attachments = { color };
+				FramebufferSpecification framebufferCI = {};
+				framebufferCI.eFiltering = ImageFilter::LINEAR;
+				framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
+				framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
+				framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
+				framebufferCI.Attachments = { color };
 
-					Framebuffer::Create(framebufferCI, &s_Data->f_Bloom);
+				Framebuffer::Create(framebufferCI, &s_Data->f_Bloom);
 			});
 		}
 		JobsSystemInstance::EndSubmition();
-#else
-         // Gbuffer
-		{
-			const bool ClearOp = true;
-			FramebufferAttachment albedro = FramebufferAttachment(AttachmentFormat::Color, ClearOp, "albedro");
-			FramebufferAttachment position = FramebufferAttachment(AttachmentFormat::SFloat4_16, ClearOp, "position");
-			FramebufferAttachment normals = FramebufferAttachment(AttachmentFormat::SFloat4_16, ClearOp, "normals");
-			FramebufferAttachment materials = FramebufferAttachment(AttachmentFormat::SFloat4_32, ClearOp, "materials");
-			FramebufferAttachment shadow_coord = FramebufferAttachment(AttachmentFormat::SFloat4_32, ClearOp, "shadow_coord");
-
-			FramebufferSpecification framebufferCI = {};
-			framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
-			framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
-			framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
-			framebufferCI.Attachments = { albedro, position, normals, materials, shadow_coord };
-
-			Framebuffer::Create(framebufferCI, &s_Data->f_GBuffer);
-		}
-
-		// Lighting
-		{
-			FramebufferAttachment color = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "color_1");
-			FramebufferAttachment bloom = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "color_2");
-
-			FramebufferSpecification framebufferCI = {};
-			framebufferCI.eFiltering = ImageFilter::LINEAR;
-			framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
-			framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
-			framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
-			framebufferCI.Attachments = { color, bloom };
-
-			Framebuffer::Create(framebufferCI, &s_Data->f_Lighting);
-        }
-
-		// Depth
-		{
-			FramebufferSpecification framebufferCI = {};
-			uint32_t size = 8192;
-			switch (s_Data->m_MapSize)
-			{
-			case ShadowMapSize::SIZE_2: size = 2048; break;
-			case ShadowMapSize::SIZE_4: size = 4096; break;
-			case ShadowMapSize::SIZE_8: size = 8192; break;
-			case ShadowMapSize::SIZE_16: size = 16384; break;
-			}
-			framebufferCI.Width = size;
-			framebufferCI.Height = size;
-			framebufferCI.bResizable = false;
-			framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
-			framebufferCI.eSpecialisation = FramebufferSpecialisation::ShadowMap;
-
-			Framebuffer::Create(framebufferCI, &s_Data->f_Depth);
-		}
-
-		// Bloom
-		{
-			FramebufferAttachment color = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "color_1");
-
-			FramebufferSpecification framebufferCI = {};
-			framebufferCI.eFiltering = ImageFilter::LINEAR;
-			framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
-			framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
-			framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
-			framebufferCI.Attachments = { color };
-
-			Framebuffer::Create(framebufferCI, &s_Data->f_Bloom);
-		}
-#endif
-
 	}
 
 	void DeferredRenderer::CalculateDepthMVP(glm::mat4& out_mvp)

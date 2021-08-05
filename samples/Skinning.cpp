@@ -89,44 +89,54 @@ int main(int argc, char** argv)
 	{
 		MaterialCreateInfo materialCI = {};
 
+		JobsSystemInstance::BeginSubmition();
 		{
-			textureCI.FilePath = "Assets/materials/stone/Tiles087_1K_Color.png";
-			materialCI.SetTexture(MaterialTexture::Albedro, &textureCI);
+			JobsSystemInstance::Schedule([&stoneMat]()
+			{
+				MaterialCreateInfo materialCI{};
+				TextureCreateInfo textureCI{};
 
-			textureCI.FilePath = "Assets/materials/stone/Tiles087_1K_Normal.png";
-			materialCI.SetTexture(MaterialTexture::Normal, &textureCI);
+				textureCI.FilePath = "Assets/materials/stone/Tiles087_1K_Color.png";
+				materialCI.SetTexture(MaterialTexture::Albedro, &textureCI);
 
-			textureCI.FilePath = "Assets/materials/stone/Tiles087_1K_Roughness.png";
-			materialCI.SetTexture(MaterialTexture::Roughness, &textureCI);
+				textureCI.FilePath = "Assets/materials/stone/Tiles087_1K_Normal.png";
+				materialCI.SetTexture(MaterialTexture::Normal, &textureCI);
 
-			textureCI.FilePath = "Assets/materials/stone/Tiles087_1K_AmbientOcclusion.png";
-			materialCI.SetTexture(MaterialTexture::AO, &textureCI);
+				textureCI.FilePath = "Assets/materials/stone/Tiles087_1K_Roughness.png";
+				materialCI.SetTexture(MaterialTexture::Roughness, &textureCI);
 
-			materialCI.SetMetalness(0.1f);
-			materialCI.SetEmissionStrength(1.1f);
-			stoneMat = MaterialLibrary::GetSinglenton()->Add(&materialCI, "stone");
+				textureCI.FilePath = "Assets/materials/stone/Tiles087_1K_AmbientOcclusion.png";
+				materialCI.SetTexture(MaterialTexture::AO, &textureCI);
+
+				materialCI.SetMetalness(0.1f);
+				materialCI.SetEmissionStrength(1.1f);
+				stoneMat = MaterialLibrary::GetSinglenton()->Add(&materialCI, "stone");
+			});
+
+			JobsSystemInstance::Schedule([&planeMat]()
+			{
+				MaterialCreateInfo materialCI{};
+				TextureCreateInfo textureCI{};
+
+				textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Color.png";
+				materialCI.SetTexture(MaterialTexture::Albedro, &textureCI);
+
+				textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Normal.png";
+				materialCI.SetTexture(MaterialTexture::Normal, &textureCI);
+
+				textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Roughness.png";
+				materialCI.SetTexture(MaterialTexture::Roughness, &textureCI);
+
+				textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Metalness.png";
+				materialCI.SetTexture(MaterialTexture::Metallic, &textureCI);
+
+				materialCI.SetMetalness(0.5f);
+				materialCI.SetRoughness(0.9f);
+
+				planeMat = MaterialLibrary::GetSinglenton()->Add(&materialCI, "metal");
+			});
 		}
-
-		{
-			materialCI = {};
-
-			textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Color.png";
-			materialCI.SetTexture(MaterialTexture::Albedro, &textureCI);
-
-			textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Normal.png";
-			materialCI.SetTexture(MaterialTexture::Normal, &textureCI);
-
-			textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Roughness.png";
-			materialCI.SetTexture(MaterialTexture::Roughness, &textureCI);
-
-			textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Metalness.png";
-			materialCI.SetTexture(MaterialTexture::Metallic, &textureCI);
-
-			materialCI.SetMetalness(0.5f);
-			materialCI.SetRoughness(0.9f);
-
-			planeMat = MaterialLibrary::GetSinglenton()->Add(&materialCI, "metal");
-		}
+		JobsSystemInstance::EndSubmition();
 	}
 
 	DynamicSkyProperties sky;

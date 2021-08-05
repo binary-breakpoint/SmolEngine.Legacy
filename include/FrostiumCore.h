@@ -24,6 +24,8 @@
 #include "Renderer/DeferredRenderer.h"
 #include "Renderer/Renderer2D.h"
 
+#include "Multithreading/JobsSystemInstance.h"
+
 #include "Utils/Utils.h"
 
 #include <imgui/imgui.h>

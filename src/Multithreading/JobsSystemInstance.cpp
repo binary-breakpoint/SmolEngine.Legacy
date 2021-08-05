@@ -1,8 +1,11 @@
 #include "stdafx.h"
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 #include "Multithreading/JobsSystemInstance.h"
 
+#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
+#else
+namespace Frostium
+#endif
 {
 	JobsSystemInstance* JobsSystemInstance::s_Instance = nullptr;
 
@@ -44,4 +47,3 @@ namespace SmolEngine
 		return &s_Instance->m_Executor;
 	}
 }
-#endif

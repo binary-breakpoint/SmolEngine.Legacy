@@ -13,9 +13,7 @@
 #include "Common/Common.h"
 #include "Event/Input.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 #include "Multithreading/JobsSystemInstance.h"
-#endif
 
 #include <GLFW/glfw3.h>
 
@@ -78,10 +76,8 @@ namespace Frostium
 		}
 
 		m_DefaultMeshes = new DefaultMeshes(info->ResourcesFolderPath);
-
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 		m_JobsSystem = new JobsSystemInstance();
-#endif
+
 		// Creates default framebuffer
 		m_Framebuffer = new Framebuffer();
 		FramebufferSpecification framebufferCI = {};

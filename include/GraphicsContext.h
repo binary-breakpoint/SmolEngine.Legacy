@@ -123,17 +123,14 @@ namespace Frostium
 		Window*                       m_Window = nullptr;
 		DefaultMeshes*                m_DefaultMeshes = nullptr;
 		ImGuiContext*                 m_ImGuiContext = nullptr;
-
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 		JobsSystemInstance*           m_JobsSystem = nullptr;
-#endif
 		MSAASamples                   m_MSAASamples = MSAASamples::SAMPLE_COUNT_MAX_SUPPORTED;
 		Flags                         m_Flags = Features_Renderer_3D_Flags | Features_Renderer_2D_Flags;
 		float                         m_LastFrameTime = 1.0f;
 		float                         m_DeltaTime = 0.0f;
 #ifdef  FROSTIUM_OPENGL_IMPL		  
 		OpenglContext                 m_OpenglContext = {};
-		OpenglRendererAPI* m_RendererAPI = nullptr;
+		OpenglRendererAPI*            m_RendererAPI = nullptr;
 #else								  
 		VulkanContext                 m_VulkanContext = {};
 #endif
