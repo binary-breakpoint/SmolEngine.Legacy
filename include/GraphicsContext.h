@@ -1,28 +1,31 @@
 #pragma once
-#include "EditorCamera.h"
+#include "Camera/EditorCamera.h"
 
 #ifdef  FROSTIUM_OPENGL_IMPL
-#include "OpenGL/OpenglContext.h"
-#include "OpenGL/OpenglRendererAPI.h"
+#include "Backends/OpenGL/OpenglContext.h"
+#include "Backends/OpenGL/OpenglRendererAPI.h"
 #else
-#include "Vulkan/VulkanContext.h"
+#include "Backends/Vulkan/VulkanContext.h"
 #endif
 
-#include "Common/DefaultMeshes.h"
-#include "Common/RendererShared.h"
-#include "Common/Core.h"
+#include "Tools/DefaultMeshes.h"
+#include "Renderer/RendererShared.h"
+
+#include "Common/Common.h"
 #include "Common/Window.h"
-#include "Common/Events.h"
 #include "Common/Flags.h"
-#include "Common/Camera.h"
+
+#include "Event/Events.h"
+
+#include "Camera/Camera.h"
+#include "Camera/Frustum.h"
 
 #include "Primitives/Mesh.h"
 #include "Primitives/CubeMap.h"
 #include "Primitives/Framebuffer.h"
 #include "Primitives/Texture.h"
 
-#include "Utils/Frustum.h"
-#include "Extensions/ImGuiContext.h"
+#include "GUI/ImGuiContext.h"
 
 #include <functional>
 
@@ -65,7 +68,7 @@ namespace Frostium
 		~GraphicsContext();
 								      
 		void                          ProcessEvents();
-		void                          BeginFrame(DeltaTime time);
+		void                          BeginFrame(float time);
 		void                          UpdateSceneInfo(BeginSceneInfo* sceneInfo = nullptr);
 		void                          SwapBuffers();
 		void                          ShutDown();
@@ -96,7 +99,7 @@ namespace Frostium
 		void                          SetEventCallback(std::function<void(Event&)> callback);
 		void                          SetFramebufferSize(uint32_t width, uint32_t height);
 
-		DeltaTime                     CalculateDeltaTime();
+		float                         CalculateDeltaTime();
 		bool                          IsWindowMinimized() const;      
 		void                          Resize(uint32_t* width, uint32_t* height);
 

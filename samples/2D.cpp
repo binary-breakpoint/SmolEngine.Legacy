@@ -72,7 +72,7 @@ int main(int argc, char** argv)
 	while (process)
 	{
 		context->ProcessEvents();
-		DeltaTime deltaTime = context->CalculateDeltaTime();
+		float deltaTime = context->CalculateDeltaTime();
 
 		if (context->IsWindowMinimized())
 			continue;
@@ -86,7 +86,7 @@ int main(int argc, char** argv)
 		{
 			ImGui::Begin("2D Sample");
 			{
-				float lastFrameTime = deltaTime.GetTimeSeconds() * 100.0f;
+
 			}
 			ImGui::End();
 

@@ -1,19 +1,20 @@
 #include "stdafx.h"
 #include "GraphicsContext.h"
-#include "DeferredRenderer.h"
-#include "Renderer2D.h"
-#include "DebugRenderer.h"
-#include "MaterialLibrary.h"
+
+#include "Renderer/DeferredRenderer.h"
+#include "Renderer/Renderer2D.h"
+#include "Renderer/DebugRenderer.h"
+#include "Renderer/Renderer2DStorage.h"
+#include "Renderer/RendererStorage.h"
+
+#include "Tools/MaterialLibrary.h"
 
 #include "Common/SLog.h"
-#include "Common/Input.h"
 #include "Common/Common.h"
-
-#include "Common/Renderer2DStorage.h"
-#include "Common/RendererStorage.h"
+#include "Event/Input.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
-#include "Extensions/JobsSystemInstance.h"
+#include "Multithreading/JobsSystemInstance.h"
 #endif
 
 #include <GLFW/glfw3.h>
@@ -173,7 +174,7 @@ namespace Frostium
 		m_Window->ProcessEvents();
 	}
 
-	void GraphicsContext::BeginFrame(DeltaTime time)
+	void GraphicsContext::BeginFrame(float time)
 	{
 		m_DeltaTime = time;
 
@@ -266,10 +267,10 @@ namespace Frostium
 			DeferredRenderer::OnResize(width, height);
 	}
 
-	DeltaTime GraphicsContext::CalculateDeltaTime()
+	float GraphicsContext::CalculateDeltaTime()
 	{
 		float time = (float)glfwGetTime();
-		DeltaTime deltaTime = time - m_LastFrameTime;
+		float deltaTime = time - m_LastFrameTime;
 		m_LastFrameTime = time;
 		return deltaTime;
 	}

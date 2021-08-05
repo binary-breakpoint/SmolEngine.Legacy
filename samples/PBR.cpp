@@ -95,7 +95,7 @@ int main(int argc, char** argv)
 	while (process)
 	{
 		context->ProcessEvents();
-		DeltaTime deltaTime = context->CalculateDeltaTime();
+		float deltaTime = context->CalculateDeltaTime();
 
 		if (context->IsWindowMinimized())
 			continue;
@@ -143,8 +143,7 @@ int main(int argc, char** argv)
 
 			ImGui::Begin("PBR Sample");
 			{
-				float lastFrameTime = deltaTime.GetTimeSeconds();
-				std::string str = "DeltaTime: " + std::to_string(lastFrameTime);
+				std::string str = "DeltaTime: " + std::to_string(deltaTime);
 				std::string str2 = "Objects: " + std::to_string(objects);
 
 				if (ImGui::DragFloat3("LightDir", glm::value_ptr(dirLight.Direction)))

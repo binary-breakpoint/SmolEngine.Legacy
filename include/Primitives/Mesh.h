@@ -1,10 +1,9 @@
 #pragma once
-#include "Common/Core.h"
 #include "Common/Common.h"
-#include "Common/Animation.h"
 
 #include "Primitives/VertexBuffer.h"
 #include "Primitives/IndexBuffer.h"
+#include "Animation/Animation.h"
 
 #include <memory>
 

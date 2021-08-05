@@ -8,20 +8,21 @@
 #include "Primitives/VertexBuffer.h"
 #include "Primitives/IndexBuffer.h"
 #include "Primitives/CubeMap.h"
+#include "Primitives/GraphicsPipeline.h"
+#include "Primitives/Text.h"
 
 #include "Common/Common.h"
-#include "Common/Events.h"
 #include "Common/Flags.h"
-#include "Common/Input.h"
-#include "Common/Text.h"
 
-#include "EditorCamera.h"
-#include "MaterialLibrary.h"
-#include "GraphicsPipeline.h"
+#include "Event/Events.h"
+#include "Event/Input.h"
+
+#include "Camera/EditorCamera.h"
+#include "Tools/MaterialLibrary.h"
 #include "GraphicsContext.h"
-#include "DebugRenderer.h"
-#include "DeferredRenderer.h"
-#include "Renderer2D.h"
+#include "Renderer/DebugRenderer.h"
+#include "Renderer/DeferredRenderer.h"
+#include "Renderer/Renderer2D.h"
 
 #include "Utils/Utils.h"
 

@@ -5,7 +5,7 @@
 #include "Primitives/IndexBuffer.h"
 
 #include "Utils/Utils.h"
-#include "Utils/glTFImporter.h"
+#include "Import/glTFImporter.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine

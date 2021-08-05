@@ -103,7 +103,7 @@ And finally load resources and run main update loop:
 		// Calculates default frustum, updates buffers
 		context->UpdateSceneInfo(&info);
 		
-		DeltaTime deltaTime = context->CalculateDeltaTime();
+		float deltaTime = context->CalculateDeltaTime();
 		context->BeginFrame(deltaTime);
 		{
 			uint32_t objects = 0;
@@ -118,8 +118,7 @@ And finally load resources and run main update loop:
 			
 			ImGui::Begin("Debug Window");
 			{
-				float lastFrameTime = deltaTime.GetTimeSeconds();
-				std::string str = "DeltaTime: " + std::to_string(lastFrameTime);
+				std::string str = "DeltaTime: " + std::to_string(deltaTime);
 				std::string str2 = "Objects: " + std::to_string(objects);
 				ImGui::Text(str.c_str());
 				ImGui::Text(str2.c_str());

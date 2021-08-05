@@ -2,14 +2,16 @@
 #include "Primitives/Texture.h"
 #include "Primitives/Shader.h"
 
-#include "Common/Core.h"
+#include "Common/Common.h"
 #include "Common/SLog.h"
 
 #include "Utils/Utils.h"
 
-#include <stb_image.h>
 #include <memory>
+#include <cereal/cereal.hpp>
 #include <cereal/archives/json.hpp>
+
+#include <stb_image/stb_image.h>
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine

@@ -1,5 +1,4 @@
 #pragma once
-#include "Common/Core.h"
 #include "Common/Common.h"
 #include "Primitives/Texture.h"
 

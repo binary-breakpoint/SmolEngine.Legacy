@@ -1,16 +1,19 @@
 #pragma once
+#include "Common/Common.h"
 
 #ifdef FROSTIUM_OPENGL_IMPL
-#include "OpenGL/OpenglTexture.h"
+#include "Backends/OpenGL/OpenglTexture.h"
 #else
-#include "Vulkan/VulkanTexture.h"
+#include "Backends/Vulkan/VulkanTexture.h"
 #endif
-
-#include "Common/Common.h"
 
 #include <glm/glm.hpp>
 #include <string>
-#include <cereal/cereal.hpp>
+
+namespace cereal
+{
+	class access;
+}
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine

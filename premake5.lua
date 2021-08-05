@@ -16,20 +16,21 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 -- Include directories relative to root folder (solution directory)
 IncludeDir = {}
-IncludeDir["glm"] = "include/Libraries/glm"
-IncludeDir["ImGui"] = "include/Libraries/imgui"
-IncludeDir["imgizmo"] = "include/Libraries/imgizmo/src"
+IncludeDir["glm"] = "include/External/glm"
+IncludeDir["ImGui"] = "include/External/imgui"
+IncludeDir["imgizmo"] = "include/External/imgizmo/src"
 
 IncludeDir["GLFW"] = "vendor/glfw/include"
 IncludeDir["Glad"] = "vendor/glad/include"
-IncludeDir["vulkan"] = "include/Libraries/vulkan/include"
-IncludeDir["stb"] = "include/Libraries/stb_image"
+IncludeDir["vulkan"] = "include/External/vulkan/include"
+IncludeDir["stb"] = "include/External/stb_image"
 IncludeDir["ktx"] = "vendor/ktx/include"
 IncludeDir["gli"] = "vendor/gli"
 IncludeDir["tinygltf"] = "vendor/tinygltf"
+IncludeDir["cereal"] = "vendor/cereal/include"
 
 group "Dependencies"
-include "include/Libraries/imgui"
+include "include/External/imgui"
 include "vendor/glfw"
 include "vendor/glad"
 include "vendor/spir_v_cross"
@@ -57,10 +58,10 @@ project "Frostium"
 		"src/**.cpp",
 		"src/**.h",
 
-		"include/Libraries/glm/glm/**.hpp",
-		"include/Libraries/glm/glm/**.inl",
+		"include/External/glm/glm/**.hpp",
+		"include/External/glm/glm/**.inl",
 
-		"include/Libraries/stb_image/**.h",
+		"include/External/stb_image/**.h",
 		"vendor/stb_image/**.cpp",
 		"vendor/implot/**.cpp",
 	}
@@ -71,10 +72,9 @@ project "Frostium"
 		"vendor/icon_font_cpp_headers",
 		
 		"include/",
-		"include/Libraries",
-		"include/Libraries/implot/",
-		"include/Libraries/spdlog/include",
-		"include/Libraries/cereal/include",
+		"include/External",
+		"include/External/implot/",
+		"include/External/spdlog/include",
 
 		"src/",
 		"%{IncludeDir.GLFW}",
@@ -90,6 +90,7 @@ project "Frostium"
 		"%{IncludeDir.gli}",
 		"%{IncludeDir.tinygltf}",
 		"%{IncludeDir.taskflow}",
+		"%{IncludeDir.cereal}",
 	}
 
 	links 
@@ -277,10 +278,11 @@ project "PBR"
 	includedirs
 	{
 		"include/",
-		"include/Libraries",
-		"include/Libraries/spdlog/include",
-		"include/Libraries/cereal/include",
-		"include/Libraries/glm/"
+		
+		"include/External",
+		"include/External/vulkan/include",
+		"include/External/spdlog/include",
+		"include/External/glm/"
 	}
 
 	links
@@ -350,10 +352,11 @@ project "2D"
 	includedirs
 	{
 		"include/",
-		"include/Libraries",
-		"include/Libraries/spdlog/include",
-		"include/Libraries/cereal/include",
-		"include/Libraries/glm/"
+		
+		"include/External",
+		"include/External/vulkan/include",
+		"include/External/spdlog/include",
+		"include/External/glm/"
 	}
 
 	links
@@ -422,10 +425,11 @@ project "2D"
 	includedirs
 	{
 		"include/",
-		"include/Libraries",
-		"include/Libraries/spdlog/include",
-		"include/Libraries/cereal/include",
-		"include/Libraries/glm/"
+
+		"include/External",
+		"include/External/vulkan/include",
+		"include/External/spdlog/include",
+		"include/External/glm/"
 	}
 
 	links
@@ -472,77 +476,5 @@ project "2D"
 			"FROSTIUM_SMOLENGINE_IMPL",
 			"FROSTIUM_DEBUG"
 		}
-
-	---------------------------------------
-	project "Custom Renderer"
-	kind "ConsoleApp"
-	location "samples"
-	language "C++"
-	cppdialect "C++17"
-	staticruntime "on"
-
-	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("vendor/libs/bin-int/" .. outputdir .. "/%{prj.name}")
-
-	files
-	{
-		"samples/CustomRenderer.h",
-		"samples/CustomRenderer.cpp",
-	}
-
-	includedirs
-	{
-		"include/",
-		"include/Libraries",
-		"include/Libraries/spdlog/include",
-		"include/Libraries/cereal/include",
-		"include/Libraries/glm/"
-	}
-
-	links
-	{
-		"bin/" ..outputdir .. "/Frostium/Frostium.lib"
-	}
-
-	filter "system:windows"
-		systemversion "latest"
-
-		defines
-		{
-			"_CRT_SECURE_NO_WARNINGS",
-			"PLATFORM_WIN"
-		}
-
-		filter "configurations:Debug_Vulkan"
-		buildoptions "/MDd"
-		buildoptions "/bigobj"
-		symbols "on"
-	
-		filter "configurations:Release_Vulkan"
-		buildoptions "/MD"
-		buildoptions "/bigobj"
-		optimize "on"
-	
-		filter "configurations:SmolEngine_R"
-		buildoptions "/MD"
-		buildoptions "/bigobj"
-		optimize "on"
-
-		defines
-		{
-			"FROSTIUM_SMOLENGINE_IMPL"
-		}
-	
-		filter "configurations:SmolEngine_D"
-		buildoptions "/MDd"
-		buildoptions "/bigobj"
-		symbols "on"
-
-		defines
-		{
-			"FROSTIUM_SMOLENGINE_IMPL",
-			"FROSTIUM_DEBUG"
-		}
-
 
 	group ""

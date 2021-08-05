@@ -144,7 +144,7 @@ int main(int argc, char** argv)
 	while (process)
 	{
 		context->ProcessEvents();
-		DeltaTime deltaTime = context->CalculateDeltaTime();
+		float deltaTime = context->CalculateDeltaTime();
 
 		if (context->IsWindowMinimized())
 			continue;

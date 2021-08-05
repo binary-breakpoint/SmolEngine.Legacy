@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "Common/Window.h"
-#include "Common/Events.h"
+#include "Event/Events.h"
 #include "Common/SLog.h"
 
 #include <GLFW/glfw3.h>

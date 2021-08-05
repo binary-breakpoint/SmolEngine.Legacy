@@ -1,11 +1,10 @@
 #pragma once
-#include "Common/Core.h"
 #include "Common/Common.h"
 
 #ifdef FROSTIUM_OPENGL_IMPL
-#include "OpenGL/OpenglFramebuffer.h"
+#include "Backends/OpenGL/OpenglFramebuffer.h"
 #else
-#include "Vulkan/VulkanFramebuffer.h"
+#include "Backends/Vulkan/VulkanFramebuffer.h"
 #endif
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL

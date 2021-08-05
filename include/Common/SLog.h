@@ -1,5 +1,5 @@
 #pragma once
-#include "Common/Core.h"
+#include "Common/Common.h"
 
 #include <functional>
 #include <sstream>
@@ -7,7 +7,7 @@
 extern "C++"
 {
 #include <spdlog/spdlog.h>
-#include <spdlog/fmt/ostr.h>
+#include <spdlog/fmt/fmt.h>
 }
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL

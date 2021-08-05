@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "Utils/Utils.h"
-#include "Common/Input.h"
+#include "Event/Input.h"
 #include "GraphicsContext.h"
 
 #include <glm/gtc/matrix_transform.hpp>

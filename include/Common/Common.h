@@ -1,8 +1,8 @@
 #pragma once
-#include "Common/Core.h"
-#include "Common/BufferLayout.h"
+#include "Primitives/BufferLayout.h"
 
-#include <glm/glm.hpp>
+#include <glm/glm/glm.hpp>
+#include <memory>
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
@@ -10,6 +10,15 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
+	extern "C++"
+	{
+		template<typename T>
+		using Scope = std::unique_ptr<T>;
+
+		template<typename T>
+		using Ref = std::shared_ptr<T>;
+	}
+
 	struct GraphicsContextState
 	{
 		GraphicsContextState(bool cam, bool imgui, bool swapchain, bool autoResize)

@@ -1,5 +1,5 @@
 #pragma once
-#include "Common/Core.h"
+
 #include "Utils/GLM.h"
 
 #include <optional>
