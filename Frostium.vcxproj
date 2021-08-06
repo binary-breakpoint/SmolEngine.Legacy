@@ -96,7 +96,7 @@
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;PLATFORM_WIN;BUILD_DLL;GLFW_INCLUDE_NONE;FROSTIUM_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;vendor\icon_font_cpp_headers;include;include\External;include\External\implot;include\External\spdlog\include;src;vendor\glfw\include;vendor\glad\include;include\External\imgui;include\External\glm;include\External\stb_image;include\External\vulkan\include;include\External\imgizmo\src;vendor\ktx\include;vendor\gli;vendor\tinygltf;.;vendor\cereal\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;vendor\icon_font_cpp_headers;include;include\External;include\External\implot;include\External\spdlog\include;src;vendor\glfw\include;vendor\glad\include;include\External\imgui;include\External\glm;include\External\stb_image;include\External\vulkan\include;include\External\imgizmo\src;vendor\ktx\include;vendor\gli;vendor\tinygltf;.;vendor\cereal\include;vendor\ozz-animation\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -108,7 +108,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>vendor\libs\Debug_Vulkan-windows-x86_64\Glad\Glad.lib;vendor\libs\Debug_Vulkan-windows-x86_64\GLFW\GLFW.lib;vendor\libs\Debug_Vulkan-windows-x86_64\ImGizmo\ImGizmo.lib;vendor\libs\Debug_Vulkan-windows-x86_64\ImGui\ImGui.lib;vendor\libs\Debug_Vulkan-windows-x86_64\KTX-Tools\KTX-Tools.lib;vendor\libs\Debug_Vulkan-windows-x86_64\SPIRV-Cross\SPIRV-Cross.lib;vendor\vulkan\libs\vulkan-1.lib;vendor\vulkan\libs\VkLayer_utils.lib;vendor\vulkan\libs\shaderc_d.lib;vendor\vulkan\libs\shaderc_util_d.lib;vendor\vulkan\libs\glslang_d.lib;vendor\vulkan\libs\SPIRV_d.lib;vendor\vulkan\libs\SPIRV-Tools_d.lib;vendor\vulkan\libs\SPIRV-Tools-opt_d.lib;vendor\vulkan\libs\machineIndependent_d.lib;vendor\vulkan\libs\genericCodeGen_d.lib;vendor\vulkan\libs\OGLCompiler_d.lib;vendor\vulkan\libs\OSDependent_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vendor\libs\Debug_Vulkan-windows-x86_64\Glad\Glad.lib;vendor\libs\Debug_Vulkan-windows-x86_64\GLFW\GLFW.lib;vendor\libs\Debug_Vulkan-windows-x86_64\ImGizmo\ImGizmo.lib;vendor\libs\Debug_Vulkan-windows-x86_64\ImGui\ImGui.lib;vendor\libs\Debug_Vulkan-windows-x86_64\KTX-Tools\KTX-Tools.lib;vendor\libs\Debug_Vulkan-windows-x86_64\SPIRV-Cross\SPIRV-Cross.lib;vendor\vulkan\libs\vulkan-1.lib;vendor\vulkan\libs\VkLayer_utils.lib;vendor\vulkan\libs\shaderc_d.lib;vendor\vulkan\libs\shaderc_util_d.lib;vendor\vulkan\libs\glslang_d.lib;vendor\vulkan\libs\SPIRV_d.lib;vendor\vulkan\libs\SPIRV-Tools_d.lib;vendor\vulkan\libs\SPIRV-Tools-opt_d.lib;vendor\vulkan\libs\machineIndependent_d.lib;vendor\vulkan\libs\genericCodeGen_d.lib;vendor\vulkan\libs\OGLCompiler_d.lib;vendor\vulkan\libs\OSDependent_d.lib;vendor\ozz-animation\libs\ozz_animation_d.lib;vendor\ozz-animation\libs\ozz_animation_offline_d.lib;vendor\ozz-animation\libs\ozz_base_d.lib;vendor\ozz-animation\libs\ozz_geometry_d.lib;vendor\ozz-animation\libs\ozz_options_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
   </ItemDefinitionGroup>
@@ -118,7 +118,7 @@
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;PLATFORM_WIN;BUILD_DLL;GLFW_INCLUDE_NONE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;vendor\icon_font_cpp_headers;include;include\External;include\External\implot;include\External\spdlog\include;src;vendor\glfw\include;vendor\glad\include;include\External\imgui;include\External\glm;include\External\stb_image;include\External\vulkan\include;include\External\imgizmo\src;vendor\ktx\include;vendor\gli;vendor\tinygltf;.;vendor\cereal\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;vendor\icon_font_cpp_headers;include;include\External;include\External\implot;include\External\spdlog\include;src;vendor\glfw\include;vendor\glad\include;include\External\imgui;include\External\glm;include\External\stb_image;include\External\vulkan\include;include\External\imgizmo\src;vendor\ktx\include;vendor\gli;vendor\tinygltf;.;vendor\cereal\include;vendor\ozz-animation\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -134,7 +134,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>vendor\libs\Release_Vulkan-windows-x86_64\Glad\Glad.lib;vendor\libs\Release_Vulkan-windows-x86_64\GLFW\GLFW.lib;vendor\libs\Release_Vulkan-windows-x86_64\ImGizmo\ImGizmo.lib;vendor\libs\Release_Vulkan-windows-x86_64\ImGui\ImGui.lib;vendor\libs\Release_Vulkan-windows-x86_64\KTX-Tools\KTX-Tools.lib;vendor\libs\Release_Vulkan-windows-x86_64\SPIRV-Cross\SPIRV-Cross.lib;vendor\vulkan\libs\vulkan-1.lib;vendor\vulkan\libs\shaderc.lib;vendor\vulkan\libs\shaderc_util.lib;vendor\vulkan\libs\glslang.lib;vendor\vulkan\libs\SPIRV.lib;vendor\vulkan\libs\SPIRV-Tools.lib;vendor\vulkan\libs\SPIRV-Tools-opt.lib;vendor\vulkan\libs\machineIndependent.lib;vendor\vulkan\libs\genericCodeGen.lib;vendor\vulkan\libs\OGLCompiler.lib;vendor\vulkan\libs\OSDependent.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vendor\libs\Release_Vulkan-windows-x86_64\Glad\Glad.lib;vendor\libs\Release_Vulkan-windows-x86_64\GLFW\GLFW.lib;vendor\libs\Release_Vulkan-windows-x86_64\ImGizmo\ImGizmo.lib;vendor\libs\Release_Vulkan-windows-x86_64\ImGui\ImGui.lib;vendor\libs\Release_Vulkan-windows-x86_64\KTX-Tools\KTX-Tools.lib;vendor\libs\Release_Vulkan-windows-x86_64\SPIRV-Cross\SPIRV-Cross.lib;vendor\vulkan\libs\vulkan-1.lib;vendor\vulkan\libs\shaderc.lib;vendor\vulkan\libs\shaderc_util.lib;vendor\vulkan\libs\glslang.lib;vendor\vulkan\libs\SPIRV.lib;vendor\vulkan\libs\SPIRV-Tools.lib;vendor\vulkan\libs\SPIRV-Tools-opt.lib;vendor\vulkan\libs\machineIndependent.lib;vendor\vulkan\libs\genericCodeGen.lib;vendor\vulkan\libs\OGLCompiler.lib;vendor\vulkan\libs\OSDependent.lib;vendor\ozz-animation\libs\ozz_animation_r.lib;vendor\ozz-animation\libs\ozz_animation_offline_r.lib;vendor\ozz-animation\libs\ozz_base_r.lib;vendor\ozz-animation\libs\ozz_geometry_r.lib;vendor\ozz-animation\libs\ozz_options_r.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
   </ItemDefinitionGroup>
@@ -144,7 +144,7 @@
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;PLATFORM_WIN;BUILD_DLL;GLFW_INCLUDE_NONE;FROSTIUM_SMOLENGINE_IMPL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;vendor\icon_font_cpp_headers;include;include\External;include\External\implot;include\External\spdlog\include;src;vendor\glfw\include;vendor\glad\include;include\External\imgui;include\External\glm;include\External\stb_image;include\External\vulkan\include;include\External\imgizmo\src;vendor\ktx\include;vendor\gli;vendor\tinygltf;.;vendor\cereal\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;vendor\icon_font_cpp_headers;include;include\External;include\External\implot;include\External\spdlog\include;src;vendor\glfw\include;vendor\glad\include;include\External\imgui;include\External\glm;include\External\stb_image;include\External\vulkan\include;include\External\imgizmo\src;vendor\ktx\include;vendor\gli;vendor\tinygltf;.;vendor\cereal\include;vendor\ozz-animation\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -160,7 +160,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>vendor\libs\SmolEngine_R-windows-x86_64\Glad\Glad.lib;vendor\libs\SmolEngine_R-windows-x86_64\GLFW\GLFW.lib;vendor\libs\SmolEngine_R-windows-x86_64\ImGizmo\ImGizmo.lib;vendor\libs\SmolEngine_R-windows-x86_64\ImGui\ImGui.lib;vendor\libs\SmolEngine_R-windows-x86_64\KTX-Tools\KTX-Tools.lib;vendor\libs\SmolEngine_R-windows-x86_64\SPIRV-Cross\SPIRV-Cross.lib;vendor\vulkan\libs\vulkan-1.lib;vendor\vulkan\libs\shaderc.lib;vendor\vulkan\libs\shaderc_util.lib;vendor\vulkan\libs\glslang.lib;vendor\vulkan\libs\SPIRV.lib;vendor\vulkan\libs\SPIRV-Tools.lib;vendor\vulkan\libs\SPIRV-Tools-opt.lib;vendor\vulkan\libs\machineIndependent.lib;vendor\vulkan\libs\genericCodeGen.lib;vendor\vulkan\libs\OGLCompiler.lib;vendor\vulkan\libs\OSDependent.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vendor\libs\SmolEngine_R-windows-x86_64\Glad\Glad.lib;vendor\libs\SmolEngine_R-windows-x86_64\GLFW\GLFW.lib;vendor\libs\SmolEngine_R-windows-x86_64\ImGizmo\ImGizmo.lib;vendor\libs\SmolEngine_R-windows-x86_64\ImGui\ImGui.lib;vendor\libs\SmolEngine_R-windows-x86_64\KTX-Tools\KTX-Tools.lib;vendor\libs\SmolEngine_R-windows-x86_64\SPIRV-Cross\SPIRV-Cross.lib;vendor\vulkan\libs\vulkan-1.lib;vendor\vulkan\libs\shaderc.lib;vendor\vulkan\libs\shaderc_util.lib;vendor\vulkan\libs\glslang.lib;vendor\vulkan\libs\SPIRV.lib;vendor\vulkan\libs\SPIRV-Tools.lib;vendor\vulkan\libs\SPIRV-Tools-opt.lib;vendor\vulkan\libs\machineIndependent.lib;vendor\vulkan\libs\genericCodeGen.lib;vendor\vulkan\libs\OGLCompiler.lib;vendor\vulkan\libs\OSDependent.lib;vendor\ozz-animation\libs\ozz_animation_r.lib;vendor\ozz-animation\libs\ozz_animation_offline_r.lib;vendor\ozz-animation\libs\ozz_base_r.lib;vendor\ozz-animation\libs\ozz_geometry_r.lib;vendor\ozz-animation\libs\ozz_options_r.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
   </ItemDefinitionGroup>
@@ -170,7 +170,7 @@
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;PLATFORM_WIN;BUILD_DLL;GLFW_INCLUDE_NONE;FROSTIUM_SMOLENGINE_IMPL;FROSTIUM_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor;vendor\icon_font_cpp_headers;include;include\External;include\External\implot;include\External\spdlog\include;src;vendor\glfw\include;vendor\glad\include;include\External\imgui;include\External\glm;include\External\stb_image;include\External\vulkan\include;include\External\imgizmo\src;vendor\ktx\include;vendor\gli;vendor\tinygltf;.;vendor\cereal\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;vendor\icon_font_cpp_headers;include;include\External;include\External\implot;include\External\spdlog\include;src;vendor\glfw\include;vendor\glad\include;include\External\imgui;include\External\glm;include\External\stb_image;include\External\vulkan\include;include\External\imgizmo\src;vendor\ktx\include;vendor\gli;vendor\tinygltf;.;vendor\cereal\include;vendor\ozz-animation\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -182,7 +182,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>vendor\libs\SmolEngine_D-windows-x86_64\Glad\Glad.lib;vendor\libs\SmolEngine_D-windows-x86_64\GLFW\GLFW.lib;vendor\libs\SmolEngine_D-windows-x86_64\ImGizmo\ImGizmo.lib;vendor\libs\SmolEngine_D-windows-x86_64\ImGui\ImGui.lib;vendor\libs\SmolEngine_D-windows-x86_64\KTX-Tools\KTX-Tools.lib;vendor\libs\SmolEngine_D-windows-x86_64\SPIRV-Cross\SPIRV-Cross.lib;vendor\vulkan\libs\vulkan-1.lib;vendor\vulkan\libs\VkLayer_utils.lib;vendor\vulkan\libs\shaderc_d.lib;vendor\vulkan\libs\shaderc_util_d.lib;vendor\vulkan\libs\glslang_d.lib;vendor\vulkan\libs\SPIRV_d.lib;vendor\vulkan\libs\SPIRV-Tools_d.lib;vendor\vulkan\libs\SPIRV-Tools-opt_d.lib;vendor\vulkan\libs\machineIndependent_d.lib;vendor\vulkan\libs\genericCodeGen_d.lib;vendor\vulkan\libs\OGLCompiler_d.lib;vendor\vulkan\libs\OSDependent_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vendor\libs\SmolEngine_D-windows-x86_64\Glad\Glad.lib;vendor\libs\SmolEngine_D-windows-x86_64\GLFW\GLFW.lib;vendor\libs\SmolEngine_D-windows-x86_64\ImGizmo\ImGizmo.lib;vendor\libs\SmolEngine_D-windows-x86_64\ImGui\ImGui.lib;vendor\libs\SmolEngine_D-windows-x86_64\KTX-Tools\KTX-Tools.lib;vendor\libs\SmolEngine_D-windows-x86_64\SPIRV-Cross\SPIRV-Cross.lib;vendor\vulkan\libs\vulkan-1.lib;vendor\vulkan\libs\VkLayer_utils.lib;vendor\vulkan\libs\shaderc_d.lib;vendor\vulkan\libs\shaderc_util_d.lib;vendor\vulkan\libs\glslang_d.lib;vendor\vulkan\libs\SPIRV_d.lib;vendor\vulkan\libs\SPIRV-Tools_d.lib;vendor\vulkan\libs\SPIRV-Tools-opt_d.lib;vendor\vulkan\libs\machineIndependent_d.lib;vendor\vulkan\libs\genericCodeGen_d.lib;vendor\vulkan\libs\OGLCompiler_d.lib;vendor\vulkan\libs\OSDependent_d.lib;vendor\ozz-animation\libs\ozz_animation_d.lib;vendor\ozz-animation\libs\ozz_animation_offline_d.lib;vendor\ozz-animation\libs\ozz_base_d.lib;vendor\ozz-animation\libs\ozz_geometry_d.lib;vendor\ozz-animation\libs\ozz_options_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
   </ItemDefinitionGroup>

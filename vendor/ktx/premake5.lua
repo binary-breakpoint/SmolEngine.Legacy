@@ -19,7 +19,7 @@ project "KTX-Tools"
 	{
 		"include/",
 		"other_include/",
-		"../../include/Libraries/vulkan/include/",
+		"../../include/External/vulkan/include/",
 		"lib/"
 	}
 

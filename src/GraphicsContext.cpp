@@ -52,6 +52,7 @@ namespace Frostium
 		m_Window->Init(info->pWindowCI, &m_EventHandler);
 		GLFWwindow* window = m_Window->GetNativeWindow();
 
+
 		// Creates API context
 #ifdef  FROSTIUM_OPENGL_IMPL
 		m_OpenglContext.Setup(window);

@@ -14,7 +14,7 @@ project "ImGizmo"
 
 	includedirs
 	{
-		"../../include/Libraries/",
+		"../../include/External/",
 		"src/"
 	}
     

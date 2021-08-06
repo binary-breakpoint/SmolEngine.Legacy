@@ -28,6 +28,7 @@ IncludeDir["ktx"] = "vendor/ktx/include"
 IncludeDir["gli"] = "vendor/gli"
 IncludeDir["tinygltf"] = "vendor/tinygltf"
 IncludeDir["cereal"] = "vendor/cereal/include"
+IncludeDir["ozz"] = "vendor/ozz-animation/include"
 
 group "Dependencies"
 include "include/External/imgui"
@@ -91,6 +92,7 @@ project "Frostium"
 		"%{IncludeDir.tinygltf}",
 		"%{IncludeDir.taskflow}",
 		"%{IncludeDir.cereal}",
+		"%{IncludeDir.ozz}",
 	}
 
 	links 
@@ -140,7 +142,13 @@ project "Frostium"
 			"vendor/vulkan/libs/machineIndependent_d.lib",
 			"vendor/vulkan/libs/genericCodeGen_d.lib",
 			"vendor/vulkan/libs/OGLCompiler_d.lib",
-			"vendor/vulkan/libs/OSDependent_d.lib"
+			"vendor/vulkan/libs/OSDependent_d.lib",
+
+			"vendor/ozz-animation/libs/ozz_animation_d.lib",
+			"vendor/ozz-animation/libs/ozz_animation_offline_d.lib",
+			"vendor/ozz-animation/libs/ozz_base_d.lib",
+			"vendor/ozz-animation/libs/ozz_geometry_d.lib",
+			"vendor/ozz-animation/libs/ozz_options_d.lib",
 		}
 
 		defines
@@ -166,7 +174,13 @@ project "Frostium"
 			"vendor/vulkan/libs/machineIndependent_d.lib",
 			"vendor/vulkan/libs/genericCodeGen_d.lib",
 			"vendor/vulkan/libs/OGLCompiler_d.lib",
-			"vendor/vulkan/libs/OSDependent_d.lib"
+			"vendor/vulkan/libs/OSDependent_d.lib",
+
+			"vendor/ozz-animation/libs/ozz_animation_d.lib",
+			"vendor/ozz-animation/libs/ozz_animation_offline_d.lib",
+			"vendor/ozz-animation/libs/ozz_base_d.lib",
+			"vendor/ozz-animation/libs/ozz_geometry_d.lib",
+			"vendor/ozz-animation/libs/ozz_options_d.lib",
 		}
 	
 		defines
@@ -174,23 +188,6 @@ project "Frostium"
 			"FROSTIUM_SMOLENGINE_IMPL",
 			"FROSTIUM_DEBUG"
 		}
-
-	filter "configurations:Debug_OpenGL"
-	buildoptions "/MDd"
-	buildoptions "/bigobj"
-	buildoptions "/Zm500"
-	symbols "on"
-
-	links 
-	{ 
-		"opengl32.lib"
-	}
-
-	defines
-	{
-		"FROSTIUM_OPENGL_IMPL",
-		"FROSTIUM_DEBUG"
-	}
 
 	filter "configurations:Release_Vulkan"
 	buildoptions "/MD"
@@ -209,7 +206,13 @@ project "Frostium"
 			"vendor/vulkan/libs/machineIndependent.lib",
 			"vendor/vulkan/libs/genericCodeGen.lib",
 			"vendor/vulkan/libs/OGLCompiler.lib",
-			"vendor/vulkan/libs/OSDependent.lib"
+			"vendor/vulkan/libs/OSDependent.lib",
+
+			"vendor/ozz-animation/libs/ozz_animation_r.lib",
+			"vendor/ozz-animation/libs/ozz_animation_offline_r.lib",
+			"vendor/ozz-animation/libs/ozz_base_r.lib",
+			"vendor/ozz-animation/libs/ozz_geometry_r.lib",
+			"vendor/ozz-animation/libs/ozz_options_r.lib",
 		}
 
 
@@ -230,7 +233,13 @@ project "Frostium"
 			"vendor/vulkan/libs/machineIndependent.lib",
 			"vendor/vulkan/libs/genericCodeGen.lib",
 			"vendor/vulkan/libs/OGLCompiler.lib",
-			"vendor/vulkan/libs/OSDependent.lib"
+			"vendor/vulkan/libs/OSDependent.lib",
+
+			"vendor/ozz-animation/libs/ozz_animation_r.lib",
+			"vendor/ozz-animation/libs/ozz_animation_offline_r.lib",
+			"vendor/ozz-animation/libs/ozz_base_r.lib",
+			"vendor/ozz-animation/libs/ozz_geometry_r.lib",
+			"vendor/ozz-animation/libs/ozz_options_r.lib",
 		}
 
 		defines
