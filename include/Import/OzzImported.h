@@ -19,6 +19,6 @@ namespace Frostium
 	class OzzImporter
 	{
 	public:
-		static bool Import(const std::string& filePath);
+		static bool ImportGltf(const std::string& filePath);
 	};
 }

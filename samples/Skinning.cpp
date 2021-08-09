@@ -41,8 +41,8 @@ int main(int argc, char** argv)
 	AnimationController animController2;
 
 	AnimationClipCreateInfo animInfo;
-	animInfo.AnimationPath = "Assets/CesiumManAnim.ozz";
-	animInfo.SkeletonPath = "Assets/CesiumMan_Skeleton.ozz";
+	animInfo.AnimationPath = "Assets/CesiumMan_animation.ozz";
+	animInfo.SkeletonPath = "Assets/CesiumMan_skeleton.ozz";
 	animInfo.ModelPath = "Assets/CesiumMan.gltf";
 
 	animController.AddClip(animInfo, "run");
@@ -64,8 +64,6 @@ int main(int argc, char** argv)
 	glm::vec3 lightDir = glm::vec3(0.0f);
 	glm::vec3 rot = glm::vec3(-90.0f, 0.0f, 0.0f);
 
-	bool playAnim = false;
-	bool reset = false;
 	bool debug = false;
 	float zNear = 1.0f;
 	float zFar = 350.0f;
@@ -192,25 +190,9 @@ int main(int argc, char** argv)
 				ImGui::Checkbox("Debug Draw", &debug);
 				ImGui::DragFloat4("LightDir", glm::value_ptr(dirLight.Direction));
 
-				if (ImGui::Checkbox("Play", &playAnim))
-				{
-					
-					reset = false;
-				}
-
-				ImGui::SameLine();
-				if (ImGui::Checkbox("Reset", &reset))
-				{
-					
-					playAnim = false;
-				}
-
-				if (ImGui::InputFloat("Anim Speed", &animSpeed))
-				{
-					
-				}
-
-				ImGui::DragFloat3("Plane rot", glm::value_ptr(rot));
+				ImGui::Checkbox("Anim Play", &animController.GetActiveClip()->GetProperties().bPlay);
+				ImGui::Checkbox("Anim Loop", &animController.GetActiveClip()->GetProperties().bLoop);
+				ImGui::InputFloat("Anim Speed", &animController.GetActiveClip()->GetProperties().Speed);
 			}
 			ImGui::End();
 

@@ -21,83 +21,15 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
-	class PlaybackController {
-	public:
-		PlaybackController()
-			: time_ratio_(0.f),
-			previous_time_ratio_(0.f),
-			playback_speed_(1.f),
-			play_(true),
-			loop_(true) {}
-
-		void set_time_ratio(float _ratio)
-		{
-			previous_time_ratio_ = time_ratio_;
-			if (loop_) 
-			{
-				// Wraps in the unit interval [0:1], even for negative values (the reason
-				// for using floorf).
-				time_ratio_ = _ratio - floorf(_ratio);
-			}
-			else 
-			{
-				// Clamps in the unit interval [0:1].
-				time_ratio_ = ozz::math::Clamp(0.f, _ratio, 1.f);
-			}
-		}
-
-		// Updates animation time if in "play" state, according to playback speed and
-		// given frame time _dt.
-		// Returns true if animation has looped during update
-		void Update(const ozz::animation::Animation& _animation, float _dt)
-		{
-			float new_time = time_ratio_;
-
-			if (play_) {
-				new_time = time_ratio_ + _dt * playback_speed_ / _animation.duration();
-			}
-
-			// Must be called even if time doesn't change, in order to update previous
-			// frame time ratio. Uses set_time_ratio function in order to update
-			// previous_time_ an wrap time value in the unit interval (depending on loop
-			// mode).
-			set_time_ratio(new_time);
-		}
-
-		// Resets all parameters to their default value.
-		void Reset()
-		{
-			previous_time_ratio_ = time_ratio_ = 0.f;
-			playback_speed_ = 1.f;
-			play_ = true;
-		}
-
-		// Current animation time ratio, in the unit interval [0,1], where 0 is the
-		// beginning of the animation, 1 is the end.
-		float time_ratio_;
-
-		// Time ratio of the previous update.
-		float previous_time_ratio_;
-
-		// Playback speed, can be negative in order to play the animation backward.
-		float playback_speed_;
-
-		// Animation play mode state: play/pause.
-		bool play_;
-
-		// Animation loop mode.
-		bool loop_;
-	};
-
 	struct AnimationClipStorage
 	{
-		PlaybackController                    m_Controller;
-		ImportedAnimationGlTF                 m_Import;
 		ozz::animation::Skeleton              m_Skeleton;
 		ozz::animation::Animation             m_Clip;
 		ozz::animation::SamplingCache         m_Cache;
 		ozz::vector<ozz::math::SoaTransform>  m_Locals;
 		ozz::vector<ozz::math::Float4x4>      m_Models;
+		std::vector<glm::mat4>                m_InverseBindMatrices;
+		std::vector<glm::mat4>                m_FinalJoints;
 	};
 
 	bool LoadSkeleton(const char* _filename, ozz::animation::Skeleton* _skeleton) 
@@ -120,9 +52,9 @@ namespace Frostium
 		return true;
 	}
 
-	bool LoadMeshData(const std::string& filePath, ImportedAnimationGlTF* anim)
+	bool LoadMeshData(const std::string& filePath, std::vector<glm::mat4>& inverseBindMatrices)
 	{
-		return glTFImporter::ImportAnimation(filePath, anim);
+		return glTFImporter::ImportInverseBindMatrices(filePath, inverseBindMatrices);
 	}
 
 	bool LoadAnimation(const char* _filename, ozz::animation::Animation* _animation) 
@@ -151,7 +83,7 @@ namespace Frostium
 
 		if (LoadAnimation(createInfo.AnimationPath.c_str(), &m_Storage->m_Clip) &&
 			LoadSkeleton(createInfo.SkeletonPath.c_str(), &m_Storage->m_Skeleton) &&
-			LoadMeshData(createInfo.ModelPath.c_str(), &m_Storage->m_Import))
+			LoadMeshData(createInfo.ModelPath.c_str(), m_Storage->m_InverseBindMatrices))
 		{
 			const int numSoaJoints = m_Storage->m_Skeleton.num_soa_joints();
 			const int numTracks = m_Storage->m_Clip.num_tracks();
@@ -159,10 +91,12 @@ namespace Frostium
 
 			if (numTracks == numJoints)
 			{
+				m_Storage->m_FinalJoints.resize(numJoints);
 				m_Storage->m_Models.resize(numJoints);
 				m_Storage->m_Cache.Resize(numJoints);
 				m_Storage->m_Locals.resize(numSoaJoints);
 
+				m_Info = createInfo.ClipInfo;
 				return true;
 			}
 		}
@@ -170,81 +104,89 @@ namespace Frostium
 		return false;
 	}
 
+	void AnimationClip::CopyJoints(std::vector<glm::mat4>& dist, uint32_t& out_index)
+	{
+		for (uint32_t i = 0; i < static_cast<uint32_t>(m_Storage->m_Models.size()); ++i)
+		{
+			glm::mat4& mBone = dist[out_index];
+
+			ozz::math::StorePtr(m_Storage->m_Models[i].cols[0], glm::value_ptr(mBone[0]));
+			ozz::math::StorePtr(m_Storage->m_Models[i].cols[1], glm::value_ptr(mBone[1]));
+			ozz::math::StorePtr(m_Storage->m_Models[i].cols[2], glm::value_ptr(mBone[2]));
+			ozz::math::StorePtr(m_Storage->m_Models[i].cols[3], glm::value_ptr(mBone[3]));
+
+			mBone *= m_Storage->m_InverseBindMatrices[i];
+			out_index++;
+		}
+	}
+
 	bool AnimationClip::IsGood() const
 	{
 		return m_Storage != nullptr;
 	}
 
-	void AnimationClip::SetLoop(bool value)
-	{
-		m_Storage->m_Controller.loop_ = value;
-	}
-
-	void AnimationClip::SetSpeed(float value)
-	{
-		m_Storage->m_Controller.playback_speed_ = value;
-	}
-
-	bool AnimationClip::IsLooping() const
-	{
-		return m_Storage->m_Controller.loop_;
-	}
-
-	float AnimationClip::GetSpeed() const
-	{
-		return m_Storage->m_Controller.playback_speed_;
-	}
-
 	std::vector<glm::mat4>& AnimationClip::GetJoints() const
 	{
-		return m_Storage->m_Import.Joints;
+		return m_Storage->m_FinalJoints;
+	}
+
+	AnimationClipInfo& AnimationClip::GetProperties()
+	{
+		return m_Info;
+	}
+
+	void AnimationClip::Reset()
+	{
+		m_PreviousTimeRatio = m_TimeRatio = 0.f;
+		m_Info.Speed = 1.f;
+		m_Info.bPlay = true;
+		m_Info.bLoop = true;
+	}
+
+	void AnimationClip::SetTimeRatio(float ratio)
+	{
+		m_PreviousTimeRatio = m_TimeRatio;
+
+		if (m_Info.bLoop)
+			m_TimeRatio = ratio - floorf(ratio);
+		else
+			m_TimeRatio = ozz::math::Clamp(0.f, ratio, 1.f);
 	}
 
 	bool AnimationClip::Update()
 	{
-		const float time = GraphicsContext::GetSingleton()->GetDeltaTime();
+		const float deltaTime = GraphicsContext::GetSingleton()->GetDeltaTime();
 		const auto& storage = m_Storage;
 
-		if (storage)
-		{
-			storage->m_Controller.Update(storage->m_Clip, time);
-
-			// Samples optimized animation at t = animation_time_.
-			ozz::animation::SamplingJob sampling_job;
-			sampling_job.animation = &storage->m_Clip;
-			sampling_job.cache = &storage->m_Cache;
-			sampling_job.ratio = storage->m_Controller.time_ratio_;
-			sampling_job.output = make_span(storage->m_Locals);
-			if (!sampling_job.Run()) 
-			{
-				return false;
-			}
-
-			// Converts from local space to model space matrices.
-
-			ozz::animation::LocalToModelJob ltm_job;
-			ltm_job.skeleton = &storage->m_Skeleton;
-			ltm_job.input = make_span(storage->m_Locals);
-			ltm_job.output = make_span(storage->m_Models);
-			if (!ltm_job.Run()) 
-			{
-				return false;
-			}
-
-			for (uint32_t i = 0; i < static_cast<uint32_t>(m_Storage->m_Models.size()); ++i)
-			{
-				glm::mat4& mBone = m_Storage->m_Import.Joints[i];
-				ozz::math::StorePtr(m_Storage->m_Models[i].cols[0],  glm::value_ptr(mBone[0]));
-				ozz::math::StorePtr(m_Storage->m_Models[i].cols[1],  glm::value_ptr(mBone[1]));
-				ozz::math::StorePtr(m_Storage->m_Models[i].cols[2],  glm::value_ptr(mBone[2]));
-				ozz::math::StorePtr(m_Storage->m_Models[i].cols[3],  glm::value_ptr(mBone[3]));
-
-				mBone *= m_Storage->m_Import.Skins[0].InverseBindMatrices[i];
-			}
-
-			return true;
+		float new_time = m_TimeRatio;
+		if (m_Info.bPlay) {
+			new_time = m_TimeRatio + deltaTime * m_Info.Speed / storage->m_Clip.duration();
 		}
 
-		return false;
+		SetTimeRatio(new_time);
+
+		// Samples optimized animation at t = animation_time_.
+		ozz::animation::SamplingJob sampling_job;
+		sampling_job.animation = &storage->m_Clip;
+		sampling_job.cache = &storage->m_Cache;
+		sampling_job.ratio = m_TimeRatio;
+		sampling_job.output = make_span(storage->m_Locals);
+		if (!sampling_job.Run())
+		{
+			return false;
+		}
+
+		// Converts from local space to model space matrices.
+
+		ozz::animation::LocalToModelJob ltm_job;
+		ltm_job.skeleton = &storage->m_Skeleton;
+		ltm_job.input = make_span(storage->m_Locals);
+		ltm_job.output = make_span(storage->m_Models);
+		if (!ltm_job.Run())
+		{
+			return false;
+		}
+
+		return true;
 	}
 }

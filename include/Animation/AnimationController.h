@@ -21,6 +21,7 @@ namespace Frostium
 						    
 	private:			    
 		void                             Update();
+		void                             CopyJoints(std::vector<glm::mat4>& dist, uint32_t& out_index);
 
 	private:
 		Ref<AnimationClip>               m_ActiveClip = nullptr;

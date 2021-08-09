@@ -16,13 +16,19 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
+	struct AnimationClipInfo
+	{
+		float        Speed = 1.0f;
+		bool         bLoop = true;
+		bool         bPlay = true;
+	};
+
 	struct AnimationClipCreateInfo
 	{
-		float        Speed = 0.0f;
-		std::string  SkeletonPath = "";
-		std::string  AnimationPath = "";
-		std::string  ModelPath = "";
-		bool         bLoop = true;
+		AnimationClipInfo ClipInfo;
+		std::string       SkeletonPath = "";
+		std::string       AnimationPath = "";
+		std::string       ModelPath = "";
 
 		void Load();
 		void Save();
@@ -33,7 +39,7 @@ namespace Frostium
 		template<typename Archive>
 		void serialize(Archive& archive)
 		{
-			archive(bLoop, Speed, SkeletonPath, AnimationPath);
+			archive(ClipInfo.bLoop, ClipInfo.bPlay, ClipInfo.Speed, SkeletonPath, AnimationPath, ModelPath);
 		}
 	};
 
@@ -42,21 +48,21 @@ namespace Frostium
 	class AnimationClip
 	{
 	public:
-		bool                    IsGood() const;
-		// Setters
-		void                    SetLoop(bool value);
-		void                    SetSpeed(float value);
-		// Getters
-		bool                    IsLooping() const;
-		float                   GetSpeed() const;
-		std::vector<glm::mat4>& GetJoints() const;
+		bool                        IsGood() const;
+		std::vector<glm::mat4>&     GetJoints() const;
+		AnimationClipInfo&          GetProperties();
+		void                        Reset();
+		void                        SetTimeRatio(float ratio);
+	private:
+		bool                        Update();
+		bool                        Create(const AnimationClipCreateInfo& createInfo);
+		void                        CopyJoints(std::vector<glm::mat4>& dist, uint32_t& out_index);
 
 	private:
-		bool   Update();
-		bool   Create(const AnimationClipCreateInfo& createInfo);
-
-	private:
-		Ref<AnimationClipStorage> m_Storage;
+		float                       m_TimeRatio = 0.0f;
+		float                       m_PreviousTimeRatio = 0.0f;
+		AnimationClipInfo           m_Info{};
+		Ref<AnimationClipStorage>   m_Storage = nullptr;
 
 		friend class AnimationController;
 	};

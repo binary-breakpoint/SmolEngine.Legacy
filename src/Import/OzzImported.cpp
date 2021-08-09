@@ -9,7 +9,7 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
-	bool OzzImporter::Import(const std::string& filePath)
+	bool OzzImporter::ImportGltf(const std::string& filePath)
 	{
 		std::filesystem::path path(filePath);
 		std::string skeleton_name = path.filename().stem().u8string() + "_skeleton.ozz";
@@ -21,6 +21,13 @@ namespace Frostium
 		config = std::regex_replace(config, std::regex("animation_name.ozz"), anim_name);
 
 		std::string command_line = "gltf2ozz.exe --file=" + filePath + config;
-		return std::system(command_line.c_str()) == 0;
+		bool result = std::system(command_line.c_str()) == 0;
+		if (result)
+		{
+			std::filesystem::rename(std::filesystem::current_path().u8string() + "/" + skeleton_name, path.parent_path().u8string() + "/" + skeleton_name);
+			std::filesystem::rename(std::filesystem::current_path().u8string() + "/" + anim_name, path.parent_path().u8string() + "/" + anim_name);
+		}
+
+		return result;
 	}
 }

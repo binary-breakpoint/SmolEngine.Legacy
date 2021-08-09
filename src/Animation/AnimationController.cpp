@@ -66,7 +66,11 @@ namespace Frostium
 
 	void AnimationController::Update()
 	{
-		if(m_ActiveClip)
-			m_ActiveClip->Update();
+		m_ActiveClip->Update();
+	}
+
+	void AnimationController::CopyJoints(std::vector<glm::mat4>& dist, uint32_t& out_index)
+	{
+		m_ActiveClip->CopyJoints(dist, out_index);
 	}
 }

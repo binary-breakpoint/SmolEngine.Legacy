@@ -314,13 +314,7 @@ namespace Frostium
 						if (mesh->IsRootNode())
 						{
 							package.AnimController->Update();
-							const auto& joints = *package.AnimController->GetJoints();
-							for (uint32_t x = 0; x < static_cast<uint32_t>(joints.size()); ++x)
-							{
-								s_Data->m_AnimationJoints[s_Data->m_LastAnimationOffset] = joints[x];
-								s_Data->m_LastAnimationOffset++;
-							}
-
+							package.AnimController->CopyJoints(s_Data->m_AnimationJoints, s_Data->m_LastAnimationOffset);
 							s_Data->m_RootOffsets[mesh] = anim_offset;
 						}
 						else

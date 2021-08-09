@@ -11,8 +11,6 @@
 #include "Camera/Frustum.h"
 #include "Utils/GLM.h"
 
-#include <mutex>
-
 class VulkanPBR;
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
@@ -189,6 +187,11 @@ namespace Frostium
 
 	struct RendererStorage
 	{
+		RendererStorage()
+		{
+			m_AnimationJoints.resize(max_anim_joints);
+		}
+
 		// States
 		bool                                       m_IsInitialized = false;
 		ShadowMapSize                              m_MapSize = ShadowMapSize::SIZE_8;
@@ -239,7 +242,7 @@ namespace Frostium
 		std::array<InstanceData, max_objects>      m_InstancesData;
 		std::array<PointLight, max_lights>         m_PointLights;
 		std::array<SpotLight, max_lights>          m_SpotLights;
-		std::array<glm::mat4, max_anim_joints>     m_AnimationJoints;
+		std::vector<glm::mat4>                     m_AnimationJoints;
 		std::unordered_map<Mesh*,InstancePackage>  m_Packages;
 		std::unordered_map<Mesh*,uint32_t>         m_RootOffsets;
 
