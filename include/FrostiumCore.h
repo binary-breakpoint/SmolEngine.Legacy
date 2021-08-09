@@ -17,6 +17,11 @@
 #include "Event/Events.h"
 #include "Event/Input.h"
 
+#include "Import/glTFImporter.h"
+#include "Import/OzzImported.h"
+
+#include "Animation/AnimationController.h"
+
 #include "Camera/EditorCamera.h"
 #include "Tools/MaterialLibrary.h"
 #include "GraphicsContext.h"

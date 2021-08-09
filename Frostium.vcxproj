@@ -187,7 +187,8 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="include\Animation\Animation.h" />
+    <ClInclude Include="include\Animation\AnimationClip.h" />
+    <ClInclude Include="include\Animation\AnimationController.h" />
     <ClInclude Include="include\Backends\OpenGL\OpenglBuffer.h" />
     <ClInclude Include="include\Backends\OpenGL\OpenglContext.h" />
     <ClInclude Include="include\Backends\OpenGL\OpenglFramebuffer.h" />
@@ -840,6 +841,7 @@
     <ClInclude Include="include\GUI\ImGuiContext.h" />
     <ClInclude Include="include\GraphicsContext.h" />
     <ClInclude Include="include\Import\glTFImporter.h" />
+    <ClInclude Include="include\Import\OzzImported.h" />
     <ClInclude Include="include\Multithreading\JobsSystemInstance.h" />
     <ClInclude Include="include\Primitives\BufferElement.h" />
     <ClInclude Include="include\Primitives\BufferLayout.h" />
@@ -868,6 +870,8 @@
     <ClInclude Include="src\stdafx.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Animation\AnimationClip.cpp" />
+    <ClCompile Include="src\Animation\AnimationController.cpp" />
     <ClCompile Include="src\Backends\OpenGL\OpenglBuffer.cpp" />
     <ClCompile Include="src\Backends\OpenGL\OpenglContext.cpp" />
     <ClCompile Include="src\Backends\OpenGL\OpenglFramebuffer.cpp" />
@@ -912,6 +916,7 @@
     <ClCompile Include="src\GUI\ImGuiContext.cpp" />
     <ClCompile Include="src\GraphicsContext.cpp" />
     <ClCompile Include="src\Import\glTFImporter.cpp" />
+    <ClCompile Include="src\Import\OzzImported.cpp" />
     <ClCompile Include="src\Multithreading\JobsSystemInstance.cpp" />
     <ClCompile Include="src\Primitives\CubeMap.cpp" />
     <ClCompile Include="src\Primitives\Framebuffer.cpp" />

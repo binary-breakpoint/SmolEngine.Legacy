@@ -270,9 +270,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\Animation\Animation.h">
-      <Filter>include\Animation</Filter>
-    </ClInclude>
     <ClInclude Include="include\Backends\OpenGL\OpenglBuffer.h">
       <Filter>include\Backends\OpenGL</Filter>
     </ClInclude>
@@ -2307,6 +2304,9 @@
     <ClInclude Include="src\stdafx.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="include\Animation\AnimationClip.h" />
+    <ClInclude Include="include\Animation\AnimationController.h" />
+    <ClInclude Include="include\Import\OzzImported.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Backends\OpenGL\OpenglBuffer.cpp">
@@ -2513,5 +2513,8 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
+    <ClCompile Include="src\Animation\AnimationClip.cpp" />
+    <ClCompile Include="src\Animation\AnimationController.cpp" />
+    <ClCompile Include="src\Import\OzzImported.cpp" />
   </ItemGroup>
 </Project>

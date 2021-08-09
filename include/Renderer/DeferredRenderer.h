@@ -13,7 +13,8 @@ namespace Frostium
 	class Mesh;
 	class Framebuffer;
 	class CubeMap;
-	struct MeshComponent;
+	class AnimationController;
+
 	enum class ShadowMapSize : uint16_t;
 
 	class DeferredRenderer
@@ -26,8 +27,8 @@ namespace Frostium
 		static void EndScene();
 
 		// SUbmit
-		static void SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Mesh* mesh, const uint32_t& PBRmaterialID = 0);
-		static void SubmitMeshEx(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Mesh* mesh, const uint32_t& PBRmaterialID);
+		static void SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Mesh* mesh,
+			const uint32_t& material_id = 0, bool submit_childs = true, AnimationController* anim_controller = nullptr);
 		static void SubmitDirLight(DirectionalLight* light);
 		static void SubmitPointLight(PointLight* light);
 		static void SubmitSpotLight(SpotLight* light);
@@ -65,9 +66,6 @@ namespace Frostium
 		static void InitPipelines();
 		static void InitFramebuffers();
 		static void CalculateDepthMVP(glm::mat4& out_mvp);
-
-		static void AddMesh(const glm::vec3& pos, const glm::vec3& rotation,
-			const glm::vec3& scale, Mesh* mesh, const uint32_t& materialID);
 
 	private:
 		friend class GraphicsContext;

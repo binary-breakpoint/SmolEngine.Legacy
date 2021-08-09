@@ -126,7 +126,6 @@ int main(int argc, char** argv)
 		// FarClip, NearClip, Camera Position, Projection and View Matrix
 		BeginSceneInfo info = {};
 		info.Update(camera);
-
 		context->UpdateSceneInfo(&info);
 
 		context->BeginFrame(deltaTime);

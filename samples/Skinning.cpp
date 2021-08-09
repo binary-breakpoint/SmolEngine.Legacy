@@ -37,6 +37,21 @@ int main(int argc, char** argv)
 		info.eShadowMapSize = ShadowMapSize::SIZE_8;
 	}
 
+	AnimationController animController;
+	AnimationController animController2;
+
+	AnimationClipCreateInfo animInfo;
+	animInfo.AnimationPath = "Assets/CesiumManAnim.ozz";
+	animInfo.SkeletonPath = "Assets/CesiumMan_Skeleton.ozz";
+	animInfo.ModelPath = "Assets/CesiumMan.gltf";
+
+	animController.AddClip(animInfo, "run");
+
+	animInfo.AnimationPath = "Assets/JetAnim.ozz";
+	animInfo.SkeletonPath = "Assets/Jet_Skeleton.ozz";
+	animInfo.ModelPath = "Assets/plane.gltf";
+	animController2.AddClip(animInfo, "fly");
+
 	bool process = true;
 	ClearInfo clearInfo = {};
 	context = new GraphicsContext(&info);
@@ -84,11 +99,9 @@ int main(int argc, char** argv)
 	DeferredRenderer::SetDirtMask(&dirtMask, 1.0f, 0.1f);
 
 	// Load Materials
-	uint32_t stoneMat;
-	uint32_t planeMat;
+	uint32_t stoneMat = 0;
+	uint32_t planeMat = 0;
 	{
-		MaterialCreateInfo materialCI = {};
-
 		JobsSystemInstance::BeginSubmition();
 		{
 			JobsSystemInstance::Schedule([&stoneMat]()
@@ -137,19 +150,12 @@ int main(int argc, char** argv)
 			});
 		}
 		JobsSystemInstance::EndSubmition();
+		DeferredRenderer::UpdateMaterials();
 	}
 
 	DynamicSkyProperties sky;
 	DeferredRenderer::SetDynamicSkyboxProperties(sky);
-
-	DeferredRenderer::UpdateMaterials();
-	plane.SetMaterialID(planeMat, true);
-
-	AnimationProperties* defaultProp = plane.GetAnimationProperties(0);
-	AnimationProperties* defaultProp2 = dummy.GetAnimationProperties(0);
-	defaultProp2->SetActive(true);
-
-	static glm::vec3 sunPos = glm::vec4(50, 100, 40, 0);
+	glm::vec3 sunPos = glm::vec4(50, 100, 40, 0);
 
 	while (process)
 	{
@@ -188,25 +194,20 @@ int main(int argc, char** argv)
 
 				if (ImGui::Checkbox("Play", &playAnim))
 				{
-					defaultProp->SetActive(true);
+					
 					reset = false;
 				}
 
 				ImGui::SameLine();
 				if (ImGui::Checkbox("Reset", &reset))
 				{
-					plane.ResetAnimation(0);
+					
 					playAnim = false;
-				}
-
-				if (!playAnim && defaultProp->IsActive())
-				{
-					defaultProp->SetActive(false);
 				}
 
 				if (ImGui::InputFloat("Anim Speed", &animSpeed))
 				{
-					defaultProp2->SetSpeed(animSpeed);
+					
 				}
 
 				ImGui::DragFloat3("Plane rot", glm::value_ptr(rot));
@@ -215,8 +216,8 @@ int main(int argc, char** argv)
 
 			DeferredRenderer::BeginScene(&clearInfo);
 			DeferredRenderer::SubmitDirLight(&dirLight);
-			DeferredRenderer::SubmitMesh({ 0, 3.9f, -3 }, glm::radians(rot), { 1, 1, 1, }, &plane, planeMat);
-			DeferredRenderer::SubmitMesh({ 3, 2, 0 }, { 0, 0, 0 }, { 5, 5, 5, }, &dummy, stoneMat);
+			DeferredRenderer::SubmitMesh({ 0, 3.9f, -3 }, glm::radians(rot), { 1, 1, 1, }, &plane, planeMat, true, &animController2);
+			DeferredRenderer::SubmitMesh({ 3, 2, 0 }, { 0, 0, 0 }, { 5, 5, 5, }, &dummy, stoneMat, true, &animController);
 			DeferredRenderer::EndScene();
 			
 			if (debug)

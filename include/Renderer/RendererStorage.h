@@ -7,7 +7,6 @@
 
 #include "Environment/EnvironmentMap.h"
 #include "Renderer/RendererShared.h"
-#include "Animation/Animation.h"
 
 #include "Camera/Frustum.h"
 #include "Utils/GLM.h"
@@ -90,6 +89,8 @@ namespace Frostium
 	{
 		glm::vec4   AmbientColor = glm::vec4(1.0f);
 		float       IBLStrength = 1.0f;
+
+		void        SetActive(bool value) { UseIBL = value; }
 	private:
 		uint32_t    UseIBL = 1;
 		uint32_t    pad1 = 1;
@@ -168,18 +169,20 @@ namespace Frostium
 		Mesh*                  Mesh = nullptr;
 	};
 
+	class  AnimationController;
 	struct InstancePackage
 	{
 		struct Package
 		{
-			uint32_t           MaterialID = 0;
-			glm::vec3*         WorldPos = nullptr;
-			glm::vec3*         Rotation = nullptr;
-			glm::vec3*         Scale = nullptr;
-		};
+			uint32_t              MaterialID = 0;
+			glm::vec3*            WorldPos = nullptr;
+			glm::vec3*            Rotation = nullptr;
+			glm::vec3*            Scale = nullptr;
+			AnimationController*  AnimController = nullptr;
+		};						  
 
-		uint32_t               CurrentIndex = 0;
-		std::vector<Package>   Packages;
+		uint32_t                  CurrentIndex = 0;
+		std::vector<Package>      Packages;
 	};
 
 #pragma endregion

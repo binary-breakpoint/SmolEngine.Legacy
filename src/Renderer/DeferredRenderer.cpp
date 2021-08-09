@@ -11,6 +11,7 @@
 #include "Primitives/Shader.h"
 
 #include "Import/glTFImporter.h"
+#include "Animation/AnimationController.h"
 
 #include "Multithreading/JobsSystemInstance.h"
 
@@ -303,64 +304,42 @@ namespace Frostium
 				{
 					InstancePackage::Package& package = instance.Packages[x];
 					InstanceData& instanceUBO = s_Data->m_InstancesData[s_Data->m_InstanceDataIndex];
-					AnimationProperties* props = nullptr;
 
-					uint32_t animStartOffset = 0;
-					const bool animated = mesh->IsAnimated();
-					bool animActive = false;
+					const bool is_animated = package.AnimController != nullptr;
+					uint32_t   anim_offset = s_Data->m_LastAnimationOffset;
 
 					// Animations
+					if (is_animated)
 					{
-						for (uint32_t y = 0; y < mesh->GetAnimationsCount(); ++y)
+						if (mesh->IsRootNode())
 						{
-							props = mesh->GetAnimationProperties(y);
-							if (props->IsActive())
+							package.AnimController->Update();
+							const auto& joints = *package.AnimController->GetJoints();
+							for (uint32_t x = 0; x < static_cast<uint32_t>(joints.size()); ++x)
 							{
-								animActive = true;
-								break;
+								s_Data->m_AnimationJoints[s_Data->m_LastAnimationOffset] = joints[x];
+								s_Data->m_LastAnimationOffset++;
 							}
+
+							s_Data->m_RootOffsets[mesh] = anim_offset;
 						}
-
-						if (animated && mesh->m_ImportedData)
+						else
 						{
-							Ref<ImportedDataGlTF> imported = mesh->m_ImportedData;
-							glTFAnimation* activeAnim = &imported->Animations[imported->ActiveAnimation];
-							if (mesh->IsRootNode())
-							{
-								animStartOffset = s_Data->m_LastAnimationOffset;
-								s_Data->m_RootOffsets[mesh] = animStartOffset;
-
-								if (animActive)
-								{
-									mesh->UpdateAnimations();
-								}
-
-								uint32_t jointCount = static_cast<uint32_t>(props->Joints.size());
-								for (uint32_t x = 0; x < jointCount; ++x)
-								{
-									s_Data->m_AnimationJoints[s_Data->m_LastAnimationOffset] = props->Joints[x];
-									s_Data->m_LastAnimationOffset++;
-								}
-							}
-
-							if (animated && !mesh->IsRootNode())
-							{
-								auto& it = s_Data->m_RootOffsets.find(mesh->m_Root);
-								if (it != s_Data->m_RootOffsets.end())
-									animStartOffset = it->second;
-							}
+							auto& it = s_Data->m_RootOffsets.find(mesh->m_Root);
+							if (it != s_Data->m_RootOffsets.end())
+								anim_offset = it->second;
 						}
 					}
 
 					// Transform
 					{
-						JobsSystemInstance::Schedule([animated, animStartOffset, &package, &instanceUBO]()
+						JobsSystemInstance::Schedule([is_animated, anim_offset, &package, &instanceUBO]()
 						{
 							Utils::ComposeTransform(*package.WorldPos, *package.Rotation, *package.Scale, instanceUBO.ModelView);
 
 							instanceUBO.MaterialID = package.MaterialID;
-							instanceUBO.IsAnimated = animated;
-							instanceUBO.AnimOffset = animStartOffset;
+							instanceUBO.IsAnimated = is_animated;
+							instanceUBO.AnimOffset = anim_offset;
 							instanceUBO.EntityID = 0; // temp
 						});
 					}
@@ -371,7 +350,6 @@ namespace Frostium
 				instance.CurrentIndex = 0;
 			}
 		}
-	
 		JobsSystemInstance::EndSubmition();
 	}
 
@@ -467,44 +445,40 @@ namespace Frostium
 		Reset();
 	}
 
-	void DeferredRenderer::SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation,
-		const glm::vec3& scale, Mesh* mesh, const uint32_t& materialID)
+	void DeferredRenderer::SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Mesh* mesh,
+		const uint32_t& material_id, bool submit_childs, AnimationController* anim_controller)
 	{
-		if (s_Data->m_Frustum->CheckSphere(pos, s_Data->m_State.FrustumRadius) && mesh != nullptr)
+		if (!s_Data->m_Frustum->CheckSphere(pos, s_Data->m_State.FrustumRadius))
+			return;
+
+		if (s_Data->m_Objects >= max_objects)
+			StartNewBacth();
+
+		auto& instance = s_Data->m_Packages[mesh];
+		InstancePackage::Package* package = nullptr;
+
+		if (instance.CurrentIndex == instance.Packages.size())
 		{
-			AddMesh(pos, rotation, scale, mesh, materialID == 0 ? mesh->m_MaterialID: materialID);
+			instance.Packages.emplace_back(InstancePackage::Package());
+			package = &instance.Packages.back();
 		}
-	}
+		else { package = &instance.Packages[instance.CurrentIndex]; }
 
-	void DeferredRenderer::SubmitMeshEx(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Mesh* mesh, const uint32_t& PBRmaterialID)
-	{
-		if (s_Data->m_Frustum->CheckSphere(pos, s_Data->m_State.FrustumRadius) && mesh != nullptr)
+		package->MaterialID = material_id;
+		package->WorldPos = const_cast<glm::vec3*>(&pos);
+		package->Rotation = const_cast<glm::vec3*>(&rotation);
+		package->Scale = const_cast<glm::vec3*>(&scale);
+		package->AnimController = anim_controller;
+
+		s_Data->m_Objects++;
+		instance.CurrentIndex++;
+		bool found = std::find(s_Data->m_UsedMeshes.begin(), s_Data->m_UsedMeshes.end(), mesh) != s_Data->m_UsedMeshes.end();
+		if (found == false) { s_Data->m_UsedMeshes.emplace_back(mesh); }
+
+		if (submit_childs)
 		{
-			if (s_Data->m_Objects >= max_objects)
-				StartNewBacth();
-
-			auto& instance = s_Data->m_Packages[mesh];
-			InstancePackage::Package* package = nullptr;
-
-			if (instance.CurrentIndex == instance.Packages.size())
-			{
-				instance.Packages.emplace_back(InstancePackage::Package());
-				package = &instance.Packages.back();
-			}
-			else
-				package = &instance.Packages[instance.CurrentIndex];
-
-			package->MaterialID = PBRmaterialID;
-			package->WorldPos = const_cast<glm::vec3*>(&pos);
-			package->Rotation = const_cast<glm::vec3*>(&rotation);
-			package->Scale = const_cast<glm::vec3*>(&scale);
-
-			instance.CurrentIndex++;
-			s_Data->m_Objects++;
-
-			bool found = std::find(s_Data->m_UsedMeshes.begin(), s_Data->m_UsedMeshes.end(), mesh) != s_Data->m_UsedMeshes.end();
-			if (found == false)
-				s_Data->m_UsedMeshes.emplace_back(mesh);
+			for (auto& sub : mesh->m_Childs)
+				SubmitMesh(pos, rotation, scale, &sub, material_id, submit_childs, anim_controller);
 		}
 	}
 
@@ -1040,38 +1014,6 @@ namespace Frostium
 		glm::mat4 depthModelMatrix = glm::mat4(1.0f);
 
 		out_mvp =  depthProjectionMatrix * depthViewMatrix * depthModelMatrix;
-	}
-
-	void DeferredRenderer::AddMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Mesh* mesh, const uint32_t& materialID)
-	{
-		if (s_Data->m_Objects >= max_objects)
-			StartNewBacth();
-
-		auto& instance = s_Data->m_Packages[mesh];
-		InstancePackage::Package* package = nullptr;
-
-		if (instance.CurrentIndex == instance.Packages.size())
-		{
-			instance.Packages.emplace_back(InstancePackage::Package());
-			package = &instance.Packages.back();
-		}
-		else
-			package = &instance.Packages[instance.CurrentIndex];
-
-		package->MaterialID = materialID;
-		package->WorldPos = const_cast<glm::vec3*>(&pos);
-		package->Rotation = const_cast<glm::vec3*>(&rotation);
-		package->Scale = const_cast<glm::vec3*>(&scale);
-
-		instance.CurrentIndex++;
-		s_Data->m_Objects++;
-
-		bool found = std::find(s_Data->m_UsedMeshes.begin(), s_Data->m_UsedMeshes.end(), mesh) != s_Data->m_UsedMeshes.end();
-		if (found == false)
-			s_Data->m_UsedMeshes.emplace_back(mesh);
-
-		for (auto& sub : mesh->m_Childs)
-			AddMesh(pos, rotation, scale, &sub, sub.m_MaterialID);
 	}
 
 	bool DeferredRenderer::UpdateMaterials()
