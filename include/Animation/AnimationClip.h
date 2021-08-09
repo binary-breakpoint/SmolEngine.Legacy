@@ -49,10 +49,11 @@ namespace Frostium
 	{
 	public:
 		bool                        IsGood() const;
-		std::vector<glm::mat4>&     GetJoints() const;
 		AnimationClipInfo&          GetProperties();
-		void                        Reset();
+		float                       GetDuration() const;
 		void                        SetTimeRatio(float ratio);
+		void                        Reset();
+
 	private:
 		bool                        Update();
 		bool                        Create(const AnimationClipCreateInfo& createInfo);
@@ -61,6 +62,7 @@ namespace Frostium
 	private:
 		float                       m_TimeRatio = 0.0f;
 		float                       m_PreviousTimeRatio = 0.0f;
+		float                       m_Duration = 0.0f;
 		AnimationClipInfo           m_Info{};
 		Ref<AnimationClipStorage>   m_Storage = nullptr;
 

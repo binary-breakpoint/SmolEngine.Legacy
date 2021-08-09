@@ -29,7 +29,6 @@ namespace Frostium
 		ozz::vector<ozz::math::SoaTransform>  m_Locals;
 		ozz::vector<ozz::math::Float4x4>      m_Models;
 		std::vector<glm::mat4>                m_InverseBindMatrices;
-		std::vector<glm::mat4>                m_FinalJoints;
 	};
 
 	bool LoadSkeleton(const char* _filename, ozz::animation::Skeleton* _skeleton) 
@@ -50,11 +49,6 @@ namespace Frostium
 
 		archive >> *_skeleton;
 		return true;
-	}
-
-	bool LoadMeshData(const std::string& filePath, std::vector<glm::mat4>& inverseBindMatrices)
-	{
-		return glTFImporter::ImportInverseBindMatrices(filePath, inverseBindMatrices);
 	}
 
 	bool LoadAnimation(const char* _filename, ozz::animation::Animation* _animation) 
@@ -83,7 +77,7 @@ namespace Frostium
 
 		if (LoadAnimation(createInfo.AnimationPath.c_str(), &m_Storage->m_Clip) &&
 			LoadSkeleton(createInfo.SkeletonPath.c_str(), &m_Storage->m_Skeleton) &&
-			LoadMeshData(createInfo.ModelPath.c_str(), m_Storage->m_InverseBindMatrices))
+			glTFImporter::ImportInverseBindMatrices(createInfo.ModelPath, m_Storage->m_InverseBindMatrices))
 		{
 			const int numSoaJoints = m_Storage->m_Skeleton.num_soa_joints();
 			const int numTracks = m_Storage->m_Clip.num_tracks();
@@ -91,12 +85,12 @@ namespace Frostium
 
 			if (numTracks == numJoints)
 			{
-				m_Storage->m_FinalJoints.resize(numJoints);
 				m_Storage->m_Models.resize(numJoints);
 				m_Storage->m_Cache.Resize(numJoints);
 				m_Storage->m_Locals.resize(numSoaJoints);
 
 				m_Info = createInfo.ClipInfo;
+				m_Duration = m_Storage->m_Clip.duration();
 				return true;
 			}
 		}
@@ -125,14 +119,14 @@ namespace Frostium
 		return m_Storage != nullptr;
 	}
 
-	std::vector<glm::mat4>& AnimationClip::GetJoints() const
-	{
-		return m_Storage->m_FinalJoints;
-	}
-
 	AnimationClipInfo& AnimationClip::GetProperties()
 	{
 		return m_Info;
+	}
+
+	float AnimationClip::GetDuration() const
+	{
+		return m_Duration;
 	}
 
 	void AnimationClip::Reset()
@@ -160,7 +154,7 @@ namespace Frostium
 
 		float new_time = m_TimeRatio;
 		if (m_Info.bPlay) {
-			new_time = m_TimeRatio + deltaTime * m_Info.Speed / storage->m_Clip.duration();
+			new_time = m_TimeRatio + deltaTime * m_Info.Speed / m_Duration;
 		}
 
 		SetTimeRatio(new_time);
@@ -177,7 +171,6 @@ namespace Frostium
 		}
 
 		// Converts from local space to model space matrices.
-
 		ozz::animation::LocalToModelJob ltm_job;
 		ltm_job.skeleton = &storage->m_Skeleton;
 		ltm_job.input = make_span(storage->m_Locals);

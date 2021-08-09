@@ -17,7 +17,6 @@ namespace Frostium
 		bool                             RemoveClip(const std::string& name);
 		bool                             SetActiveClip(const std::string& name);
 		Ref<AnimationClip>               GetActiveClip();
-		const std::vector<glm::mat4>*    GetJoints();
 						    
 	private:			    
 		void                             Update();

@@ -56,14 +56,6 @@ namespace Frostium
 		return m_ActiveClip;
 	}
 
-	const std::vector<glm::mat4>* AnimationController::GetJoints()
-	{
-		if (m_ActiveClip)
-			return &m_ActiveClip->GetJoints();
-
-		return nullptr;
-	}
-
 	void AnimationController::Update()
 	{
 		m_ActiveClip->Update();
