@@ -5,7 +5,7 @@
 #include "Primitives/GraphicsPipeline.h"
 #include "Primitives/Mesh.h"
 
-#include "Utils/Utils.h"
+#include "Tools/Utils.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>

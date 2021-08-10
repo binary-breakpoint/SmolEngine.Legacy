@@ -2,7 +2,7 @@
 #include "Common/Common.h"
 #include "Renderer/RendererShared.h"
 
-#include "Utils/GLM.h"
+#include "Tools/GLM.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine

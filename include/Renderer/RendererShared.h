@@ -4,9 +4,8 @@
 #include "Primitives/BufferLayout.h"
 #include "Primitives/Texture.h"
 #include "Camera/EditorCamera.h"
-#include "Utils/GLM.h"
 
-#include <glm/glm.hpp>
+#include "Tools/GLM.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine

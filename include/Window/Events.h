@@ -1,5 +1,5 @@
 #pragma once
-#include "Common/Window.h"
+#include "Window/Window.h"
 
 #include <functional>
 

@@ -4,7 +4,7 @@
 #include "Primitives/VertexBuffer.h"
 #include "Primitives/IndexBuffer.h"
 
-#include "Utils/Utils.h"
+#include "Tools/Utils.h"
 #include "Import/glTFImporter.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL

@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Primitives/Framebuffer.h"
-#include "Primitives/CubeMap.h"
 #include "Primitives/GraphicsPipeline.h"
+#include "Environment/CubeMap.h"
 
 #include <glm/glm.hpp>
 

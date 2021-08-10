@@ -5,7 +5,8 @@
 #include "GraphicsContext.h"
 #include "Primitives/Shader.h"
 #include "Primitives/Texture.h"
-#include "Primitives/CubeMap.h"
+
+#include "Environment/CubeMap.h"
 
 #include "Backends/Vulkan/VulkanShader.h"
 #include "Backends/Vulkan/VulkanContext.h"

@@ -3,7 +3,7 @@
 #ifndef FROSTIUM_OPENGL_IMPL
 #include <Backends/Vulkan/GUI/ImGuiVulkanImpl.h>
 #endif
-#include "Event/Events.h"
+#include "Window/Events.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine

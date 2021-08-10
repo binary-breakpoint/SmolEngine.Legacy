@@ -6,7 +6,7 @@
 
 #include "Primitives/Shader.h"
 
-#include "Utils/Utils.h"
+#include "Tools/Utils.h"
 #include <shaderc/shaderc.hpp>
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL

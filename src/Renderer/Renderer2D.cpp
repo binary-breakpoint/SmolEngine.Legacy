@@ -6,7 +6,7 @@
 #include "Primitives/Mesh.h"
 #include "Primitives/Text.h"
 
-#include "Utils/Utils.h"
+#include "Tools/Utils.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine

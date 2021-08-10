@@ -11,9 +11,9 @@
 #include "Primitives/BufferLayout.h"
 #include "Primitives/VertexBuffer.h"
 #include "Primitives/IndexBuffer.h"
-#include "Primitives/CubeMap.h"
 #include "Primitives/Shader.h"
 
+#include "Environment/CubeMap.h"
 #include "Multithreading/JobsSystemInstance.h"
 
 #include <glm/glm.hpp>

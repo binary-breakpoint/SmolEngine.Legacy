@@ -1,8 +1,8 @@
 #include "stdafx.h"
 #include "Camera/EditorCamera.h"
 #include "Primitives/Framebuffer.h"
-#include "Event/Input.h"
-#include "Utils/Utils.h"
+#include "Window/Input.h"
+#include "Tools/Utils.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>

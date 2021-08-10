@@ -11,7 +11,7 @@
 
 #include "Common/SLog.h"
 #include "Common/Common.h"
-#include "Event/Input.h"
+#include "Window/Input.h"
 
 #include "Multithreading/JobsSystemInstance.h"
 

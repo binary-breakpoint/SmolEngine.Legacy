@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "Import/glTFImporter.h"
-#include "Utils/Utils.h"
+#include "Tools/Utils.h"
 
 #define TINYGLTF_IMPLEMENTATION
 #define TINYGLTF_NO_STB_IMAGE_WRITE

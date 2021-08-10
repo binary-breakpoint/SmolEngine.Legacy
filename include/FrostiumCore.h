@@ -7,15 +7,19 @@
 #include "Primitives/VertexArray.h"
 #include "Primitives/VertexBuffer.h"
 #include "Primitives/IndexBuffer.h"
-#include "Primitives/CubeMap.h"
 #include "Primitives/GraphicsPipeline.h"
 #include "Primitives/Text.h"
+
+#include "Environment/CubeMap.h"
+#include "Environment/EnvironmentMap.h"
 
 #include "Common/Common.h"
 #include "Common/Flags.h"
 
-#include "Event/Events.h"
-#include "Event/Input.h"
+#include "Window/Events.h"
+#include "Window/Input.h"
+
+#include "Tools/Utils.h"
 
 #include "Import/glTFImporter.h"
 #include "Import/OzzImported.h"
@@ -30,7 +34,5 @@
 #include "Renderer/Renderer2D.h"
 
 #include "Multithreading/JobsSystemInstance.h"
-
-#include "Utils/Utils.h"
 
 #include <imgui/imgui.h>

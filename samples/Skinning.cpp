@@ -193,6 +193,10 @@ int main(int argc, char** argv)
 				ImGui::Checkbox("Anim Play", &animController.GetActiveClip()->GetProperties().bPlay);
 				ImGui::Checkbox("Anim Loop", &animController.GetActiveClip()->GetProperties().bLoop);
 				ImGui::InputFloat("Anim Speed", &animController.GetActiveClip()->GetProperties().Speed);
+
+				float t = animController.GetActiveClip()->GetTimeRatio();
+				if (ImGui::DragFloat("Anim Time", &t, 0.1f, 0.0f, animController.GetActiveClip()->GetDuration()))
+					animController.GetActiveClip()->SetTimeRatio(t);
 			}
 			ImGui::End();
 

@@ -129,6 +129,11 @@ namespace Frostium
 		return m_Duration;
 	}
 
+	float AnimationClip::GetTimeRatio() const
+	{
+		return m_TimeRatio;
+	}
+
 	void AnimationClip::Reset()
 	{
 		m_PreviousTimeRatio = m_TimeRatio = 0.f;

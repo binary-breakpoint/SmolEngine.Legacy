@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "Event/Events.h"
+#include "Window/Events.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine

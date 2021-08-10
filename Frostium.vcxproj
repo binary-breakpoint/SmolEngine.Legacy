@@ -228,11 +228,11 @@
     <ClInclude Include="include\Common\Flags.h" />
     <ClInclude Include="include\Common\Profiler.h" />
     <ClInclude Include="include\Common\SLog.h" />
-    <ClInclude Include="include\Common\Window.h" />
+    <ClInclude Include="include\Window\Window.h" />
     <ClInclude Include="include\Environment\EnvironmentMap.h" />
-    <ClInclude Include="include\Event\Events.h" />
-    <ClInclude Include="include\Event\Input.h" />
-    <ClInclude Include="include\Event\InputCodes.h" />
+    <ClInclude Include="include\Window\Events.h" />
+    <ClInclude Include="include\Window\Input.h" />
+    <ClInclude Include="include\Window\InputCodes.h" />
     <ClInclude Include="include\External\glm\glm\common.hpp" />
     <ClInclude Include="include\External\glm\glm\detail\_features.hpp" />
     <ClInclude Include="include\External\glm\glm\detail\_fixes.hpp" />
@@ -845,7 +845,7 @@
     <ClInclude Include="include\Multithreading\JobsSystemInstance.h" />
     <ClInclude Include="include\Primitives\BufferElement.h" />
     <ClInclude Include="include\Primitives\BufferLayout.h" />
-    <ClInclude Include="include\Primitives\CubeMap.h" />
+    <ClInclude Include="include\Environment\CubeMap.h" />
     <ClInclude Include="include\Primitives\Framebuffer.h" />
     <ClInclude Include="include\Primitives\GraphicsPipeline.h" />
     <ClInclude Include="include\Primitives\IndexBuffer.h" />
@@ -865,8 +865,8 @@
     <ClInclude Include="include\Renderer\RendererStorage.h" />
     <ClInclude Include="include\Tools\DefaultMeshes.h" />
     <ClInclude Include="include\Tools\MaterialLibrary.h" />
-    <ClInclude Include="include\Utils\GLM.h" />
-    <ClInclude Include="include\Utils\Utils.h" />
+    <ClInclude Include="include\Tools\GLM.h" />
+    <ClInclude Include="include\Tools\Utils.h" />
     <ClInclude Include="src\stdafx.h" />
   </ItemGroup>
   <ItemGroup>
@@ -908,17 +908,17 @@
     <ClCompile Include="src\Common\Common.cpp" />
     <ClCompile Include="src\Common\Profiler.cpp" />
     <ClCompile Include="src\Common\SLog.cpp" />
-    <ClCompile Include="src\Common\Window.cpp" />
+    <ClCompile Include="src\Window\Window.cpp" />
     <ClCompile Include="src\Environment\EnvironmentMap.cpp" />
-    <ClCompile Include="src\Event\Events.cpp" />
-    <ClCompile Include="src\Event\Input.cpp" />
+    <ClCompile Include="src\Window\Events.cpp" />
+    <ClCompile Include="src\Window\Input.cpp" />
     <ClCompile Include="src\GUI\ImGuiBuid.cpp" />
     <ClCompile Include="src\GUI\ImGuiContext.cpp" />
     <ClCompile Include="src\GraphicsContext.cpp" />
     <ClCompile Include="src\Import\glTFImporter.cpp" />
     <ClCompile Include="src\Import\OzzImported.cpp" />
     <ClCompile Include="src\Multithreading\JobsSystemInstance.cpp" />
-    <ClCompile Include="src\Primitives\CubeMap.cpp" />
+    <ClCompile Include="src\Environment\CubeMap.cpp" />
     <ClCompile Include="src\Primitives\Framebuffer.cpp" />
     <ClCompile Include="src\Primitives\GraphicsPipeline.cpp" />
     <ClCompile Include="src\Primitives\IndexBuffer.cpp" />
@@ -935,7 +935,7 @@
     <ClCompile Include="src\Renderer\Renderer2D.cpp" />
     <ClCompile Include="src\Tools\DefaultMeshes.cpp" />
     <ClCompile Include="src\Tools\MaterialLibrary.cpp" />
-    <ClCompile Include="src\Utils\Utils.cpp" />
+    <ClCompile Include="src\Tools\Utils.cpp" />
     <ClCompile Include="src\stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

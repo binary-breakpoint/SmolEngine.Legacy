@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Common/Common.h"
-#include "Utils/GLM.h"
+#include "Tools/GLM.h"
 
 #include <string>
 
@@ -18,17 +18,17 @@ namespace Frostium
 {
 	struct AnimationClipInfo
 	{
-		float        Speed = 1.0f;
-		bool         bLoop = true;
-		bool         bPlay = true;
+		float                     Speed = 1.0f;
+		bool                      bLoop = true;
+		bool                      bPlay = true;
 	};
 
 	struct AnimationClipCreateInfo
 	{
-		AnimationClipInfo ClipInfo;
-		std::string       SkeletonPath = "";
-		std::string       AnimationPath = "";
-		std::string       ModelPath = "";
+		AnimationClipInfo         ClipInfo;
+		std::string               SkeletonPath = "";
+		std::string               AnimationPath = "";
+		std::string               ModelPath = "";
 
 		void Load();
 		void Save();
@@ -51,6 +51,7 @@ namespace Frostium
 		bool                        IsGood() const;
 		AnimationClipInfo&          GetProperties();
 		float                       GetDuration() const;
+		float                       GetTimeRatio() const;
 		void                        SetTimeRatio(float ratio);
 		void                        Reset();
 

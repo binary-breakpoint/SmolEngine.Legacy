@@ -3,7 +3,7 @@
 #include "Tools/MaterialLibrary.h"
 
 #include "Common/Common.h"
-#include "Utils/Utils.h"
+#include "Tools/Utils.h"
 
 #include "Primitives/VertexArray.h"
 #include "Primitives/VertexBuffer.h"

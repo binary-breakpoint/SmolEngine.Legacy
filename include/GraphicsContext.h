@@ -12,18 +12,19 @@
 #include "Renderer/RendererShared.h"
 
 #include "Common/Common.h"
-#include "Common/Window.h"
 #include "Common/Flags.h"
+#include "Window/Window.h"
 
-#include "Event/Events.h"
+#include "Window/Events.h"
 
 #include "Camera/Camera.h"
 #include "Camera/Frustum.h"
 
 #include "Primitives/Mesh.h"
-#include "Primitives/CubeMap.h"
 #include "Primitives/Framebuffer.h"
 #include "Primitives/Texture.h"
+
+#include "Environment/CubeMap.h"
 
 #include "GUI/ImGuiContext.h"
 

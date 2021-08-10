@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "Event/Input.h"
+#include "Window/Input.h"
 #include "GraphicsContext.h"
 
 #include <GLFW/glfw3.h>

@@ -1,5 +1,5 @@
 #pragma once
-#include "Event/Events.h"
+#include "Window/Events.h"
 
 #include <glm/glm.hpp>
 

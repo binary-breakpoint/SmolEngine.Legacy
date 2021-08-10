@@ -2,7 +2,7 @@
 #include "Primitives/Shader.h"
 
 #include "Common/SLog.h"
-#include "Utils/Utils.h"
+#include "Tools/Utils.h"
 
 #include <shaderc/shaderc.hpp>
 #include <spirv_cross/spirv_cross.hpp>

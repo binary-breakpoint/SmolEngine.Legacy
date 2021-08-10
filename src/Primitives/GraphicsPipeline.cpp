@@ -1,9 +1,10 @@
 #include "stdafx.h"
 #include "Primitives/GraphicsPipeline.h"
 #include "Primitives/Framebuffer.h"
-#include "Primitives/CubeMap.h"
 #include "Primitives/Shader.h"
 #include "Primitives/Mesh.h"
+
+#include "Environment/CubeMap.h"
 
 #ifndef FROSTIUM_OPENGL_IMPL
 #include "Backends/Vulkan/VulkanContext.h"
