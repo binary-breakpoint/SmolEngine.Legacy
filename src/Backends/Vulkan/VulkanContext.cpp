@@ -21,20 +21,20 @@ namespace Frostium
 
 	void VulkanContext::OnResize(uint32_t* width, uint32_t* height)
 	{
-		m_Swapchain.OnResize(width, height, &m_CommandBuffer);
+		m_Swapchain.OnResize(width, height, m_Context->m_CreateInfo.bVsync, &m_CommandBuffer);
 	}
 
-	void VulkanContext::Setup(GLFWwindow* window, GraphicsContextState* state, uint32_t* width, uint32_t* height)
+	void VulkanContext::Setup(GLFWwindow* window, GraphicsContext* context, uint32_t* width, uint32_t* height)
 	{
 		assert(glfwVulkanSupported() == GLFW_TRUE);
 		bool swapchain_initialized = false;
 		{
 			m_Instance.Init();
 			m_Device.Init(&m_Instance);
-			swapchain_initialized = m_Swapchain.Init(&m_Instance, &m_Device, window, state->UseSwapchain ? false: true);
+			swapchain_initialized = m_Swapchain.Init(&m_Instance, &m_Device, window, context->m_CreateInfo.bTargetsSwapchain ? false: true);
 			if (swapchain_initialized)
 			{
-				m_Swapchain.Create(width, height);
+				m_Swapchain.Create(width, height, context->m_CreateInfo.bVsync);
 				m_CommandBuffer.Init(&m_Device);
 				m_Semaphore.Init(&m_Device, &m_CommandBuffer);
 				m_Swapchain.Prepare(*width, *height);
@@ -45,11 +45,12 @@ namespace Frostium
 		{
 			s_ContextInstance = this;
 			m_Window = window;
-			m_ContextState = state;
+			m_Context = context;
 			return;
 		}
 
-		std::runtime_error("Couldn't create Vulkan context!");
+		DebugLog::LogError("Couldn't create Vulkan context!");
+		abort();
 	}
 
 	void VulkanContext::BeginFrame()
@@ -71,7 +72,7 @@ namespace Frostium
 	{
 		// ImGUI pass
 		{
-			if (m_ContextState->UseImGUI)
+			if (m_Context->m_CreateInfo.Flags & Features_ImGui_Flags)
 			{
 				if (ImGui::GetDrawData()->CmdListsCount > 0)
 				{
@@ -227,7 +228,7 @@ namespace Frostium
 				uint32_t w = m_Swapchain.GetWidth();
 				uint32_t h = m_Swapchain.GetHeight();
 
-				m_Swapchain.OnResize(&w, &h);
+				m_Swapchain.OnResize(&w, &h, m_Context->m_CreateInfo.bVsync);
 				return;
 			}
 			else

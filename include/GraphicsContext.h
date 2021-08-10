@@ -50,6 +50,7 @@ namespace Frostium
 	{
 		bool                          bTargetsSwapchain = true;
 		bool                          bAutoResize = true;
+		bool                          bVsync= true;
 		Flags                         Flags = Features_Renderer_3D_Flags | Features_Renderer_2D_Flags | Features_ImGui_Flags;
 		MSAASamples                   eMSAASamples = MSAASamples::SAMPLE_COUNT_1;
 		ShadowMapSize                 eShadowMapSize = ShadowMapSize::SIZE_8;
@@ -93,9 +94,7 @@ namespace Frostium
 #else							      
 		static VulkanContext&         GetVulkanContext();
 #endif
-#ifdef FROSTIUM_SMOLENGINE_IMPL
-		JobsSystemInstance*            GetJobsSystemInstance();
-#endif
+		JobsSystemInstance*           GetJobsSystemInstance();
 		// Setters				      
 		void                          SetEventCallback(std::function<void(Event&)> callback);
 		void                          SetDebugLogCallback(const std::function<void(const std::string&&, LogLevel)>& callback);
@@ -111,13 +110,11 @@ namespace Frostium
 		bool                          InitRendererStorage(RendererStorage* storage, ShadowMapSize shadow_map_size);
 
 	private:	
-
 		static GraphicsContext*       s_Instance;
 		Texture*                      m_DummyTexure = nullptr;
 		CubeMap*                      m_DummyCubeMap = nullptr;
 		Camera*                       m_DefaultCamera = nullptr;
 		MaterialLibrary*              m_MaterialLibrary = nullptr;
-		GraphicsContextState*         m_State = nullptr;
 		Renderer2DStorage*            m_Renderer2DStorage = nullptr;
 		RendererStorage*              m_RendererStorage = nullptr;
 		Frustum*                      m_Frustum = nullptr;
@@ -126,8 +123,9 @@ namespace Frostium
 		DefaultMeshes*                m_DefaultMeshes = nullptr;
 		ImGuiContext*                 m_ImGuiContext = nullptr;
 		JobsSystemInstance*           m_JobsSystem = nullptr;
-		MSAASamples                   m_MSAASamples = MSAASamples::SAMPLE_COUNT_MAX_SUPPORTED;
-		Flags                         m_Flags = Features_Renderer_3D_Flags | Features_Renderer_2D_Flags;
+		bool                          m_bWindowMinimized = false;
+		bool                          m_bIs2DStoragePreAlloc = false;
+		bool                          m_bIsStoragePreAlloc = false;
 		float                         m_LastFrameTime = 1.0f;
 		float                         m_DeltaTime = 0.0f;
 #ifdef  FROSTIUM_OPENGL_IMPL		  
@@ -136,6 +134,7 @@ namespace Frostium
 #else								  
 		VulkanContext                 m_VulkanContext = {};
 #endif
+		GraphicsContextInitInfo       m_CreateInfo = {};
 		EventSender                   m_EventHandler = {};
 		SceneData                     m_SceneData = {};
 		std::string                   m_ResourcesFolderPath = "";
@@ -149,6 +148,7 @@ namespace Frostium
 		friend class DebugRenderer;
 		friend class ImGuiContext;
 		friend class VulkanPBR;
+		friend class VulkanContext;
 		friend class VulkanDescriptor;
 		friend class Window;
 		friend class EnvironmentMap;

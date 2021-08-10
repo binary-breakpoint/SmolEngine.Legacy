@@ -28,19 +28,16 @@ namespace Frostium
 
 	GraphicsContext::GraphicsContext(GraphicsContextInitInfo* info)
 	{
-		if (m_State != nullptr || !info->pWindowCI)
+		if (!info->pWindowCI)
 			return;
 
 		DebugLog* log = new DebugLog();
 
 		s_Instance = this;
-		m_Flags = info->Flags;
-		m_MSAASamples = info->eMSAASamples;
+		m_CreateInfo = *info;
 		m_ResourcesFolderPath = info->ResourcesFolderPath;
 		m_DefaultCamera = info->pDefaultCamera;
 		m_EventHandler.OnEventFn = std::bind(&GraphicsContext::OnEvent, this, std::placeholders::_1);
-		m_State = new GraphicsContextState(info->pDefaultCamera != nullptr,
-			info->Flags & Features_ImGui_Flags, info->bTargetsSwapchain, info->bAutoResize);
 
 		// Creates GLFW window
 		m_Window = new Window();
@@ -50,7 +47,7 @@ namespace Frostium
 #ifdef  FROSTIUM_OPENGL_IMPL
 		m_OpenglContext.Setup(window);
 #else
-		m_VulkanContext.Setup(window, m_State,
+		m_VulkanContext.Setup(window, this,
 			&m_Window->GetWindowData()->Width, &m_Window->GetWindowData()->Height);
 #endif
 		// Creates default frustum
@@ -62,7 +59,7 @@ namespace Frostium
 		CubeMap::CreateEmpty(m_DummyCubeMap, 4, 4);
 
 		// Initialize ImGUI
-		if (m_State->UseImGUI)
+		if (info->Flags & Features_ImGui_Flags)
 		{
 			m_ImGuiContext = new ImGuiContext();
 			m_ImGuiContext->Init(info);
@@ -86,7 +83,7 @@ namespace Frostium
 			framebufferCI.bTargetsSwapchain = info->bTargetsSwapchain;
 			framebufferCI.bResizable = true;
 			framebufferCI.bAutoSync = false;
-			framebufferCI.bUsedByImGui = m_State->UseImGUI && !info->bTargetsSwapchain ? true : false;
+			framebufferCI.bUsedByImGui = info->Flags & Features_ImGui_Flags && !info->bTargetsSwapchain ? true : false;
 			framebufferCI.Attachments = { FramebufferAttachment(AttachmentFormat::Color) };
 
 			Framebuffer::Create(framebufferCI, m_Framebuffer);
@@ -97,7 +94,7 @@ namespace Frostium
 			if (info->pRendererStorage != nullptr)
 			{
 				m_RendererStorage = info->pRendererStorage;
-				m_State->IsStoragePreAlloc = true;
+				m_bIsStoragePreAlloc = true;
 			}
 			else
 			{
@@ -121,7 +118,7 @@ namespace Frostium
 			if (info->pRenderer2DStorage != nullptr)
 			{
 				m_Renderer2DStorage = info->pRenderer2DStorage;
-				m_State->Is2DStoragePreAlloc = true;
+				m_bIs2DStoragePreAlloc = true;
 			}
 			else
 			{
@@ -149,7 +146,7 @@ namespace Frostium
 
 	void GraphicsContext::SwapBuffers()
 	{
-		if (m_State->UseImGUI)
+		if (m_CreateInfo.Flags & Features_ImGui_Flags)
 			m_ImGuiContext->OnEnd();
 #ifdef  FROSTIUM_OPENGL_IMPL
 		m_OpenglContext.SwapBuffers();
@@ -167,19 +164,20 @@ namespace Frostium
 	{
 		m_DeltaTime = time;
 
-		if (m_State->UseEditorCamera)
+		if (m_DefaultCamera != nullptr)
 			m_DefaultCamera->OnUpdate(m_DeltaTime);
+
 #ifdef  FROSTIUM_OPENGL_IMPL
 #else
 		m_VulkanContext.BeginFrame();
 #endif
-		if (m_State->UseImGUI)
+		if (m_CreateInfo.Flags & Features_ImGui_Flags)
 			m_ImGuiContext->OnBegin();
 	}
 
 	void GraphicsContext::UpdateSceneInfo(BeginSceneInfo* info)
 	{
-		if (m_State->UseEditorCamera && info == nullptr)
+		if (m_DefaultCamera != nullptr && info == nullptr)
 		{
 			Camera* camera = m_DefaultCamera;
 
@@ -206,32 +204,25 @@ namespace Frostium
 
 	void GraphicsContext::ShutDown()
 	{
-		if (m_State != nullptr)
-		{
-			if (m_State->UseImGUI)
-				m_ImGuiContext->ShutDown();
+		if (m_CreateInfo.Flags & Features_ImGui_Flags)
+			m_ImGuiContext->ShutDown();
 
-			DeferredRenderer::Shutdown();
-			Renderer2D::Shutdown();
+		DeferredRenderer::Shutdown();
+		Renderer2D::Shutdown();
 
-			m_Window->ShutDown();
+		m_Window->ShutDown();
 #ifdef FROSTIUM_OPENGL_IMPL
 #else
-			m_VulkanContext.~VulkanContext();
+		m_VulkanContext.~VulkanContext();
 #endif
-			if (!m_State->Is2DStoragePreAlloc)
-				delete m_Renderer2DStorage;
+		if (!m_bIs2DStoragePreAlloc)
+			delete m_Renderer2DStorage;
 
-			if (!m_State->IsStoragePreAlloc)
-				delete m_RendererStorage;
+		if (!m_bIsStoragePreAlloc)
+			delete m_RendererStorage;
 
-			delete m_MaterialLibrary, m_DummyTexure, m_State,
-				m_Framebuffer, m_Window, m_ImGuiContext, m_DefaultMeshes;
-
-#ifdef FROSTIUM_SMOLENGINE_IMPL
-			delete m_JobsSystem;
-#endif
-	    }
+		delete m_MaterialLibrary, m_DummyTexure,m_Framebuffer, m_Window, 
+			m_ImGuiContext, m_DefaultMeshes, m_JobsSystem;
 }
 
 	void GraphicsContext::Resize(uint32_t* width, uint32_t* height)
@@ -240,7 +231,7 @@ namespace Frostium
 #else
 		m_VulkanContext.OnResize(width, height);
 #endif
-		if (m_State->AutoResize)
+		if (m_CreateInfo.bAutoResize)
 			SetFramebufferSize(*width, *height);
 	}
 
@@ -257,7 +248,7 @@ namespace Frostium
 	void GraphicsContext::SetFramebufferSize(uint32_t width, uint32_t height)
 	{
 		m_Framebuffer->OnResize(width, height);
-		if (m_Flags & Features_Renderer_3D_Flags)
+		if (m_CreateInfo.Flags & Features_Renderer_3D_Flags)
 			DeferredRenderer::OnResize(width, height);
 	}
 
@@ -306,7 +297,7 @@ namespace Frostium
 
 	bool GraphicsContext::IsWindowMinimized() const
 	{
-		return m_State->WindowMinimized;
+		return m_bWindowMinimized;
 	}
 
 	bool GraphicsContext::InitRenderer2DStorage(Renderer2DStorage* storage)
@@ -356,10 +347,10 @@ namespace Frostium
 
 	void GraphicsContext::OnEvent(Event& e)
 	{
-		if (m_State->UseImGUI)
+		if (m_CreateInfo.Flags & Features_ImGui_Flags)
 			m_ImGuiContext->OnEvent(e);
 
-		if (m_State->UseEditorCamera)
+		if (m_DefaultCamera != nullptr)
 			m_DefaultCamera->OnEvent(e);
 
 		if (e.IsType(EventType::WINDOW_RESIZE))
@@ -369,10 +360,10 @@ namespace Frostium
 			uint32_t height = resize->GetHeight();
 
 			if (width == 0 || height == 0)
-				m_State->WindowMinimized = true;
+				m_bWindowMinimized = true;
 			else
 			{
-				m_State->WindowMinimized = false;
+				m_bWindowMinimized = false;
 				Resize(&width, &height);
 			}
 		}

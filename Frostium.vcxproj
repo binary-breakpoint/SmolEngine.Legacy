@@ -907,7 +907,7 @@
     <ClCompile Include="src\Camera\Frustum.cpp" />
     <ClCompile Include="src\Common\Common.cpp" />
     <ClCompile Include="src\Common\Profiler.cpp" />
-    <ClCompile Include="src\Common\SLog.cpp" />
+    <ClCompile Include="src\Common\DebugLog.cpp" />
     <ClCompile Include="src\Window\Window.cpp" />
     <ClCompile Include="src\Environment\EnvironmentMap.cpp" />
     <ClCompile Include="src\Window\Events.cpp" />

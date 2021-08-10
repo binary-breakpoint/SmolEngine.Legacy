@@ -156,21 +156,20 @@ int main(int argc, char** argv)
 
 		if (context->IsWindowMinimized())
 			continue;
-		bool selected = true;
+
 		context->UpdateSceneInfo();
 		context->BeginFrame(deltaTime);
 		{
 			ImGui::Begin("Skinning Sample");
 			{
-
 				ImGui::DragFloat4("LightDir", glm::value_ptr(dirLight.Direction));
 
-				ImGui::Checkbox("Anim Play", &character_animController->GetActiveClip()->GetProperties().bPlay);
-				ImGui::Checkbox("Anim Loop", &character_animController->GetActiveClip()->GetProperties().bLoop);
-				ImGui::InputFloat("Anim Speed", &character_animController->GetActiveClip()->GetProperties().Speed);
+				ImGui::Checkbox("Play", &character_animController->GetActiveClip()->GetProperties().bPlay);
+				ImGui::Checkbox("Loop", &character_animController->GetActiveClip()->GetProperties().bLoop);
+				ImGui::InputFloat("Speed", &character_animController->GetActiveClip()->GetProperties().Speed);
 
 				float t = character_animController->GetActiveClip()->GetTimeRatio();
-				if (ImGui::DragFloat("Anim Time", &t, 0.1f, 0.0f, character_animController->GetActiveClip()->GetDuration()))
+				if (ImGui::DragFloat("Time", &t, 0.1f, 0.0f, character_animController->GetActiveClip()->GetDuration()))
 					character_animController->GetActiveClip()->SetTimeRatio(t);
 			}
 			ImGui::End();

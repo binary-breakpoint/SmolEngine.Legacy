@@ -14,7 +14,7 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
-	struct GraphicsContextState;
+	class GraphicsContext;
 
 	class VulkanContext
 	{
@@ -24,7 +24,7 @@ namespace Frostium
 		~VulkanContext();
 
 		void OnResize(uint32_t* width, uint32_t* height);
-		void Setup(GLFWwindow* window, GraphicsContextState* state, uint32_t* width, uint32_t* height);
+		void Setup(GLFWwindow* window, GraphicsContext* context, uint32_t* width, uint32_t* height);
 		void BeginFrame();
 		void SwapBuffers(bool skip = false);
 
@@ -45,7 +45,7 @@ namespace Frostium
 
 	private:
 		GLFWwindow*                         m_Window = nullptr;
-		GraphicsContextState*               m_ContextState = nullptr;
+		GraphicsContext*                    m_Context = nullptr;
 
 		inline static VulkanContext*        s_ContextInstance = nullptr;
 		inline static VkCommandBuffer       m_CurrentVkCmdBuffer = nullptr;

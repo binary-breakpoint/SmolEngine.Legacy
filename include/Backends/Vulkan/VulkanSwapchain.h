@@ -50,7 +50,7 @@ namespace Frostium
 		VkResult QueuePresent(VkQueue queue, VkSemaphore waitSemaphore = VK_NULL_HANDLE);
 
 		// Events
-		void OnResize(uint32_t* width, uint32_t* height, VulkanCommandBuffer* commandBuffer = nullptr);
+		void OnResize(uint32_t* width, uint32_t* height, bool vsync, VulkanCommandBuffer* commandBuffer = nullptr);
 
 		// Getters
 		const VkFramebuffer GetCurrentFramebuffer() const;
