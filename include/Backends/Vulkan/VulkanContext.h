@@ -19,29 +19,22 @@ namespace Frostium
 	class VulkanContext
 	{
 	public:
-
 		VulkanContext() = default;
 		~VulkanContext();
 
-		void OnResize(uint32_t* width, uint32_t* height);
-		void Setup(GLFWwindow* window, GraphicsContext* context, uint32_t* width, uint32_t* height);
-		void BeginFrame();
-		void SwapBuffers(bool skip = false);
-
-		void BeginFrameEx(VkCommandBuffer cmdBuffer);
-		void SwapBuffersEx(VkCommandBuffer cmdBuffer);
-
+		void                                OnResize(uint32_t* width, uint32_t* height);
+		void                                Setup(GLFWwindow* window, GraphicsContext* context, uint32_t* width, uint32_t* height);
+		void                                BeginFrame();
+		void                                SwapBuffers(bool skip = false);
 		// Getters
-		inline static VulkanContext* GetSingleton() { return s_ContextInstance; }
-		inline GLFWwindow* GetWindow() { return m_Window; }
-
-		inline static VulkanCommandBuffer& GetCommandBuffer() { return m_CommandBuffer; }
-		inline static VulkanSwapchain& GetSwapchain() { return m_Swapchain; }
-		inline static VulkanInstance& GetInstance() { return m_Instance; }
-		inline static VulkanDevice& GetDevice() { return m_Device; }
-		inline static VkCommandBuffer GetCurrentVkCmdBuffer() { return m_CurrentVkCmdBuffer; }
-		inline static uint64_t GetBufferDeviceAddress(VkBuffer buffer);
-
+		inline static VulkanContext*        GetSingleton() { return s_ContextInstance; }
+		inline GLFWwindow*                  GetWindow() { return m_Window; }
+		inline static VulkanCommandBuffer&  GetCommandBuffer() { return m_CommandBuffer; }
+		inline static VulkanSwapchain&      GetSwapchain() { return m_Swapchain; }
+		inline static VulkanInstance&       GetInstance() { return m_Instance; }
+		inline static VulkanDevice&         GetDevice() { return m_Device; }
+		inline static VkCommandBuffer       GetCurrentVkCmdBuffer() { return m_CurrentVkCmdBuffer; }
+		inline static uint64_t              GetBufferDeviceAddress(VkBuffer buffer);
 
 	private:
 		GLFWwindow*                         m_Window = nullptr;

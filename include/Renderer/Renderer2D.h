@@ -1,5 +1,6 @@
 #pragma once
-#include "Renderer/RendererShared.h"
+
+#include "Tools/GLM.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
@@ -7,9 +8,11 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
-	struct Renderer2DStorage;
-	class GraphicsPipeline;
 	class Text;
+	class GraphicsPipeline;
+	struct ClearInfo;
+	struct Renderer2DStorage;
+
 	class Renderer2D
 	{
 	public:
@@ -26,7 +29,6 @@ namespace Frostium
 		static void SubmitText(Text* text);
 
 	private:
-
 		static void Flush();
 		static void StartNewBatch();
 		static void Reset();
@@ -35,8 +37,6 @@ namespace Frostium
 		static void CreatePipelines();
 		static void CreateFramebuffers();
 		static void Prepare();
-	private:
 
-		inline static Renderer2DStats* Stats = nullptr;
 	};
 }

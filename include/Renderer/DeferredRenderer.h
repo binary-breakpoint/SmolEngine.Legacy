@@ -1,6 +1,5 @@
 #pragma once
 #include "Common/Common.h"
-#include "Renderer/RendererShared.h"
 #include "Renderer/RendererStorage.h"
 #include "Environment/EnvironmentMap.h"
 
@@ -10,11 +9,13 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
+	struct SceneViewProjection;
+	struct ClearInfo;
+
 	class Mesh;
 	class Framebuffer;
 	class CubeMap;
 	class AnimationController;
-
 	enum class ShadowMapSize : uint16_t;
 
 	class DeferredRenderer
@@ -23,7 +24,7 @@ namespace Frostium
 		static void Init(RendererStorage* storage);
 		static void Shutdown();
 		static void BeginScene(const ClearInfo* clearInfo);
-		static void DrawOffscreen(Framebuffer* fb, BeginSceneInfo* sceneInfo, RendererStateEX* state);
+		static void DrawOffscreen(Framebuffer* fb, SceneViewProjection* sceneInfo, RendererStateEX* state);
 		static void EndScene();
 
 		// SUbmit

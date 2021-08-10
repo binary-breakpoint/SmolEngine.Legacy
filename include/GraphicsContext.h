@@ -8,25 +8,16 @@
 #include "Backends/Vulkan/VulkanContext.h"
 #endif
 
-#include "Tools/DefaultMeshes.h"
-#include "Renderer/RendererShared.h"
-
 #include "Common/Common.h"
 #include "Common/Flags.h"
 #include "Window/Window.h"
-
 #include "Window/Events.h"
-
 #include "Camera/Camera.h"
 #include "Camera/Frustum.h"
-
-#include "Primitives/Mesh.h"
 #include "Primitives/Framebuffer.h"
-#include "Primitives/Texture.h"
-
-#include "Environment/CubeMap.h"
 
 #include "GUI/ImGuiContext.h"
+#include "Tools/DefaultMeshes.h"
 
 #include <functional>
 
@@ -42,9 +33,17 @@ namespace Frostium
 	struct Renderer2DStorage;
 	struct RendererStorage;
 	class CubeMap;
-	class Framebuffer;
+	class Texture;
 	class MaterialLibrary;
 	class JobsSystemInstance;
+
+	enum class ShadowMapSize : uint16_t
+	{
+		SIZE_2,
+		SIZE_4,
+		SIZE_8,
+		SIZE_16
+	};
 
 	struct GraphicsContextInitInfo
 	{
@@ -61,20 +60,57 @@ namespace Frostium
 		std::string                   ResourcesFolderPath = "../resources/";
 	};
 
+	struct SceneViewProjection
+	{
+		void Update(Camera* cam)
+		{
+			View = cam->GetViewMatrix();
+			Proj = cam->GetProjection();
+			Pos = cam->GetPosition();
+			NearClip = cam->GetNearClip();
+			FarClip = cam->GetFarClip();
+		}
+
+		float                 NearClip = 0.0f;
+		float                 FarClip = 0.0f;
+		glm::vec3             Pos = glm::vec3(0.0f);
+		glm::mat4             Proj = glm::mat4(1.0f);
+		glm::mat4             View = glm::mat4(1.0f);
+	};
+
+	struct SceneData
+	{
+		float                  NearClip = 0.0f;
+		float                  FarClip = 0.0f;
+		float                  Exoposure = 1.0f;
+		float                  Pad1 = 0.0f;
+
+		glm::mat4              Projection = glm::mat4(1.0f);
+		glm::mat4              View = glm::mat4(1.0f);
+		glm::mat4              SkyBoxMatrix = glm::mat4(1.0f);
+		glm::vec4              CamPos = glm::vec4(1.0f);
+		glm::vec4              AmbientColor = glm::vec4(1.0f);
+	};
+
+	struct ClearInfo
+	{
+		bool                  bClear = true;
+		glm::vec4             color = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f);
+	};
+
 	class GraphicsContext
 	{
 	public:
-
 		GraphicsContext() = default;
 		GraphicsContext(GraphicsContextInitInfo* info);
 		~GraphicsContext();
 								      
 		void                          ProcessEvents();
 		void                          BeginFrame(float time);
-		void                          UpdateSceneInfo(BeginSceneInfo* sceneInfo = nullptr);
 		void                          SwapBuffers();
 		void                          ShutDown();
-								      
+		void                          UpdateViewProjection(SceneViewProjection* info);
+		void                          UpdateViewProjection(Camera* camera);		      
 		// Getters				      
 		static GraphicsContext*       GetSingleton();
 		Camera*                       GetDefaultCamera() const;

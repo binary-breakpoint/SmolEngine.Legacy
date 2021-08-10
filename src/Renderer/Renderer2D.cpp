@@ -8,6 +8,8 @@
 
 #include "Tools/Utils.h"
 
+#include <imgui/imgui.h>
+
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
 #else
@@ -21,7 +23,6 @@ namespace Frostium
 		if (storage == nullptr)
 			std::runtime_error("Renderer: storage is nullptr!");
 
-		Stats = new Renderer2DStats();
 		s_Data = storage;
 		s_Data->SceneData = &GraphicsContext::GetSingleton()->m_SceneData;
 
@@ -32,10 +33,7 @@ namespace Frostium
 
 	void Renderer2D::Shutdown()
 	{
-		if (s_Data != nullptr)
-		{
-			delete Stats;
-		}
+
 	}
 
 	void Renderer2D::BeginScene(const ClearInfo* clearInfo)
@@ -202,8 +200,6 @@ namespace Frostium
 		s_Data->SampleIndex = 1;
 		s_Data->TextIndex = 0;
 		s_Data->FontSampleIndex = 0;
-
-		Stats->Reset();
 	}
 
 	uint32_t Renderer2D::AddTexture(Texture* tex_)

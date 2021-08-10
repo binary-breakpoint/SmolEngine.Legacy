@@ -6,7 +6,6 @@
 #include "Primitives/Mesh.h"
 
 #include "Environment/EnvironmentMap.h"
-#include "Renderer/RendererShared.h"
 
 #include "Camera/Frustum.h"
 #include "Tools/GLM.h"
@@ -19,6 +18,8 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
+	struct SceneData;
+
 #pragma region Limits
 	static const uint32_t      max_animations = 100;
 	static const uint32_t      max_anim_joints = 1000;

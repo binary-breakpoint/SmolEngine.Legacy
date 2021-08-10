@@ -13,12 +13,17 @@ namespace Frostium
 #endif
 {
 	class VulkanCommandBuffer;
+	class Framebuffer;
+	class VulkanSwapchain;
+
 	class ImGuiVulkanImpl
 	{
 	public:
 
 		void Init();
 		void Reset();
+		void Draw(Framebuffer* target);
+		void Draw(VulkanSwapchain* target);
 		void InitResources();
 
 		VkDevice                                    g_Device;

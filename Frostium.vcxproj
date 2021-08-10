@@ -861,7 +861,6 @@
     <ClInclude Include="include\Renderer\DeferredRenderer.h" />
     <ClInclude Include="include\Renderer\Renderer2D.h" />
     <ClInclude Include="include\Renderer\Renderer2DStorage.h" />
-    <ClInclude Include="include\Renderer\RendererShared.h" />
     <ClInclude Include="include\Renderer\RendererStorage.h" />
     <ClInclude Include="include\Tools\DefaultMeshes.h" />
     <ClInclude Include="include\Tools\MaterialLibrary.h" />

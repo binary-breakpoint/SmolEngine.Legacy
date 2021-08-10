@@ -166,31 +166,23 @@ namespace Frostium
 			m_ImGuiContext->OnBegin();
 	}
 
-	void GraphicsContext::UpdateSceneInfo(BeginSceneInfo* info)
+	void GraphicsContext::UpdateViewProjection(SceneViewProjection* info)
 	{
-		if (m_DefaultCamera != nullptr && info == nullptr)
-		{
-			Camera* camera = m_DefaultCamera;
-
-			m_SceneData.View = camera->GetViewMatrix();
-			m_SceneData.Projection = camera->GetProjection();
-			m_SceneData.CamPos = glm::vec4(camera->GetPosition(), 1.0f);
-			m_SceneData.SkyBoxMatrix = glm::mat4(glm::mat3(camera->GetViewMatrix()));
-			m_SceneData.NearClip = camera->GetNearClip();
-			m_SceneData.FarClip = camera->GetFarClip();
-		}
-
-		if (info)
-		{
-			m_SceneData.View = info->View;
-			m_SceneData.Projection = info->Proj;
-			m_SceneData.CamPos = glm::vec4(info->Pos, 1);
-			m_SceneData.SkyBoxMatrix = glm::mat4(glm::mat3(info->View));
-			m_SceneData.NearClip = info->NearClip;
-			m_SceneData.FarClip = info->FarClip;
-		}
+		m_SceneData.View = info->View;
+		m_SceneData.Projection = info->Proj;
+		m_SceneData.CamPos = glm::vec4(info->Pos, 1);
+		m_SceneData.SkyBoxMatrix = glm::mat4(glm::mat3(info->View));
+		m_SceneData.NearClip = info->NearClip;
+		m_SceneData.FarClip = info->FarClip;
 
 		m_Frustum->Update(m_SceneData.Projection * m_SceneData.View);
+	}
+
+	void GraphicsContext::UpdateViewProjection(Camera* camera)
+	{
+		SceneViewProjection info;
+		info.Update(camera);
+		UpdateViewProjection(&info);
 	}
 
 	void GraphicsContext::ShutDown()

@@ -8,38 +8,37 @@ using namespace SmolEngine;
 using namespace Frostium;
 #endif
 
+GraphicsContext* context = nullptr;
+
 int main(int argc, char** argv)
 {
-	GraphicsContext* context = nullptr;
+	WindowCreateInfo windoInfo = {};
 	{
-		WindowCreateInfo windoInfo = {};
-		{
-			windoInfo.bFullscreen = false;
-			windoInfo.bVSync = false;
-			windoInfo.Height = 480;
-			windoInfo.Width = 720;
-			windoInfo.Title = "Frostium 2D";
-		}
-
-		EditorCamera* camera = nullptr;
-		{
-			EditorCameraCreateInfo cameraCI = {};
-			cameraCI.Speed = 55.0f;
-			cameraCI.Type = CameraType::Ortho;
-			camera = new EditorCamera(&cameraCI);
-		}
-
-		GraphicsContextInitInfo info = {};
-		{
-			info.Flags = Features_Renderer_2D_Flags | Features_ImGui_Flags;
-			info.eMSAASamples = MSAASamples::SAMPLE_COUNT_1;
-			info.ResourcesFolderPath = "../resources/";
-			info.pWindowCI = &windoInfo;
-			info.pDefaultCamera = camera;
-		}
-
-		context = new GraphicsContext(&info);
+		windoInfo.bFullscreen = false;
+		windoInfo.bVSync = false;
+		windoInfo.Height = 480;
+		windoInfo.Width = 720;
+		windoInfo.Title = "Frostium 2D";
 	}
+
+	EditorCamera* camera = nullptr;
+	{
+		EditorCameraCreateInfo cameraCI = {};
+		cameraCI.Speed = 55.0f;
+		cameraCI.Type = CameraType::Ortho;
+		camera = new EditorCamera(&cameraCI);
+	}
+
+	GraphicsContextInitInfo info = {};
+	{
+		info.Flags = Features_Renderer_2D_Flags | Features_ImGui_Flags;
+		info.eMSAASamples = MSAASamples::SAMPLE_COUNT_1;
+		info.ResourcesFolderPath = "../resources/";
+		info.pWindowCI = &windoInfo;
+		info.pDefaultCamera = camera;
+	}
+
+	context = new GraphicsContext(&info);
 
 	Text text1 = {};
 	std::string str = "Frostium3D!";
@@ -81,7 +80,7 @@ int main(int argc, char** argv)
 		   @Calculate physics, process script, etc
 		*/
 
-		context->UpdateSceneInfo(); // uses default camera - updates automatically
+		context->UpdateViewProjection(camera);
 		context->BeginFrame(deltaTime);
 		{
 			ImGui::Begin("2D Sample");

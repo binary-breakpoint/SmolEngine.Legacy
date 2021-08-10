@@ -73,7 +73,7 @@ namespace Frostium
 		Flush();
 	}
 
-	void DeferredRenderer::DrawOffscreen(Framebuffer* fb, BeginSceneInfo* info, RendererStateEX* state)
+	void DeferredRenderer::DrawOffscreen(Framebuffer* fb, SceneViewProjection* info, RendererStateEX* state)
 	{
 		SceneData oldScene = *s_Data->m_SceneData;
 		RendererStateEX oldState = s_Data->m_State;

@@ -132,6 +132,7 @@ int main(int argc, char** argv)
 		info.pDefaultCamera = camera;
 		info.eMSAASamples = MSAASamples::SAMPLE_COUNT_4;
 		info.eShadowMapSize = ShadowMapSize::SIZE_8;
+		info.bVsync = true;
 	}
 
 	bool process = true;
@@ -158,9 +159,15 @@ int main(int argc, char** argv)
 		if (context->IsWindowMinimized())
 			continue;
 
-		context->UpdateSceneInfo();
+		context->UpdateViewProjection(camera);
 		context->BeginFrame(deltaTime);
 		{
+			DeferredRenderer::BeginScene(&clearInfo);
+			DeferredRenderer::SubmitDirLight(&dirLight);
+			DeferredRenderer::SubmitMesh({ 0, 3.9f, -3 }, glm::radians(glm::vec3(-90.0f, 0.0f, 0.0f)), { 1, 1, 1, }, &jetMesh, metalMaterialID, true, jet_animController);
+			DeferredRenderer::SubmitMesh({ 3, 2, 0 }, { 0, 0, 0 }, { 5, 5, 5, }, &characterMesh, stoneMaterialID, true, character_animController);
+			DeferredRenderer::EndScene();
+
 			ImGui::Begin("Skinning Sample");
 			{
 				ImGui::DragFloat4("LightDir", glm::value_ptr(dirLight.Direction));
@@ -174,12 +181,6 @@ int main(int argc, char** argv)
 					character_animController->GetActiveClip()->SetTimeRatio(t);
 			}
 			ImGui::End();
-
-			DeferredRenderer::BeginScene(&clearInfo);
-			DeferredRenderer::SubmitDirLight(&dirLight);
-			DeferredRenderer::SubmitMesh({ 0, 3.9f, -3 }, glm::radians(glm::vec3(-90.0f, 0.0f, 0.0f)), { 1, 1, 1, }, &jetMesh, metalMaterialID, true, jet_animController);
-			DeferredRenderer::SubmitMesh({ 3, 2, 0 }, { 0, 0, 0 }, { 5, 5, 5, }, &characterMesh, stoneMaterialID, true, character_animController);
-			DeferredRenderer::EndScene();
 
 		}
 		context->SwapBuffers();

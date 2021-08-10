@@ -2283,9 +2283,6 @@
     <ClInclude Include="include\Renderer\Renderer2DStorage.h">
       <Filter>include\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="include\Renderer\RendererShared.h">
-      <Filter>include\Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="include\Renderer\RendererStorage.h">
       <Filter>include\Renderer</Filter>
     </ClInclude>

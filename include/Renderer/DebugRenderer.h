@@ -1,7 +1,5 @@
 #pragma once
 #include "Common/Common.h"
-#include "Renderer/RendererShared.h"
-
 #include "Tools/GLM.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL

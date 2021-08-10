@@ -88,23 +88,16 @@ And finally load resources and run main update loop:
 	while (process)
 	{
 		context->ProcessEvents();
+		float deltaTime = context->CalculateDeltaTime();
 
 		if (context->IsWindowMinimized())
 			continue;
-      
+
 		/* 
-		   @Simulate physics, process scripts, etc
+		   @Calculate physics, process script, etc
 		*/
-		
-		// Far clip, near clip, camera position, projection and view matrices
-		BeginSceneInfo info = {};
-		// Updates struct using camera class
-		info.Update(camera);
-		
-		// Calculates default frustum, updates buffers
-		context->UpdateSceneInfo(&info);
-		
-		float deltaTime = context->CalculateDeltaTime();
+
+		context->UpdateViewProjection(camera);
 		context->BeginFrame(deltaTime);
 		{
 			uint32_t objects = 0;

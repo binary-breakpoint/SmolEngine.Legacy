@@ -5,7 +5,6 @@
 #include "Primitives/Mesh.h"
 
 #include "Primitives/Text.h"
-#include "Renderer/RendererShared.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
@@ -14,6 +13,7 @@ namespace Frostium
 #endif
 {
 	class Texture;
+	struct SceneData;
 
 	struct Instance
 	{

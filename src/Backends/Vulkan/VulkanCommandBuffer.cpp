@@ -79,13 +79,18 @@ namespace Frostium
 		if (data)
 		{
 			VkDevice device = VulkanContext::GetDevice().GetLogicalDevice();
-			VkCommandPoolCreateInfo poolInfo = {};
+			if (data->bNewPool)
 			{
-				poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-				poolInfo.queueFamilyIndex = VulkanContext::GetDevice().GetQueueFamilyIndex();
-				poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-				VK_CHECK_RESULT(vkCreateCommandPool(device, &poolInfo, nullptr, &data->Pool));
+				VkCommandPoolCreateInfo poolInfo = {};
+				{
+					poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+					poolInfo.queueFamilyIndex = VulkanContext::GetDevice().GetQueueFamilyIndex();
+					poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+					VK_CHECK_RESULT(vkCreateCommandPool(device, &poolInfo, nullptr, &data->Pool));
+				}
 			}
+			else
+				data->Pool = VulkanContext::GetCommandBuffer().m_CommandPool;
 
 			VkCommandBufferAllocateInfo allocInfo = {};
 			allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
