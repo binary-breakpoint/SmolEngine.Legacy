@@ -3,7 +3,7 @@
 #include "Primitives/Shader.h"
 
 #include "Common/Common.h"
-#include "Common/SLog.h"
+#include "Common/DebugLog.h"
 
 #include "Tools/Utils.h"
 
@@ -126,7 +126,7 @@ namespace Frostium
 		std::ifstream file(filePath);
 		if (!file)
 		{
-			NATIVE_ERROR("Could not open the file: {}", filePath);
+			DebugLog::LogError("Could not open the file: {}", filePath);
 			return false;
 		}
 

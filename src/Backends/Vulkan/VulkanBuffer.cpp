@@ -58,7 +58,7 @@ namespace Frostium
 			assert(result == VK_SUCCESS);
 
 #ifdef Frostium_DEBUG
-			NATIVE_INFO("VulkanBuffer:: Allocating {} bytes of memory", size);
+			DebugLog::LogInfo("VulkanBuffer:: Allocating {} bytes of memory", size);
 #endif // Frostium_DEBUG
 
 		}
@@ -115,7 +115,7 @@ namespace Frostium
 			assert(result == VK_SUCCESS);
 
 #ifdef FROSTIUM_DEBUG
-			NATIVE_INFO("VulkanBuffer:: Allocating {} bytes of memory", size);
+			DebugLog::LogInfo("VulkanBuffer:: Allocating {} bytes of memory", size);
 #endif
 
 		}

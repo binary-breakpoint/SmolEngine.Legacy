@@ -343,7 +343,7 @@ namespace Frostium
 			size_t result = fwrite(data, sizeof(char), size, f);
 			if (result != size)
 			{
-				NATIVE_ERROR("VulkanPipeline::SaveCache(): cache was not saved");
+				DebugLog::LogError("VulkanPipeline::SaveCache(): cache was not saved");
 				fclose(f);
 				free(data);
 				return false;

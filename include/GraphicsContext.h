@@ -98,6 +98,7 @@ namespace Frostium
 #endif
 		// Setters				      
 		void                          SetEventCallback(std::function<void(Event&)> callback);
+		void                          SetDebugLogCallback(const std::function<void(const std::string&&, LogLevel)>& callback);
 		void                          SetFramebufferSize(uint32_t width, uint32_t height);
 
 		float                         CalculateDeltaTime();

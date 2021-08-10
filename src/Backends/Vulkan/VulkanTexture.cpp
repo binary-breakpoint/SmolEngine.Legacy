@@ -72,7 +72,7 @@ namespace Frostium
 			data = stbi_load(info->FilePath.c_str(), &width, &height, &channels, 4);
 			if (!data)
 			{
-				NATIVE_ERROR("VulkanTexture:: Texture not found! file: {}, line: {}", __FILE__, __LINE__);
+				DebugLog::LogError("VulkanTexture:: Texture not found! file: {}, line: {}", __FILE__, __LINE__);
 				abort();
 			}
 		}

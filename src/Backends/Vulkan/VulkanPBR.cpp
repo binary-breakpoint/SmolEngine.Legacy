@@ -376,7 +376,7 @@ namespace Frostium
 		auto end = std::chrono::high_resolution_clock::now();
 		double diff = std::chrono::duration<double, std::milli>(end - start).count();
 
-		NATIVE_INFO("Generating BRDF LUT took {} ms", diff);
+		DebugLog::LogInfo("Generating BRDF LUT took {} ms", diff);
 	}
 
 	void VulkanPBR::GenerateIrradianceCube(VkImage outImage, VkImageView outImageView, VkSampler outSampler,
@@ -1007,7 +1007,7 @@ namespace Frostium
 		auto end = std::chrono::high_resolution_clock::now();
 		double diff = std::chrono::duration<double, std::milli>(end - start).count();
 
-		NATIVE_INFO("Generating irradiance cube with {} mip levels took {} ms", numMips, diff);
+		DebugLog::LogInfo("Generating irradiance cube with {} mip levels took {} ms", numMips, diff);
 	}
 
 	void VulkanPBR::GeneratePrefilteredCube(VkImage outImage, VkImageView outImageView, VkSampler outSampler,
@@ -1634,7 +1634,7 @@ namespace Frostium
 		auto end = std::chrono::high_resolution_clock::now();
 		double diff = std::chrono::duration<double, std::milli>(end - start).count();
 
-		NATIVE_INFO("Generating pre-filtered enivornment cube with {} mip levels took {} ms", numMips, diff);
+		DebugLog::LogInfo("Generating pre-filtered enivornment cube with {} mip levels took {} ms", numMips, diff);
 	}
 
 	void VulkanPBR::DestroyAttachment(const PBRAttachment& obj)

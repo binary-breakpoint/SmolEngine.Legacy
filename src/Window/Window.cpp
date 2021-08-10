@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Window/Window.h"
 #include "Window/Events.h"
-#include "Common/SLog.h"
+#include "Common/DebugLog.h"
 
 #include <GLFW/glfw3.h>
 #include <glad\glad.h>
@@ -72,7 +72,7 @@ namespace Frostium
 	void Window::Create(const WindowCreateInfo* info)
 	{
 		glfwInit();
-		glfwSetErrorCallback([](int error, const char* description) { NATIVE_ERROR("GLFW Error ({0}): {1}", error, description); });
+		glfwSetErrorCallback([](int error, const char* description) { DebugLog::LogError("GLFW Error ({0}): {1}", error, description); });
 
 #ifndef FROSTIUM_OPENGL_IMPL
 		// No need to create OpenGL window automatically
@@ -181,7 +181,7 @@ namespace Frostium
 
 	void Window::SetVSync(bool enabled)
 	{
-		NATIVE_INFO("VSync enabled: {0}", enabled);
+		DebugLog::LogInfo("VSync enabled: {0}", enabled);
 		enabled ? glfwSwapInterval(1) : glfwSwapInterval(0);
 	}
 }

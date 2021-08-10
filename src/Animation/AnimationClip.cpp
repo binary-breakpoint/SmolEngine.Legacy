@@ -36,14 +36,14 @@ namespace Frostium
 		ozz::io::File file(_filename, "rb");
 		if (!file.opened()) 
 		{
-			NATIVE_ERROR("Failed to open skeleton file: {}", _filename);
+			DebugLog::LogError("Failed to open skeleton file: {}", _filename);
 			return false;
 		}
 
 		ozz::io::IArchive archive(&file);
 		if (!archive.TestTag<ozz::animation::Skeleton>()) 
 		{
-			NATIVE_ERROR("Failed to load skeleton instance from file: {}", _filename);
+			DebugLog::LogError("Failed to load skeleton instance from file: {}", _filename);
 			return false;
 		}
 
@@ -56,14 +56,14 @@ namespace Frostium
 		ozz::io::File file(_filename, "rb");
 		if (!file.opened()) 
 		{
-			NATIVE_ERROR("Failed to open animation file: {}", _filename);
+			DebugLog::LogError("Failed to open animation file: {}", _filename);
 			return false;
 		}
 
 		ozz::io::IArchive archive(&file);
 		if (!archive.TestTag<ozz::animation::Animation>()) 
 		{
-			NATIVE_ERROR("Failed to load animation instance from file: {}", _filename);
+			DebugLog::LogError("Failed to load animation instance from file: {}", _filename);
 			return false;
 		}
 

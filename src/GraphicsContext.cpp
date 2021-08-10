@@ -9,7 +9,7 @@
 
 #include "Tools/MaterialLibrary.h"
 
-#include "Common/SLog.h"
+#include "Common/DebugLog.h"
 #include "Common/Common.h"
 #include "Window/Input.h"
 
@@ -31,12 +31,7 @@ namespace Frostium
 		if (m_State != nullptr || !info->pWindowCI)
 			return;
 
-		// Creates spdlog intanance if not present
-		SLog* log = SLog::s_Instance;
-		if (log == nullptr)
-		{
-			log = new SLog();
-		}
+		DebugLog* log = new DebugLog();
 
 		s_Instance = this;
 		m_Flags = info->Flags;
@@ -51,8 +46,6 @@ namespace Frostium
 		m_Window = new Window();
 		m_Window->Init(info->pWindowCI, &m_EventHandler);
 		GLFWwindow* window = m_Window->GetNativeWindow();
-
-
 		// Creates API context
 #ifdef  FROSTIUM_OPENGL_IMPL
 		m_OpenglContext.Setup(window);
@@ -62,7 +55,6 @@ namespace Frostium
 #endif
 		// Creates default frustum
 		m_Frustum = new Frustum();
-
 		// Creates 4x4 white textures
 		m_DummyTexure = new Texture();
 		Texture::CreateWhiteTexture(m_DummyTexure);
@@ -255,6 +247,11 @@ namespace Frostium
 	void GraphicsContext::SetEventCallback(std::function<void(Event&)> callback)
 	{
 		m_EventCallback = callback;
+	}
+
+	void GraphicsContext::SetDebugLogCallback(const std::function<void(const std::string&&, LogLevel)>& callback)
+	{
+		DebugLog::s_Instance->SetCallback(callback);
 	}
 
 	void GraphicsContext::SetFramebufferSize(uint32_t width, uint32_t height)

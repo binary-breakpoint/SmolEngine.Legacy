@@ -60,7 +60,7 @@ namespace Frostium
 
 		if (!glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
 		{
-			NATIVE_ERROR("Creating framebuffer is failed!");
+			DebugLog::LogError("Creating framebuffer is failed!");
 		}
 
 
@@ -85,7 +85,7 @@ namespace Frostium
 
 	void OpenglFramebuffer::OnResize(const uint32_t width, const uint32_t height)
 	{
-		if (width == 0 || height == 0 || width > m_MaxSize || height > m_MaxSize) { NATIVE_WARN("Framebuffer: invalid value"); return; }
+		if (width == 0 || height == 0 || width > m_MaxSize || height > m_MaxSize) { DebugLog::LogWarn("Framebuffer: invalid value"); return; }
 
 		m_Data.Width = width; m_Data.Height = height;
 		Recreate();

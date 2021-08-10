@@ -35,7 +35,7 @@ namespace Frostium
 
 		if (data == nullptr)
 		{
-			NATIVE_ERROR("Texture not found!");
+			DebugLog::LogError("Texture not found!");
 			abort();
 		}
 
@@ -43,7 +43,7 @@ namespace Frostium
 		m_InternalFormat = openglFormat; m_DataFromat = dataFormat;
 		if (openglFormat == 0 || dataFormat == 0)
 		{
-			NATIVE_ERROR("Invalid input parameters, channels: {}", channels);
+			DebugLog::LogError("Invalid input parameters, channels: {}", channels);
 			abort();
 		}
 
@@ -86,7 +86,7 @@ namespace Frostium
 
 		if (size != m_Width * m_Height * b)
 		{
-			NATIVE_ERROR("Data must be a texture!");
+			DebugLog::LogError("Data must be a texture!");
 			abort();
 		}
 

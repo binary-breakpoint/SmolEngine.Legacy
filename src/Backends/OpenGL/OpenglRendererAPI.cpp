@@ -27,10 +27,10 @@ namespace Frostium
 	{
 		switch (severity)
 		{
-		case GL_DEBUG_SEVERITY_HIGH:         NATIVE_ERROR(message); return;
-		case GL_DEBUG_SEVERITY_MEDIUM:       NATIVE_ERROR(message); return;
-		case GL_DEBUG_SEVERITY_LOW:          NATIVE_WARN(message); return;
-		case GL_DEBUG_SEVERITY_NOTIFICATION: NATIVE_INFO(message); return;
+		case GL_DEBUG_SEVERITY_HIGH:         DebugLog::LogError(message); return;
+		case GL_DEBUG_SEVERITY_MEDIUM:       DebugLog::LogError(message); return;
+		case GL_DEBUG_SEVERITY_LOW:          DebugLog::LogWarn(message); return;
+		case GL_DEBUG_SEVERITY_NOTIFICATION: DebugLog::LogInfo(message); return;
 		}
 	}
 

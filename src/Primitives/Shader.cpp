@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Primitives/Shader.h"
 
-#include "Common/SLog.h"
+#include "Common/DebugLog.h"
 #include "Tools/Utils.h"
 
 #include <shaderc/shaderc.hpp>
@@ -73,7 +73,7 @@ namespace Frostium
 			const shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(src, GetShaderType(type), path.c_str(), options);
 			if (result.GetCompilationStatus() != shaderc_compilation_status_success)
 			{
-				NATIVE_ERROR(result.GetErrorMessage().c_str());
+				DebugLog::LogError(result.GetErrorMessage().c_str());
 				assert(false);
 			}
 

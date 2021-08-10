@@ -71,7 +71,7 @@ namespace Frostium
 	{
 		if (m_Device == nullptr || m_Instance == nullptr)
 		{
-			NATIVE_ERROR("VulkanDevice or VulkanInstance is nullptr");
+			DebugLog::LogError("VulkanDevice or VulkanInstance is nullptr");
 			assert(m_Device != nullptr || m_Instance != nullptr);
 			return;
 		}
@@ -306,7 +306,7 @@ namespace Frostium
 	{
 		if (m_Device == nullptr || m_Instance == nullptr)
 		{
-			NATIVE_ERROR("VulkanDevice or VulkanInstance is nullptr");
+			DebugLog::LogError("VulkanDevice or VulkanInstance is nullptr");
 			assert(m_Device != nullptr || m_Instance != nullptr);
 			return VK_ERROR_UNKNOWN;
 		}
@@ -537,7 +537,7 @@ namespace Frostium
 
 			if (result != VK_SUCCESS)
 			{
-				NATIVE_ERROR("VulkanFramebuffer::Create: Failed to create framebuffer object!");
+				DebugLog::LogError("VulkanFramebuffer::Create: Failed to create framebuffer object!");
 			}
 		}
 
@@ -622,7 +622,7 @@ namespace Frostium
 
 		if (!formatFound)
 		{
-			NATIVE_ERROR("Depth Stencil Format not found!"); 
+			DebugLog::LogError("Depth Stencil Format not found!"); 
 			abort();
 		}
 	}

@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "Tools/MaterialLibrary.h"
-#include "Common/SLog.h"
+#include "Common/DebugLog.h"
 
 #include <filesystem>
 #include <cereal/cereal.hpp>
@@ -257,7 +257,7 @@ namespace Frostium
 		std::ifstream file(filePath);
 		if (!file)
 		{
-			NATIVE_ERROR("Could not open the file: {}", filePath);
+			DebugLog::LogError("Could not open the file: {}", filePath);
 
 			return false;
 		}

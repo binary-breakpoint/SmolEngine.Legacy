@@ -16,7 +16,7 @@ GraphicsContext* context = nullptr;
 void PrintMethod(MonoString* string)
 {
 	char* cppString = mono_string_to_utf8(string);
-	NATIVE_INFO(cppString);
+	DebugLog::LogInfo(cppString);
 	mono_free(cppString);
 }
 

@@ -21,7 +21,7 @@ namespace Frostium
 		if (type == "vertex") return GL_VERTEX_SHADER;
 		if (type == "fragment" || type == "pixel") return GL_FRAGMENT_SHADER;
 
-		NATIVE_ERROR("Unknow shader type");
+		DebugLog::LogError("Unknow shader type");
 		abort();
 	}
 
@@ -87,7 +87,7 @@ namespace Frostium
 				ss << c;
 			}
 
-			NATIVE_ERROR(ss.str());
+			DebugLog::LogError(ss.str());
 
 			// We don't need the program anymore
 
@@ -96,7 +96,7 @@ namespace Frostium
 			for (auto id : m_ShaderIDs)
 				glDeleteShader(id);
 
-			NATIVE_ERROR("Shader Link Error!");
+			DebugLog::LogError("Shader Link Error!");
 		}
 
 	}
@@ -170,7 +170,7 @@ namespace Frostium
 		std::array<GLenum, 2> glShaderIDs;
 		if (shaderSources.size() < 2)
 		{
-			NATIVE_ERROR("Only 2 shaders supported, current size: {}", shaderSources.size()); abort();
+			DebugLog::LogError("Only 2 shaders supported, current size: {}", shaderSources.size()); abort();
 		}
 
 		int glShaderIDIndex = 0;
@@ -203,7 +203,7 @@ namespace Frostium
 					ss << c;
 				}
 
-				NATIVE_ERROR(ss.str());
+				DebugLog::LogError(ss.str());
 				glDeleteShader(shader);
 				break;
 			}
@@ -236,7 +236,7 @@ namespace Frostium
 				ss << c;
 			}
 
-			NATIVE_ERROR(ss.str());
+			DebugLog::LogError(ss.str());
 
 			// We don't need the program anymore.
 			glDeleteProgram(program);
@@ -244,7 +244,7 @@ namespace Frostium
 			for (auto id : glShaderIDs)
 				glDeleteShader(id);
 
-			NATIVE_ERROR("Shader Link Error!");
+			DebugLog::LogError("Shader Link Error!");
 			return;
 		}
 
@@ -296,17 +296,17 @@ namespace Frostium
 			}
 			else
 			{
-				NATIVE_ERROR("Could not read from file '{0}'", file);
+				DebugLog::LogError("Could not read from file '{0}'", file);
 			}
 		}
 		else
 		{
-			NATIVE_ERROR("Could not open file '{0}'", file);
+			DebugLog::LogError("Could not open file '{0}'", file);
 		}
 
 		if (result.empty())
 		{
-			NATIVE_WARN("File: string is empty");
+			DebugLog::LogWarn("File: string is empty");
 		}
 
 		return result;

@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #ifndef FROSTIUM_OPENGL_IMPL
 #include "Backends/Vulkan/VulkanBufferPool.h"
-#include "Common/SLog.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
@@ -48,7 +47,7 @@ namespace Frostium
 		}
 
 #ifdef FROSTIUM_DEBUG
-		NATIVE_INFO("UBO/SSBO with binding {} is reused", binding);
+		DebugLog::LogInfo("UBO/SSBO with binding {} is reused", binding);
 #endif
 		outDescriptorBufferInfo = it->second->DesriptorBufferInfo;
 	}

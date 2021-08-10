@@ -36,7 +36,7 @@ namespace Frostium
 			ss << "           Raytracing Enabled: {}\n";
 			ss << "           Max push_constant size: {}\n\n";
 
-			NATIVE_INFO(ss.str(),
+			DebugLog::LogInfo(ss.str(),
 				m_VkDeviceProperties.apiVersion,
 				std::string(m_VkDeviceProperties.deviceName),
 				m_VkDeviceProperties.driverVersion, m_RayTracingEnabled,
@@ -285,7 +285,7 @@ namespace Frostium
 			typeBits >>= 1;
 		}
 
-		NATIVE_ERROR("Could not find a suitable memory type!");
+		DebugLog::LogError("Could not find a suitable memory type!");
 		abort();
 	}
 

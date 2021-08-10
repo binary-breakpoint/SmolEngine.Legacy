@@ -136,7 +136,7 @@ namespace Frostium
 						if (found == false)
 						{
 #ifdef FROSTIUM_DEBUG
-							NATIVE_ERROR("Storage buffer dataSize must be declared inside GraphicsPipelineShaderCreateInfo!");
+							DebugLog::LogError("Storage buffer dataSize must be declared inside GraphicsPipelineShaderCreateInfo!");
 #endif
 							continue;
 						}
@@ -193,7 +193,7 @@ namespace Frostium
 			vkUpdateDescriptorSets(m_Device, 1, &m_WriteSets.back(), 0, nullptr);
 
 #ifdef FROSTIUM_DEBUG
-			NATIVE_WARN("Created " + buffer.ObjectName + " {}: Members Count: {}, Binding Point: {}",
+			DebugLog::LogWarn("Created " + buffer.ObjectName + " {}: Members Count: {}, Binding Point: {}",
 				buffer.Name, buffer.Uniforms.size(), buffer.BindingPoint);
 #endif
 		}

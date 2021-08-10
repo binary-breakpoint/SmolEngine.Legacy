@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "Common/SLog.h"
+#include "Common/DebugLog.h"
 #include "Primitives/Framebuffer.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL

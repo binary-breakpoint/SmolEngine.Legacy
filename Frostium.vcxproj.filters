@@ -384,7 +384,7 @@
     <ClInclude Include="include\Common\Profiler.h">
       <Filter>include\Common</Filter>
     </ClInclude>
-    <ClInclude Include="include\Common\SLog.h">
+    <ClInclude Include="include\Common\DebugLog.h">
       <Filter>include\Common</Filter>
     </ClInclude>
     <ClInclude Include="include\Window\Window.h">

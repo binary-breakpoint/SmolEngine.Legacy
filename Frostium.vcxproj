@@ -227,7 +227,7 @@
     <ClInclude Include="include\Common\Common.h" />
     <ClInclude Include="include\Common\Flags.h" />
     <ClInclude Include="include\Common\Profiler.h" />
-    <ClInclude Include="include\Common\SLog.h" />
+    <ClInclude Include="include\Common\DebugLog.h" />
     <ClInclude Include="include\Window\Window.h" />
     <ClInclude Include="include\Environment\EnvironmentMap.h" />
     <ClInclude Include="include\Window\Events.h" />
