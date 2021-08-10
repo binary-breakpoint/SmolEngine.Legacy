@@ -31,14 +31,13 @@ namespace Frostium
 		if (!info->pWindowCI)
 			return;
 
-		DebugLog* log = new DebugLog();
-
 		s_Instance = this;
 		m_CreateInfo = *info;
 		m_ResourcesFolderPath = info->ResourcesFolderPath;
 		m_DefaultCamera = info->pDefaultCamera;
 		m_EventHandler.OnEventFn = std::bind(&GraphicsContext::OnEvent, this, std::placeholders::_1);
 
+		DebugLog* log = new DebugLog();
 		// Creates GLFW window
 		m_Window = new Window();
 		m_Window->Init(info->pWindowCI, &m_EventHandler);
@@ -91,15 +90,11 @@ namespace Frostium
 
 		if (info->Flags & Features_Renderer_3D_Flags)
 		{
-			if (info->pRendererStorage != nullptr)
-			{
+			m_bIsStoragePreAlloc = info->pRendererStorage != nullptr;
+			if(m_bIsStoragePreAlloc)
 				m_RendererStorage = info->pRendererStorage;
-				m_bIsStoragePreAlloc = true;
-			}
 			else
-			{
 				m_RendererStorage = new RendererStorage();
-			}
 
 			InitRendererStorage(m_RendererStorage, info->eShadowMapSize);
 			DeferredRenderer::Init(m_RendererStorage);
@@ -115,15 +110,11 @@ namespace Frostium
 
 		if (info->Flags & Features_Renderer_2D_Flags)
 		{
-			if (info->pRenderer2DStorage != nullptr)
-			{
+			m_bIs2DStoragePreAlloc = info->pRenderer2DStorage != nullptr;
+			if(m_bIs2DStoragePreAlloc)
 				m_Renderer2DStorage = info->pRenderer2DStorage;
-				m_bIs2DStoragePreAlloc = true;
-			}
 			else
-			{
 				m_Renderer2DStorage = new Renderer2DStorage();
-			}
 
 			InitRenderer2DStorage(m_Renderer2DStorage);
 			Renderer2D::Init(m_Renderer2DStorage);

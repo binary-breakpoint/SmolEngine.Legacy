@@ -101,6 +101,12 @@ void LoadMaterials()
 	DeferredRenderer::UpdateMaterials();
 }
 
+void GenerateSkyBox()
+{
+	DynamicSkyProperties sky;
+	DeferredRenderer::SetDynamicSkyboxProperties(sky);
+}
+
 int main(int argc, char** argv)
 {
 	WindowCreateInfo windoInfo = {};
@@ -131,6 +137,10 @@ int main(int argc, char** argv)
 	bool process = true;
 	ClearInfo clearInfo = {};
 
+	DirectionalLight dirLight = {};
+	dirLight.IsActive = true;
+	dirLight.Color = { 0.6, 0.2, 0.4, 1 };
+
 	context = new GraphicsContext(&info);
 	context->SetEventCallback([&](Event& e){ if (e.IsType(EventType::WINDOW_CLOSE)) process = false;});
 	context->SetDebugLogCallback([&](const std::string&& msg, LogLevel level) { std::cout << msg << "\n"; });
@@ -138,16 +148,7 @@ int main(int argc, char** argv)
 	LoadMaterials();
 	LoadMeshes();
 	LoadAnimations();
-
-	glm::vec3 lightDir = glm::vec3(0.0f);
-	glm::vec3 rot = glm::vec3(-90.0f, 0.0f, 0.0f);
-
-	DirectionalLight dirLight = {};
-	dirLight.IsActive = true;
-	dirLight.Color = { 0.6, 0.2, 0.4, 1 };
-
-	DynamicSkyProperties sky;
-	DeferredRenderer::SetDynamicSkyboxProperties(sky);
+	GenerateSkyBox();
 
 	while (process)
 	{
@@ -176,7 +177,7 @@ int main(int argc, char** argv)
 
 			DeferredRenderer::BeginScene(&clearInfo);
 			DeferredRenderer::SubmitDirLight(&dirLight);
-			DeferredRenderer::SubmitMesh({ 0, 3.9f, -3 }, glm::radians(rot), { 1, 1, 1, }, &jetMesh, metalMaterialID, true, jet_animController);
+			DeferredRenderer::SubmitMesh({ 0, 3.9f, -3 }, glm::radians(glm::vec3(-90.0f, 0.0f, 0.0f)), { 1, 1, 1, }, &jetMesh, metalMaterialID, true, jet_animController);
 			DeferredRenderer::SubmitMesh({ 3, 2, 0 }, { 0, 0, 0 }, { 5, 5, 5, }, &characterMesh, stoneMaterialID, true, character_animController);
 			DeferredRenderer::EndScene();
 
