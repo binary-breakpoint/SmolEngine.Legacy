@@ -39,7 +39,6 @@ include "vendor/ktx"
 include "vendor/imgizmo"
 group ""
 
-
 project "Frostium"
 	kind "StaticLib"
 	language "C++"
@@ -182,6 +181,11 @@ project "Frostium"
 			"vendor/ozz-animation/libs/ozz_geometry_d.lib",
 			"vendor/ozz-animation/libs/ozz_options_d.lib",
 		}
+
+		postbuildcommands
+		{
+			"{COPY} bin/" ..outputdir .. "/Frostium/Frostium.lib ../SmolEngine/vendor/frostium/libs/debug/",
+		}
 	
 		defines
 		{
@@ -240,6 +244,11 @@ project "Frostium"
 			"vendor/ozz-animation/libs/ozz_base_r.lib",
 			"vendor/ozz-animation/libs/ozz_geometry_r.lib",
 			"vendor/ozz-animation/libs/ozz_options_r.lib",
+		}
+
+		postbuildcommands
+		{
+			"{COPY} bin/" ..outputdir .. "/Frostium/Frostium.lib ../SmolEngine/vendor/frostium/libs/release/",
 		}
 
 		defines

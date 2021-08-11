@@ -31,9 +31,6 @@
     <Filter Include="include\Environment">
       <UniqueIdentifier>{0DBC82A6-791D-60B4-028B-A6666EEB9673}</UniqueIdentifier>
     </Filter>
-    <Filter Include="include\Event">
-      <UniqueIdentifier>{9AF3EDA2-06B4-69D9-CFEE-B2563B6EAEB5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="include\External">
       <UniqueIdentifier>{DB4BB199-C744-D0EB-F076-B570DCCEAFF7}</UniqueIdentifier>
     </Filter>
@@ -202,11 +199,14 @@
     <Filter Include="include\Tools">
       <UniqueIdentifier>{C9B6F9A3-3577-75DA-FEB1-BE576A31BAB6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="include\Utils">
-      <UniqueIdentifier>{A9730EA4-1534-8ADA-DE6E-D3574AEECEB6}</UniqueIdentifier>
+    <Filter Include="include\Window">
+      <UniqueIdentifier>{50C8C229-3C96-B62F-252A-275611979294}</UniqueIdentifier>
     </Filter>
     <Filter Include="src">
       <UniqueIdentifier>{2DAB880B-99B4-887C-2230-9F7C8E38947C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Animation">
+      <UniqueIdentifier>{5C00BBE1-C8C0-3618-91FB-7F95FD7A7BF4}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\Backends">
       <UniqueIdentifier>{D76BAFAE-C3CE-3E53-6C54-770958960AD6}</UniqueIdentifier>
@@ -232,9 +232,6 @@
     <Filter Include="src\Environment">
       <UniqueIdentifier>{B14D879C-1DD9-F460-26EA-775592F45061}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Event">
-      <UniqueIdentifier>{3E1ADFB2-AA84-9329-F3C2-44CF5F6C717E}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\GUI">
       <UniqueIdentifier>{C1782FA9-2D58-AE44-3670-391BA2CE14A6}</UniqueIdentifier>
     </Filter>
@@ -256,8 +253,8 @@
     <Filter Include="src\Tools">
       <UniqueIdentifier>{6DDDEAB3-D947-9F2A-2286-50D08E2F7D7F}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\Utils">
-      <UniqueIdentifier>{4D9AFFB3-B904-B42A-0243-65D06EEC917F}</UniqueIdentifier>
+    <Filter Include="src\Window">
+      <UniqueIdentifier>{74C3D837-607B-1A85-C982-F3E0B559B575}</UniqueIdentifier>
     </Filter>
     <Filter Include="vendor">
       <UniqueIdentifier>{B3738122-9F15-ACF8-88D0-BF4C74113349}</UniqueIdentifier>
@@ -270,6 +267,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\Animation\AnimationClip.h">
+      <Filter>include\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Animation\AnimationController.h">
+      <Filter>include\Animation</Filter>
+    </ClInclude>
     <ClInclude Include="include\Backends\OpenGL\OpenglBuffer.h">
       <Filter>include\Backends\OpenGL</Filter>
     </ClInclude>
@@ -378,29 +381,20 @@
     <ClInclude Include="include\Common\Common.h">
       <Filter>include\Common</Filter>
     </ClInclude>
+    <ClInclude Include="include\Common\DebugLog.h">
+      <Filter>include\Common</Filter>
+    </ClInclude>
     <ClInclude Include="include\Common\Flags.h">
       <Filter>include\Common</Filter>
     </ClInclude>
     <ClInclude Include="include\Common\Profiler.h">
       <Filter>include\Common</Filter>
     </ClInclude>
-    <ClInclude Include="include\Common\DebugLog.h">
-      <Filter>include\Common</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Window\Window.h">
-      <Filter>include\Common</Filter>
+    <ClInclude Include="include\Environment\CubeMap.h">
+      <Filter>include\Environment</Filter>
     </ClInclude>
     <ClInclude Include="include\Environment\EnvironmentMap.h">
       <Filter>include\Environment</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Window\Events.h">
-      <Filter>include\Event</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Window\Input.h">
-      <Filter>include\Event</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Window\InputCodes.h">
-      <Filter>include\Event</Filter>
     </ClInclude>
     <ClInclude Include="include\External\glm\glm\common.hpp">
       <Filter>include\External\glm\glm</Filter>
@@ -2223,6 +2217,9 @@
     <ClInclude Include="include\GraphicsContext.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="include\Import\OzzImported.h">
+      <Filter>include\Import</Filter>
+    </ClInclude>
     <ClInclude Include="include\Import\glTFImporter.h">
       <Filter>include\Import</Filter>
     </ClInclude>
@@ -2233,9 +2230,6 @@
       <Filter>include\Primitives</Filter>
     </ClInclude>
     <ClInclude Include="include\Primitives\BufferLayout.h">
-      <Filter>include\Primitives</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Environment\CubeMap.h">
       <Filter>include\Primitives</Filter>
     </ClInclude>
     <ClInclude Include="include\Primitives\Framebuffer.h">
@@ -2289,23 +2283,38 @@
     <ClInclude Include="include\Tools\DefaultMeshes.h">
       <Filter>include\Tools</Filter>
     </ClInclude>
+    <ClInclude Include="include\Tools\GLM.h">
+      <Filter>include\Tools</Filter>
+    </ClInclude>
     <ClInclude Include="include\Tools\MaterialLibrary.h">
       <Filter>include\Tools</Filter>
     </ClInclude>
-    <ClInclude Include="include\Tools\GLM.h">
-      <Filter>include\Utils</Filter>
-    </ClInclude>
     <ClInclude Include="include\Tools\Utils.h">
-      <Filter>include\Utils</Filter>
+      <Filter>include\Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Window\Events.h">
+      <Filter>include\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Window\Input.h">
+      <Filter>include\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Window\InputCodes.h">
+      <Filter>include\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Window\Window.h">
+      <Filter>include\Window</Filter>
     </ClInclude>
     <ClInclude Include="src\stdafx.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="include\Animation\AnimationClip.h" />
-    <ClInclude Include="include\Animation\AnimationController.h" />
-    <ClInclude Include="include\Import\OzzImported.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Animation\AnimationClip.cpp">
+      <Filter>src\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Animation\AnimationController.cpp">
+      <Filter>src\Animation</Filter>
+    </ClCompile>
     <ClCompile Include="src\Backends\OpenGL\OpenglBuffer.cpp">
       <Filter>src\Backends\OpenGL</Filter>
     </ClCompile>
@@ -2408,23 +2417,17 @@
     <ClCompile Include="src\Common\Common.cpp">
       <Filter>src\Common</Filter>
     </ClCompile>
-    <ClCompile Include="src\Common\Profiler.cpp">
-      <Filter>src\Common</Filter>
-    </ClCompile>
     <ClCompile Include="src\Common\DebugLog.cpp">
       <Filter>src\Common</Filter>
     </ClCompile>
-    <ClCompile Include="src\Window\Window.cpp">
+    <ClCompile Include="src\Common\Profiler.cpp">
       <Filter>src\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Environment\CubeMap.cpp">
+      <Filter>src\Environment</Filter>
     </ClCompile>
     <ClCompile Include="src\Environment\EnvironmentMap.cpp">
       <Filter>src\Environment</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Window\Events.cpp">
-      <Filter>src\Event</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Window\Input.cpp">
-      <Filter>src\Event</Filter>
     </ClCompile>
     <ClCompile Include="src\GUI\ImGuiBuid.cpp">
       <Filter>src\GUI</Filter>
@@ -2435,14 +2438,14 @@
     <ClCompile Include="src\GraphicsContext.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\Import\OzzImported.cpp">
+      <Filter>src\Import</Filter>
+    </ClCompile>
     <ClCompile Include="src\Import\glTFImporter.cpp">
       <Filter>src\Import</Filter>
     </ClCompile>
     <ClCompile Include="src\Multithreading\JobsSystemInstance.cpp">
       <Filter>src\Multithreading</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Environment\CubeMap.cpp">
-      <Filter>src\Primitives</Filter>
     </ClCompile>
     <ClCompile Include="src\Primitives\Framebuffer.cpp">
       <Filter>src\Primitives</Filter>
@@ -2493,7 +2496,16 @@
       <Filter>src\Tools</Filter>
     </ClCompile>
     <ClCompile Include="src\Tools\Utils.cpp">
-      <Filter>src\Utils</Filter>
+      <Filter>src\Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Window\Events.cpp">
+      <Filter>src\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Window\Input.cpp">
+      <Filter>src\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Window\Window.cpp">
+      <Filter>src\Window</Filter>
     </ClCompile>
     <ClCompile Include="src\stdafx.cpp">
       <Filter>src</Filter>
@@ -2510,8 +2522,5 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
-    <ClCompile Include="src\Animation\AnimationClip.cpp" />
-    <ClCompile Include="src\Animation\AnimationController.cpp" />
-    <ClCompile Include="src\Import\OzzImported.cpp" />
   </ItemGroup>
 </Project>

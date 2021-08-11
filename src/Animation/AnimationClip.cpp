@@ -15,6 +15,9 @@
 #include <ozz/base/containers/vector.h>
 #include <ozz-animation/include/ozz/animation/runtime/local_to_model_job.h>
 
+#include <cereal/cereal.hpp>
+#include <cereal/archives/json.hpp>
+
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
 #else
@@ -186,5 +189,43 @@ namespace Frostium
 		}
 
 		return true;
+	}
+
+	bool AnimationClipCreateInfo::Load(const std::string& filePath)
+	{
+		std::stringstream storage;
+		std::ifstream file(filePath);
+		if (!file)
+		{
+			DebugLog::LogError("Could not open the file: {}", filePath);
+			return false;
+		}
+
+		storage << file.rdbuf();
+		{
+			cereal::JSONInputArchive input{ storage };
+			input(ClipInfo.bLoop, ClipInfo.bPlay, ClipInfo.Speed, SkeletonPath, AnimationPath, ModelPath);
+		}
+
+		return true;
+	}
+
+	bool AnimationClipCreateInfo::Save(const std::string& filePath)
+	{
+		std::stringstream storage;
+		{
+			cereal::JSONOutputArchive output{ storage };
+			serialize(output);
+		}
+
+		std::ofstream myfile(filePath);
+		if (myfile.is_open())
+		{
+			myfile << storage.str();
+			myfile.close();
+			return true;
+		}
+
+		return false;
 	}
 }

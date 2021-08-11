@@ -30,8 +30,8 @@ namespace Frostium
 		std::string               AnimationPath = "";
 		std::string               ModelPath = "";
 
-		void Load();
-		void Save();
+		bool Load(const std::string& filePath);
+		bool Save(const std::string& filePath);
 
 	private:
 		friend class cereal::access;

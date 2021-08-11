@@ -163,6 +163,9 @@
       <AdditionalDependencies>vendor\libs\SmolEngine_R-windows-x86_64\Glad\Glad.lib;vendor\libs\SmolEngine_R-windows-x86_64\GLFW\GLFW.lib;vendor\libs\SmolEngine_R-windows-x86_64\ImGizmo\ImGizmo.lib;vendor\libs\SmolEngine_R-windows-x86_64\ImGui\ImGui.lib;vendor\libs\SmolEngine_R-windows-x86_64\KTX-Tools\KTX-Tools.lib;vendor\libs\SmolEngine_R-windows-x86_64\SPIRV-Cross\SPIRV-Cross.lib;vendor\vulkan\libs\vulkan-1.lib;vendor\vulkan\libs\shaderc.lib;vendor\vulkan\libs\shaderc_util.lib;vendor\vulkan\libs\glslang.lib;vendor\vulkan\libs\SPIRV.lib;vendor\vulkan\libs\SPIRV-Tools.lib;vendor\vulkan\libs\SPIRV-Tools-opt.lib;vendor\vulkan\libs\machineIndependent.lib;vendor\vulkan\libs\genericCodeGen.lib;vendor\vulkan\libs\OGLCompiler.lib;vendor\vulkan\libs\OSDependent.lib;vendor\ozz-animation\libs\ozz_animation_r.lib;vendor\ozz-animation\libs\ozz_animation_offline_r.lib;vendor\ozz-animation\libs\ozz_base_r.lib;vendor\ozz-animation\libs\ozz_geometry_r.lib;vendor\ozz-animation\libs\ozz_options_r.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
+    <PostBuildEvent>
+      <Command>IF EXIST bin\SmolEngine_R-windows-x86_64\Frostium\Frostium.lib\ (xcopy /Q /E /Y /I bin\SmolEngine_R-windows-x86_64\Frostium\Frostium.lib ..\SmolEngine\vendor\frostium\libs\release &gt; nul) ELSE (xcopy /Q /Y /I bin\SmolEngine_R-windows-x86_64\Frostium\Frostium.lib ..\SmolEngine\vendor\frostium\libs\release &gt; nul)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='SmolEngine_D|x64'">
     <ClCompile>
@@ -185,6 +188,9 @@
       <AdditionalDependencies>vendor\libs\SmolEngine_D-windows-x86_64\Glad\Glad.lib;vendor\libs\SmolEngine_D-windows-x86_64\GLFW\GLFW.lib;vendor\libs\SmolEngine_D-windows-x86_64\ImGizmo\ImGizmo.lib;vendor\libs\SmolEngine_D-windows-x86_64\ImGui\ImGui.lib;vendor\libs\SmolEngine_D-windows-x86_64\KTX-Tools\KTX-Tools.lib;vendor\libs\SmolEngine_D-windows-x86_64\SPIRV-Cross\SPIRV-Cross.lib;vendor\vulkan\libs\vulkan-1.lib;vendor\vulkan\libs\VkLayer_utils.lib;vendor\vulkan\libs\shaderc_d.lib;vendor\vulkan\libs\shaderc_util_d.lib;vendor\vulkan\libs\glslang_d.lib;vendor\vulkan\libs\SPIRV_d.lib;vendor\vulkan\libs\SPIRV-Tools_d.lib;vendor\vulkan\libs\SPIRV-Tools-opt_d.lib;vendor\vulkan\libs\machineIndependent_d.lib;vendor\vulkan\libs\genericCodeGen_d.lib;vendor\vulkan\libs\OGLCompiler_d.lib;vendor\vulkan\libs\OSDependent_d.lib;vendor\ozz-animation\libs\ozz_animation_d.lib;vendor\ozz-animation\libs\ozz_animation_offline_d.lib;vendor\ozz-animation\libs\ozz_base_d.lib;vendor\ozz-animation\libs\ozz_geometry_d.lib;vendor\ozz-animation\libs\ozz_options_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
+    <PostBuildEvent>
+      <Command>IF EXIST bin\SmolEngine_D-windows-x86_64\Frostium\Frostium.lib\ (xcopy /Q /E /Y /I bin\SmolEngine_D-windows-x86_64\Frostium\Frostium.lib ..\SmolEngine\vendor\frostium\libs\debug &gt; nul) ELSE (xcopy /Q /Y /I bin\SmolEngine_D-windows-x86_64\Frostium\Frostium.lib ..\SmolEngine\vendor\frostium\libs\debug &gt; nul)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\Animation\AnimationClip.h" />
@@ -225,14 +231,11 @@
     <ClInclude Include="include\Camera\EditorCamera.h" />
     <ClInclude Include="include\Camera\Frustum.h" />
     <ClInclude Include="include\Common\Common.h" />
+    <ClInclude Include="include\Common\DebugLog.h" />
     <ClInclude Include="include\Common\Flags.h" />
     <ClInclude Include="include\Common\Profiler.h" />
-    <ClInclude Include="include\Common\DebugLog.h" />
-    <ClInclude Include="include\Window\Window.h" />
+    <ClInclude Include="include\Environment\CubeMap.h" />
     <ClInclude Include="include\Environment\EnvironmentMap.h" />
-    <ClInclude Include="include\Window\Events.h" />
-    <ClInclude Include="include\Window\Input.h" />
-    <ClInclude Include="include\Window\InputCodes.h" />
     <ClInclude Include="include\External\glm\glm\common.hpp" />
     <ClInclude Include="include\External\glm\glm\detail\_features.hpp" />
     <ClInclude Include="include\External\glm\glm\detail\_fixes.hpp" />
@@ -840,12 +843,11 @@
     <ClInclude Include="include\FrostiumCore.h" />
     <ClInclude Include="include\GUI\ImGuiContext.h" />
     <ClInclude Include="include\GraphicsContext.h" />
-    <ClInclude Include="include\Import\glTFImporter.h" />
     <ClInclude Include="include\Import\OzzImported.h" />
+    <ClInclude Include="include\Import\glTFImporter.h" />
     <ClInclude Include="include\Multithreading\JobsSystemInstance.h" />
     <ClInclude Include="include\Primitives\BufferElement.h" />
     <ClInclude Include="include\Primitives\BufferLayout.h" />
-    <ClInclude Include="include\Environment\CubeMap.h" />
     <ClInclude Include="include\Primitives\Framebuffer.h" />
     <ClInclude Include="include\Primitives\GraphicsPipeline.h" />
     <ClInclude Include="include\Primitives\IndexBuffer.h" />
@@ -863,9 +865,13 @@
     <ClInclude Include="include\Renderer\Renderer2DStorage.h" />
     <ClInclude Include="include\Renderer\RendererStorage.h" />
     <ClInclude Include="include\Tools\DefaultMeshes.h" />
-    <ClInclude Include="include\Tools\MaterialLibrary.h" />
     <ClInclude Include="include\Tools\GLM.h" />
+    <ClInclude Include="include\Tools\MaterialLibrary.h" />
     <ClInclude Include="include\Tools\Utils.h" />
+    <ClInclude Include="include\Window\Events.h" />
+    <ClInclude Include="include\Window\Input.h" />
+    <ClInclude Include="include\Window\InputCodes.h" />
+    <ClInclude Include="include\Window\Window.h" />
     <ClInclude Include="src\stdafx.h" />
   </ItemGroup>
   <ItemGroup>
@@ -905,19 +911,16 @@
     <ClCompile Include="src\Camera\EditorCamera.cpp" />
     <ClCompile Include="src\Camera\Frustum.cpp" />
     <ClCompile Include="src\Common\Common.cpp" />
-    <ClCompile Include="src\Common\Profiler.cpp" />
     <ClCompile Include="src\Common\DebugLog.cpp" />
-    <ClCompile Include="src\Window\Window.cpp" />
+    <ClCompile Include="src\Common\Profiler.cpp" />
+    <ClCompile Include="src\Environment\CubeMap.cpp" />
     <ClCompile Include="src\Environment\EnvironmentMap.cpp" />
-    <ClCompile Include="src\Window\Events.cpp" />
-    <ClCompile Include="src\Window\Input.cpp" />
     <ClCompile Include="src\GUI\ImGuiBuid.cpp" />
     <ClCompile Include="src\GUI\ImGuiContext.cpp" />
     <ClCompile Include="src\GraphicsContext.cpp" />
-    <ClCompile Include="src\Import\glTFImporter.cpp" />
     <ClCompile Include="src\Import\OzzImported.cpp" />
+    <ClCompile Include="src\Import\glTFImporter.cpp" />
     <ClCompile Include="src\Multithreading\JobsSystemInstance.cpp" />
-    <ClCompile Include="src\Environment\CubeMap.cpp" />
     <ClCompile Include="src\Primitives\Framebuffer.cpp" />
     <ClCompile Include="src\Primitives\GraphicsPipeline.cpp" />
     <ClCompile Include="src\Primitives\IndexBuffer.cpp" />
@@ -935,6 +938,9 @@
     <ClCompile Include="src\Tools\DefaultMeshes.cpp" />
     <ClCompile Include="src\Tools\MaterialLibrary.cpp" />
     <ClCompile Include="src\Tools\Utils.cpp" />
+    <ClCompile Include="src\Window\Events.cpp" />
+    <ClCompile Include="src\Window\Input.cpp" />
+    <ClCompile Include="src\Window\Window.cpp" />
     <ClCompile Include="src\stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
