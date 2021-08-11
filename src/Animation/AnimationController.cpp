@@ -56,6 +56,11 @@ namespace Frostium
 		return m_ActiveClip;
 	}
 
+	const std::unordered_map<std::string, Ref<AnimationClip>>& AnimationController::GetClips() const
+	{
+		return m_Clips;
+	}
+
 	void AnimationController::Update()
 	{
 		m_ActiveClip->Update();
