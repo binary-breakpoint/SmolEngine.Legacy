@@ -18,6 +18,7 @@ namespace Frostium
 		bool                AddClip(const AnimationClipCreateInfo& info, const std::string& name);
 		bool                RemoveClip(const std::string& name);
 		bool                SetActiveClip(const std::string& name);
+		Ref<AnimationClip>  GetClip(const std::string& name);
 		Ref<AnimationClip>  GetActiveClip();
 		const ClipMap&      GetClips() const;
 						    

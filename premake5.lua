@@ -185,6 +185,7 @@ project "Frostium"
 		postbuildcommands
 		{
 			"{COPY} bin/" ..outputdir .. "/Frostium/Frostium.lib ../SmolEngine/vendor/frostium/libs/debug/",
+			"{COPY} include ../SmolEngine/smolengine/include/Libraries/frostium/",
 		}
 	
 		defines
@@ -249,6 +250,7 @@ project "Frostium"
 		postbuildcommands
 		{
 			"{COPY} bin/" ..outputdir .. "/Frostium/Frostium.lib ../SmolEngine/vendor/frostium/libs/release/",
+			"{COPY} include ../SmolEngine/smolengine/include/Libraries/frostium/",
 		}
 
 		defines

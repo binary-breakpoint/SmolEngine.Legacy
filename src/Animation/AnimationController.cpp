@@ -51,6 +51,17 @@ namespace Frostium
 		return false;
 	}
 
+	Ref<AnimationClip> AnimationController::GetClip(const std::string& name)
+	{
+		auto& it = m_Clips.find(name);
+		if (it != m_Clips.end())
+		{
+			return  it->second;
+		}
+
+		return nullptr;
+	}
+
 	Ref<AnimationClip> AnimationController::GetActiveClip()
 	{
 		return m_ActiveClip;

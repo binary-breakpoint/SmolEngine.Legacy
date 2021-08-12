@@ -20,7 +20,7 @@ namespace Frostium
 	{
 		float                     Speed = 1.0f;
 		bool                      bLoop = true;
-		bool                      bPlay = true;
+		bool                      bPlay = false;
 	};
 
 	struct AnimationClipCreateInfo
@@ -29,6 +29,7 @@ namespace Frostium
 		std::string               SkeletonPath = "";
 		std::string               AnimationPath = "";
 		std::string               ModelPath = "";
+		std::string               Name = "";
 
 		bool Load(const std::string& filePath);
 		bool Save(const std::string& filePath);
@@ -39,7 +40,7 @@ namespace Frostium
 		template<typename Archive>
 		void serialize(Archive& archive)
 		{
-			archive(ClipInfo.bLoop, ClipInfo.bPlay, ClipInfo.Speed, SkeletonPath, AnimationPath, ModelPath);
+			archive(ClipInfo.bLoop, ClipInfo.bPlay, ClipInfo.Speed, SkeletonPath, AnimationPath, ModelPath, Name);
 		}
 	};
 

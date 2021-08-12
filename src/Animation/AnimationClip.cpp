@@ -204,7 +204,7 @@ namespace Frostium
 		storage << file.rdbuf();
 		{
 			cereal::JSONInputArchive input{ storage };
-			input(ClipInfo.bLoop, ClipInfo.bPlay, ClipInfo.Speed, SkeletonPath, AnimationPath, ModelPath);
+			input(ClipInfo.bLoop, ClipInfo.bPlay, ClipInfo.Speed, SkeletonPath, AnimationPath, ModelPath, Name);
 		}
 
 		return true;

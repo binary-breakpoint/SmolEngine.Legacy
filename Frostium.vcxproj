@@ -164,7 +164,8 @@
       <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
     <PostBuildEvent>
-      <Command>IF EXIST bin\SmolEngine_R-windows-x86_64\Frostium\Frostium.lib\ (xcopy /Q /E /Y /I bin\SmolEngine_R-windows-x86_64\Frostium\Frostium.lib ..\SmolEngine\vendor\frostium\libs\release &gt; nul) ELSE (xcopy /Q /Y /I bin\SmolEngine_R-windows-x86_64\Frostium\Frostium.lib ..\SmolEngine\vendor\frostium\libs\release &gt; nul)</Command>
+      <Command>IF EXIST bin\SmolEngine_R-windows-x86_64\Frostium\Frostium.lib\ (xcopy /Q /E /Y /I bin\SmolEngine_R-windows-x86_64\Frostium\Frostium.lib ..\SmolEngine\vendor\frostium\libs\release &gt; nul) ELSE (xcopy /Q /Y /I bin\SmolEngine_R-windows-x86_64\Frostium\Frostium.lib ..\SmolEngine\vendor\frostium\libs\release &gt; nul)
+IF EXIST include\ (xcopy /Q /E /Y /I include ..\SmolEngine\smolengine\include\Libraries\frostium &gt; nul) ELSE (xcopy /Q /Y /I include ..\SmolEngine\smolengine\include\Libraries\frostium &gt; nul)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='SmolEngine_D|x64'">
@@ -189,7 +190,8 @@
       <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
     <PostBuildEvent>
-      <Command>IF EXIST bin\SmolEngine_D-windows-x86_64\Frostium\Frostium.lib\ (xcopy /Q /E /Y /I bin\SmolEngine_D-windows-x86_64\Frostium\Frostium.lib ..\SmolEngine\vendor\frostium\libs\debug &gt; nul) ELSE (xcopy /Q /Y /I bin\SmolEngine_D-windows-x86_64\Frostium\Frostium.lib ..\SmolEngine\vendor\frostium\libs\debug &gt; nul)</Command>
+      <Command>IF EXIST bin\SmolEngine_D-windows-x86_64\Frostium\Frostium.lib\ (xcopy /Q /E /Y /I bin\SmolEngine_D-windows-x86_64\Frostium\Frostium.lib ..\SmolEngine\vendor\frostium\libs\debug &gt; nul) ELSE (xcopy /Q /Y /I bin\SmolEngine_D-windows-x86_64\Frostium\Frostium.lib ..\SmolEngine\vendor\frostium\libs\debug &gt; nul)
+IF EXIST include\ (xcopy /Q /E /Y /I include ..\SmolEngine\smolengine\include\Libraries\frostium &gt; nul) ELSE (xcopy /Q /Y /I include ..\SmolEngine\smolengine\include\Libraries\frostium &gt; nul)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
