@@ -16,7 +16,6 @@ namespace Frostium
 			if (clip->Create(info))
 			{
 				m_Clips[name] = clip;
-				m_ActiveClip = clip;
 				return true;
 			}
 		}

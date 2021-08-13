@@ -25,7 +25,7 @@ namespace Frostium
 			for (auto& file : new_files)
 			{
 				std::filesystem::path p(file);
-				std::filesystem::rename(file, parent_path + "/" + p.filename().u8string());
+				std::filesystem::rename(file, parent_path + "/" + path.filename().stem().u8string() + "_" + p.filename().u8string());
 			}
 		}
 
