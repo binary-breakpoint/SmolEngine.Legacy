@@ -76,71 +76,64 @@ namespace Frostium
 
 	void VulkanCommandBuffer::CreateCommandBuffer(CommandBufferStorage* data)
 	{
-		if (data)
+		VkDevice device = VulkanContext::GetDevice().GetLogicalDevice();
+		if (data->bNewPool)
 		{
-			VkDevice device = VulkanContext::GetDevice().GetLogicalDevice();
-			if (data->bNewPool)
+			VkCommandPoolCreateInfo poolInfo = {};
 			{
-				VkCommandPoolCreateInfo poolInfo = {};
-				{
-					poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-					poolInfo.queueFamilyIndex = VulkanContext::GetDevice().GetQueueFamilyIndex();
-					poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-					VK_CHECK_RESULT(vkCreateCommandPool(device, &poolInfo, nullptr, &data->Pool));
-				}
+				poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+				poolInfo.queueFamilyIndex = VulkanContext::GetDevice().GetQueueFamilyIndex();
+				poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+				VK_CHECK_RESULT(vkCreateCommandPool(device, &poolInfo, nullptr, &data->Pool));
 			}
-			else
-				data->Pool = VulkanContext::GetCommandBuffer().m_CommandPool;
-
-			VkCommandBufferAllocateInfo allocInfo = {};
-			allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-			allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-			allocInfo.commandPool = data->Pool;
-			allocInfo.commandBufferCount = 1;
-			VK_CHECK_RESULT(vkAllocateCommandBuffers(device, &allocInfo, &data->Buffer));
-
-			VkCommandBufferBeginInfo beginInfo = {};
-			beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-
-			VK_CHECK_RESULT(vkBeginCommandBuffer(data->Buffer, &beginInfo));
-
 		}
+		else
+			data->Pool = VulkanContext::GetCommandBuffer().m_CommandPool;
+
+		VkCommandBufferAllocateInfo allocInfo = {};
+		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		allocInfo.commandPool = data->Pool;
+		allocInfo.commandBufferCount = 1;
+		VK_CHECK_RESULT(vkAllocateCommandBuffers(device, &allocInfo, &data->Buffer));
+
+		VkCommandBufferBeginInfo beginInfo = {};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+		VK_CHECK_RESULT(vkBeginCommandBuffer(data->Buffer, &beginInfo));
 	}
 
 	void VulkanCommandBuffer::ExecuteCommandBuffer(CommandBufferStorage* data)
 	{
-		if (data)
+		constexpr uint64_t time_out = 100000000000;
+		VkDevice device = VulkanContext::GetDevice().GetLogicalDevice();
+		VK_CHECK_RESULT(vkEndCommandBuffer(data->Buffer));
+
+		VkSubmitInfo submitInfo = {};
 		{
-			VkDevice device = VulkanContext::GetDevice().GetLogicalDevice();
-			const uint64_t time_out = 100000000000;
-			VK_CHECK_RESULT(vkEndCommandBuffer(data->Buffer));
-
-			VkSubmitInfo submitInfo = {};
-			{
-				submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-				submitInfo.commandBufferCount = 1;
-				submitInfo.pCommandBuffers = &data->Buffer;
-			}
-
-			VkFence fence = {};
-			VkFenceCreateInfo fenceCI = {};
-			{
-				fenceCI.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-				fenceCI.flags = 0;
-
-				VK_CHECK_RESULT(vkCreateFence(device, &fenceCI, nullptr, &fence));
-			}
-
-			{
-				std::lock_guard<std::mutex> lock(*m_Mutex);
-				VK_CHECK_RESULT(vkQueueSubmit(VulkanContext::GetDevice().GetQueue(), 1, &submitInfo, fence));
-			}
-
-			VK_CHECK_RESULT(vkWaitForFences(device, 1, &fence, VK_TRUE, time_out));
-			vkDestroyFence(device, fence, nullptr);
-			vkFreeCommandBuffers(device, data->Pool, 1, &data->Buffer);
-			vkDestroyCommandPool(device, data->Pool, nullptr);
+			submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+			submitInfo.commandBufferCount = 1;
+			submitInfo.pCommandBuffers = &data->Buffer;
 		}
+
+		VkFence fence = {};
+		VkFenceCreateInfo fenceCI = {};
+		{
+			fenceCI.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+			fenceCI.flags = 0;
+
+			VK_CHECK_RESULT(vkCreateFence(device, &fenceCI, nullptr, &fence));
+		}
+
+		{
+			std::lock_guard<std::mutex> lock(*m_Mutex);
+			VK_CHECK_RESULT(vkQueueSubmit(VulkanContext::GetDevice().GetQueue(), 1, &submitInfo, fence));
+		}
+
+		VK_CHECK_RESULT(vkWaitForFences(device, 1, &fence, VK_TRUE, time_out));
+		vkDestroyFence(device, fence, nullptr);
+		vkFreeCommandBuffers(device, data->Pool, 1, &data->Buffer);
+		vkDestroyCommandPool(device, data->Pool, nullptr);
 	}
 
 	size_t VulkanCommandBuffer::GetBufferSize() const

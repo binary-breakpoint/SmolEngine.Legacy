@@ -65,6 +65,7 @@ namespace Frostium
 
 	private:
 
+		friend struct Renderer2DStorage;
 		friend class Renderer2D;
 	};
 }

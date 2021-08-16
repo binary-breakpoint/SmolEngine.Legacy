@@ -19,14 +19,12 @@ namespace Frostium
 	{
 		VkCommandBuffer Buffer = VK_NULL_HANDLE;
 		VkCommandPool   Pool = VK_NULL_HANDLE;
-
 		bool            bNewPool = true;
 	};
 
 	class VulkanCommandBuffer
 	{
 	public:
-
 		VulkanCommandBuffer();
 
 		bool                           Init(VulkanDevice* device);

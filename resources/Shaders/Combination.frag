@@ -23,6 +23,7 @@ layout(std140, binding = 35) uniform FXAAState
 	float      iterations;
 	float      subPixelQuality;
 	vec2       inverseScreenSize;
+	bool       is_active;
 };
 
 layout(push_constant) uniform ConstantData

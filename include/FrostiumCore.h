@@ -25,9 +25,8 @@
 #include "Import/glTFImporter.h"
 #include "Import/OzzImported.h"
 
-#include "Tools/MaterialLibrary.h"
-#include "Renderer/DebugRenderer.h"
-#include "Renderer/DeferredRenderer.h"
+#include "Renderer/RendererDeferred.h"
+#include "Renderer/RendererDebug.h"
 #include "Renderer/Renderer2D.h"
 
 #include "Multithreading/JobsSystemInstance.h"

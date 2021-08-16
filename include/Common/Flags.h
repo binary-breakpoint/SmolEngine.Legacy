@@ -6,22 +6,37 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
-	enum Flags
+	enum class ShaderType : int
 	{
-		//Features
-		Features_Renderer_2D_Flags            = 1,
-		Features_Renderer_3D_Flags            = 2,
-		Features_ImGui_Flags                  = 4,
-		Features_Renderer_Debug_Flags         = 8,
+		Vertex = 1,
+		Fragment = 2,
+		Compute = 4,
+		Geometry = 8,
+
+		RayGen = 16,
+		RayMiss = 32,
+		RayHit = 64,
 	};
 
-	inline Flags operator~ (Flags a) { return (Flags)~(int)a; }
+	inline ShaderType operator~ (ShaderType a) { return (ShaderType)~(int)a; }
+	inline ShaderType operator| (ShaderType a, ShaderType b) { return (ShaderType)((int)a | (int)b); }
+	inline ShaderType operator& (ShaderType a, ShaderType b) { return (ShaderType)((int)a & (int)b); }
+	inline ShaderType operator^ (ShaderType a, ShaderType b) { return (ShaderType)((int)a ^ (int)b); }
+	inline ShaderType& operator|= (ShaderType& a, ShaderType b) { return (ShaderType&)((int&)a |= (int)b); }
+	inline ShaderType& operator&= (ShaderType& a, ShaderType b) { return (ShaderType&)((int&)a &= (int)b); }
+	inline ShaderType& operator^= (ShaderType& a, ShaderType b) { return (ShaderType&)((int&)a ^= (int)b); }
 
-	inline Flags operator| (Flags a, Flags b) { return (Flags)((int)a | (int)b); }
-	inline Flags operator& (Flags a, Flags b) { return (Flags)((int)a & (int)b); }
-	inline Flags operator^ (Flags a, Flags b) { return (Flags)((int)a ^ (int)b); }
+	enum class FeaturesFlags: int
+	{
+		Imgui             = 1,
+		RendererDebug     = 2,
+	};
 
-	inline Flags& operator|= (Flags& a, Flags b) { return (Flags&)((int&)a |= (int)b); }
-	inline Flags& operator&= (Flags& a, Flags b) { return (Flags&)((int&)a &= (int)b); }
-	inline Flags& operator^= (Flags& a, Flags b) { return (Flags&)((int&)a ^= (int)b); }
+	inline FeaturesFlags operator~ (FeaturesFlags a) { return (FeaturesFlags)~(int)a; }
+	inline FeaturesFlags operator| (FeaturesFlags a, FeaturesFlags b) { return (FeaturesFlags)((int)a | (int)b); }
+	inline FeaturesFlags operator& (FeaturesFlags a, FeaturesFlags b) { return (FeaturesFlags)((int)a & (int)b); }
+	inline FeaturesFlags operator^ (FeaturesFlags a, FeaturesFlags b) { return (FeaturesFlags)((int)a ^ (int)b); }
+	inline FeaturesFlags& operator|= (FeaturesFlags& a, FeaturesFlags b) { return (FeaturesFlags&)((int&)a |= (int)b); }
+	inline FeaturesFlags& operator&= (FeaturesFlags& a, FeaturesFlags b) { return (FeaturesFlags&)((int&)a &= (int)b); }
+	inline FeaturesFlags& operator^= (FeaturesFlags& a, FeaturesFlags b) { return (FeaturesFlags&)((int&)a ^= (int)b); }
 }

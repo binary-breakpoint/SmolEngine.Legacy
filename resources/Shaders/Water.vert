@@ -13,16 +13,13 @@ const float G = 9.81;
 
 layout (std140, binding = 27) uniform SceneBuffer
 {
-	float nearClip;
-    float farClip;
-    float exoposure;
-    float pad;
-
 	mat4 projection;
 	mat4 view;
-	mat4 skyBoxMatrix;
 	vec4 camPos;
-	vec4 ambientColor;
+	float nearClip;
+    float farClip;
+	vec2  pad1;
+	mat4 skyBoxMatrix;
 
 } sceneData;
 

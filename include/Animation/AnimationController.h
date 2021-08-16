@@ -14,7 +14,7 @@ namespace Frostium
 	{
 	public:
 
-		bool                                                          AddClip(const AnimationClipCreateInfo& info, const std::string& name);
+		bool                                                          AddClip(const AnimationClipCreateInfo& info, const std::string& name, bool set_as_active = false);
 		bool                                                          RemoveClip(const std::string& name);
 		bool                                                          SetActiveClip(const std::string& name);
 		Ref<AnimationClip>                                            GetClip(const std::string& name);
@@ -30,6 +30,6 @@ namespace Frostium
 		Ref<AnimationClip>                                            m_ActiveClip = nullptr;
 		std::unordered_map<std::string, Ref<AnimationClip>>           m_Clips;
 
-		friend class DeferredRenderer;
+		friend struct RendererStorage;
 	};
 }

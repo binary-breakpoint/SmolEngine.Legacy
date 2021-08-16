@@ -1,14 +1,9 @@
 #include "stdafx.h"
 #include "GraphicsContext.h"
 
-#include "Renderer/DeferredRenderer.h"
-#include "Renderer/Renderer2D.h"
-#include "Renderer/DebugRenderer.h"
-#include "Renderer/Renderer2DStorage.h"
-#include "Renderer/RendererStorage.h"
-
+#include "Renderer/RendererDebug.h"
 #include "Tools/MaterialLibrary.h"
-
+#include "Environment/CubeMap.h"
 #include "Common/DebugLog.h"
 #include "Common/Common.h"
 #include "Window/Input.h"
@@ -49,8 +44,6 @@ namespace Frostium
 		m_VulkanContext.Setup(window, this,
 			&m_Window->GetWindowData()->Width, &m_Window->GetWindowData()->Height);
 #endif
-		// Creates default frustum
-		m_Frustum = new Frustum();
 		// Creates 4x4 white textures
 		m_DummyTexure = new Texture();
 		Texture::CreateWhiteTexture(m_DummyTexure);
@@ -58,7 +51,7 @@ namespace Frostium
 		CubeMap::CreateEmpty(m_DummyCubeMap, 4, 4);
 
 		// Initialize ImGUI
-		if (info->Flags & Features_ImGui_Flags)
+		if ((info->eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
 		{
 			m_ImGuiContext = new ImGuiContext();
 			m_ImGuiContext->Init(info);
@@ -82,52 +75,20 @@ namespace Frostium
 			framebufferCI.bTargetsSwapchain = info->bTargetsSwapchain;
 			framebufferCI.bResizable = true;
 			framebufferCI.bAutoSync = false;
-			framebufferCI.bUsedByImGui = info->Flags & Features_ImGui_Flags && !info->bTargetsSwapchain ? true : false;
+			framebufferCI.bUsedByImGui = (m_CreateInfo.eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui && !info->bTargetsSwapchain ? true : false;
 			framebufferCI.Attachments = { FramebufferAttachment(AttachmentFormat::Color) };
 
 			Framebuffer::Create(framebufferCI, m_Framebuffer);
 		}
 
-		if (info->Flags & Features_Renderer_3D_Flags)
-		{
-			m_bIsStoragePreAlloc = info->pRendererStorage != nullptr;
-			if(m_bIsStoragePreAlloc)
-				m_RendererStorage = info->pRendererStorage;
-			else
-				m_RendererStorage = new RendererStorage();
-
-			InitRendererStorage(m_RendererStorage, info->eShadowMapSize);
-			DeferredRenderer::Init(m_RendererStorage);
-
-			// Adds default material
-			MaterialCreateInfo materialInfo = {};
-			materialInfo.SetMetalness(0.2f);
-			materialInfo.SetRoughness(1.0f);
-			m_MaterialLibrary = new MaterialLibrary();
-			int32_t id = m_MaterialLibrary->Add(&materialInfo, "default material");
-			DeferredRenderer::UpdateMaterials();
-		}
-
-		if (info->Flags & Features_Renderer_2D_Flags)
-		{
-			m_bIs2DStoragePreAlloc = info->pRenderer2DStorage != nullptr;
-			if(m_bIs2DStoragePreAlloc)
-				m_Renderer2DStorage = info->pRenderer2DStorage;
-			else
-				m_Renderer2DStorage = new Renderer2DStorage();
-
-			InitRenderer2DStorage(m_Renderer2DStorage);
-			Renderer2D::Init(m_Renderer2DStorage);
-		}
-
-		if (info->Flags & Features_Renderer_Debug_Flags)
-		{
-			DebugRenderer::Init();
-		}
-
 #ifdef  FROSTIUM_OPENGL_IMPL
 		GetOpenglRendererAPI()->Init();
 #endif
+
+		if ((info->eFeaturesFlags & FeaturesFlags::RendererDebug) == FeaturesFlags::RendererDebug)
+		{
+			RendererDebug::Init();
+	    }
 	}
 
 	GraphicsContext::~GraphicsContext()
@@ -137,7 +98,7 @@ namespace Frostium
 
 	void GraphicsContext::SwapBuffers()
 	{
-		if (m_CreateInfo.Flags & Features_ImGui_Flags)
+		if ((m_CreateInfo.eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
 			m_ImGuiContext->OnEnd();
 #ifdef  FROSTIUM_OPENGL_IMPL
 		m_OpenglContext.SwapBuffers();
@@ -162,48 +123,20 @@ namespace Frostium
 #else
 		m_VulkanContext.BeginFrame();
 #endif
-		if (m_CreateInfo.Flags & Features_ImGui_Flags)
+		if ((m_CreateInfo.eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
 			m_ImGuiContext->OnBegin();
-	}
-
-	void GraphicsContext::UpdateViewProjection(SceneViewProjection* info)
-	{
-		m_SceneData.View = info->View;
-		m_SceneData.Projection = info->Proj;
-		m_SceneData.CamPos = glm::vec4(info->Pos, 1);
-		m_SceneData.SkyBoxMatrix = glm::mat4(glm::mat3(info->View));
-		m_SceneData.NearClip = info->NearClip;
-		m_SceneData.FarClip = info->FarClip;
-
-		m_Frustum->Update(m_SceneData.Projection * m_SceneData.View);
-	}
-
-	void GraphicsContext::UpdateViewProjection(Camera* camera)
-	{
-		SceneViewProjection info;
-		info.Update(camera);
-		UpdateViewProjection(&info);
 	}
 
 	void GraphicsContext::ShutDown()
 	{
-		if (m_CreateInfo.Flags & Features_ImGui_Flags)
+		if ((m_CreateInfo.eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
 			m_ImGuiContext->ShutDown();
-
-		DeferredRenderer::Shutdown();
-		Renderer2D::Shutdown();
 
 		m_Window->ShutDown();
 #ifdef FROSTIUM_OPENGL_IMPL
 #else
 		m_VulkanContext.~VulkanContext();
 #endif
-		if (!m_bIs2DStoragePreAlloc)
-			delete m_Renderer2DStorage;
-
-		if (!m_bIsStoragePreAlloc)
-			delete m_RendererStorage;
-
 		delete m_MaterialLibrary, m_DummyTexure,m_Framebuffer, m_Window, 
 			m_ImGuiContext, m_DefaultMeshes, m_JobsSystem;
 }
@@ -231,8 +164,9 @@ namespace Frostium
 	void GraphicsContext::SetFramebufferSize(uint32_t width, uint32_t height)
 	{
 		m_Framebuffer->OnResize(width, height);
-		if (m_CreateInfo.Flags & Features_Renderer_3D_Flags)
-			DeferredRenderer::OnResize(width, height);
+
+		for (auto& storage : m_Storages)
+			storage->OnResize(width, height);
 	}
 
 	float GraphicsContext::CalculateDeltaTime()
@@ -248,11 +182,6 @@ namespace Frostium
 		return m_Framebuffer;
 	}
 
-	Camera* GraphicsContext::GetDefaultCamera() const
-	{
-		return m_DefaultCamera;
-	}
-
 	GLFWwindow* GraphicsContext::GetNativeWindow()
 	{
 		return m_Window->GetNativeWindow();
@@ -261,11 +190,6 @@ namespace Frostium
 	WindowData* GraphicsContext::GetWindowData()
 	{
 		return m_Window->GetWindowData();
-	}
-
-	Frustum* GraphicsContext::GetFrustum() const
-	{
-		return m_Frustum;
 	}
 
 	DefaultMeshes* GraphicsContext::GetDefaultMeshes() const
@@ -283,24 +207,28 @@ namespace Frostium
 		return m_bWindowMinimized;
 	}
 
-	bool GraphicsContext::InitRenderer2DStorage(Renderer2DStorage* storage)
+	bool GraphicsContext::PushStorage(RendererStorageBase* storage)
 	{
-		if (!storage) {
-			return false;
+		bool found = std::find(m_Storages.begin(), m_Storages.end(), storage) != m_Storages.end();
+		if (!found)
+		{
+			m_Storages.emplace_back(storage);
+			return true;
 		}
-		storage->Frustum = m_Frustum;
-		return true;
+
+		return false;
 	}
 
-	bool GraphicsContext::InitRendererStorage(RendererStorage* storage, ShadowMapSize shadow_map_size)
+	bool GraphicsContext::PopStorage(RendererStorageBase* storage)
 	{
-		if (!storage) {
-			return false;
+		auto it = std::find(m_Storages.begin(), m_Storages.end(), storage);
+		if (it != m_Storages.end())
+		{
+			m_Storages.erase(it);
+			return true;
 		}
-		storage->m_MapSize = shadow_map_size;
-		storage->m_Path = m_ResourcesFolderPath;
-		storage->m_Frustum = m_Frustum;
-		return true;
+
+		return false;
 	}
 
 	Window* GraphicsContext::GetWindow() const
@@ -323,14 +251,14 @@ namespace Frostium
 		return m_LastFrameTime;
 	}
 
-	std::string GraphicsContext::GetResourcesPath() const
+	const std::string& GraphicsContext::GetResourcesPath() const
 	{
 		return m_ResourcesFolderPath;
 	}
 
 	void GraphicsContext::OnEvent(Event& e)
 	{
-		if (m_CreateInfo.Flags & Features_ImGui_Flags)
+		if ((m_CreateInfo.eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
 			m_ImGuiContext->OnEvent(e);
 
 		if (m_DefaultCamera != nullptr)

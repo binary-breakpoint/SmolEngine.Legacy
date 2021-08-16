@@ -861,11 +861,9 @@ IF EXIST include\ (xcopy /Q /E /Y /I include ..\SmolEngine\smolengine\include\Li
     <ClInclude Include="include\Primitives\VertexBuffer.h" />
     <ClInclude Include="include\Raytracing\RayTracer.h" />
     <ClInclude Include="include\Raytracing\RaytracingPipeline.h" />
-    <ClInclude Include="include\Renderer\DebugRenderer.h" />
-    <ClInclude Include="include\Renderer\DeferredRenderer.h" />
+    <ClInclude Include="include\Renderer\RendererDebug.h" />
+    <ClInclude Include="include\Renderer\RendererDeferred.h" />
     <ClInclude Include="include\Renderer\Renderer2D.h" />
-    <ClInclude Include="include\Renderer\Renderer2DStorage.h" />
-    <ClInclude Include="include\Renderer\RendererStorage.h" />
     <ClInclude Include="include\Tools\DefaultMeshes.h" />
     <ClInclude Include="include\Tools\GLM.h" />
     <ClInclude Include="include\Tools\MaterialLibrary.h" />
@@ -934,8 +932,8 @@ IF EXIST include\ (xcopy /Q /E /Y /I include ..\SmolEngine\smolengine\include\Li
     <ClCompile Include="src\Primitives\VertexBuffer.cpp" />
     <ClCompile Include="src\Raytracing\RayTracer.cpp" />
     <ClCompile Include="src\Raytracing\RaytracingPipeline.cpp" />
-    <ClCompile Include="src\Renderer\DebugRenderer.cpp" />
-    <ClCompile Include="src\Renderer\DeferredRenderer.cpp" />
+    <ClCompile Include="src\Renderer\RendererDebug.cpp" />
+    <ClCompile Include="src\Renderer\RendererDeferred.cpp" />
     <ClCompile Include="src\Renderer\Renderer2D.cpp" />
     <ClCompile Include="src\Tools\DefaultMeshes.cpp" />
     <ClCompile Include="src\Tools\MaterialLibrary.cpp" />

@@ -31,8 +31,7 @@ struct SpotLight
     float raduis;
 	
 	float bias;
-	uint is_active;
-	uint cast_shadows;
+	bool  is_active;
 };
 
 struct PointLight 
@@ -43,22 +42,18 @@ struct PointLight
 	float intensity;
     float raduis;
 	float bias;
-	uint is_active;
-	uint cast_shadows;
+    bool  is_active;
 };
 
 layout (std140, binding = 27) uniform SceneBuffer
 {
-	float nearClip;
-    float farClip;
-    float exoposure;
-    float pad;
-
 	mat4 projection;
 	mat4 view;
-	mat4 skyBoxMatrix;
 	vec4 camPos;
-	vec4 ambientColor;
+	float nearClip;
+    float farClip;
+	vec2  pad1;
+	mat4 skyBoxMatrix;
 
 } sceneData;
 
@@ -81,16 +76,16 @@ layout(std140, binding = 32) uniform DirLightBuffer
 	float zNear;
 	float zFar;
 	float lightFOV;
-	uint is_active;
-	uint cast_shadows;
-	uint soft_shadows;
+	bool  is_active;
+	bool  is_cast_shadows;
+	bool  is_use_soft_shadows;
 } dirLight;
 
 layout(std140, binding = 33) uniform LightingProperties
 {   
-	vec4 ambientColor;
+	vec4  ambientColor;
 	float iblScale;
-	uint use_ibl;
+	bool  is_active;
 
 } sceneState;
 
@@ -100,14 +95,9 @@ layout(std140, binding = 34) uniform BloomProperties
 	float threshold;
 	float scale;
 	float strength;
+	bool  is_active;
 
 } bloomState;
-
-layout(push_constant) uniform ConstantData
-{
-    uint numPointsLights;
-    uint numSpotLights; 
-};
 
 #define MANUAL_SRGB 1
 
@@ -320,6 +310,12 @@ vec3 CalcSpotLight(SpotLight light, vec3 V, vec3 N, vec3 F0, vec3 albedo_color, 
 	return (albedo_color / PI + diffuseBRDF + specularBRDF) * radiance * NdotL * light.color.rgb;
 }
 
+layout(push_constant) uniform ConstantData
+{
+    uint numPointsLights;
+    uint numSpotLights; 
+};
+
 void main()
 {
     vec4 texColor = texture(albedroMap, inUV); // if w is zero, no lighting calculation is required (background)
@@ -348,7 +344,7 @@ void main()
 	//--------------------------------------------
 	vec3 F0 = mix(vec3(0.04), albedro, metallic); 
     vec3 ambient = vec3(0.0);
-	if(sceneState.use_ibl == 1)
+	if(sceneState.is_active == true)
 	{
 		ambient = CalcIBL(normals.xyz, V, F0, albedro, metallic, roughness);
 		ambient *= ao;
@@ -358,7 +354,7 @@ void main()
     vec3 Lo = vec3(0.0);
 	// Direct Lighting
 	//--------------------------------------------
-	 if(dirLight.is_active == 1)
+	 if(dirLight.is_active == true)
 	 {
 		 Lo += CalcDirLight(V, normals.xyz, F0, albedro, metallic, roughness, position.xyz);
 	 }
@@ -367,20 +363,14 @@ void main()
 	//--------------------------------------------
 	for(int i = 0; i < numPointsLights; i++)
 	{
-		if(pointLights[i].is_active == 1)
-		{
-			Lo += CalcPointLight(pointLights[i], V, normals.xyz, F0, albedro, metallic, roughness, position.xyz);
-		}
+        Lo += CalcPointLight(pointLights[i], V, normals.xyz, F0, albedro, metallic, roughness, position.xyz);
 	}
 
     // Spot Lighting
 	//--------------------------------------------
 	for(int i = 0; i < numSpotLights; i++)
 	{
-		if(spotLights[i].is_active == 1)
-		{
-			Lo += CalcSpotLight(spotLights[i], V, normals.xyz, F0, albedro, metallic, roughness, position.xyz);
-		}
+		Lo += CalcSpotLight(spotLights[i], V, normals.xyz, F0, albedro, metallic, roughness, position.xyz);
 	}
 
     // Final Shading
@@ -389,10 +379,10 @@ void main()
 
     // Shadow Mapping
 	//--------------------------------------------
-	if(dirLight.cast_shadows == 1)
+	if(dirLight.is_active == true)
 	{
 		float shadow = 0.0;
-		if(dirLight.soft_shadows == 1)
+		if(dirLight.is_use_soft_shadows == true)
 		{
 			shadow = filterPCF(shadowCoord / shadowCoord.w);
 		}

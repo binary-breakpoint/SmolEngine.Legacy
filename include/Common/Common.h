@@ -58,29 +58,18 @@ namespace Frostium
 		void CalculateAABB(const glm::mat4& m);
 	};
 
+	struct SceneViewProjection;
+	struct RendererStorageBase
+	{
+		virtual void  Initilize() = 0;
+		virtual void  BeginSubmit(SceneViewProjection* sceneViewProj) = 0;
+		virtual void  EndSubmit() = 0;
+		virtual void  OnResize(uint32_t width, uint32_t height) {};
+	};
+
 	enum class ImageFilter: int
 	{
 		NEAREST,
 		LINEAR,
 	};
-
-	enum class ShaderType : int
-	{
-		Vertex    = 1,
-		Fragment  = 2,
-		Compute   = 4,
-		Geometry  = 8,
-
-		RayGen    = 16,
-		RayMiss   = 32,
-		RayHit    = 64,
-	};
-
-	inline ShaderType operator~ (ShaderType a) { return (ShaderType)~(int)a; }
-	inline ShaderType operator| (ShaderType a, ShaderType b) { return (ShaderType)((int)a | (int)b); }
-	inline ShaderType operator& (ShaderType a, ShaderType b) { return (ShaderType)((int)a & (int)b); }
-	inline ShaderType operator^ (ShaderType a, ShaderType b) { return (ShaderType)((int)a ^ (int)b); }
-	inline ShaderType& operator|= (ShaderType& a, ShaderType b) { return (ShaderType&)((int&)a |= (int)b); }
-	inline ShaderType& operator&= (ShaderType& a, ShaderType b) { return (ShaderType&)((int&)a &= (int)b); }
-	inline ShaderType& operator^= (ShaderType& a, ShaderType b) { return (ShaderType&)((int&)a ^= (int)b); }
 }

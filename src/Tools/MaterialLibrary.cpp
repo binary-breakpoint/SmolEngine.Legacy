@@ -8,6 +8,7 @@
 #include <cereal/archives/json.hpp>
 
 #include "Multithreading/JobsSystemInstance.h"
+#include "Renderer/RendererDeferred.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
@@ -19,13 +20,12 @@ namespace Frostium
 
 	MaterialLibrary::MaterialLibrary()
 	{
-		s_Instance = this;
 		m_Textures.resize(maxTextures);
-	}
 
-	MaterialLibrary::~MaterialLibrary()
-	{
-		s_Instance = nullptr;
+		MaterialCreateInfo materialInfo = {};
+		materialInfo.SetMetalness(0.2f);
+		materialInfo.SetRoughness(1.0f);
+		Add(&materialInfo, "default material");
 	}
 
 	uint32_t MaterialLibrary::Add(MaterialCreateInfo* infoCI, const std::string& name)
@@ -70,14 +70,14 @@ namespace Frostium
 		return false; // temp
 	}
 
-	void MaterialLibrary::Reset()
+	void MaterialLibrary::ClearData()
 	{
 		m_MaterialIndex = 0;
 		m_TextureIndex = 0;
 
 		for (const auto& tex : m_Textures)
 		{
-			if(tex)
+			if (tex)
 				delete tex;
 		}
 
@@ -86,11 +86,6 @@ namespace Frostium
 
 		m_Materials.clear();
 		m_MaterialMap.clear();
-	}
-
-	MaterialLibrary* MaterialLibrary::GetSinglenton()
-	{
-		return s_Instance;
 	}
 
 	uint32_t MaterialLibrary::AddTexture(const TextureCreateInfo* info, uint32_t& useTetxure)

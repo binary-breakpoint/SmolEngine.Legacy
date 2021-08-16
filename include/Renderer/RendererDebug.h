@@ -10,10 +10,9 @@ namespace Frostium
 {
 	class Mesh;
 
-	class DebugRenderer
+	class RendererDebug
 	{
 	public:
-
 		static void BeginDebug();
 		static void EndDebug();
 
@@ -28,12 +27,9 @@ namespace Frostium
 		static void SetColor(const glm::vec4& color);
 
 	private:
-
-		static void DrawSphereLines(const glm::vec3& center, const glm::vec3& up, const glm::vec3& axis, float radius, float minTh,
-			float maxTh, float minPs, float maxPs, float stepDegrees = 10.f, bool drawCenter = true);
 		static void Init();
+		static void DrawSphereLines(const glm::vec3& center, const glm::vec3& up, const glm::vec3& axis, float radius, float minTh,float maxTh, float minPs, float maxPs, float stepDegrees = 10.f, bool drawCenter = true);
 
 		friend class GraphicsContext;
-		friend class Renderer;
 	};
 }

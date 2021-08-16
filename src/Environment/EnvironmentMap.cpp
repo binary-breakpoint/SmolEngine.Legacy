@@ -3,6 +3,7 @@
 #include "Backends/Vulkan/VulkanPBR.h"
 
 #include "GraphicsContext.h"
+#include "Tools/GLM.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
@@ -12,7 +13,7 @@ namespace Frostium
 {
 	void EnvironmentMap::Initialize()
 	{
-		std::string resPath = GraphicsContext::GetSingleton()->GetResourcesPath();
+		const std::string& resPath = GraphicsContext::GetSingleton()->GetResourcesPath();
 
 		// Framebuffer
 		{

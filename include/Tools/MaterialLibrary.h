@@ -21,6 +21,8 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
+	struct RendererStorage;
+
 	enum class MaterialTexture : uint32_t
 	{
 		Albedro,
@@ -100,13 +102,12 @@ namespace Frostium
 	{
 	public:
 		MaterialLibrary();
-		~MaterialLibrary();
+		~MaterialLibrary() = default;
 								              
 		uint32_t                              Add(MaterialCreateInfo* infoCI, const std::string& name);
 		bool                                  Delete(const std::string& name);
-		void                                  Reset();              
+		void                                  ClearData();              
 		// Getters				              
-		static MaterialLibrary*               GetSinglenton();
 		PBRMaterial*                          GetMaterial(uint32_t ID);
 		PBRMaterial*                          GetMaterial(std::string& path);
 		int32_t                               GetMaterialID(std::string& path);
@@ -118,7 +119,6 @@ namespace Frostium
 		uint32_t                              AddTexture(const TextureCreateInfo* info, uint32_t& useTetxure);
 
 	private:
-		inline static MaterialLibrary*        s_Instance = nullptr;
 		uint32_t                              m_MaterialIndex = 0;
 		uint32_t                              m_TextureIndex = 0;
 		std::unordered_map<size_t, uint32_t>  m_MaterialMap;

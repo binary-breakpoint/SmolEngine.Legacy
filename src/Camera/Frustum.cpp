@@ -7,6 +7,11 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
+	void Frustum::SetRadius(float value)
+	{
+		radius = value;
+	}
+
 	void Frustum::Update(const glm::mat4& matrix)
 	{
 		planes[side::LEFT].x = matrix[0].w + matrix[0].x;
@@ -46,7 +51,7 @@ namespace Frostium
 		}
 	}
 
-	bool Frustum::CheckSphere(const glm::vec3& pos, float radius) const
+	bool Frustum::CheckSphere(const glm::vec3& pos) const
 	{
 		for (auto i = 0; i < planes.size(); i++)
 		{

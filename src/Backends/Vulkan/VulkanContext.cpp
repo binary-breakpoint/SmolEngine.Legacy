@@ -71,7 +71,7 @@ namespace Frostium
 	void VulkanContext::SwapBuffers(bool skip)
 	{
 		// ImGUI pass
-		if (m_Context->m_CreateInfo.Flags & Features_ImGui_Flags)
+		if ((m_Context->m_CreateInfo.eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
 			m_Context->m_ImGuiContext->Draw(&m_Swapchain);
 
 		const auto& present_ref = m_Semaphore.GetPresentCompleteSemaphore();

@@ -9,6 +9,8 @@ using namespace Frostium;
 #endif
 
 GraphicsContext*    context = nullptr;
+RendererStorage*    storage = nullptr;
+EditorCamera*       camera = nullptr;
 
 uint32_t            stoneMaterialID = 0;
 uint32_t            metalMaterialID = 0;
@@ -39,13 +41,13 @@ void LoadAnimations()
 	animInfo.ModelPath = "Assets/CesiumMan.gltf";
 	animInfo.ClipInfo.Speed = 1.2f;
 
-	character_animController->AddClip(animInfo, "run");
+	character_animController->AddClip(animInfo, "run", true);
 
 	animInfo.AnimationPath = "Assets/JetAnim.ozz";
 	animInfo.SkeletonPath = "Assets/Jet_Skeleton.ozz";
 	animInfo.ModelPath = "Assets/plane.gltf";
 
-	jet_animController->AddClip(animInfo, "fly");
+	jet_animController->AddClip(animInfo, "fly", true);
 }
 
 void LoadMaterials()
@@ -71,7 +73,8 @@ void LoadMaterials()
 
 			materialCI.SetMetalness(0.1f);
 			materialCI.SetEmissionStrength(1.1f);
-			stoneMaterialID = MaterialLibrary::GetSinglenton()->Add(&materialCI, "stone");
+
+			storage->GetMaterialLibrary().Add(&materialCI, "stone");
 		});
 
 		JobsSystemInstance::Schedule([]()
@@ -94,17 +97,17 @@ void LoadMaterials()
 			materialCI.SetMetalness(0.5f);
 			materialCI.SetRoughness(0.9f);
 
-			metalMaterialID = MaterialLibrary::GetSinglenton()->Add(&materialCI, "metal");
+			storage->GetMaterialLibrary().Add(&materialCI, "metal");
 		});
 	}
 	JobsSystemInstance::EndSubmition();
-	DeferredRenderer::UpdateMaterials();
+	storage->OnUpdateMaterials();
 }
 
 void GenerateSkyBox()
 {
 	DynamicSkyProperties sky;
-	DeferredRenderer::SetDynamicSkyboxProperties(sky);
+	storage->SetDynamicSkybox(sky, camera->GetProjection(), true);
 }
 
 int main(int argc, char** argv)
@@ -118,7 +121,6 @@ int main(int argc, char** argv)
 		windoInfo.Title = "Frostium Example";
 	}
 
-	EditorCamera* camera = nullptr;
 	{
 		EditorCameraCreateInfo cameraCI = {};
 		camera = new EditorCamera(&cameraCI);
@@ -126,25 +128,29 @@ int main(int argc, char** argv)
 
 	GraphicsContextInitInfo info = {};
 	{
-		info.Flags = Features_Renderer_3D_Flags | Features_ImGui_Flags | Features_Renderer_Debug_Flags;
 		info.ResourcesFolderPath = "../resources/";
 		info.pWindowCI = &windoInfo;
 		info.pDefaultCamera = camera;
 		info.eMSAASamples = MSAASamples::SAMPLE_COUNT_4;
-		info.eShadowMapSize = ShadowMapSize::SIZE_8;
 		info.bVsync = true;
 	}
 
 	bool process = true;
 	ClearInfo clearInfo = {};
+	SceneViewProjection sceneViewProj = {};
+	sceneViewProj.Update(camera);
 
 	DirectionalLight dirLight = {};
 	dirLight.IsActive = true;
 	dirLight.Color = { 0.6, 0.2, 0.4, 1 };
 
+	storage = new RendererStorage();
 	context = new GraphicsContext(&info);
 	context->SetEventCallback([&](Event& e){ if (e.IsType(EventType::WINDOW_CLOSE)) process = false;});
 	context->SetDebugLogCallback([&](const std::string&& msg, LogLevel level) { std::cout << msg << "\n"; });
+
+	storage->Initilize();
+	context->PushStorage(storage);
 
 	LoadMaterials();
 	LoadMeshes();
@@ -159,15 +165,17 @@ int main(int argc, char** argv)
 		if (context->IsWindowMinimized())
 			continue;
 
-		context->UpdateViewProjection(camera);
+		sceneViewProj.Update(camera);
+		storage->BeginSubmit(&sceneViewProj);
+		{
+			storage->SubmitDirLight(&dirLight);
+			storage->SubmitMesh({ 0, 3.9f, -3 }, glm::radians(glm::vec3(-90.0f, 0.0f, 0.0f)), { 1, 1, 1, }, &jetMesh, metalMaterialID, true, jet_animController);
+			storage->SubmitMesh({ 3, 2, 0 }, { 0, 0, 0 }, { 5, 5, 5, }, &characterMesh, stoneMaterialID, true, character_animController);
+		}
+		storage->EndSubmit();
+
 		context->BeginFrame(deltaTime);
 		{
-			DeferredRenderer::BeginScene(&clearInfo);
-			DeferredRenderer::SubmitDirLight(&dirLight);
-			DeferredRenderer::SubmitMesh({ 0, 3.9f, -3 }, glm::radians(glm::vec3(-90.0f, 0.0f, 0.0f)), { 1, 1, 1, }, &jetMesh, metalMaterialID, true, jet_animController);
-			DeferredRenderer::SubmitMesh({ 3, 2, 0 }, { 0, 0, 0 }, { 5, 5, 5, }, &characterMesh, stoneMaterialID, true, character_animController);
-			DeferredRenderer::EndScene();
-
 			ImGui::Begin("Skinning Sample");
 			{
 				ImGui::DragFloat4("LightDir", glm::value_ptr(dirLight.Direction));
@@ -182,6 +190,7 @@ int main(int argc, char** argv)
 			}
 			ImGui::End();
 
+			RendererDeferred::DrawFrame(&clearInfo, storage);
 		}
 		context->SwapBuffers();
 	}

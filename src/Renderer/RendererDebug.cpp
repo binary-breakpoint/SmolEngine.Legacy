@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "Renderer/DebugRenderer.h"
+#include "Renderer/RendererDebug.h"
 
 #include "Primitives/Framebuffer.h"
 #include "Primitives/GraphicsPipeline.h"
@@ -51,19 +51,19 @@ namespace Frostium
 
 	DebugRendererStorage* s_Data = nullptr;
 
-	void DebugRenderer::BeginDebug()
+	void RendererDebug::BeginDebug()
 	{
 		s_Data->WireframesPipeline.BeginCommandBuffer(true);
 		s_Data->PrimitivePipeline.BeginCommandBuffer(true);
 		s_Data->WireframesPipeline.BeginRenderPass();
 	}
 
-	void DebugRenderer::EndDebug()
+	void RendererDebug::EndDebug()
 	{
 		s_Data->WireframesPipeline.EndRenderPass();
 	}
 
-	void DebugRenderer::DrawSphereLines(const glm::vec3& center, const glm::vec3& up, const glm::vec3& axis, float radius, float minTh, float maxTh, float minPs, float maxPs, float stepDegrees, bool drawCenter)
+	void RendererDebug::DrawSphereLines(const glm::vec3& center, const glm::vec3& up, const glm::vec3& axis, float radius, float minTh, float maxTh, float minPs, float maxPs, float stepDegrees, bool drawCenter)
 	{
 		glm::vec3 vA[74];
 		glm::vec3 vB[74];
@@ -175,7 +175,7 @@ namespace Frostium
 		}
 	}
 
-	void DebugRenderer::DrawSphere(float radius, const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& scale)
+	void RendererDebug::DrawSphere(float radius, const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& scale)
 	{
 		glm::mat4 model;
 		Utils::ComposeTransform(pos, rot, scale, model);
@@ -191,7 +191,7 @@ namespace Frostium
 		DrawSphereLines(pos, up, -axis, radius, minTh, maxTh, minPs, maxPs, stepDegrees, false);
 	}
 
-	void DebugRenderer::DrawCapsule(float radius, float halfHeight, uint32_t upAxis, const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& scale)
+	void RendererDebug::DrawCapsule(float radius, float halfHeight, uint32_t upAxis, const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& scale)
 	{
 		int stepDegrees = 30;
 		glm::vec3 capStart(0.f, 0.f, 0.f);
@@ -245,7 +245,7 @@ namespace Frostium
 		}
 	}
 
-	void DebugRenderer::DrawBox(const glm::vec3& bbMin, const glm::vec3& bbMax, const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& scale)
+	void RendererDebug::DrawBox(const glm::vec3& bbMin, const glm::vec3& bbMax, const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& scale)
 	{
 		glm::mat4 trans;
 		Utils::ComposeTransform(pos, rot, scale, trans);
@@ -264,7 +264,7 @@ namespace Frostium
 		DrawLine(trans * glm::vec4(bbMin[0], bbMax[1], bbMax[2], 1), trans * glm::vec4(bbMin[0], bbMin[1], bbMax[2], 1));
 	}
 
-	void DebugRenderer::DrawAABB(const BoundingBox& aabb, const glm::vec3& pos, const glm::vec3& scale)
+	void RendererDebug::DrawAABB(const BoundingBox& aabb, const glm::vec3& pos, const glm::vec3& scale)
 	{
 		glm::mat4 scaleMat = glm::scale(scale);
 		glm::vec3 halfExtents = (aabb.max - aabb.min) * 0.5f;
@@ -298,7 +298,7 @@ namespace Frostium
 
 	}
 
-	void DebugRenderer::DrawLine(const glm::vec3& pos1, const glm::vec3& pos2, float width)
+	void RendererDebug::DrawLine(const glm::vec3& pos1, const glm::vec3& pos2, float width)
 	{
 		s_Data->PushConst.State = 1;
 		Utils::ComposeTransform(pos1, { 0, 0, 0 }, { 1, 1, 1}, s_Data->PushConst.Model);
@@ -310,7 +310,7 @@ namespace Frostium
 		s_Data->PrimitivePipeline.ResetStates();
 	}
 
-	void DebugRenderer::DrawQuad(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale)
+	void RendererDebug::DrawQuad(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale)
 	{
 		s_Data->PushConst.State = 0;
 		Utils::ComposeTransform(pos, rotation, scale, s_Data->PushConst.Model);
@@ -320,7 +320,7 @@ namespace Frostium
 		s_Data->PrimitivePipeline.ResetStates();
 	}
 
-	void DebugRenderer::DrawCirlce(const glm::vec3& pos, const glm::vec3& scale)
+	void RendererDebug::DrawCirlce(const glm::vec3& pos, const glm::vec3& scale)
 	{
 		s_Data->PushConst.State = 0;
 		Utils::ComposeTransform(pos, { 0,0,0 }, scale, s_Data->PushConst.Model);
@@ -330,11 +330,11 @@ namespace Frostium
 		s_Data->PrimitivePipeline.ResetStates();
 	}
 
-	void DebugRenderer::SetColor(const glm::vec4& color)
+	void RendererDebug::SetColor(const glm::vec4& color)
 	{
 	}
 
-	void DebugRenderer::DrawWireframes(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Mesh* mesh)
+	void RendererDebug::DrawWireframes(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Mesh* mesh)
 	{
 		glm::mat4 model;
 		Utils::ComposeTransform(pos, rotation, scale, model);
@@ -345,9 +345,10 @@ namespace Frostium
 			DrawWireframes(pos, rotation, scale, &child);
 	}
 
-	void DebugRenderer::Init()
+	void RendererDebug::Init()
 	{
 		s_Data = new DebugRendererStorage();
+		const std::string& path = GraphicsContext::GetSingleton()->GetResourcesPath();
 
 		VertexInputInfo vertexInput{};
 		{
@@ -405,8 +406,8 @@ namespace Frostium
 			GraphicsPipelineCreateInfo pipelineCI = {};
 			GraphicsPipelineShaderCreateInfo shaderCI = {};
 			{
-				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::GetSingleton()->m_ResourcesFolderPath + "Shaders/DebugPrimitive.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::GetSingleton()->m_ResourcesFolderPath + "Shaders/DebugColor.frag";
+				shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/DebugPrimitive.vert";
+				shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/DebugColor.frag";
 			};
 
 			pipelineCI.PipelineName = "DebugPrimitive";
@@ -426,8 +427,8 @@ namespace Frostium
 			GraphicsPipelineCreateInfo pipelineCI = {};
 			GraphicsPipelineShaderCreateInfo shaderCI = {};
 			{
-				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::GetSingleton()->m_ResourcesFolderPath + "Shaders/DebugMesh.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::GetSingleton()->m_ResourcesFolderPath + "Shaders/DebugColor.frag";
+				shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/DebugMesh.vert";
+				shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/DebugColor.frag";
 			};
 
 			pipelineCI.PipelineName = "DebugMesh";

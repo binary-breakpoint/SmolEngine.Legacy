@@ -7,7 +7,7 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
-	bool AnimationController::AddClip(const AnimationClipCreateInfo& info, const std::string& name)
+	bool AnimationController::AddClip(const AnimationClipCreateInfo& info, const std::string& name, bool set_as_active)
 	{
 		bool found = m_Clips.find(name) != m_Clips.end();
 		if (!found)
@@ -16,6 +16,9 @@ namespace Frostium
 			if (clip->Create(info))
 			{
 				m_Clips[name] = clip;
+				if (set_as_active)
+					m_ActiveClip = clip;
+
 				return true;
 			}
 		}

@@ -13,9 +13,9 @@ namespace Frostium
 	class Frustum
 	{
 	public:
-
+		void SetRadius(float value);
 		void Update(const glm::mat4& matrix);
-		bool CheckSphere(const glm::vec3& pos, float radius = 1.0f) const;
+		bool CheckSphere(const glm::vec3& pos) const;
 
 	private:
 
@@ -30,5 +30,6 @@ namespace Frostium
 		};
 
 		std::array<glm::vec4, 6> planes;
+		float                    radius = 25.0f;
 	};
 }

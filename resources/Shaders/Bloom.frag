@@ -11,6 +11,7 @@ layout(std140, binding = 34) uniform BloomProperties
 	float threshold;
 	float scale;
 	float strength;
+	bool  is_active;
 
 } bloomState;
 

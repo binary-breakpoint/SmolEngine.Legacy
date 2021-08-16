@@ -59,7 +59,7 @@ namespace Frostium
 		std::vector<Mesh*>    m_Scene;
 
 	private:
-		friend class DeferredRenderer;
+		friend struct RendererStorage;
 		friend class Animator;
 		friend class GraphicsPipeline;
 	};

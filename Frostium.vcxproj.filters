@@ -2265,19 +2265,13 @@
     <ClInclude Include="include\Raytracing\RaytracingPipeline.h">
       <Filter>include\Raytracing</Filter>
     </ClInclude>
-    <ClInclude Include="include\Renderer\DebugRenderer.h">
+    <ClInclude Include="include\Renderer\RendererDebug.h">
       <Filter>include\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="include\Renderer\DeferredRenderer.h">
+    <ClInclude Include="include\Renderer\RendererDeferred.h">
       <Filter>include\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="include\Renderer\Renderer2D.h">
-      <Filter>include\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Renderer\Renderer2DStorage.h">
-      <Filter>include\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Renderer\RendererStorage.h">
       <Filter>include\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="include\Tools\DefaultMeshes.h">
@@ -2480,10 +2474,10 @@
     <ClCompile Include="src\Raytracing\RaytracingPipeline.cpp">
       <Filter>src\Raytracing</Filter>
     </ClCompile>
-    <ClCompile Include="src\Renderer\DebugRenderer.cpp">
+    <ClCompile Include="src\Renderer\RendererDebug.cpp">
       <Filter>src\Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="src\Renderer\DeferredRenderer.cpp">
+    <ClCompile Include="src\Renderer\RendererDeferred.cpp">
       <Filter>src\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\Renderer\Renderer2D.cpp">

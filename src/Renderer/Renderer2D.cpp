@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "Renderer/Renderer2D.h"
-#include "Renderer/Renderer2DStorage.h"
 
 #include "Primitives/GraphicsPipeline.h"
 #include "Primitives/Mesh.h"
@@ -16,209 +15,118 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
-	static Renderer2DStorage* s_Data;
-
-	void Renderer2D::Init(Renderer2DStorage* storage)
+	Renderer2DStorage::Renderer2DStorage()
 	{
-		if (storage == nullptr)
-			std::runtime_error("Renderer: storage is nullptr!");
+		Textures.resize(MaxTextureSlot);
+		FontTextures.resize(MaxTextMessages);
+	}
 
-		s_Data = storage;
-		s_Data->SceneData = &GraphicsContext::GetSingleton()->m_SceneData;
-
+	void Renderer2DStorage::Initilize()
+	{
 		CreateFramebuffers();
 		CreatePipelines();
-		Prepare();
 	}
 
-	void Renderer2D::Shutdown()
+	void Renderer2DStorage::BeginSubmit(SceneViewProjection* sceneViewProj)
+	{
+		ClearDrawList();
+
+		SceneInfo = sceneViewProj;
+		m_Frustum.Update(sceneViewProj->Projection * sceneViewProj->View);
+	}
+
+	void Renderer2DStorage::EndSubmit()
+	{
+		BuildDrawList();
+		UpdateUniforms(SceneInfo);
+	}
+
+	void Renderer2DStorage::SubmitSprite(const glm::vec3& worldPos, const glm::vec3& scale, const glm::vec3& rotation, uint32_t layerIndex, Texture* texture, const glm::vec4& color, GraphicsPipeline* material)
+	{
+		if (m_Frustum.CheckSphere(worldPos) || InstIndex >= Renderer2DStorage::MaxQuads)
+			return;
+
+		uint32_t index = InstIndex;
+
+		Instances[index].Layer = layerIndex > Renderer2DStorage::MaxLayers ? const_cast<uint32_t*>(&Renderer2DStorage::MaxLayers) : &layerIndex;
+		Instances[index].Color = const_cast<glm::vec4*>(&color);
+		Instances[index].Position = const_cast<glm::vec3*>(&worldPos);
+		Instances[index].Rotation = const_cast<glm::vec3*>(&rotation);
+		Instances[index].Scale = const_cast<glm::vec3*>(&scale);
+		Instances[index].TextureIndex = AddTexture(texture);
+
+		InstIndex++;
+	}
+
+	void Renderer2DStorage::SubmitQuad(const glm::vec3& worldPos, const glm::vec3& scale, const glm::vec3& rotation, uint32_t layerIndex, const glm::vec4& color, GraphicsPipeline* material)
+	{
+		if (m_Frustum.CheckSphere(worldPos) || InstIndex >= Renderer2DStorage::MaxQuads)
+			return;
+
+		uint32_t index = InstIndex;
+
+		Instances[index].Layer = layerIndex > Renderer2DStorage::MaxLayers ? const_cast<uint32_t*>(&Renderer2DStorage::MaxLayers) : &layerIndex;
+		Instances[index].Color = const_cast<glm::vec4*>(&color);
+		Instances[index].Position = const_cast<glm::vec3*>(&worldPos);
+		Instances[index].Rotation = const_cast<glm::vec3*>(&rotation);
+		Instances[index].Scale = const_cast<glm::vec3*>(&scale);
+		Instances[index].TextureIndex = 0;
+
+		InstIndex++;
+	}
+
+	void Renderer2DStorage::SubmitLight2D(const glm::vec3& worldPos, const glm::vec4& color, float radius, float lightIntensity)
 	{
 
 	}
 
-	void Renderer2D::BeginScene(const ClearInfo* clearInfo)
+	void Renderer2DStorage::SubmitText(Text* text)
 	{
-		s_Data->MainPipeline.BeginCommandBuffer(true);
-		s_Data->TextPipeline.BeginCommandBuffer(true);
-
-		if (clearInfo->bClear)
-		{
-			s_Data->MainPipeline.BeginRenderPass();
-			s_Data->MainPipeline.ClearColors(clearInfo->color);
-			s_Data->MainPipeline.EndRenderPass();
-		}
-
-		StartNewBatch();
-		Reset();
-	}
-
-	void Renderer2D::EndScene()
-	{
-		Flush();
-		s_Data->MainPipeline.EndCommandBuffer();
-		s_Data->TextPipeline.EndCommandBuffer();
-	}
-
-	void Renderer2D::SubmitSprite(const glm::vec3& worldPos, const glm::vec3& scale, const glm::vec3& rotation, uint32_t layerIndex, Texture* texture, const glm::vec4& color, GraphicsPipeline* material)
-	{
-		if (s_Data->Frustum->CheckSphere(worldPos, 10.0f))
-		{
-			if (s_Data->InstIndex >= Renderer2DStorage::MaxQuads)
-				StartNewBatch();
-
-			uint32_t index = s_Data->InstIndex;
-			s_Data->Instances[index].Layer = layerIndex > Renderer2DStorage::MaxLayers ?
-				const_cast<uint32_t*>(&Renderer2DStorage::MaxLayers) : &layerIndex;
-
-			s_Data->Instances[index].Color = const_cast<glm::vec4*>(&color);
-			s_Data->Instances[index].Position = const_cast<glm::vec3*>(&worldPos);
-			s_Data->Instances[index].Rotation = const_cast<glm::vec3*>(&rotation);
-			s_Data->Instances[index].Scale = const_cast<glm::vec3*>(&scale);
-			s_Data->Instances[index].TextureIndex = AddTexture(texture);
-
-			s_Data->InstIndex++;
-		}
-	}
-
-	void Renderer2D::SubmitQuad(const glm::vec3& worldPos, const glm::vec3& scale, const glm::vec3& rotation, uint32_t layerIndex, const glm::vec4& color, GraphicsPipeline* material)
-	{
-		if (s_Data->Frustum->CheckSphere(worldPos, 10.0f))
-		{
-			if (s_Data->InstIndex >= Renderer2DStorage::MaxQuads)
-				StartNewBatch();
-
-			uint32_t index = s_Data->InstIndex;
-
-			s_Data->Instances[index].Layer = layerIndex > Renderer2DStorage::MaxLayers ?
-				const_cast<uint32_t*>(&Renderer2DStorage::MaxLayers) : &layerIndex;
-			s_Data->Instances[index].Color = const_cast<glm::vec4*>(&color);
-			s_Data->Instances[index].Position = const_cast<glm::vec3*>(&worldPos);
-			s_Data->Instances[index].Rotation = const_cast<glm::vec3*>(&rotation);
-			s_Data->Instances[index].Scale = const_cast<glm::vec3*>(&scale);
-			s_Data->Instances[index].TextureIndex = 0;
-
-			s_Data->InstIndex++;
-		}
-	}
-
-	void Renderer2D::SubmitText(Text* text)
-	{
-		auto& msg = s_Data->TextMessages[s_Data->TextIndex];
+		auto& msg = TextMessages[TextIndex];
 		msg.Obj = text;
-		msg.TextureIndex = s_Data->TextIndex;
-		s_Data->FontTextures[s_Data->TextIndex] = &text->m_SDFTexture;
+		msg.TextureIndex = TextIndex;
+
+		FontTextures[TextIndex] = &text->m_SDFTexture;
 		Utils::ComposeTransform(text->m_Pos, text->m_Rotation, text->m_Scale, msg.Model);
 
-		s_Data->TextIndex++;
+		TextIndex++;
 	}
 
-	void Renderer2D::SubmitLight2D(const glm::vec3& worldPos, const glm::vec4& color, float radius, float lightIntensity)
+	void Renderer2DStorage::SetRenderTarget(Framebuffer* target)
 	{
-		if (s_Data->Frustum->CheckSphere(worldPos, 15.0f))
+		MainPipeline.SetFramebuffers({ target });
+		MainFB = target;
+	}
+
+	void Renderer2DStorage::SetViewProjection(const SceneViewProjection* sceneViewProj)
+	{
+		m_Frustum.Update(sceneViewProj->Projection * sceneViewProj->View);
+		MainPipeline.SubmitBuffer(SceneDataBP, sizeof(SceneViewProjection), sceneViewProj);
+	}
+
+	Frustum& Renderer2DStorage::GetFrustum()
+	{
+		return m_Frustum;
+	}
+
+	uint32_t Renderer2DStorage::AddTexture(Texture* tex)
+	{
+		for (uint32_t i = 0; i < SampleIndex; ++i)
 		{
-
-		}
-	}
-
-	void Renderer2D::Flush()
-	{
-		// Fill command buffer
-		for (uint32_t i = 0; i < s_Data->InstIndex; ++i)
-		{
-			for (uint32_t l = 0; l < Renderer2DStorage::MaxLayers; ++l)
-			{
-				Instance& inst = s_Data->Instances[i];
-				if (l == *inst.Layer)
-				{
-					auto& cmd = s_Data->CommandBuffer[l];
-					if (cmd.OffsetApplied == false)
-					{
-						cmd.DataOffset = i;
-						cmd.OffsetApplied = true;
-					}
-
-					cmd.Instances++;
-					s_Data->ShaderInstances[i].Color = *inst.Color;
-					s_Data->ShaderInstances[i].Params.w = *inst.Layer;
-					s_Data->ShaderInstances[i].Params.x = inst.TextureIndex;
-					Utils::ComposeTransform2D(*inst.Position, *inst.Rotation, *inst.Scale, s_Data->ShaderInstances[i].Model);
-				}
-			}
-		}
-
-		if (s_Data->InstIndex > 0 || s_Data->TextIndex > 0)
-		{
-			// Update Scene data
-			s_Data->MainPipeline.SubmitBuffer(s_Data->SceneDataBP, sizeof(SceneData), s_Data->SceneData);
-			// Update instances data
-			s_Data->MainPipeline.SubmitBuffer(s_Data->InstancesBP, s_Data->ShaderInstanceSize * s_Data->InstIndex, s_Data->ShaderInstances);
-			// Updates tetxures
-			s_Data->MainPipeline.UpdateSamplers(s_Data->Textures, 0);
-			// Updates font tetxures
-			s_Data->TextPipeline.UpdateSamplers(s_Data->FontTextures, 1);
-
-			s_Data->MainPipeline.BeginRenderPass();
-			{
-				// Sprites
-				for (uint32_t i = 0; i < Renderer2DStorage::MaxLayers; ++i)
-				{
-					auto& cmd = s_Data->CommandBuffer[i];
-					if (cmd.Instances > 0)
-					{
-						s_Data->MainPipeline.SubmitPushConstant(ShaderType::Vertex, sizeof(uint32_t), &cmd.DataOffset);
-						s_Data->MainPipeline.DrawMeshIndexed(&s_Data->PlaneMesh, cmd.Instances);
-
-						cmd.Reset();
-					}
-				}
-
-				// Text
-				for (uint32_t i = 0; i < s_Data->TextIndex; ++i)
-				{
-					auto& msg = s_Data->TextMessages[i];
-
-					s_Data->TextPushConstant.Model = msg.Model;
-					s_Data->TextPushConstant.Color = msg.Obj->m_Color;
-					s_Data->TextPushConstant.TexIndex = msg.TextureIndex;
-
-					s_Data->TextPipeline.SubmitPushConstant(ShaderType::Vertex, s_Data->TextPCSize, &s_Data->TextPushConstant);
-					s_Data->TextPipeline.DrawIndexed(&msg.Obj->m_VertexBuffer, &msg.Obj->m_IndexBuffer);
-				}
-			}
-			s_Data->MainPipeline.EndRenderPass();
-		}
-	}
-
-	void Renderer2D::StartNewBatch()
-	{
-
-	}
-
-	void Renderer2D::Reset()
-	{
-		s_Data->InstIndex = 0;
-		s_Data->SampleIndex = 1;
-		s_Data->TextIndex = 0;
-		s_Data->FontSampleIndex = 0;
-	}
-
-	uint32_t Renderer2D::AddTexture(Texture* tex_)
-	{
-		for (uint32_t i = 0; i < s_Data->SampleIndex; ++i)
-		{
-			Texture* tex = s_Data->Textures[i];
-			if (tex == tex_)
+			Texture* tex = Textures[i];
+			if (tex == tex)
 				return i;
 		}
 
-		uint32_t index = s_Data->SampleIndex;
-		s_Data->Textures[index] = tex_;
-		s_Data->SampleIndex++;
+		uint32_t index = SampleIndex;
+		Textures[index] = tex;
+		SampleIndex++;
 		return index;
 	}
 
-	void Renderer2D::CreatePipelines()
+	void Renderer2DStorage::CreatePipelines()
 	{
+		const std::string& path = GraphicsContext::GetSingleton()->GetResourcesPath();
 		GraphicsPipelineCreateInfo pipelineCI = {};
 
 		// Main pipeline
@@ -235,12 +143,12 @@ namespace Frostium
 
 			GraphicsPipelineShaderCreateInfo shaderCI = {};
 			{
-				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/2D.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/2D.frag";
+				shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/2D.vert";
+				shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/2D.frag";
 
 				ShaderBufferInfo bufferInfo = {};
 				bufferInfo.bGlobal = false;
-				bufferInfo.Size = sizeof(s_Data->ShaderInstanceSize) * Renderer2DStorage::MaxQuads;
+				bufferInfo.Size = sizeof(ShaderInstanceSize) * Renderer2DStorage::MaxQuads;
 
 				shaderCI.BufferInfos[1] = bufferInfo;
 			};
@@ -257,10 +165,10 @@ namespace Frostium
 			pipelineCI.eColorBlendOp = BlendOp::ADD;
 			pipelineCI.eAlphaBlendOp = BlendOp::SUBTRACT;
 
-			pipelineCI.TargetFramebuffers = { s_Data->MainFB };
+			pipelineCI.TargetFramebuffers = { MainFB };
 			pipelineCI.ShaderCreateInfo = shaderCI;
 
-			assert(s_Data->MainPipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
+			assert(MainPipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
 		}
 
 		// Text Pipeline
@@ -274,8 +182,8 @@ namespace Frostium
 
 			GraphicsPipelineShaderCreateInfo shaderCI = {};
 			{
-				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Text.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/Text.frag";
+				shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/Text.vert";
+				shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/Text.frag";
 			};
 
 			pipelineCI.PipelineName = "Text";
@@ -286,24 +194,133 @@ namespace Frostium
 			pipelineCI.eSrcAlphaBlendFactor = BlendFactor::ONE;
 			pipelineCI.eDstAlphaBlendFactor = BlendFactor::ZERO;
 			pipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(TextVertex), layout) };
-			pipelineCI.TargetFramebuffers = { s_Data->MainFB };
+			pipelineCI.TargetFramebuffers = { MainFB };
 			pipelineCI.ShaderCreateInfo = shaderCI;
 
-			assert(s_Data->TextPipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
+			assert(TextPipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
+		}
+
+		WhiteTetxure = GraphicsContext::GetSingleton()->m_DummyTexure;
+		Textures[0] = WhiteTetxure;
+
+		Mesh::Create(path + "Models/plane.gltf", &PlaneMesh);
+	}
+
+	void Renderer2DStorage::CreateFramebuffers()
+	{
+		MainFB = GraphicsContext::GetSingleton()->GetFramebuffer();
+	}
+
+	void Renderer2DStorage::ClearDrawList()
+	{
+		InstIndex = 0;
+		SampleIndex = 1;
+		TextIndex = 0;
+		FontSampleIndex = 0;
+	}
+
+	void Renderer2DStorage::BuildDrawList()
+	{
+		for (uint32_t i = 0; i < InstIndex; ++i)
+		{
+			for (uint32_t l = 0; l < Renderer2DStorage::MaxLayers; ++l)
+			{
+				Instance& inst = Instances[i];
+				if (l == *inst.Layer)
+				{
+					auto& cmd = CommandBuffer[l];
+					if (cmd.OffsetApplied == false)
+					{
+						cmd.DataOffset = i;
+						cmd.OffsetApplied = true;
+					}
+
+					cmd.Instances++;
+					ShaderInstances[i].Color = *inst.Color;
+					ShaderInstances[i].Params.w = *inst.Layer;
+					ShaderInstances[i].Params.x = inst.TextureIndex;
+					Utils::ComposeTransform2D(*inst.Position, *inst.Rotation, *inst.Scale, ShaderInstances[i].Model);
+				}
+			}
 		}
 	}
 
-	void Renderer2D::CreateFramebuffers()
+	void Renderer2DStorage::UpdateUniforms(const SceneViewProjection* sceneViewProj)
 	{
-		// Main framebuffer
-		s_Data->MainFB = GraphicsContext::GetSingleton()->GetFramebuffer();
+		MainPipeline.SubmitBuffer(SceneDataBP, sizeof(SceneViewProjection), sceneViewProj);
+		MainPipeline.SubmitBuffer(InstancesBP, ShaderInstanceSize * InstIndex, ShaderInstances);
+		MainPipeline.UpdateSamplers(Textures, 0);
+		TextPipeline.UpdateSamplers(FontTextures, 1);
 	}
 
-	void Renderer2D::Prepare()
+	void Renderer2D::DrawFrame(const ClearInfo* clearInfo, Renderer2DStorage* storage, bool batch_cmd)
 	{
-		s_Data->WhiteTetxure = GraphicsContext::s_Instance->m_DummyTexure;
-		s_Data->Textures[0] = s_Data->WhiteTetxure;
+		CommandBufferStorage cmdBuffer;
+		PrepareCmdBuffer(&cmdBuffer, storage, batch_cmd);
+		ClearAtachments(clearInfo, storage);
+		UpdateCmdBuffer(storage);
 
-		Mesh::Create(GraphicsContext::s_Instance->m_ResourcesFolderPath + "Models/plane.gltf", &s_Data->PlaneMesh);
+		if (!batch_cmd)
+			VulkanCommandBuffer::ExecuteCommandBuffer(&cmdBuffer);
+	}
+
+	void Renderer2D::UpdateCmdBuffer(Renderer2DStorage* storage)
+	{
+		if (storage->InstIndex > 0 || storage->TextIndex > 0)
+		{
+			storage->MainPipeline.BeginRenderPass();
+			{
+				// Sprites
+				for (uint32_t i = 0; i < Renderer2DStorage::MaxLayers; ++i)
+				{
+					auto& cmd = storage->CommandBuffer[i];
+					if (cmd.Instances > 0)
+					{
+						storage->MainPipeline.SubmitPushConstant(ShaderType::Vertex, sizeof(uint32_t), &cmd.DataOffset);
+						storage->MainPipeline.DrawMeshIndexed(&storage->PlaneMesh, cmd.Instances);
+
+						cmd.Reset();
+					}
+				}
+
+				// Text
+				for (uint32_t i = 0; i < storage->TextIndex; ++i)
+				{
+					auto& msg = storage->TextMessages[i];
+
+					storage->TextPushConstant.Model = msg.Model;
+					storage->TextPushConstant.Color = msg.Obj->m_Color;
+					storage->TextPushConstant.TexIndex = msg.TextureIndex;
+
+					storage->TextPipeline.SubmitPushConstant(ShaderType::Vertex, storage->TextPCSize, &storage->TextPushConstant);
+					storage->TextPipeline.DrawIndexed(&msg.Obj->m_VertexBuffer, &msg.Obj->m_IndexBuffer);
+				}
+			}
+			storage->MainPipeline.EndRenderPass();
+		}
+	}
+
+	void Renderer2D::ClearAtachments(const ClearInfo* clearInfo, Renderer2DStorage* storage)
+	{
+		if (clearInfo->bClear)
+		{
+			storage->MainPipeline.BeginRenderPass();
+			storage->MainPipeline.ClearColors(clearInfo->color);
+			storage->MainPipeline.EndRenderPass();
+		}
+	}
+
+	void Renderer2D::PrepareCmdBuffer(CommandBufferStorage* cmd, Renderer2DStorage* storage, bool batch_cmd)
+	{
+		if (batch_cmd)
+		{
+			storage->MainPipeline.BeginCommandBuffer(batch_cmd);
+			storage->TextPipeline.BeginCommandBuffer(batch_cmd);
+			return;
+		}
+
+		VulkanCommandBuffer::CreateCommandBuffer(cmd);
+		storage->MainPipeline.SetCommandBuffer(cmd->Buffer);
+		storage->TextPipeline.SetCommandBuffer(cmd->Buffer);
 	}
 }
