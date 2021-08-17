@@ -22,11 +22,13 @@ namespace Frostium
 	struct ClearInfo;
 
 #pragma region Limits
+
 	static const uint32_t      max_animations = 100;
 	static const uint32_t      max_anim_joints = 1000;
 	static const uint32_t      max_materials = 1000;
 	static const uint32_t      max_lights = 1000;
 	static const uint32_t      max_objects = 15000;
+
 #pragma endregion
 
 #pragma region Shader Defs
@@ -41,51 +43,49 @@ namespace Frostium
 
 	struct DirectionalLight
 	{
-		glm::vec4  Direction = glm::vec4(67, 56, 0, 0);
-		glm::vec4  Color = glm::vec4(1.0);
-		float      Intensity = 1.0f;
-		float      Bias = 1.0f;
-		float      zNear = 1.0f;
-		float      zFar = 350.0f;
-		float      lightFOV = 45.0f;
-		bool       IsActive = false;
-		bool       IsCastShadows = true;
-		bool       IsUseSoftShadows = true;
-	private:
-		bool       pad1 = 0;
-		glm::vec2  pad2 = glm::vec2(0);
+		glm::vec4      Direction = glm::vec4(67, 56, 0, 0);
+		glm::vec4      Color = glm::vec4(1.0);
+		float          Intensity = 1.0f;
+		float          Bias = 1.0f;
+		float          zNear = 1.0f;
+		float          zFar = 350.0f;
+				        
+		float          lightFOV = 45.0f;
+		bool           IsActive = false;
+		GLSL_BOOLPAD   Pad1;
+		bool           IsCastShadows = true;
+		GLSL_BOOLPAD   Pad2;
+		bool           IsUseSoftShadows = true;
+		GLSL_BOOLPAD   Pad3;
 	};
 
 	struct PointLight
 	{
-		glm::vec4  Position = glm::vec4(0);
-		glm::vec4  Color = glm::vec4(1.0);
-		float      Intensity = 1.0f;
-		float      Raduis = 10.0f;
-		float      Bias = 1.0f;
-		bool       IsActive = true;
+		glm::vec4      Position = glm::vec4(0);
+		glm::vec4      Color = glm::vec4(1.0);
+		float          Intensity = 1.0f;
+		float          Raduis = 10.0f;
+		float          Bias = 1.0f;
+		bool           IsActive = true;
 	private:
-		bool       pad1 = 0;
-		bool       pad2 = 0;
-		bool       pad3 = 0;
+		GLSL_BOOLPAD   Pad1;
 	};
 
 	struct SpotLight
 	{
-		glm::vec4  Position = glm::vec4(0, 0, 0, 0);
-		glm::vec4  Direction = glm::vec4(0, 0, 40, 0);
-		glm::vec4  Color = glm::vec4(1.0);
-		float      Intensity = 10.0f;
-		float      CutOff = 40.0f;
-		float      OuterCutOff = 5.0f;
-		float      Raduis = 10.0f;
-		float      Bias = 0.005f;
-		bool       IsActive = true;
-	private:
-		bool       pad1 = 0;
-		bool       pad2 = 0;
-		bool       pad3 = 0;
-		glm::vec2  pad4 = glm::vec2(0);
+		glm::vec4      Position = glm::vec4(0, 0, 0, 0);
+		glm::vec4      Direction = glm::vec4(0, 0, 40, 0);
+		glm::vec4      Color = glm::vec4(1.0);
+		float          Intensity = 10.0f;
+		float          CutOff = 40.0f;
+		float          OuterCutOff = 5.0f;
+		float          Raduis = 10.0f;
+
+		float          Bias = 0.005f;
+		bool           IsActive = true;
+	private:		   
+		GLSL_BOOLPAD   Pad1;
+		uint32_t       Pad2[2];
 	};
 
 	struct InstanceData
@@ -99,50 +99,38 @@ namespace Frostium
 
 	struct IBLProperties
 	{
-		glm::vec4   AmbientColor = glm::vec4(1.0f);
-		float       IBLStrength = 1.0f;
-		bool        Enabled = true;
-
-	private:
-		bool        Pad1;
-		bool        Pad2;
-		bool        Pad3;
-		glm::vec2   Pad4;
-
-
-		friend class DeferredRenderer;
+		glm::vec4      AmbientColor = glm::vec4(1.0f);
+		float          IBLStrength = 1.0f;
+		bool           Enabled = true;
+	private:		   
+		GLSL_BOOLPAD   Pad1;
 	};
 
 	struct BloomProperties
 	{
-		float      Exposure = 1.0f;
-		float      Threshold = 0.10f;
-		float      Scale = 0.5f;
-		float      Strength = 0.5f;
-		bool       Enabled = true;
-
+		float          Exposure = 1.0f;
+		float          Threshold = 0.10f;
+		float          Scale = 0.5f;
+		float          Strength = 0.5f;
+		bool           Enabled = false;
 	private:
-		bool       Pad1;
-		bool       Pad2;
-		bool       Pad3;
-		glm::vec3  Pad4;
+		GLSL_BOOLPAD   Pad1;
+		uint32_t       Pad2;
 	};
 
 	struct FXAAProperties
 	{
-		float      EdgeThresholdMin = 0.0312f;
-		float      EdgeThresholdMax = 0.125f;
-		float      Iterations = 29.0f;
-		float      SubPixelQuality = 0.75f;
+		float          EdgeThresholdMin = 0.0312f;
+		float          EdgeThresholdMax = 0.125f;
+		float          Iterations = 29.0f;
+		float          SubPixelQuality = 0.75f;
 		// don't use! for internal needs
-		glm::vec2  InverseScreenSize = glm::vec2(0.0f);
-		bool       Enabled = true;
-	private:
-		bool       Pad1;
-		bool       Pad2;
-		bool       Pad3;
-		float      Pad4;
-	};
+		glm::vec2      InverseScreenSize = glm::vec2(0.0f);
+		bool           Enabled = true;
+	private:	       
+		GLSL_BOOLPAD   Pad1;
+		float          Pad2;
+	};			       
 
 #pragma endregion
 
@@ -221,7 +209,7 @@ namespace Frostium
 		void                                        SetDynamicSkybox(DynamicSkyProperties& properties, const glm::mat4& proj, bool regeneratePBRmaps);
 		void                                        SetStaticSkybox(CubeMap* cube);
 		void                                        SetRenderTarget(Framebuffer* target);
-		void                                        SetViewProjection(const SceneViewProjection* sceneViewProj);
+		void                                        SetViewProjection(SceneViewProjection* sceneViewProj);
 
 		RendererStateEX&                            GetState();
 		Frustum&                                    GetFrustum();
@@ -276,10 +264,10 @@ namespace Frostium
 		Framebuffer                                 f_Lighting = {};
 		Framebuffer                                 f_Bloom = {};
 		Framebuffer                                 f_Depth = {};
-		// Masks
-		DirtMask                                    m_DirtMask = {};
-		//Meshes						            
+
+		DirtMask                                    m_DirtMask = {};					            
 		Mesh                                        m_PlaneMesh = {};
+
 		// Buffers
 		MaterialLibrary                             m_MaterialLibrary{};
 		RendererStateEX                             m_State{};
@@ -300,9 +288,6 @@ namespace Frostium
 		};										    
 												    
 		ShadowMapSize                               m_MapSize = ShadowMapSize::SIZE_8;
-		float                                       m_NearClip = 1.0f;
-		float                                       m_FarClip = 1000.0f;
-		glm::vec3                                   m_ShadowLightDirection = glm::vec3(0.0f, 0.0f, 0.0f);
 		glm::mat4                                   m_GridModel{};
 		glm::mat4                                   m_DepthMVP{};
 		PushConstant                                m_MainPushConstant = {};

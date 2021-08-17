@@ -14,18 +14,18 @@ struct MaterialData
 	float Metalness;
 	float Roughness;
 	float EmissionStrength;
-	uint UseAlbedroTex;
+	uint  UseAlbedroTex;
 
-	uint UseNormalTex;
-	uint UseMetallicTex;
-	uint UseRoughnessTex;
-    uint UseAOTex;
+	uint  UseNormalTex;
+	uint  UseMetallicTex;
+	uint  UseRoughnessTex;
+    uint  UseAOTex;
 
 	uint UseEmissiveTex;
 	uint AlbedroTexIndex;
 	uint NormalTexIndex;
-	uint MetallicTexIndex;
 
+	uint MetallicTexIndex;
 	uint RoughnessTexIndex;
 	uint AOTexIndex;
 	uint EmissiveTexIndex;
@@ -80,13 +80,12 @@ const mat4 biasMat = mat4(
 	0.5, 0.5, 0.0, 1.0 
 );
 
+
 layout (location = 0)  out vec3 v_FragPos;
 layout (location = 1)  out vec3 v_Normal;
-layout (location = 2)  out vec3 v_CameraPos;
-layout (location = 3)  out vec2 v_UV;
-layout (location = 4)  out vec4 v_ShadowCoord;
-layout (location = 5)  out vec4 v_WorldPos;
-layout (location = 6)  out vec3 v_Tangent;
+layout (location = 2)  out vec2 v_UV;
+layout (location = 3)  out vec4 v_ShadowCoord;
+layout (location = 4)  out mat3 v_TBN;
 layout (location = 7)  out MaterialData v_Material;
 
 void main()
@@ -108,15 +107,20 @@ void main()
 	}
 
 	const mat4 modelSkin = model * skinMat;
+
 	v_FragPos = vec3(modelSkin *  vec4(a_Position, 1.0));
-	v_CameraPos = sceneData.camPos.xyz;
-	v_WorldPos = vec4(a_Position, 1.0);
 	v_UV = a_UV;
-
 	v_Material =  materials[materialIndex];
-	v_Normal =  mat3(transpose(inverse(modelSkin))) * a_Normal;
-	v_Tangent = normalize(vec3(modelSkin * vec4(a_Tangent, 0.0)));
-	v_ShadowCoord = ( biasMat * lightSpace * modelSkin) * vec4(a_Position, 1.0);	
+	v_ShadowCoord = ( biasMat * lightSpace) * vec4(v_FragPos, 1.0);
 
-	gl_Position =  sceneData.projection * sceneData.view * model * skinMat * vec4(a_Position, 1.0);
+	{
+		vec3 normal = mat3(transpose(inverse(modelSkin))) * a_Normal;
+		vec3 tangent = normalize(vec3(modelSkin * vec4(a_Tangent, 0.0)));
+		vec3 B = normalize(vec3(vec4(cross(normal, tangent), 0.0)));
+
+		v_TBN =  mat3(tangent, B, normal);
+		v_Normal = normal;
+	}	
+
+	gl_Position =  sceneData.projection * sceneData.view  * vec4(v_FragPos, 1.0);
 }

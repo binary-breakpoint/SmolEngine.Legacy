@@ -17,12 +17,14 @@ uint32_t            metalMaterialID = 0;
 
 Mesh                jetMesh;
 Mesh                characterMesh;
+Mesh*               cubeMesh = nullptr;
 
 AnimationController* jet_animController = nullptr;
 AnimationController* character_animController = nullptr;
 
 void LoadMeshes()
 {
+	cubeMesh = context->GetDefaultMeshes()->Cube.get();
 	Mesh::Create("Assets/plane.gltf", &jetMesh);
 	Mesh::Create("Assets/CesiumMan.gltf", &characterMesh);
 }
@@ -59,22 +61,21 @@ void LoadMaterials()
 			MaterialCreateInfo materialCI{};
 			TextureCreateInfo textureCI{};
 
-			textureCI.FilePath = "Assets/materials/stone/Tiles087_1K_Color.png";
-			materialCI.SetTexture(MaterialTexture::Albedro, &textureCI);
+			textureCI.FilePath = "Assets/materials/bricks/Bricks061_2K_Color.png";
+			materialCI.SetTexture(MaterialTexture::Albedo, &textureCI);
 
-			textureCI.FilePath = "Assets/materials/stone/Tiles087_1K_Normal.png";
+			textureCI.FilePath = "Assets/materials/bricks/Bricks061_2K_Normal.png";
 			materialCI.SetTexture(MaterialTexture::Normal, &textureCI);
 
-			textureCI.FilePath = "Assets/materials/stone/Tiles087_1K_Roughness.png";
+			textureCI.FilePath = "Assets/materials/bricks/Bricks061_2K_Roughness.png";
 			materialCI.SetTexture(MaterialTexture::Roughness, &textureCI);
 
-			textureCI.FilePath = "Assets/materials/stone/Tiles087_1K_AmbientOcclusion.png";
+			textureCI.FilePath = "Assets/materials/bricks/Bricks061_2K_AmbientOcclusion.png";
 			materialCI.SetTexture(MaterialTexture::AO, &textureCI);
 
-			materialCI.SetMetalness(0.1f);
-			materialCI.SetEmissionStrength(1.1f);
+			materialCI.SetMetalness(1.0f);
 
-			storage->GetMaterialLibrary().Add(&materialCI, "stone");
+			stoneMaterialID = storage->GetMaterialLibrary().Add(&materialCI, "stone");
 		});
 
 		JobsSystemInstance::Schedule([]()
@@ -83,7 +84,7 @@ void LoadMaterials()
 			TextureCreateInfo textureCI{};
 
 			textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Color.png";
-			materialCI.SetTexture(MaterialTexture::Albedro, &textureCI);
+			materialCI.SetTexture(MaterialTexture::Albedo, &textureCI);
 
 			textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Normal.png";
 			materialCI.SetTexture(MaterialTexture::Normal, &textureCI);
@@ -97,7 +98,7 @@ void LoadMaterials()
 			materialCI.SetMetalness(0.5f);
 			materialCI.SetRoughness(0.9f);
 
-			storage->GetMaterialLibrary().Add(&materialCI, "metal");
+			metalMaterialID = storage->GetMaterialLibrary().Add(&materialCI, "metal");
 		});
 	}
 	JobsSystemInstance::EndSubmition();
@@ -142,7 +143,7 @@ int main(int argc, char** argv)
 
 	DirectionalLight dirLight = {};
 	dirLight.IsActive = true;
-	dirLight.Color = { 0.6, 0.2, 0.4, 1 };
+	dirLight.IsCastShadows = false;
 
 	storage = new RendererStorage();
 	context = new GraphicsContext(&info);
@@ -165,20 +166,16 @@ int main(int argc, char** argv)
 		if (context->IsWindowMinimized())
 			continue;
 
-		sceneViewProj.Update(camera);
-		storage->BeginSubmit(&sceneViewProj);
-		{
-			storage->SubmitDirLight(&dirLight);
-			storage->SubmitMesh({ 0, 3.9f, -3 }, glm::radians(glm::vec3(-90.0f, 0.0f, 0.0f)), { 1, 1, 1, }, &jetMesh, metalMaterialID, true, jet_animController);
-			storage->SubmitMesh({ 3, 2, 0 }, { 0, 0, 0 }, { 5, 5, 5, }, &characterMesh, stoneMaterialID, true, character_animController);
-		}
-		storage->EndSubmit();
-
 		context->BeginFrame(deltaTime);
 		{
 			ImGui::Begin("Skinning Sample");
 			{
+				ImGui::Checkbox("Light", &dirLight.IsActive);
 				ImGui::DragFloat4("LightDir", glm::value_ptr(dirLight.Direction));
+
+				ImGui::Checkbox("Bloom", &storage->GetState().Bloom.Enabled);
+				ImGui::Checkbox("Fxaa", &storage->GetState().FXAA.Enabled);
+				ImGui::Checkbox("IBL", &storage->GetState().IBL.Enabled);
 
 				ImGui::Checkbox("Play", &character_animController->GetActiveClip()->GetProperties().bPlay);
 				ImGui::Checkbox("Loop", &character_animController->GetActiveClip()->GetProperties().bLoop);
@@ -189,6 +186,17 @@ int main(int argc, char** argv)
 					character_animController->GetActiveClip()->SetTimeRatio(t);
 			}
 			ImGui::End();
+
+			sceneViewProj.Update(camera);
+			storage->BeginSubmit(&sceneViewProj);
+			{
+				storage->SubmitDirLight(&dirLight);
+				storage->SubmitMesh({ 0, 3.9f, -3 }, glm::radians(glm::vec3(-90.0f, 0.0f, 0.0f)), { 1, 1, 1, }, &jetMesh, metalMaterialID, true, jet_animController);
+				storage->SubmitMesh({ 3, 2, 0 }, { 0, 0, 0 }, { 5, 5, 5, }, &characterMesh, metalMaterialID, true, character_animController);
+
+				storage->SubmitMesh({ -5, 0, 0 }, { 0, 0, 0 }, { 2, 2, 2, }, cubeMesh, stoneMaterialID);
+			}
+			storage->EndSubmit();
 
 			RendererDeferred::DrawFrame(&clearInfo, storage);
 		}

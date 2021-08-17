@@ -241,6 +241,7 @@ namespace Frostium
 		ResetDrawList();
 
 		m_SceneInfo = sceneViewProj;
+		m_SceneInfo->SkyBoxMatrix = glm::mat4(glm::mat3(sceneViewProj->View));
 		m_Frustum.Update(sceneViewProj->Projection * sceneViewProj->View);
 	}
 
@@ -260,10 +261,13 @@ namespace Frostium
 		p_Debug.SetFramebuffers({ f_Main });
 	}
 
-	void RendererStorage::SetViewProjection(const SceneViewProjection* sceneViewProj)
+	void RendererStorage::SetViewProjection(SceneViewProjection* sceneViewProj)
 	{
-		m_Frustum.Update(sceneViewProj->Projection * sceneViewProj->View);
-		p_Gbuffer.SubmitBuffer(m_SceneDataBinding, sizeof(SceneViewProjection), sceneViewProj);
+		m_SceneInfo = sceneViewProj;
+
+		m_Frustum.Update(m_SceneInfo->Projection * m_SceneInfo->View);
+		m_SceneInfo->SkyBoxMatrix = glm::mat4(glm::mat3(m_SceneInfo->View));
+		p_Gbuffer.SubmitBuffer(m_SceneDataBinding, sizeof(SceneViewProjection), m_SceneInfo);
 	}
 
 	void RendererStorage::OnUpdateMaterials()

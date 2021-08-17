@@ -25,7 +25,7 @@ namespace Frostium
 
 	enum class MaterialTexture : uint32_t
 	{
-		Albedro,
+		Albedo,
 		Normal,
 		Metallic,
 		Roughness,
@@ -35,29 +35,28 @@ namespace Frostium
 
 	struct PBRMaterial
 	{
-		alignas(16) glm::vec4 Albedro;
+		glm::vec4  Albedro;
 
-		float    Metalness;
-		float    Roughness;
-		float    EmissionStrength;
-		uint32_t UseAlbedroTex;
+		float      Metalness = 0.2f;
+		float      Roughness = 1.0f;
+		float      EmissionStrength = 1.0f;
+		uint32_t   UseAlbedroTex = 0;
+				   
+		uint32_t   UseNormalTex = 0;
+		uint32_t   UseMetallicTex = 0;
+		uint32_t   UseRoughnessTex = 0;
+		uint32_t   UseAOTex = 0;
+				   
+		uint32_t   UseEmissiveTex = 0;
+		uint32_t   AlbedroTexIndex = 0;
+		uint32_t   NormalTexIndex = 0;
+		uint32_t   MetallicTexIndex = 0;
 
-		uint32_t UseNormalTex;
-		uint32_t UseMetallicTex;
-		uint32_t UseRoughnessTex;
-		uint32_t UseAOTex;
-
-		uint32_t UseEmissiveTex;
-		uint32_t AlbedroTexIndex;
-		uint32_t NormalTexIndex;
-		uint32_t MetallicTexIndex;
-
-		uint32_t RoughnessTexIndex;
-		uint32_t AOTexIndex;
-		uint32_t EmissiveTexIndex;
+		uint32_t   RoughnessTexIndex = 0;
+		uint32_t   AOTexIndex = 0;
+		uint32_t   EmissiveTexIndex = 0;
 	private:
-
-		uint32_t pad1;
+		uint32_t   Pad1;
 	};
 
 	struct MaterialCreateInfo
@@ -84,6 +83,7 @@ namespace Frostium
 		TextureCreateInfo  RoughnessTex = {};
 		TextureCreateInfo  AOTex = {};
 		TextureCreateInfo  EmissiveTex = {};
+		TextureCreateInfo  DisplacementTex = {};
 		glm::vec3          AlbedroColor = glm::vec3(1.0f);
 
 	private:
@@ -94,7 +94,7 @@ namespace Frostium
 		void serialize(Archive& archive)
 		{
 			archive(Metallness, Roughness, EmissionStrength, AlbedroTex, NormalTex, MetallnessTex, RoughnessTex, AOTex,
-				EmissiveTex, AlbedroColor.r, AlbedroColor.g, AlbedroColor.b);
+				EmissiveTex, DisplacementTex, AlbedroColor.r, AlbedroColor.g, AlbedroColor.b);
 		}
 	};
 

@@ -72,4 +72,9 @@ namespace Frostium
 		NEAREST,
 		LINEAR,
 	};
+
+	struct GLSL_BOOLPAD
+	{
+		bool data[3];
+	};
 }

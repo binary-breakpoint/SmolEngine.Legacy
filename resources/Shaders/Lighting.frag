@@ -99,23 +99,6 @@ layout(std140, binding = 34) uniform BloomProperties
 
 } bloomState;
 
-#define MANUAL_SRGB 1
-
-vec4 SRGBtoLINEAR(vec4 srgbIn)
-{
-	#ifdef MANUAL_SRGB
-	#ifdef SRGB_FAST_APPROXIMATION
-	vec3 linOut = pow(srgbIn.xyz,vec3(2.2));
-	#else //SRGB_FAST_APPROXIMATION
-	vec3 bLess = step(vec3(0.04045),srgbIn.xyz);
-	vec3 linOut = mix( srgbIn.xyz/vec3(12.92), pow((srgbIn.xyz+vec3(0.055))/vec3(1.055),vec3(2.4)), bLess );
-	#endif //SRGB_FAST_APPROXIMATION
-	return vec4(linOut,srgbIn.w);;
-	#else //MANUAL_SRGB
-	return srgbIn;
-	#endif //MANUAL_SRGB
-}
-
 // PBR functions
 // -----------------------------------------------------------------------------------------------------------------------
 const float PI = 3.14159265359;
@@ -208,23 +191,24 @@ float filterPCF(vec4 sc)
 	return shadowFactor / count;
 }
 
-vec3 CalcIBL(vec3 N, vec3 V, vec3 F0, vec3 albedo_color, float metallic_color, float roughness_color)
+vec3 FresnelSchlick(float cosTheta, vec3 baseReflectivity) {
+	return max(baseReflectivity + (1.0 - baseReflectivity) * pow(2, (-5.55473 * cosTheta - 6.98316) * cosTheta), 0.0);
+}
+
+vec3 CalcIBL(vec3 fragToView, vec3 baseReflectivity, vec3 reflectionVec, vec3 normal, vec3 albedo,  vec3 ambient, float metallic, float unclampedRoughness, float roughness, float ao)
 {
-	float cosLo = max(dot(N, -V), 0.0);
-	vec3 ReflDirectionWS = reflect(-V, N);
-    vec3 F = fresnelSchlickRoughness(cosLo, F0, roughness_color);
-	
-    vec3 kD = (1.0 - F) * (1.0 - metallic_color);
-    
-    vec3 irradiance = texture(samplerIrradiance, -N).rgb;
-	vec3 specularBRDF = texture(samplerBRDFLUT, vec2(cosLo, 1.0 - roughness_color)).rgb;
-    vec3 diffuseIBL = irradiance * ( kD * albedo_color);
-    
+	vec3 specularRatio = FresnelSchlick(max(dot(normal, fragToView), 0.0), baseReflectivity);
+	vec3 diffuseRatio = vec3(1.0) - specularRatio;
+	diffuseRatio *= 1.0 - metallic;
+
+    vec3 indirectDiffuse = texture(samplerIrradiance, normal).rgb * albedo * diffuseRatio;
 	int specularTextureLevels = textureQueryLevels(prefilteredMap);
-	vec3 specularIrradiance =  textureLod(prefilteredMap, -ReflDirectionWS, roughness_color * specularTextureLevels).rgb;
-    vec3 specularIBL = specularIrradiance * (F0 * specularBRDF.x + specularBRDF.y);
-    
-	return (diffuseIBL + specularIBL) * sceneState.ambientColor.rgb;
+	vec3 prefilterColour = textureLod(prefilteredMap, reflectionVec, unclampedRoughness * (specularTextureLevels - 1)).rgb;
+	vec2 brdfIntegration = texture(samplerBRDFLUT, vec2(max(dot(normal, fragToView), 0.0), roughness)).rg;
+	vec3 indirectSpecular = prefilterColour * (specularRatio * brdfIntegration.x + brdfIntegration.y);
+
+	vec3 result = (indirectDiffuse + indirectSpecular) * ao;
+	return result * sceneState.ambientColor.rgb;
 }
 
 vec3 CalcDirLight(vec3 V, vec3 N, vec3 F0, vec3 albedo_color, float metallic_color, float roughness_color, vec3 modelPos)
@@ -240,9 +224,9 @@ vec3 CalcDirLight(vec3 V, vec3 N, vec3 F0, vec3 albedo_color, float metallic_col
 	
     vec3 kd = mix(vec3(1.0) - F, vec3(0.0), metallic_color);
 	vec3 diffuseBRDF = kd * albedo_color;
-	vec3 specularBRDF = (F * NDF * G) / max(Epsilon, 4.0 * NdotL * 0.8);
-	
-	return ((albedo_color / PI + diffuseBRDF + specularBRDF) * vec3(1.0) * NdotL) * dirLight.intensity * 5.0 * dirLight.color.rgb;
+	vec3 specularBRDF = (F * NDF * G) / max(Epsilon, 4.0 * NdotL);
+	vec3 rad =  dirLight.intensity * (5.0 * dirLight.color.rgb);
+	return ((albedo_color / PI + diffuseBRDF + specularBRDF) * NdotL) * rad;
 }
 
 vec3 CalcPointLight(PointLight light, vec3 V, vec3 N, vec3 F0, vec3 albedo_color, float metallic_color, float roughness_color, vec3 modelPos)
@@ -326,7 +310,7 @@ void main()
         return;
     }
     
-    vec3 albedro = texColor.rgb;
+    vec3 albedo = texColor.rgb;
     vec4 position = texture(positionsMap, inUV);
     vec4 normals = texture(normalsMap, inUV);
     vec4 materials = texture(materialsMap, inUV);
@@ -334,20 +318,24 @@ void main()
     vec3 ao = vec3(materials.z);
 
     float metallic = materials.x;
-    float roughness = materials.y;
+    float unclampedRoughness = materials.y;
+	float roughness = max(unclampedRoughness, 0.04);
 	float emission = materials.a;
 
-	albedro = pow(albedro, vec3(2.2));
+	albedo = pow(albedo, vec3(2.2));
     vec3 V = normalize(sceneData.camPos.xyz - position.xyz);
-
+	vec3 F0 =  vec3(0.04); 
+	F0 = mix(F0, albedo, metallic);
+	
     // Ambient Lighting (IBL)
 	//--------------------------------------------
-	vec3 F0 = mix(vec3(0.04), albedro, metallic); 
+
     vec3 ambient = vec3(0.0);
 	if(sceneState.is_active == true)
 	{
-		ambient = CalcIBL(normals.xyz, V, F0, albedro, metallic, roughness);
-		ambient *= ao;
+	    vec3 reflectionVec = reflect(-V, normals.xyz);
+
+		ambient = CalcIBL(V , F0, reflectionVec, normals.xyz, albedo.rgb, ambient, metallic, unclampedRoughness, roughness, ao.r);
 		ambient *= sceneState.iblScale;
 	}
 
@@ -356,21 +344,21 @@ void main()
 	//--------------------------------------------
 	 if(dirLight.is_active == true)
 	 {
-		 Lo += CalcDirLight(V, normals.xyz, F0, albedro, metallic, roughness, position.xyz);
+		 Lo += CalcDirLight(V, normals.xyz, F0, albedo, metallic, roughness, position.xyz);
 	 }
 
     // Point Lighting
 	//--------------------------------------------
 	for(int i = 0; i < numPointsLights; i++)
 	{
-        Lo += CalcPointLight(pointLights[i], V, normals.xyz, F0, albedro, metallic, roughness, position.xyz);
+        Lo += CalcPointLight(pointLights[i], V, normals.xyz, F0, albedo, metallic, roughness, position.xyz);
 	}
 
     // Spot Lighting
 	//--------------------------------------------
 	for(int i = 0; i < numSpotLights; i++)
 	{
-		Lo += CalcSpotLight(spotLights[i], V, normals.xyz, F0, albedro, metallic, roughness, position.xyz);
+		Lo += CalcSpotLight(spotLights[i], V, normals.xyz, F0, albedo, metallic, roughness, position.xyz);
 	}
 
     // Final Shading
@@ -379,7 +367,7 @@ void main()
 
     // Shadow Mapping
 	//--------------------------------------------
-	if(dirLight.is_active == true)
+	if(dirLight.is_active == true && dirLight.is_cast_shadows == true)
 	{
 		float shadow = 0.0;
 		if(dirLight.is_use_soft_shadows == true)

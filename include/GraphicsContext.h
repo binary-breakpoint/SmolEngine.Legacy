@@ -68,6 +68,8 @@ namespace Frostium
 	private:
 		glm::vec2              Pad1;
 		glm::mat4              SkyBoxMatrix = glm::mat4(1.0f);
+
+		friend struct RendererStorage;
 	};
 
 	struct ClearInfo

@@ -190,7 +190,7 @@ namespace Frostium
 	{
 		switch (type)
 		{
-		case MaterialTexture::Albedro:
+		case MaterialTexture::Albedo:
 			AlbedroTex = *info;
 			break;
 		case MaterialTexture::Normal:
@@ -208,8 +208,7 @@ namespace Frostium
 		case MaterialTexture::Emissive:
 			EmissiveTex = *info;
 			break;
-		default:
-			break;
+		default: break;
 		}
 	}
 
@@ -217,7 +216,7 @@ namespace Frostium
 	{
 		if (AlbedroTex.FilePath.empty() == false)
 		{
-			out_hashmap[MaterialTexture::Albedro] = &AlbedroTex;
+			out_hashmap[MaterialTexture::Albedo] = &AlbedroTex;
 		}
 
 		if (NormalTex.FilePath.empty() == false)
