@@ -8,7 +8,6 @@ using namespace SmolEngine;
 using namespace Frostium;
 #endif
 
-GraphicsContext* context = nullptr;
 
 int main(int argc, char** argv)
 {
@@ -31,14 +30,21 @@ int main(int argc, char** argv)
 
 	GraphicsContextInitInfo info = {};
 	{
-		info.Flags = Features_Renderer_2D_Flags | Features_ImGui_Flags;
 		info.eMSAASamples = MSAASamples::SAMPLE_COUNT_1;
 		info.ResourcesFolderPath = "../resources/";
 		info.pWindowCI = &windoInfo;
 		info.pDefaultCamera = camera;
 	}
 
-	context = new GraphicsContext(&info);
+	bool process = true;
+	GraphicsContext*  context = new GraphicsContext(&info);
+	context->SetDebugLogCallback([&](const std::string&& msg, LogLevel level) { std::cout << msg << "\n"; });
+	context->SetEventCallback([&](Event& e) { if (e.IsType(EventType::WINDOW_CLOSE)) { process = false; } });
+
+	Renderer2DStorage* storage = new Renderer2DStorage();
+	storage->Initilize();
+
+	RendererDrawList2D* drawList = new RendererDrawList2D();
 
 	Text text1 = {};
 	std::string str = "Frostium3D!";
@@ -60,13 +66,9 @@ int main(int argc, char** argv)
 
 	ClearInfo clearInfo = {};
 	clearInfo.bClear = true;
-	bool process = true;
 
-	context->SetEventCallback([&](Event& e) 
-	{
-		if(e.IsType(EventType::WINDOW_CLOSE))
-			process = false;
-	});
+	SceneViewProjection sceneViewProj = {};
+	sceneViewProj.Update(camera);
 
 	while (process)
 	{
@@ -80,7 +82,14 @@ int main(int argc, char** argv)
 		   @Calculate physics, process script, etc
 		*/
 
-		context->UpdateViewProjection(camera);
+		sceneViewProj.Update(camera);
+		drawList->BeginSubmit(&sceneViewProj);
+		drawList->SubmitSprite(glm::vec3(10, 0, 0), glm::vec3(10, 10, 0), { 0,0,0 }, 1, &texture2, false);
+		drawList->SubmitSprite(glm::vec3(0, 0, 0), glm::vec3(10, 10, 0), { 0,0,0 }, 0, &texture, false);
+		drawList->SubmitSprite(glm::vec3(20, 20, 0), glm::vec3(10, 10, 0), { 0,0, 0 }, 3, &texture2, false);
+		drawList->SubmitText(&text1);
+		drawList->EndSubmit();
+
 		context->BeginFrame(deltaTime);
 		{
 			ImGui::Begin("2D Sample");
@@ -89,12 +98,7 @@ int main(int argc, char** argv)
 			}
 			ImGui::End();
 
-			Renderer2D::BeginScene(&clearInfo);
-			Renderer2D::SubmitSprite(glm::vec3(10, 0, 0),  glm::vec3(10, 10, 0), { 0,0,0 }, 1, &texture2);
-			Renderer2D::SubmitSprite(glm::vec3(0, 0, 0),  glm::vec3(10, 10, 0), { 0,0,0 }, 0, &texture);
-			Renderer2D::SubmitSprite(glm::vec3(20, 20, 0), glm::vec3(10, 10, 0), { 0,0, 0 }, 3, &texture2);
-			Renderer2D::SubmitText(&text1);
-			Renderer2D::EndScene();
+			Renderer2D::DrawFrame(&clearInfo, storage, drawList);
 		}
 		context->SwapBuffers();
 	}

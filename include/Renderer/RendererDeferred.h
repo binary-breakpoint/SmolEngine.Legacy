@@ -21,25 +21,13 @@ namespace Frostium
 	struct CommandBufferStorage;
 	struct ClearInfo;
 
-#pragma region Limits
+	static const uint32_t max_animations = 100;
+	static const uint32_t max_anim_joints = 1000;
+	static const uint32_t max_materials = 1000;
+	static const uint32_t max_lights = 1000;
+	static const uint32_t max_objects = 15000;
 
-	static const uint32_t      max_animations = 100;
-	static const uint32_t      max_anim_joints = 1000;
-	static const uint32_t      max_materials = 1000;
-	static const uint32_t      max_lights = 1000;
-	static const uint32_t      max_objects = 15000;
-
-#pragma endregion
-
-#pragma region Shader Defs
-
-	enum class ShadowMapSize : uint16_t
-	{
-		SIZE_2,
-		SIZE_4,
-		SIZE_8,
-		SIZE_16
-	};
+#pragma region Shader-Side Structures
 
 	struct DirectionalLight
 	{
@@ -134,17 +122,20 @@ namespace Frostium
 
 #pragma endregion
 
-#pragma region Mask
-
 	struct DirtMask
 	{
 		Texture* Mask = nullptr;
 		float    Intensity = 1.0f;
 		float    BaseIntensity = 0.1f;
 	};
-#pragma endregion
 
-#pragma region Srotage
+	enum class ShadowMapSize : uint16_t
+	{
+		SIZE_2,
+		SIZE_4,
+		SIZE_8,
+		SIZE_16
+	};
 
 	enum class DebugViewFlags : uint32_t
 	{
@@ -173,7 +164,7 @@ namespace Frostium
 	{
 		uint32_t               InstancesCount = 0;
 		uint32_t               Offset = 0;
-		Mesh*                  Mesh = nullptr;
+		Mesh* Mesh = nullptr;
 	};
 
 	struct InstancePackage
@@ -181,97 +172,49 @@ namespace Frostium
 		struct Package
 		{
 			uint32_t              MaterialID = 0;
-			glm::vec3*            WorldPos = nullptr;
-			glm::vec3*            Rotation = nullptr;
-			glm::vec3*            Scale = nullptr;
-			AnimationController*  AnimController = nullptr;
+			glm::vec3* WorldPos = nullptr;
+			glm::vec3* Rotation = nullptr;
+			glm::vec3* Scale = nullptr;
+			AnimationController* AnimController = nullptr;
 		};
 
 		uint32_t                  CurrentIndex = 0;
 		std::vector<Package>      Packages;
 	};
 
-#pragma endregion
-
-	struct RendererStorage: RendererStorageBase
+	struct RendererDrawList
 	{
-		RendererStorage();
+		RendererDrawList();
 
-		void                                        Initilize() override;
-		void                                        BeginSubmit(SceneViewProjection* sceneViewProj) override;
-		void                                        EndSubmit() override;
+		void                                        BeginSubmit(SceneViewProjection* sceneViewProj);
+		void                                        EndSubmit();
 
-		void                                        SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Mesh* mesh,  const uint32_t& material_id = 0, bool submit_childs = true, AnimationController* anim_controller = nullptr);
+		void                                        SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Mesh* mesh, const uint32_t& material_id = 0, bool submit_childs = true, AnimationController* anim_controller = nullptr);
 		void                                        SubmitDirLight(DirectionalLight* light);
 		void                                        SubmitPointLight(PointLight* light);
 		void                                        SubmitSpotLight(SpotLight* light);
 
-		void                                        SetDynamicSkybox(DynamicSkyProperties& properties, const glm::mat4& proj, bool regeneratePBRmaps);
-		void                                        SetStaticSkybox(CubeMap* cube);
-		void                                        SetRenderTarget(Framebuffer* target);
 		void                                        SetViewProjection(SceneViewProjection* sceneViewProj);
-
-		RendererStateEX&                            GetState();
+		void                                        SetDefaultState();
 		Frustum&                                    GetFrustum();
-		MaterialLibrary&                            GetMaterialLibrary();
-
-		void                                        OnResize(uint32_t width, uint32_t height) override;
-		void                                        OnUpdateMaterials();
-		void                                        OnResetState();
 
 	private:
-		void                                        CreatePipelines();
-		void                                        CreateFramebuffers();
-		void                                        CreatePBRMaps();
 		void                                        CalculateDepthMVP();
-	    void                                        BuildDrawList();
+		void                                        BuildDrawList();
 		void                                        ResetDrawList();
-		void                                        UpdateUniforms(const SceneViewProjection* sceneViewProj, Framebuffer* target);
 
 	private:
-		// Bindings						            
-		const uint32_t                              m_TexturesBinding = 24;
-		const uint32_t                              m_ShaderDataBinding = 25;
-		const uint32_t                              m_MaterialsBinding = 26;
-		const uint32_t                              m_SceneDataBinding = 27;
-		const uint32_t                              m_AnimBinding = 28;
-		const uint32_t                              m_PointLightBinding = 30;
-		const uint32_t                              m_SpotLightBinding = 31;
-		const uint32_t                              m_DirLightBinding = 32;
-		const uint32_t                              m_LightingStateBinding = 33;
-		const uint32_t                              m_BloomStateBinding = 34;
-		const uint32_t                              m_FXAAStateBinding = 35;
-		const uint32_t                              m_DynamicSkyBinding = 36;
-		// Instance Data				            
+		SceneViewProjection*                        m_SceneInfo = nullptr;
+
 		uint32_t                                    m_Objects = 0;
 		uint32_t                                    m_InstanceDataIndex = 0;
 		uint32_t                                    m_PointLightIndex = 0;
 		uint32_t                                    m_SpotLightIndex = 0;
 		uint32_t                                    m_LastAnimationOffset = 0;
-		// Pipelines					            
-		GraphicsPipeline                            p_Gbuffer = {};
-		GraphicsPipeline                            p_Lighting = {};
-		GraphicsPipeline                            p_Bloom = {};
-		GraphicsPipeline                            p_Combination = {};
-		GraphicsPipeline                            p_Skybox = {};
-		GraphicsPipeline                            p_DepthPass = {};
-		GraphicsPipeline                            p_Grid = {};
-		GraphicsPipeline                            p_Debug = {};
-		GraphicsPipeline                            p_Mask = {};
-		// Framebuffers							    
-		Framebuffer*                                f_Main = nullptr;
-		Framebuffer                                 f_GBuffer = {};
-		Framebuffer                                 f_Lighting = {};
-		Framebuffer                                 f_Bloom = {};
-		Framebuffer                                 f_Depth = {};
 
-		DirtMask                                    m_DirtMask = {};					            
-		Mesh                                        m_PlaneMesh = {};
-
-		// Buffers
-		MaterialLibrary                             m_MaterialLibrary{};
-		RendererStateEX                             m_State{};
+		Frustum                                     m_Frustum{};
 		DirectionalLight                            m_DirLight{};
+		glm::mat4                                   m_DepthMVP{};
 		std::vector<Mesh*>                          m_UsedMeshes;
 		std::vector<CommandBuffer>                  m_DrawList;
 		std::array<InstanceData, max_objects>       m_InstancesData;
@@ -281,22 +224,78 @@ namespace Frostium
 		std::unordered_map<Mesh*, InstancePackage>  m_Packages;
 		std::unordered_map<Mesh*, uint32_t>         m_RootOffsets;
 
+		friend struct RendererStorage;
+		friend class RendererDeferred;
+	};
+
+	struct RendererStorage: RendererStorageBase
+	{
+		void                          Initilize() override;
+
+		void                          SetDynamicSkybox(DynamicSkyProperties& properties, const glm::mat4& proj, bool regeneratePBRmaps);
+		void                          SetStaticSkybox(CubeMap* cube);
+		void                          SetRenderTarget(Framebuffer* target);
+		void                          SetDefaultState();
+
+		RendererStateEX&              GetState();
+		MaterialLibrary&              GetMaterialLibrary();
+
+		void                          OnResize(uint32_t width, uint32_t height) override;
+		void                          OnUpdateMaterials();
+
+	private:
+		void                          CreatePipelines();
+		void                          CreateFramebuffers();
+		void                          CreatePBRMaps();
+		void                          UpdateUniforms(RendererDrawList* drawList, Framebuffer* target);
+
+	private:
+		// Bindings					
+		const uint32_t                m_TexturesBinding = 24;
+		const uint32_t                m_ShaderDataBinding = 25;
+		const uint32_t                m_MaterialsBinding = 26;
+		const uint32_t                m_SceneDataBinding = 27;
+		const uint32_t                m_AnimBinding = 28;
+		const uint32_t                m_PointLightBinding = 30;
+		const uint32_t                m_SpotLightBinding = 31;
+		const uint32_t                m_DirLightBinding = 32;
+		const uint32_t                m_LightingStateBinding = 33;
+		const uint32_t                m_BloomStateBinding = 34;
+		const uint32_t                m_FXAAStateBinding = 35;
+		const uint32_t                m_DynamicSkyBinding = 36;
+		// Pipelines				
+		GraphicsPipeline              p_Gbuffer = {};
+		GraphicsPipeline              p_Lighting = {};
+		GraphicsPipeline              p_Bloom = {};
+		GraphicsPipeline              p_Combination = {};
+		GraphicsPipeline              p_Skybox = {};
+		GraphicsPipeline              p_DepthPass = {};
+		GraphicsPipeline              p_Grid = {};
+		GraphicsPipeline              p_Debug = {};
+		GraphicsPipeline              p_Mask = {};
+		// Framebuffers				
+		Framebuffer*                  f_Main = nullptr;
+		Framebuffer                   f_GBuffer = {};
+		Framebuffer                   f_Lighting = {};
+		Framebuffer                   f_Bloom = {};
+		Framebuffer                   f_Depth = {};
+				            
+		Mesh                          m_PlaneMesh = {};
+		MaterialLibrary               m_MaterialLibrary{};
+		RendererStateEX               m_State{};
 		struct PushConstant
 		{
-			glm::mat4                               DepthMVP = glm::mat4(1.0f);
-			uint32_t                                DataOffset = 0;
-		};										    
-												    
-		ShadowMapSize                               m_MapSize = ShadowMapSize::SIZE_8;
-		glm::mat4                                   m_GridModel{};
-		glm::mat4                                   m_DepthMVP{};
-		PushConstant                                m_MainPushConstant = {};
-		Frustum                                     m_Frustum{};
-		VulkanPBR*                                  m_VulkanPBR = nullptr;
-		SceneViewProjection*                        m_SceneInfo = nullptr;
-		Ref<EnvironmentMap>                         m_EnvironmentMap = nullptr;
-		// Sizes						            
-		const size_t                                m_PushConstantSize = sizeof(PushConstant);
+			glm::mat4                 DepthMVP = glm::mat4(1.0f);
+			uint32_t                  DataOffset = 0;
+		};							
+									
+		ShadowMapSize                 m_MapSize = ShadowMapSize::SIZE_8;
+		glm::mat4                     m_GridModel{};
+		PushConstant                  m_MainPushConstant = {};
+		VulkanPBR*                    m_VulkanPBR = nullptr;
+		Ref<EnvironmentMap>           m_EnvironmentMap = nullptr;
+		// Sizes					
+		const size_t                  m_PushConstantSize = sizeof(PushConstant);
 												    
 		friend class RendererDeferred;
 		friend class MaterialLibrary;
@@ -305,11 +304,12 @@ namespace Frostium
 	class RendererDeferred
 	{
 	public:
-		static void DrawFrame(const ClearInfo* clearInfo, RendererStorage* storage, bool batch_cmd = true);
+		static void DrawFrame(ClearInfo* clearInfo, RendererStorage* storage, RendererDrawList* drawList, bool batch_cmd = true);
 
 	private:
 		static void PrepareCmdBuffer(CommandBufferStorage* cmdStorage, RendererStorage* rendererStorage, bool batch);
-		static void ClearAtachments(const ClearInfo* clearInfo, RendererStorage* storage);
-		static void UpdateCmdBuffer(RendererStorage* storage);
+		static void ClearAtachments(ClearInfo* clearInfo, RendererStorage* storage);
+		static void UpdateCmdBuffer(RendererStorage* storage, RendererDrawList* drawList);
+		static void UpdateUniforms(RendererStorage* storage, RendererDrawList* drawList);
 	};
 }

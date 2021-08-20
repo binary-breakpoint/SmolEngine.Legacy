@@ -29,12 +29,13 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
-	void RendererDeferred::DrawFrame(const ClearInfo* clearInfo, RendererStorage* storage, bool batch_cmd)
+	void RendererDeferred::DrawFrame(ClearInfo* clearInfo, RendererStorage* storage, RendererDrawList* drawList,  bool batch_cmd)
 	{
 		CommandBufferStorage cmdBuffer;
 		PrepareCmdBuffer(&cmdBuffer, storage, batch_cmd);
 		ClearAtachments(clearInfo, storage);
-		UpdateCmdBuffer(storage);
+		UpdateUniforms(storage, drawList);
+		UpdateCmdBuffer(storage, drawList);
 
 		if (!batch_cmd)
 			VulkanCommandBuffer::ExecuteCommandBuffer(&cmdBuffer);
@@ -68,12 +69,12 @@ namespace Frostium
 		rendererStorage->p_Grid.SetCommandBuffer(cmdStorage->Buffer);
 	}
 
-	void RendererDeferred::UpdateCmdBuffer(RendererStorage* storage)
+	void RendererDeferred::UpdateCmdBuffer(RendererStorage* storage, RendererDrawList* drawList)
 	{
-		uint32_t cmdCount = static_cast<uint32_t>(storage->m_UsedMeshes.size());
+		uint32_t cmdCount = static_cast<uint32_t>(drawList->m_UsedMeshes.size());
 
 		// Depth Pass
-		if (storage->m_DirLight.IsActive && storage->m_DirLight.IsCastShadows)
+		if (drawList->m_DirLight.IsActive && drawList->m_DirLight.IsCastShadows)
 		{
 #ifndef FROSTIUM_OPENGL_IMPL
 			VkCommandBuffer cmdBuffer = storage->p_DepthPass.GetVkCommandBuffer();
@@ -95,7 +96,7 @@ namespace Frostium
 				pc.depthMVP = storage->m_MainPushConstant.DepthMVP;
 				for (uint32_t i = 0; i < cmdCount; ++i)
 				{
-					auto& cmd = storage->m_DrawList[i];
+					auto& cmd = drawList->m_DrawList[i];
 					pc.offset = cmd.Offset;
 
 					storage->p_DepthPass.SubmitPushConstant(ShaderType::Vertex, sizeof(PushConstant), &pc);
@@ -125,7 +126,7 @@ namespace Frostium
 
 			for (uint32_t i = 0; i < cmdCount; ++i)
 			{
-				auto& cmd = storage->m_DrawList[i];
+				auto& cmd = drawList->m_DrawList[i];
 
 				storage->m_MainPushConstant.DataOffset = cmd.Offset;
 				storage->p_Gbuffer.SubmitPushConstant(ShaderType::Vertex, storage->m_PushConstantSize, &storage->m_MainPushConstant);
@@ -158,8 +159,8 @@ namespace Frostium
 					uint32_t numSpotLights;
 				} pc;
 
-				pc.numPointLights = storage->m_PointLightIndex;
-				pc.numSpotLights = storage->m_SpotLightIndex;
+				pc.numPointLights = drawList->m_PointLightIndex;
+				pc.numSpotLights = drawList->m_SpotLightIndex;
 				storage->p_Lighting.SubmitPushConstant(ShaderType::Fragment, sizeof(push_constant), &pc);
 				storage->p_Lighting.Draw(3);
 			}
@@ -182,11 +183,6 @@ namespace Frostium
 
 			// FXAA + Composition
 			{
-				if (storage->m_DirtMask.Mask != nullptr)
-				{
-					storage->p_Combination.UpdateSampler(storage->m_DirtMask.Mask, 2);
-				}
-
 				storage->p_Combination.BeginRenderPass();
 				{
 					struct push_constant
@@ -200,10 +196,10 @@ namespace Frostium
 
 					// temp
 					pc.state = storage->m_State.Bloom.Enabled ? 1 : 0;
-					pc.enabledMask = storage->m_DirtMask.Mask != nullptr;
+					pc.enabledMask = false;
 					pc.enabledFXAA = storage->m_State.FXAA.Enabled;
-					pc.maskIntensity = storage->m_DirtMask.Intensity;
-					pc.maskBaseIntensity = storage->m_DirtMask.BaseIntensity;
+					pc.maskIntensity = 0.0f;
+					pc.maskBaseIntensity = 0.0f;
 
 					storage->p_Combination.SubmitPushConstant(ShaderType::Fragment, sizeof(push_constant), &pc);
 					storage->p_Combination.Draw(3);
@@ -213,7 +209,12 @@ namespace Frostium
 		}
 	}
 
-	void RendererDeferred::ClearAtachments(const ClearInfo* clearInfo, RendererStorage* storage)
+	void RendererDeferred::UpdateUniforms(RendererStorage* storage, RendererDrawList* drawList)
+	{
+		storage->UpdateUniforms(drawList, storage->f_Main);
+	}
+
+	void RendererDeferred::ClearAtachments(ClearInfo* clearInfo, RendererStorage* storage)
 	{
 		if (clearInfo->bClear)
 		{
@@ -221,11 +222,6 @@ namespace Frostium
 			storage->p_Combination.ClearColors(clearInfo->color);
 			storage->p_Combination.EndRenderPass();
 		}
-	}
-
-	RendererStorage::RendererStorage()
-	{
-		m_AnimationJoints.resize(max_anim_joints);
 	}
 
 	void RendererStorage::Initilize()
@@ -236,38 +232,11 @@ namespace Frostium
 		OnUpdateMaterials();
 	}
 
-	void RendererStorage::BeginSubmit(SceneViewProjection* sceneViewProj)
-	{
-		ResetDrawList();
-
-		m_SceneInfo = sceneViewProj;
-		m_SceneInfo->SkyBoxMatrix = glm::mat4(glm::mat3(sceneViewProj->View));
-		m_Frustum.Update(sceneViewProj->Projection * sceneViewProj->View);
-	}
-
-	void RendererStorage::EndSubmit()
-	{
-		BuildDrawList();
-		UpdateUniforms(m_SceneInfo, f_Main);
-
-		if (m_DirLight.IsActive)
-			CalculateDepthMVP();
-	}
-
 	void RendererStorage::SetRenderTarget(Framebuffer* target)
 	{
 		f_Main = target;
 		p_Combination.SetFramebuffers({ f_Main });
 		p_Debug.SetFramebuffers({ f_Main });
-	}
-
-	void RendererStorage::SetViewProjection(SceneViewProjection* sceneViewProj)
-	{
-		m_SceneInfo = sceneViewProj;
-
-		m_Frustum.Update(m_SceneInfo->Projection * m_SceneInfo->View);
-		m_SceneInfo->SkyBoxMatrix = glm::mat4(glm::mat3(m_SceneInfo->View));
-		p_Gbuffer.SubmitBuffer(m_SceneDataBinding, sizeof(SceneViewProjection), m_SceneInfo);
 	}
 
 	void RendererStorage::OnUpdateMaterials()
@@ -282,11 +251,9 @@ namespace Frostium
 		p_Gbuffer.SubmitBuffer(m_MaterialsBinding, size, data);
 	}
 
-	void RendererStorage::OnResetState()
+	void RendererStorage::SetDefaultState()
 	{
-		m_DirLight = {};
 		m_State = {};
-		ResetDrawList();
 	}
 
 	void RendererStorage::CreatePipelines()
@@ -695,19 +662,7 @@ namespace Frostium
 		m_VulkanPBR->GeneratePBRCubeMaps(map);
 	}
 
-	void RendererStorage::CalculateDepthMVP()
-	{
-		// Keep depth range as small as possible
-		// for better shadow map precision
-		// Matrix from light's point of view
-		glm::mat4 depthProjectionMatrix = glm::perspective(m_DirLight.lightFOV, 1.0f, m_DirLight.zNear, m_DirLight.zFar);
-		glm::mat4 depthViewMatrix = glm::lookAt(glm::vec3(m_DirLight.Direction), glm::vec3(0.0f), glm::vec3(0, 1, 0));
-		glm::mat4 depthModelMatrix = glm::mat4(1.0f);
-
-		m_DepthMVP = depthProjectionMatrix * depthViewMatrix * depthModelMatrix;
-	}
-
-	void RendererStorage::BuildDrawList()
+	void RendererDrawList::BuildDrawList()
 	{
 		JobsSystemInstance::BeginSubmition();
 		{
@@ -773,7 +728,7 @@ namespace Frostium
 		JobsSystemInstance::EndSubmition();
 	}
 
-	void RendererStorage::ResetDrawList()
+	void RendererDrawList::ResetDrawList()
 	{
 		m_Objects = 0;
 		m_InstanceDataIndex = 0;
@@ -784,19 +739,19 @@ namespace Frostium
 		m_RootOffsets.clear();
 	}
 
-	Frustum& RendererStorage::GetFrustum()
+	Frustum& RendererDrawList::GetFrustum()
 	{
 		return m_Frustum;
 	}
 
-	void RendererStorage::UpdateUniforms(const SceneViewProjection* sceneViewProj, Framebuffer* target)
+	void RendererStorage::UpdateUniforms(RendererDrawList* drawList, Framebuffer* target)
 	{
 		JobsSystemInstance::BeginSubmition();
 		{
 			// Updates Scene Data
 			JobsSystemInstance::Schedule([&]()
 				{
-					p_Gbuffer.SubmitBuffer(m_SceneDataBinding, sizeof(SceneViewProjection), sceneViewProj);
+					p_Gbuffer.SubmitBuffer(m_SceneDataBinding, sizeof(SceneViewProjection), drawList->m_SceneInfo);
 				});
 
 			// Updates Lighting State
@@ -823,109 +778,51 @@ namespace Frostium
 			// Updates Directional Lights
 			JobsSystemInstance::Schedule([&]()
 				{
-					p_Lighting.SubmitBuffer(m_DirLightBinding, sizeof(DirectionalLight), &m_DirLight);
+					p_Lighting.SubmitBuffer(m_DirLightBinding, sizeof(DirectionalLight), &drawList->m_DirLight);
 				});
 
 			// Updates Point Lights
 			JobsSystemInstance::Schedule([&]()
 				{
-					if (m_PointLightIndex > 0)
+					if (drawList->m_PointLightIndex > 0)
 					{
 						p_Lighting.SubmitBuffer(m_PointLightBinding,
-							sizeof(PointLight) * m_PointLightIndex, m_PointLights.data());
+							sizeof(PointLight) * drawList->m_PointLightIndex, drawList->m_PointLights.data());
 					}
 				});
 
 			// Updates Spot Lights
 			JobsSystemInstance::Schedule([&]()
 				{
-					if (m_SpotLightIndex > 0)
+					if (drawList->m_SpotLightIndex > 0)
 					{
 						p_Lighting.SubmitBuffer(m_SpotLightBinding,
-							sizeof(SpotLight) * m_SpotLightIndex, m_SpotLights.data());
+							sizeof(SpotLight) * drawList->m_SpotLightIndex, drawList->m_SpotLights.data());
 					}
 				});
 
 			// Updates Animation joints
 			JobsSystemInstance::Schedule([&]()
 				{
-					if (m_LastAnimationOffset > 0)
+					if (drawList->m_LastAnimationOffset > 0)
 					{
 						p_Gbuffer.SubmitBuffer(m_AnimBinding,
-							sizeof(glm::mat4) * m_LastAnimationOffset, m_AnimationJoints.data());
+							sizeof(glm::mat4) * drawList->m_LastAnimationOffset, drawList->m_AnimationJoints.data());
 					}
 				});
 
 			// Updates Batch Data
 			JobsSystemInstance::Schedule([&]()
 				{
-					if (m_InstanceDataIndex > 0)
+					if (drawList->m_InstanceDataIndex > 0)
 					{
 						p_Gbuffer.SubmitBuffer(m_ShaderDataBinding,
-							sizeof(InstanceData) * m_InstanceDataIndex, m_InstancesData.data());
+							sizeof(InstanceData) * drawList->m_InstanceDataIndex, drawList->m_InstancesData.data());
 					}
 				});
 
 		}
 		JobsSystemInstance::EndSubmition();
-	}
-
-	void RendererStorage::SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Mesh* mesh, const uint32_t& material_id, bool submit_childs, AnimationController* anim_controller)
-	{
-		if (!m_Frustum.CheckSphere(pos) || m_Objects >= max_objects)
-			return;
-
-		auto& instance = m_Packages[mesh];
-		InstancePackage::Package* package = nullptr;
-
-		if (instance.CurrentIndex == instance.Packages.size())
-		{
-			instance.Packages.emplace_back(InstancePackage::Package());
-			package = &instance.Packages.back();
-		}
-		else { package = &instance.Packages[instance.CurrentIndex]; }
-
-		package->MaterialID = material_id;
-		package->WorldPos = const_cast<glm::vec3*>(&pos);
-		package->Rotation = const_cast<glm::vec3*>(&rotation);
-		package->Scale = const_cast<glm::vec3*>(&scale);
-		package->AnimController = anim_controller;
-
-		m_Objects++;
-		instance.CurrentIndex++;
-		bool found = std::find(m_UsedMeshes.begin(), m_UsedMeshes.end(), mesh) != m_UsedMeshes.end();
-		if (found == false) {m_UsedMeshes.emplace_back(mesh); }
-
-		if (submit_childs)
-		{
-			for (auto& sub : mesh->m_Childs)
-				SubmitMesh(pos, rotation, scale, &sub, material_id, submit_childs, anim_controller);
-		}
-	}
-
-	void RendererStorage::SubmitDirLight(DirectionalLight* light)
-	{
-		m_DirLight = *light;
-	}
-
-	void RendererStorage::SubmitPointLight(PointLight* light)
-	{
-		uint32_t index = m_PointLightIndex;
-		if (index >= max_lights)
-			return;
-
-		m_PointLights[index] = *light;
-		m_PointLightIndex++;
-	}
-
-	void RendererStorage::SubmitSpotLight(SpotLight* light)
-	{
-		uint32_t index = m_SpotLightIndex;
-		if (index >= max_lights)
-			return;
-
-		m_SpotLights[index] = *light;
-		m_SpotLightIndex++;
 	}
 
 	void RendererStorage::SetDynamicSkybox(DynamicSkyProperties& properties, const glm::mat4& proj, bool regeneratePBRmaps)
@@ -1000,5 +897,111 @@ namespace Frostium
 			// Bloon
 			p_Bloom.UpdateSampler(&f_Lighting, 0, "color_2");
 		}
+	}
+
+	RendererDrawList::RendererDrawList()
+	{
+		m_AnimationJoints.resize(max_anim_joints);
+	}
+
+	void RendererDrawList::SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Mesh* mesh, const uint32_t& material_id, bool submit_childs, AnimationController* anim_controller)
+	{
+		if (!m_Frustum.CheckSphere(pos) || m_Objects >= max_objects)
+			return;
+
+		auto& instance = m_Packages[mesh];
+		InstancePackage::Package* package = nullptr;
+
+		if (instance.CurrentIndex == instance.Packages.size())
+		{
+			instance.Packages.emplace_back(InstancePackage::Package());
+			package = &instance.Packages.back();
+		}
+		else { package = &instance.Packages[instance.CurrentIndex]; }
+
+		package->MaterialID = material_id;
+		package->WorldPos = const_cast<glm::vec3*>(&pos);
+		package->Rotation = const_cast<glm::vec3*>(&rotation);
+		package->Scale = const_cast<glm::vec3*>(&scale);
+		package->AnimController = anim_controller;
+
+		m_Objects++;
+		instance.CurrentIndex++;
+		bool found = std::find(m_UsedMeshes.begin(), m_UsedMeshes.end(), mesh) != m_UsedMeshes.end();
+		if (found == false) { m_UsedMeshes.emplace_back(mesh); }
+
+		if (submit_childs)
+		{
+			for (auto& sub : mesh->m_Childs)
+				SubmitMesh(pos, rotation, scale, &sub, material_id, submit_childs, anim_controller);
+		}
+	}
+
+	void RendererDrawList::SubmitDirLight(DirectionalLight* light)
+	{
+		m_DirLight = *light;
+	}
+
+	void RendererDrawList::SubmitPointLight(PointLight* light)
+	{
+		uint32_t index = m_PointLightIndex;
+		if (index >= max_lights)
+			return;
+
+		m_PointLights[index] = *light;
+		m_PointLightIndex++;
+	}
+
+	void RendererDrawList::SubmitSpotLight(SpotLight* light)
+	{
+		uint32_t index = m_SpotLightIndex;
+		if (index >= max_lights)
+			return;
+
+		m_SpotLights[index] = *light;
+		m_SpotLightIndex++;
+	}
+
+	void RendererDrawList::CalculateDepthMVP()
+	{
+		// Keep depth range as small as possible
+		// for better shadow map precision
+		// Matrix from light's point of view
+		glm::mat4 depthProjectionMatrix = glm::perspective(m_DirLight.lightFOV, 1.0f, m_DirLight.zNear, m_DirLight.zFar);
+		glm::mat4 depthViewMatrix = glm::lookAt(glm::vec3(m_DirLight.Direction), glm::vec3(0.0f), glm::vec3(0, 1, 0));
+		glm::mat4 depthModelMatrix = glm::mat4(1.0f);
+
+		m_DepthMVP = depthProjectionMatrix * depthViewMatrix * depthModelMatrix;
+	}
+
+	void RendererDrawList::SetDefaultState()
+	{
+		ResetDrawList();
+		m_DirLight = {};
+	}
+
+	void RendererDrawList::BeginSubmit(SceneViewProjection* sceneViewProj)
+	{
+		ResetDrawList();
+
+		m_SceneInfo = sceneViewProj;
+		m_SceneInfo->SkyBoxMatrix = glm::mat4(glm::mat3(sceneViewProj->View));
+		m_Frustum.Update(sceneViewProj->Projection * sceneViewProj->View);
+	}
+
+	void RendererDrawList::EndSubmit()
+	{
+		BuildDrawList();
+
+		if (m_DirLight.IsActive)
+			CalculateDepthMVP();
+	}
+
+	void RendererDrawList::SetViewProjection(SceneViewProjection* sceneViewProj)
+	{
+		m_SceneInfo = sceneViewProj;
+
+		m_Frustum.Update(m_SceneInfo->Projection * m_SceneInfo->View);
+		m_SceneInfo->SkyBoxMatrix = glm::mat4(glm::mat3(m_SceneInfo->View));
 	}
 }

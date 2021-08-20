@@ -10,6 +10,7 @@ using namespace Frostium;
 
 GraphicsContext*    context = nullptr;
 RendererStorage*    storage = nullptr;
+RendererDrawList*   drawList = nullptr;
 EditorCamera*       camera = nullptr;
 
 uint32_t            stoneMaterialID = 0;
@@ -146,6 +147,7 @@ int main(int argc, char** argv)
 	dirLight.IsCastShadows = false;
 
 	storage = new RendererStorage();
+	drawList = new RendererDrawList();
 	context = new GraphicsContext(&info);
 	context->SetEventCallback([&](Event& e){ if (e.IsType(EventType::WINDOW_CLOSE)) process = false;});
 	context->SetDebugLogCallback([&](const std::string&& msg, LogLevel level) { std::cout << msg << "\n"; });
@@ -188,17 +190,17 @@ int main(int argc, char** argv)
 			ImGui::End();
 
 			sceneViewProj.Update(camera);
-			storage->BeginSubmit(&sceneViewProj);
+			drawList->BeginSubmit(&sceneViewProj);
 			{
-				storage->SubmitDirLight(&dirLight);
-				storage->SubmitMesh({ 0, 3.9f, -3 }, glm::radians(glm::vec3(-90.0f, 0.0f, 0.0f)), { 1, 1, 1, }, &jetMesh, metalMaterialID, true, jet_animController);
-				storage->SubmitMesh({ 3, 2, 0 }, { 0, 0, 0 }, { 5, 5, 5, }, &characterMesh, metalMaterialID, true, character_animController);
+				drawList->SubmitDirLight(&dirLight);
+				drawList->SubmitMesh({ 0, 3.9f, -3 }, glm::radians(glm::vec3(-90.0f, 0.0f, 0.0f)), { 1, 1, 1, }, &jetMesh, metalMaterialID, true, jet_animController);
+				drawList->SubmitMesh({ 3, 2, 0 }, { 0, 0, 0 }, { 5, 5, 5, }, &characterMesh, metalMaterialID, true, character_animController);
 
-				storage->SubmitMesh({ -5, 0, 0 }, { 0, 0, 0 }, { 2, 2, 2, }, cubeMesh, stoneMaterialID);
+				drawList->SubmitMesh({ -5, 0, 0 }, { 0, 0, 0 }, { 2, 2, 2, }, cubeMesh, stoneMaterialID);
 			}
-			storage->EndSubmit();
+			drawList->EndSubmit();
 
-			RendererDeferred::DrawFrame(&clearInfo, storage);
+			RendererDeferred::DrawFrame(&clearInfo, storage, drawList);
 		}
 		context->SwapBuffers();
 	}

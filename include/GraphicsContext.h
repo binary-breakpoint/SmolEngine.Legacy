@@ -70,6 +70,7 @@ namespace Frostium
 		glm::mat4              SkyBoxMatrix = glm::mat4(1.0f);
 
 		friend struct RendererStorage;
+		friend struct RendererDrawList;
 	};
 
 	struct ClearInfo

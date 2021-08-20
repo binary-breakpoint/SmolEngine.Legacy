@@ -30,6 +30,6 @@ namespace Frostium
 		Ref<AnimationClip>                                            m_ActiveClip = nullptr;
 		std::unordered_map<std::string, Ref<AnimationClip>>           m_Clips;
 
-		friend struct RendererStorage;
+		friend struct RendererDrawList;
 	};
 }

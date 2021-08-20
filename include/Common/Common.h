@@ -62,8 +62,6 @@ namespace Frostium
 	struct RendererStorageBase
 	{
 		virtual void  Initilize() = 0;
-		virtual void  BeginSubmit(SceneViewProjection* sceneViewProj) = 0;
-		virtual void  EndSubmit() = 0;
 		virtual void  OnResize(uint32_t width, uint32_t height) {};
 	};
 

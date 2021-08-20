@@ -60,6 +60,7 @@ namespace Frostium
 
 	private:
 		friend struct RendererStorage;
+		friend struct RendererDrawList;
 		friend class Animator;
 		friend class GraphicsPipeline;
 	};
