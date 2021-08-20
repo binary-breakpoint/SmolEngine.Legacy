@@ -194,7 +194,7 @@ namespace Frostium
 		void                                        SubmitPointLight(PointLight* light);
 		void                                        SubmitSpotLight(SpotLight* light);
 
-		void                                        SetViewProjection(SceneViewProjection* sceneViewProj);
+		void                                        CalculateFrustum(SceneViewProjection* viewProj);
 		void                                        SetDefaultState();
 		Frustum&                                    GetFrustum();
 
@@ -282,20 +282,12 @@ namespace Frostium
 				            
 		Mesh                          m_PlaneMesh = {};
 		MaterialLibrary               m_MaterialLibrary{};
-		RendererStateEX               m_State{};
-		struct PushConstant
-		{
-			glm::mat4                 DepthMVP = glm::mat4(1.0f);
-			uint32_t                  DataOffset = 0;
-		};							
-									
-		ShadowMapSize                 m_MapSize = ShadowMapSize::SIZE_8;
-		glm::mat4                     m_GridModel{};
-		PushConstant                  m_MainPushConstant = {};
+		RendererStateEX               m_State{};						
+				
 		VulkanPBR*                    m_VulkanPBR = nullptr;
 		Ref<EnvironmentMap>           m_EnvironmentMap = nullptr;
-		// Sizes					
-		const size_t                  m_PushConstantSize = sizeof(PushConstant);
+		ShadowMapSize                 m_MapSize = ShadowMapSize::SIZE_8;
+		glm::mat4                     m_GridModel{};
 												    
 		friend class RendererDeferred;
 		friend class MaterialLibrary;

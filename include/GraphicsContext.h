@@ -51,6 +51,12 @@ namespace Frostium
 
 	struct SceneViewProjection
 	{
+		SceneViewProjection() = default;
+		SceneViewProjection(Camera* cam)
+		{
+			Update(cam);
+		}
+
 		void Update(Camera* cam)
 		{
 			View = cam->GetViewMatrix();
@@ -58,6 +64,7 @@ namespace Frostium
 			CamPos = glm::vec4(cam->GetPosition(), 1.0f);
 			NearClip = cam->GetNearClip();
 			FarClip = cam->GetFarClip();
+			SkyBoxMatrix = glm::mat4(glm::mat3(View));
 		}
 
 		glm::mat4              Projection = glm::mat4(1.0f);

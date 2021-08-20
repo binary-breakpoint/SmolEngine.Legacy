@@ -139,8 +139,7 @@ int main(int argc, char** argv)
 
 	bool process = true;
 	ClearInfo clearInfo = {};
-	SceneViewProjection sceneViewProj = {};
-	sceneViewProj.Update(camera);
+	SceneViewProjection viewProj = {};
 
 	DirectionalLight dirLight = {};
 	dirLight.IsActive = true;
@@ -189,8 +188,8 @@ int main(int argc, char** argv)
 			}
 			ImGui::End();
 
-			sceneViewProj.Update(camera);
-			drawList->BeginSubmit(&sceneViewProj);
+			viewProj.Update(camera);
+			drawList->BeginSubmit(&viewProj);
 			{
 				drawList->SubmitDirLight(&dirLight);
 				drawList->SubmitMesh({ 0, 3.9f, -3 }, glm::radians(glm::vec3(-90.0f, 0.0f, 0.0f)), { 1, 1, 1, }, &jetMesh, metalMaterialID, true, jet_animController);

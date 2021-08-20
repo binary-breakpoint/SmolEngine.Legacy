@@ -71,7 +71,14 @@ namespace Frostium
 
 	void RendererDeferred::UpdateCmdBuffer(RendererStorage* storage, RendererDrawList* drawList)
 	{
-		uint32_t cmdCount = static_cast<uint32_t>(drawList->m_UsedMeshes.size());
+		struct PushConstant
+		{
+			glm::mat4                 DepthMVP = glm::mat4(1.0f);
+			uint32_t                  DataOffset = 0;
+		};
+
+		PushConstant pushConstant;
+		uint32_t     cmdCount = static_cast<uint32_t>(drawList->m_UsedMeshes.size());
 
 		// Depth Pass
 		if (drawList->m_DirLight.IsActive && drawList->m_DirLight.IsCastShadows)
@@ -86,22 +93,15 @@ namespace Frostium
 				// Required to avoid shadow mapping artifacts
 				vkCmdSetDepthBias(cmdBuffer, 1.25f, 0.0f, 1.75f);
 #endif
-				struct PushConstant
-				{
-					glm::mat4 depthMVP;
-					uint32_t offset;
-
-				} static pc;
-
-				pc.depthMVP = storage->m_MainPushConstant.DepthMVP;
+				pushConstant.DepthMVP = drawList->m_DepthMVP;
 				for (uint32_t i = 0; i < cmdCount; ++i)
 				{
 					auto& cmd = drawList->m_DrawList[i];
-					pc.offset = cmd.Offset;
+					pushConstant.DataOffset = cmd.Offset;
 
-					storage->p_DepthPass.SubmitPushConstant(ShaderType::Vertex, sizeof(PushConstant), &pc);
+					storage->p_DepthPass.SubmitPushConstant(ShaderType::Vertex, sizeof(PushConstant), &pushConstant);
 					storage->p_DepthPass.DrawMeshIndexed(cmd.Mesh, cmd.InstancesCount);
-	}
+	            }
 			}
 			storage->p_DepthPass.EndRenderPass();
 		}
@@ -128,8 +128,8 @@ namespace Frostium
 			{
 				auto& cmd = drawList->m_DrawList[i];
 
-				storage->m_MainPushConstant.DataOffset = cmd.Offset;
-				storage->p_Gbuffer.SubmitPushConstant(ShaderType::Vertex, storage->m_PushConstantSize, &storage->m_MainPushConstant);
+				pushConstant.DataOffset = cmd.Offset;
+				storage->p_Gbuffer.SubmitPushConstant(ShaderType::Vertex, sizeof(PushConstant), &pushConstant);
 				storage->p_Gbuffer.DrawMeshIndexed(cmd.Mesh, cmd.InstancesCount);
 			}
 		}
@@ -153,15 +153,16 @@ namespace Frostium
 		{
 			storage->p_Lighting.BeginRenderPass();
 			{
-				struct push_constant
+				struct light_push_constant
 				{
 					uint32_t numPointLights;
 					uint32_t numSpotLights;
-				} pc;
+				};
 
-				pc.numPointLights = drawList->m_PointLightIndex;
-				pc.numSpotLights = drawList->m_SpotLightIndex;
-				storage->p_Lighting.SubmitPushConstant(ShaderType::Fragment, sizeof(push_constant), &pc);
+				light_push_constant light_pc;
+				light_pc.numPointLights = drawList->m_PointLightIndex;
+				light_pc.numSpotLights = drawList->m_SpotLightIndex;
+				storage->p_Lighting.SubmitPushConstant(ShaderType::Fragment, sizeof(light_push_constant), &light_pc);
 				storage->p_Lighting.Draw(3);
 			}
 			storage->p_Lighting.EndRenderPass();
@@ -185,23 +186,24 @@ namespace Frostium
 			{
 				storage->p_Combination.BeginRenderPass();
 				{
-					struct push_constant
+					// temp
+					struct comp_push_constant
 					{
 						uint32_t state;
 						uint32_t enabledFXAA;
 						uint32_t enabledMask;
 						float maskIntensity;
 						float maskBaseIntensity;
-					} pc;
+					};
 
-					// temp
-					pc.state = storage->m_State.Bloom.Enabled ? 1 : 0;
-					pc.enabledMask = false;
-					pc.enabledFXAA = storage->m_State.FXAA.Enabled;
-					pc.maskIntensity = 0.0f;
-					pc.maskBaseIntensity = 0.0f;
+					comp_push_constant comp_pc;
+					comp_pc.state = storage->m_State.Bloom.Enabled ? 1 : 0;
+					comp_pc.enabledMask = false;
+					comp_pc.enabledFXAA = storage->m_State.FXAA.Enabled;
+					comp_pc.maskIntensity = 0.0f;
+					comp_pc.maskBaseIntensity = 0.0f;
 
-					storage->p_Combination.SubmitPushConstant(ShaderType::Fragment, sizeof(push_constant), &pc);
+					storage->p_Combination.SubmitPushConstant(ShaderType::Fragment, sizeof(comp_push_constant), &comp_pc);
 					storage->p_Combination.Draw(3);
 				}
 				storage->p_Combination.EndRenderPass();
@@ -940,6 +942,9 @@ namespace Frostium
 	void RendererDrawList::SubmitDirLight(DirectionalLight* light)
 	{
 		m_DirLight = *light;
+
+		if(m_DirLight.IsActive && m_DirLight.IsCastShadows)
+			CalculateDepthMVP();
 	}
 
 	void RendererDrawList::SubmitPointLight(PointLight* light)
@@ -980,28 +985,20 @@ namespace Frostium
 		m_DirLight = {};
 	}
 
-	void RendererDrawList::BeginSubmit(SceneViewProjection* sceneViewProj)
+	void RendererDrawList::BeginSubmit(SceneViewProjection* viewProj)
 	{
 		ResetDrawList();
-
-		m_SceneInfo = sceneViewProj;
-		m_SceneInfo->SkyBoxMatrix = glm::mat4(glm::mat3(sceneViewProj->View));
-		m_Frustum.Update(sceneViewProj->Projection * sceneViewProj->View);
+		CalculateFrustum(viewProj);
 	}
 
 	void RendererDrawList::EndSubmit()
 	{
 		BuildDrawList();
-
-		if (m_DirLight.IsActive)
-			CalculateDepthMVP();
 	}
 
-	void RendererDrawList::SetViewProjection(SceneViewProjection* sceneViewProj)
+	void RendererDrawList::CalculateFrustum(SceneViewProjection* sceneViewProj)
 	{
 		m_SceneInfo = sceneViewProj;
-
 		m_Frustum.Update(m_SceneInfo->Projection * m_SceneInfo->View);
-		m_SceneInfo->SkyBoxMatrix = glm::mat4(glm::mat3(m_SceneInfo->View));
 	}
 }

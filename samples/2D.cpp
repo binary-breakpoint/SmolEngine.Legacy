@@ -43,6 +43,7 @@ int main(int argc, char** argv)
 
 	Renderer2DStorage* storage = new Renderer2DStorage();
 	storage->Initilize();
+	context->PushStorage(storage);
 
 	RendererDrawList2D* drawList = new RendererDrawList2D();
 
@@ -67,8 +68,7 @@ int main(int argc, char** argv)
 	ClearInfo clearInfo = {};
 	clearInfo.bClear = true;
 
-	SceneViewProjection sceneViewProj = {};
-	sceneViewProj.Update(camera);
+	SceneViewProjection viewProj;
 
 	while (process)
 	{
@@ -82,8 +82,9 @@ int main(int argc, char** argv)
 		   @Calculate physics, process script, etc
 		*/
 
-		sceneViewProj.Update(camera);
-		drawList->BeginSubmit(&sceneViewProj);
+		viewProj.Update(camera);
+
+		drawList->BeginSubmit(&viewProj);
 		drawList->SubmitSprite(glm::vec3(10, 0, 0), glm::vec3(10, 10, 0), { 0,0,0 }, 1, &texture2, false);
 		drawList->SubmitSprite(glm::vec3(0, 0, 0), glm::vec3(10, 10, 0), { 0,0,0 }, 0, &texture, false);
 		drawList->SubmitSprite(glm::vec3(20, 20, 0), glm::vec3(10, 10, 0), { 0,0, 0 }, 3, &texture2, false);

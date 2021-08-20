@@ -204,12 +204,10 @@ namespace Frostium
 		Textures[0] = GraphicsContext::GetSingleton()->GetWhiteTexture();
 	}
 
-	void RendererDrawList2D::BeginSubmit(SceneViewProjection* sceneViewProj)
+	void RendererDrawList2D::BeginSubmit(SceneViewProjection* viewProj)
 	{
 		ClearDrawList();
-
-		SceneInfo = sceneViewProj;
-		Frustum.Update(sceneViewProj->Projection * sceneViewProj->View);
+		CalculateFrustum(viewProj);
 	}
 
 	void RendererDrawList2D::EndSubmit()
@@ -281,7 +279,7 @@ namespace Frostium
 		return index;
 	}
 
-	void RendererDrawList2D::SetViewProjection(SceneViewProjection* sceneViewProj)
+	void RendererDrawList2D::CalculateFrustum(SceneViewProjection* sceneViewProj)
 	{
 		SceneInfo = sceneViewProj;
 		Frustum.Update(sceneViewProj->Projection * sceneViewProj->View);

@@ -8,13 +8,18 @@ using namespace SmolEngine;
 using namespace Frostium;
 #endif
 
+GraphicsContext*   context = nullptr;
+RendererDrawList*  drawList = nullptr;
+RendererStorage*   storage = nullptr;
+
 struct Chunk
 {
-	uint32_t   MaterialID = 0;
-	glm::vec3 Pos = glm::vec3(1.0f);
-	glm::vec3 Rot = glm::vec3(0.0f);
-	glm::vec3 Scale = glm::vec3(1.0f);
-} chunk = {};
+	uint32_t       MaterialID = 0;
+	glm::vec3      Pos = glm::vec3(1.0f);
+	glm::vec3      Rot = glm::vec3(0.0f);
+	glm::vec3      Scale = glm::vec3(1.0f);
+
+} chunk;
 
 void GenerateMap(std::vector<Chunk>& map, std::vector<uint32_t>& materialIDs)
 {
@@ -34,9 +39,24 @@ void GenerateMap(std::vector<Chunk>& map, std::vector<uint32_t>& materialIDs)
 	}
 }
 
+void CreateDrawList(SceneViewProjection* viewProj, std::vector<Chunk>& chunks, Mesh* cube)
+{
+	drawList->GetFrustum().SetRadius(1000.0f);
+
+	drawList->BeginSubmit(viewProj);
+	{
+		for (const auto& c : chunks)
+		{
+			drawList->SubmitMesh(c.Pos, c.Rot, c.Scale, cube, c.MaterialID);
+		}
+	}
+	drawList->EndSubmit();
+
+	chunks.clear();
+}
+
 int main(int argc, char** argv)
 {
-	GraphicsContext* context = nullptr;
 	WindowCreateInfo windoInfo = {};
 	{
 		windoInfo.bFullscreen = false;
@@ -54,43 +74,47 @@ int main(int argc, char** argv)
 
 	GraphicsContextInitInfo info = {};
 	{
-		info.Flags = Features_Renderer_3D_Flags | Features_ImGui_Flags;
 		info.eMSAASamples = MSAASamples::SAMPLE_COUNT_1;
 		info.ResourcesFolderPath = "../resources/";
 		info.pWindowCI = &windoInfo;
 		info.pDefaultCamera = camera;
 	}
 
-	context = new GraphicsContext(&info);
-
-	ClearInfo clearInfo = {};
-	auto cube = context->GetDefaultMeshes()->Cube;
 	bool process = true;
+	ClearInfo clearInfo = {};
 
-	context->SetEventCallback([&](Event& e) 
-	{
-		if(e.IsType(EventType::WINDOW_CLOSE))
-			process = false;
-	});
+	context = new GraphicsContext(&info);
+	context->SetDebugLogCallback([&](const std::string&& msg, LogLevel level) { std::cout << msg << "\n"; });
+	context->SetEventCallback([&](Event& e) { if (e.IsType(EventType::WINDOW_CLOSE)) { process = false; } });
+
+	storage = new RendererStorage();
+	storage->Initilize();
+	context->PushStorage(storage);
+
+	drawList = new RendererDrawList();
+
+	auto cube = context->GetDefaultMeshes()->Cube;
 
 	std::vector<uint32_t> materialIDs;
 	std::vector<Chunk> chunks;
 	LoadMaterials(materialIDs);
 	GenerateMap(chunks, materialIDs);
 
-
-	RendererStateEX& state = DeferredRenderer::GetState();
+	RendererStateEX& state = storage->GetState();
 	state.Bloom.Strength = 0.2f;
-	state.bBloom = true;
+	state.Bloom.Enabled = true;
 	state.bDrawGrid = false;
 
 	DynamicSkyProperties sky;
-	DeferredRenderer::SetDynamicSkyboxProperties(sky);
+	storage->SetDynamicSkybox(sky, camera->GetProjection(), true);
 
 	DirectionalLight dirLight = {};
 	dirLight.IsActive = true;
 	dirLight.Direction = glm::vec4(105.0f, 53.0f, 102.0f, 0);
-	DeferredRenderer::SubmitDirLight(&dirLight);
+	drawList->SubmitDirLight(&dirLight);
+
+	SceneViewProjection viewProj = SceneViewProjection(camera);
+	CreateDrawList(&viewProj, chunks, cube.get());
 
 	while (process)
 	{
@@ -100,62 +124,33 @@ int main(int argc, char** argv)
 		if (context->IsWindowMinimized())
 			continue;
 
-		if (Input::IsMouseButtonPressed(MouseCode::ButtonRight))
-		{
-			float rayDistance = 50.0f;
-			float y = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 6));
-
-			glm::vec3 startPos = context->GetDefaultCamera()->GetPosition();
-			glm::mat4 viewProj = context->GetDefaultCamera()->GetViewProjection();
-
-			{
-				glm::vec3 pos = Utils::CastRay(startPos, rayDistance, viewProj);
-
-				chunk.Pos = pos;
-				chunk.Rot = { 0, 0, 0 };
-				chunk.Scale = { 0.5, y, 0.5 };
-				chunks.emplace_back(chunk);
-			}
-		}
-
 		/* 
 		   @Calculate physics, process script, etc
 		*/
 
-		context->UpdateViewProjection(camera);
+		viewProj.Update(camera);
+
 		context->BeginFrame(deltaTime);
 		{
-			uint32_t objects = 0;
-			DeferredRenderer::BeginScene(&clearInfo);
-			{
-				for (const auto& c : chunks)
-					DeferredRenderer::SubmitMesh(c.Pos, c.Rot, c.Scale, cube.get(), c.MaterialID);
-
-				objects = DeferredRenderer::GetNumObjects();
-			}
-			DeferredRenderer::EndScene();
-
 			ImGui::Begin("PBR Sample");
 			{
 				std::string str = "DeltaTime: " + std::to_string(deltaTime);
-				std::string str2 = "Objects: " + std::to_string(objects);
-
 				if (ImGui::DragFloat3("LightDir", glm::value_ptr(dirLight.Direction)))
-					DeferredRenderer::SubmitDirLight(&dirLight);
+					drawList->SubmitDirLight(&dirLight);
 
 				ImGui::Text(str.c_str());
-				ImGui::Text(str2.c_str());
 			}
 			ImGui::End();
+
+			RendererDeferred::DrawFrame(&clearInfo, storage, drawList);
 		}
 		context->SwapBuffers();
-
 	}
 }
 
 void LoadMaterials(std::vector<uint32_t>& materialsIDs)
 {
-	MaterialLibrary* lib = MaterialLibrary::GetSinglenton();
+	MaterialLibrary* lib = &storage->GetMaterialLibrary();
 
 	std::string albedroPath = "";
 	std::string normalPath = "";
@@ -169,7 +164,7 @@ void LoadMaterials(std::vector<uint32_t>& materialsIDs)
 	// Wood
 	{
 		textureCI.FilePath = "Assets/materials/wood/WoodFloor041_1K_Color.png";
-		materialCI.SetTexture(MaterialTexture::Albedro, &textureCI);
+		materialCI.SetTexture(MaterialTexture::Albedo, &textureCI);
 
 		textureCI.FilePath = "Assets/materials/wood/WoodFloor041_1K_Normal.png";
 		materialCI.SetTexture(MaterialTexture::Normal, &textureCI);
@@ -190,7 +185,7 @@ void LoadMaterials(std::vector<uint32_t>& materialsIDs)
 		materialCI = {};
 
 		textureCI.FilePath  = "Assets/materials/stone/Tiles087_1K_Color.png";
-		materialCI.SetTexture(MaterialTexture::Albedro, &textureCI);
+		materialCI.SetTexture(MaterialTexture::Albedo, &textureCI);
 
 		textureCI.FilePath = normalPath = "Assets/materials/stone/Tiles087_1K_Normal.png";
 		materialCI.SetTexture(MaterialTexture::Normal, &textureCI);
@@ -211,7 +206,7 @@ void LoadMaterials(std::vector<uint32_t>& materialsIDs)
 		materialCI = {};
 
 		textureCI.FilePath  = "Assets/materials/metal_1/Metal033_1K_Color.png";
-		materialCI.SetTexture(MaterialTexture::Albedro, &textureCI);
+		materialCI.SetTexture(MaterialTexture::Albedo, &textureCI);
 
 		textureCI.FilePath =  "Assets/materials/metal_1/Metal033_1K_Normal.png";
 		materialCI.SetTexture(MaterialTexture::Normal, &textureCI);
@@ -231,7 +226,7 @@ void LoadMaterials(std::vector<uint32_t>& materialsIDs)
 		materialCI = {};
 
 		textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Color.png";
-		materialCI.SetTexture(MaterialTexture::Albedro, &textureCI);
+		materialCI.SetTexture(MaterialTexture::Albedo, &textureCI);
 
 		textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Normal.png";
 		materialCI.SetTexture(MaterialTexture::Normal, &textureCI);
@@ -247,5 +242,5 @@ void LoadMaterials(std::vector<uint32_t>& materialsIDs)
 	}
 
 	// Don't forget update materials
-	DeferredRenderer::UpdateMaterials();
+	storage->OnUpdateMaterials();
 }

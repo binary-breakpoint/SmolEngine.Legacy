@@ -61,7 +61,7 @@ namespace Frostium
 	{
 		RendererDrawList2D();
 
-		void                      BeginSubmit(SceneViewProjection* sceneViewProj);
+		void                      BeginSubmit(SceneViewProjection* viewProj);
 		void                      EndSubmit();
 
 		void                      SubmitSprite(const glm::vec3& worldPos, const glm::vec3& scale, const glm::vec3& rotation, uint32_t layerIndex, Texture* texture,  bool frustumCulling = true, const glm::vec4& color = glm::vec4(1.0f));
@@ -69,7 +69,7 @@ namespace Frostium
 		void                      SubmitLight2D(const glm::vec3& worldPos, const glm::vec4& color, float radius, float lightIntensity, bool frustumCulling = true);
 		void                      SubmitText(Text* text);
 
-		void                      SetViewProjection(SceneViewProjection* sceneViewProj);
+		void                      CalculateFrustum(SceneViewProjection* viewProj);
 		Frustum&                  GetFrustum();
 
 	private:
