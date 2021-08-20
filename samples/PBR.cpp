@@ -101,7 +101,7 @@ int main(int argc, char** argv)
 	GenerateMap(chunks, materialIDs);
 
 	RendererStateEX& state = storage->GetState();
-	state.Bloom.Strength = 0.2f;
+	state.Bloom.Strength = 0.1f;
 	state.Bloom.Enabled = true;
 	state.bDrawGrid = false;
 
@@ -125,7 +125,7 @@ int main(int argc, char** argv)
 			continue;
 
 		/* 
-		   @Calculate physics, process script, etc
+		    Calculates physics, update scripts, etc.
 		*/
 
 		viewProj.Update(camera);
@@ -134,11 +134,7 @@ int main(int argc, char** argv)
 		{
 			ImGui::Begin("PBR Sample");
 			{
-				std::string str = "DeltaTime: " + std::to_string(deltaTime);
-				if (ImGui::DragFloat3("LightDir", glm::value_ptr(dirLight.Direction)))
-					drawList->SubmitDirLight(&dirLight);
-
-				ImGui::Text(str.c_str());
+				ImGui::Text("Some Text");
 			}
 			ImGui::End();
 

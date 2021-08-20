@@ -1,7 +1,6 @@
 Screenshots
 =====
 ![Sponza](https://i.imgur.com/2hoI5Wt.png)
-![PBR](https://i.imgur.com/Pzsbolf.png)
 ## Core Features
   - Multiple rendering API backends (Vulkan - 100%, OpenGL - 80%)
   - Own abstraction layer on top of OpenGL/Vulkan API
@@ -41,17 +40,16 @@ using namespace Frostium;
 
 int main(int argc, char** argv)
 {
-	GraphicsContext* context = nullptr;
-	WindowCreateInfo windowCI = {};
+	WindowCreateInfo windoInfo = {};
 	{
-		windowCI.bFullscreen = false;
-		windowCI.bVSync = false;
-		windowCI.Height = 480;
-		windowCI.Width = 720;
-		windowCI.Title = "Frostium Example";
+		windoInfo.bFullscreen = false;
+		windoInfo.bVSync = false;
+		windoInfo.Height = 480;
+		windoInfo.Width = 720;
+		windoInfo.Title = "Frostium PBR";
 	}
 
-	Camera* camera = nullptr; // default camera
+	Camera* camera = nullptr;
 	{
 		EditorCameraCreateInfo cameraCI = {};
 		camera = new EditorCamera(&cameraCI);
@@ -59,32 +57,48 @@ int main(int argc, char** argv)
 
 	GraphicsContextInitInfo info = {};
 	{
-		info.Flags = Features_Renderer_3D_Flags | Features_ImGui_Flags;
-		info.eShadowMapSize = ShadowMapSize::SIZE_8;
+		info.eMSAASamples = MSAASamples::SAMPLE_COUNT_1;
 		info.ResourcesFolderPath = "../resources/";
 		info.pWindowCI = &windoInfo;
 		info.pDefaultCamera = camera;
 	}
 
-	context = new GraphicsContext(&info);
+	bool process = true;
+	GraphicsContext* context = new GraphicsContext(&info);
+	context->SetDebugLogCallback([&](const std::string&& msg, LogLevel level) { std::cout << msg << "\n"; });
+	context->SetEventCallback([&](Event& e) { if (e.IsType(EventType::WINDOW_CLOSE)) { process = false; } });
+
+	RendererStorage* storage = new RendererStorage();
+	storage->Initilize();
+	context->PushStorage(storage);
+
+	RendererDrawList* drawList = new RendererDrawList();
+	SceneViewProjection viewProj = SceneViewProjection(camera);
+	ClearInfo clearInfo;
 }
 ```
-Once graphics context is initialized, set event callback:
+The next step is to create a draw list. Since this example uses static objects, there is no need to update them every frame:
 ```cpp
-	bool process = true;
-	context->SetEventCallback([&](Event& e)
-	{
-		if(e.IsType(EventType::WINDOW_CLOSE))
-			process = false;
-	});
-```
-And finally load resources and run main update loop:
-```cpp
-
-	ClearInfo clearInfo = {};
 	Mesh cube = {};
 	Mesh::Create("Assets/cube.gltf", &cube);
-  
+	
+	drawList->GetFrustum().SetRadius(1000.0f);
+	drawList->BeginSubmit(viewProj);
+	{
+		for (const auto& c : chunks)
+		{
+		    drawList->SubmitMesh(c.Pos, c.Rot, c.Scale, &cube, c.MaterialID);
+		}
+	}
+	drawList->EndSubmit();
+```
+And finally run main update loop:
+```cpp
+	DirectionalLight dirLight = {};
+	dirLight.IsActive = true;
+	dirLight.Direction = glm::vec4(105.0f, 53.0f, 102.0f, 0);
+	drawList->SubmitDirLight(&dirLight);
+
 	while (process)
 	{
 		context->ProcessEvents();
@@ -94,35 +108,25 @@ And finally load resources and run main update loop:
 			continue;
 
 		/* 
-		   @Calculate physics, process script, etc
+		   Calculates physics, update scripts, etc.
 		*/
 
-		context->UpdateViewProjection(camera);
+		viewProj.Update(camera);
+
 		context->BeginFrame(deltaTime);
 		{
-			uint32_t objects = 0;
-			DeferredRenderer::BeginScene(&clearInfo);
+			ImGui::Begin("PBR Sample");
 			{
-				for (const auto& c : chunks)
-					DeferredRenderer::SubmitMesh(c.Pos, c.Rot, c.Scale, &cube, c.MaterialID);
-					
-				objects = DeferredRenderer::GetNumObjects();
-			}
-			DeferredRenderer::EndScene();
-			
-			ImGui::Begin("Debug Window");
-			{
-				std::string str = "DeltaTime: " + std::to_string(deltaTime);
-				std::string str2 = "Objects: " + std::to_string(objects);
-				ImGui::Text(str.c_str());
-				ImGui::Text(str2.c_str());
+			    ImGui::Text("Some Text");
 			}
 			ImGui::End();
+
+			RendererDeferred::DrawFrame(&clearInfo, storage, drawList);
 		}
 		context->SwapBuffers();
 	}
 ```
-![result](https://i.imgur.com/EOYtgZ2.png)
+![result](https://i.imgur.com/jz2yysp.png)
 
 More samples can be found [here.](https://github.com/YellowDummy/Frostium3D/tree/main/samples)
 

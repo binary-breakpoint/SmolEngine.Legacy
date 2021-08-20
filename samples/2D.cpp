@@ -79,7 +79,7 @@ int main(int argc, char** argv)
 			continue;
 
 		/* 
-		   @Calculate physics, process script, etc
+		    Calculates physics, update scripts, etc.
 		*/
 
 		viewProj.Update(camera);
