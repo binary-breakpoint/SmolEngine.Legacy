@@ -41,7 +41,7 @@ namespace Frostium
 		float          lightFOV = 45.0f;
 		bool           IsActive = false;
 		GLSL_BOOLPAD   Pad1;
-		bool           IsCastShadows = true;
+		bool           IsCastShadows = false;
 		GLSL_BOOLPAD   Pad2;
 		bool           IsUseSoftShadows = true;
 		GLSL_BOOLPAD   Pad3;

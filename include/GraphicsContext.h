@@ -72,7 +72,6 @@ namespace Frostium
 		glm::vec4              CamPos = glm::vec4(1.0f);
 		float                  NearClip = 0.0f;
 		float                  FarClip = 0.0f;
-	private:
 		glm::vec2              Pad1;
 		glm::mat4              SkyBoxMatrix = glm::mat4(1.0f);
 
