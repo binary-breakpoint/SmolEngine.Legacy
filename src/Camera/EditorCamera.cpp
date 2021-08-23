@@ -53,6 +53,21 @@ namespace Frostium
 		}
 	}
 
+	void EditorCamera::OnEvent(Event& e)
+	{
+		if (e.IsType(EventType::MOUSE_SCROLL))
+		{
+			MouseScrollEvent* scroll = e.Cast<MouseScrollEvent>();
+			OnMouseScroll(scroll->GetXoffset(), scroll->GetYoffset());
+		}
+
+		if (e.IsType(EventType::WINDOW_RESIZE))
+		{
+			WindowResizeEvent* resize = e.Cast<WindowResizeEvent>();
+			OnResize(resize->GetWidth(), resize->GetHeight());
+		}
+	}
+
 	void EditorCamera::OnUpdate(float delta)
 	{
 		float speed = m_Speed;
@@ -116,21 +131,6 @@ namespace Frostium
 		}
 		}
 		
-	}
-
-	void EditorCamera::OnEvent(Event& e)
-	{
-		if (e.IsType(EventType::MOUSE_SCROLL))
-		{
-			MouseScrollEvent* scroll = e.Cast<MouseScrollEvent>();
-			OnMouseScroll(scroll->GetXoffset(), scroll->GetYoffset());
-		}
-
-		if (e.IsType(EventType::WINDOW_RESIZE))
-		{
-			WindowResizeEvent* resize = e.Cast<WindowResizeEvent>();
-			OnResize(resize->GetWidth(), resize->GetHeight());
-		}
 	}
 
 	void EditorCamera::OnResize(uint32_t width, uint32_t height)

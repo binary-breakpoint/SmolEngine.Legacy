@@ -34,10 +34,11 @@ namespace Frostium
 		EditorCamera(EditorCameraCreateInfo* createInfo = nullptr);
 
 		// Evenst
-		void OnUpdate(float delta) override;
-		void OnEvent(Event& event) override;
-		void OnResize(uint32_t width, uint32_t height) override;
 		void OnMouseScroll(float x, float y);
+
+		void OnEvent(Event& event) override;
+		void OnUpdate(float delta) override;
+		void OnResize(uint32_t width, uint32_t height) override;
 
 		// Setters
 		void SetDistance(float distance) { m_Distance = distance; }

@@ -60,13 +60,12 @@ int main(int argc, char** argv)
 		info.eMSAASamples = MSAASamples::SAMPLE_COUNT_1;
 		info.ResourcesFolderPath = "../resources/";
 		info.pWindowCI = &windoInfo;
-		info.pDefaultCamera = camera;
 	}
 
 	bool process = true;
 	GraphicsContext* context = new GraphicsContext(&info);
 	context->SetDebugLogCallback([&](const std::string&& msg, LogLevel level) { std::cout << msg << "\n"; });
-	context->SetEventCallback([&](Event& e) { if (e.IsType(EventType::WINDOW_CLOSE)) { process = false; } });
+	context->SetEventCallback([&](Event& e) { if (e.IsType(EventType::WINDOW_CLOSE)) { process = false; } camera->OnEvent(e); });
 
 	RendererStorage* storage = new RendererStorage();
 	storage->Initilize();
@@ -111,6 +110,7 @@ And finally run main update loop:
 		   Calculates physics, update scripts, etc.
 		*/
 
+		camera->OnUpdate(deltaTime);
 		viewProj.Update(camera);
 
 		context->BeginFrame(deltaTime);

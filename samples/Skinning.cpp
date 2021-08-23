@@ -132,7 +132,6 @@ int main(int argc, char** argv)
 	{
 		info.ResourcesFolderPath = "../resources/";
 		info.pWindowCI = &windoInfo;
-		info.pDefaultCamera = camera;
 		info.eMSAASamples = MSAASamples::SAMPLE_COUNT_4;
 		info.bVsync = true;
 	}
@@ -148,7 +147,7 @@ int main(int argc, char** argv)
 	storage = new RendererStorage();
 	drawList = new RendererDrawList();
 	context = new GraphicsContext(&info);
-	context->SetEventCallback([&](Event& e){ if (e.IsType(EventType::WINDOW_CLOSE)) process = false;});
+	context->SetEventCallback([&](Event& e) { if (e.IsType(EventType::WINDOW_CLOSE)) process = false; camera->OnEvent(e); });
 	context->SetDebugLogCallback([&](const std::string&& msg, LogLevel level) { std::cout << msg << "\n"; });
 
 	storage->Initilize();
@@ -188,7 +187,9 @@ int main(int argc, char** argv)
 			}
 			ImGui::End();
 
+			camera->OnUpdate(deltaTime);
 			viewProj.Update(camera);
+
 			drawList->BeginSubmit(&viewProj);
 			{
 				drawList->SubmitDirLight(&dirLight);

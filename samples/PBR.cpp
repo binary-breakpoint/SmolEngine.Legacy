@@ -77,7 +77,6 @@ int main(int argc, char** argv)
 		info.eMSAASamples = MSAASamples::SAMPLE_COUNT_1;
 		info.ResourcesFolderPath = "../resources/";
 		info.pWindowCI = &windoInfo;
-		info.pDefaultCamera = camera;
 	}
 
 	bool process = true;
@@ -85,7 +84,7 @@ int main(int argc, char** argv)
 
 	context = new GraphicsContext(&info);
 	context->SetDebugLogCallback([&](const std::string&& msg, LogLevel level) { std::cout << msg << "\n"; });
-	context->SetEventCallback([&](Event& e) { if (e.IsType(EventType::WINDOW_CLOSE)) { process = false; } });
+	context->SetEventCallback([&](Event& e) { if (e.IsType(EventType::WINDOW_CLOSE)) { process = false; }  camera->OnEvent(e); });
 
 	storage = new RendererStorage();
 	storage->Initilize();
@@ -128,6 +127,7 @@ int main(int argc, char** argv)
 		    Calculates physics, update scripts, etc.
 		*/
 
+		camera->OnUpdate(deltaTime);
 		viewProj.Update(camera);
 
 		context->BeginFrame(deltaTime);

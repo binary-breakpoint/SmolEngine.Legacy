@@ -44,7 +44,6 @@ namespace Frostium
 		bool                          bVsync = true;
 		FeaturesFlags                 eFeaturesFlags = FeaturesFlags::Imgui | FeaturesFlags::RendererDebug;
 		MSAASamples                   eMSAASamples = MSAASamples::SAMPLE_COUNT_1;
-		Camera*                       pDefaultCamera = nullptr;
 		WindowCreateInfo*             pWindowCI = nullptr;
 		std::string                   ResourcesFolderPath = "../resources/";
 	};
@@ -132,10 +131,10 @@ namespace Frostium
 		static GraphicsContext*           s_Instance;
 		Texture*                          m_DummyTexure = nullptr;
 		CubeMap*                          m_DummyCubeMap = nullptr;
-		Camera*                           m_DefaultCamera = nullptr;
 		MaterialLibrary*                  m_MaterialLibrary = nullptr;
 		Framebuffer*                      m_Framebuffer = nullptr;
 		Window*                           m_Window = nullptr;
+		DebugLog*                         m_Log = nullptr;
 		DefaultMeshes*                    m_DefaultMeshes = nullptr;
 		ImGuiContext*                     m_ImGuiContext = nullptr;
 		JobsSystemInstance*               m_JobsSystem = nullptr;

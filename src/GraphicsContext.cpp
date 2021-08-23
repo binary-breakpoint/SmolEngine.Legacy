@@ -23,16 +23,12 @@ namespace Frostium
 
 	GraphicsContext::GraphicsContext(GraphicsContextInitInfo* info)
 	{
-		if (!info->pWindowCI)
-			return;
-
 		s_Instance = this;
 		m_CreateInfo = *info;
 		m_ResourcesFolderPath = info->ResourcesFolderPath;
-		m_DefaultCamera = info->pDefaultCamera;
 		m_EventHandler.OnEventFn = std::bind(&GraphicsContext::OnEvent, this, std::placeholders::_1);
 
-		DebugLog* log = new DebugLog();
+		m_Log = new DebugLog();
 		// Creates GLFW window
 		m_Window = new Window();
 		m_Window->Init(info->pWindowCI, &m_EventHandler);
@@ -115,10 +111,6 @@ namespace Frostium
 	void GraphicsContext::BeginFrame(float time)
 	{
 		m_DeltaTime = time;
-
-		if (m_DefaultCamera != nullptr)
-			m_DefaultCamera->OnUpdate(m_DeltaTime);
-
 #ifdef  FROSTIUM_OPENGL_IMPL
 #else
 		m_VulkanContext.BeginFrame();
@@ -158,7 +150,7 @@ namespace Frostium
 
 	void GraphicsContext::SetDebugLogCallback(const std::function<void(const std::string&&, LogLevel)>& callback)
 	{
-		DebugLog::s_Instance->SetCallback(callback);
+		m_Log->SetCallback(callback);
 	}
 
 	void GraphicsContext::SetFramebufferSize(uint32_t width, uint32_t height)
@@ -260,9 +252,6 @@ namespace Frostium
 	{
 		if ((m_CreateInfo.eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
 			m_ImGuiContext->OnEvent(e);
-
-		if (m_DefaultCamera != nullptr)
-			m_DefaultCamera->OnEvent(e);
 
 		if (e.IsType(EventType::WINDOW_RESIZE))
 		{
