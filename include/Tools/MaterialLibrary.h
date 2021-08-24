@@ -83,7 +83,6 @@ namespace Frostium
 		TextureCreateInfo  RoughnessTex = {};
 		TextureCreateInfo  AOTex = {};
 		TextureCreateInfo  EmissiveTex = {};
-		TextureCreateInfo  DisplacementTex = {};
 		glm::vec3          AlbedroColor = glm::vec3(1.0f);
 
 	private:
@@ -94,7 +93,7 @@ namespace Frostium
 		void serialize(Archive& archive)
 		{
 			archive(Metallness, Roughness, EmissionStrength, AlbedroTex, NormalTex, MetallnessTex, RoughnessTex, AOTex,
-				EmissiveTex, DisplacementTex, AlbedroColor.r, AlbedroColor.g, AlbedroColor.b);
+				EmissiveTex, AlbedroColor.r, AlbedroColor.g, AlbedroColor.b);
 		}
 	};
 
