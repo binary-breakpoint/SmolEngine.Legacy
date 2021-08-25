@@ -28,7 +28,6 @@ namespace Frostium
 		m_ResourcesFolderPath = info->ResourcesFolderPath;
 		m_EventHandler.OnEventFn = std::bind(&GraphicsContext::OnEvent, this, std::placeholders::_1);
 
-		m_Log = new DebugLog();
 		// Creates GLFW window
 		m_Window = new Window();
 		m_Window->Init(info->pWindowCI, &m_EventHandler);
@@ -146,11 +145,6 @@ namespace Frostium
 	void GraphicsContext::SetEventCallback(std::function<void(Event&)> callback)
 	{
 		m_EventCallback = callback;
-	}
-
-	void GraphicsContext::SetDebugLogCallback(const std::function<void(const std::string&&, LogLevel)>& callback)
-	{
-		m_Log->SetCallback(callback);
 	}
 
 	void GraphicsContext::SetFramebufferSize(uint32_t width, uint32_t height)

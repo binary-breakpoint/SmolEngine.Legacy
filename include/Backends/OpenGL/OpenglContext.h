@@ -13,6 +13,7 @@ namespace Frostium
 	public:
 
 		void Setup(GLFWwindow* window);
+		void LoadGL();
 		void SwapBuffers();
 
 		// Getters
@@ -23,6 +24,4 @@ namespace Frostium
 		GLFWwindow* m_Window = nullptr;
 	};
 }
-
-
 #endif

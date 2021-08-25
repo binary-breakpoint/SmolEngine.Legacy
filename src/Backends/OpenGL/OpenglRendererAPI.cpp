@@ -1,11 +1,6 @@
 #include "stdafx.h"
 #ifdef FROSTIUM_OPENGL_IMPL
-#include "OpenGL/OpenglRendererAPI.h"
-
-#include "Common/SLog.h"
-#include "Common/VertexArray.h"
-#include "Common/VertexBuffer.h"
-#include "Common/IndexBuffer.h"
+#include "Backends/OpenGL/OpenglRendererAPI.h"
 
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>

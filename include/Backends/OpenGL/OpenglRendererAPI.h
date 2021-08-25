@@ -1,6 +1,7 @@
 #pragma once
 #ifdef FROSTIUM_OPENGL_IMPL
-#include "Common/Core.h"
+#include "Common/Common.h"
+#include "Primitives/VertexArray.h"
 
 #include <glm/glm.hpp>
 
@@ -10,9 +11,6 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
-	class OrthographicCamera;
-	class VertexArray;
-
 	class OpenglRendererAPI
 	{
 	public:

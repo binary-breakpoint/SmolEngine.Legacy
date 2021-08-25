@@ -115,7 +115,6 @@ namespace Frostium
 		JobsSystemInstance*               GetJobsSystemInstance();
 		// Setters				          
 		void                              SetEventCallback(std::function<void(Event&)> callback);
-		void                              SetDebugLogCallback(const std::function<void(const std::string&&, LogLevel)>& callback);
 		void                              SetFramebufferSize(uint32_t width, uint32_t height);
 									      
 		float                             CalculateDeltaTime();
@@ -134,7 +133,6 @@ namespace Frostium
 		MaterialLibrary*                  m_MaterialLibrary = nullptr;
 		Framebuffer*                      m_Framebuffer = nullptr;
 		Window*                           m_Window = nullptr;
-		DebugLog*                         m_Log = nullptr;
 		DefaultMeshes*                    m_DefaultMeshes = nullptr;
 		ImGuiContext*                     m_ImGuiContext = nullptr;
 		JobsSystemInstance*               m_JobsSystem = nullptr;

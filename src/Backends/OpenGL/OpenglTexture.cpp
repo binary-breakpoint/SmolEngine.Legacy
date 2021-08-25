@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #ifdef FROSTIUM_OPENGL_IMPL
-#include "OpenGL/OpenglTexture.h"
-#include "Common/SLog.h"
+#include "Backends/OpenGL/OpenglTexture.h"
 
 #include <glad/glad.h>
 #include <stb_image.h>

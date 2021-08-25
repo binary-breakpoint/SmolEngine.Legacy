@@ -26,10 +26,8 @@ namespace Frostium
 	class DebugLog
 	{
 	public:
-		DebugLog();
+		DebugLog(const std::function<void(const std::string&&, LogLevel)>& callback);
 	   ~DebugLog();
-
-		void SetCallback(const std::function<void(const std::string&&, LogLevel)>& callback);
 
 		template<typename FormatString, typename... Args>
 		static void LogError(FormatString&& fmt, Args&& ...args)
@@ -52,13 +50,16 @@ namespace Frostium
 		template<typename FormatString, typename... Args>
 		static void Log(LogLevel level, FormatString&& fmt, Args&& ...args)
 		{
-			auto& callback = DebugLog::s_Instance->m_Callback;
-			if (callback != nullptr)
+			if (s_Instance != nullptr)
 			{
-				spdlog::memory_buf_t buf;
-				fmt::format_to(buf, fmt, args...);
-				auto result = std::string(buf.data(), buf.size());
-				callback(std::forward<std::string>(result), level);
+				auto& callback = s_Instance->m_Callback;
+				if (callback != nullptr)
+				{
+					spdlog::memory_buf_t buf;
+					fmt::format_to(buf, fmt, args...);
+					auto result = std::string(buf.data(), buf.size());
+					callback(std::forward<std::string>(result), level);
+				}
 			}
 		}
 

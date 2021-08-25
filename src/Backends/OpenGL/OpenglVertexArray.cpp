@@ -1,10 +1,9 @@
 #include "stdafx.h"
 #ifdef FROSTIUM_OPENGL_IMPL
-#include "OpenGL/OpenglVertexArray.h"
+#include "Backends/OpenGL/OpenglVertexArray.h"
 
-#include "Common/VertexArray.h"
-#include "Common/VertexBuffer.h"
-#include "Common/IndexBuffer.h"
+#include "Primitives/VertexBuffer.h"
+#include "Primitives/IndexBuffer.h"
 
 #include <glad/glad.h>
 
@@ -69,6 +68,7 @@ namespace Frostium
 		glBindVertexArray(m_RendererID);  
 		vertexBuffer->Bind();
 
+#if 0
 		uint32_t index = 0;
 		for (const auto& element : vertexBuffer->GetLayout())
 		{
@@ -82,6 +82,7 @@ namespace Frostium
 		}
 
 		m_VertexBuffers.push_back(vertexBuffer);
+#endif
 	}						
 
 	void OpenglVertexArray::SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer)

@@ -705,6 +705,10 @@ IF EXIST include\ (xcopy /Q /E /Y /I include ..\SmolEngine\smolengine\include\Li
     <ClInclude Include="include\External\imgui\misc\single_file\imgui_single_file.h" />
     <ClInclude Include="include\External\implot\implot.h" />
     <ClInclude Include="include\External\implot\implot_internal.h" />
+    <ClInclude Include="include\External\nuklear\nuklear.h" />
+    <ClInclude Include="include\External\nuklear\nuklear_internal.h" />
+    <ClInclude Include="include\External\nuklear\stb_rect_pack.h" />
+    <ClInclude Include="include\External\nuklear\stb_truetype.h" />
     <ClInclude Include="include\External\spdlog\bench\utils.h" />
     <ClInclude Include="include\External\spdlog\include\spdlog\async.h" />
     <ClInclude Include="include\External\spdlog\include\spdlog\async_logger-inl.h" />
@@ -861,9 +865,9 @@ IF EXIST include\ (xcopy /Q /E /Y /I include ..\SmolEngine\smolengine\include\Li
     <ClInclude Include="include\Primitives\VertexBuffer.h" />
     <ClInclude Include="include\Raytracing\RayTracer.h" />
     <ClInclude Include="include\Raytracing\RaytracingPipeline.h" />
+    <ClInclude Include="include\Renderer\Renderer2D.h" />
     <ClInclude Include="include\Renderer\RendererDebug.h" />
     <ClInclude Include="include\Renderer\RendererDeferred.h" />
-    <ClInclude Include="include\Renderer\Renderer2D.h" />
     <ClInclude Include="include\Tools\DefaultMeshes.h" />
     <ClInclude Include="include\Tools\GLM.h" />
     <ClInclude Include="include\Tools\MaterialLibrary.h" />
@@ -932,9 +936,9 @@ IF EXIST include\ (xcopy /Q /E /Y /I include ..\SmolEngine\smolengine\include\Li
     <ClCompile Include="src\Primitives\VertexBuffer.cpp" />
     <ClCompile Include="src\Raytracing\RayTracer.cpp" />
     <ClCompile Include="src\Raytracing\RaytracingPipeline.cpp" />
+    <ClCompile Include="src\Renderer\Renderer2D.cpp" />
     <ClCompile Include="src\Renderer\RendererDebug.cpp" />
     <ClCompile Include="src\Renderer\RendererDeferred.cpp" />
-    <ClCompile Include="src\Renderer\Renderer2D.cpp" />
     <ClCompile Include="src\Tools\DefaultMeshes.cpp" />
     <ClCompile Include="src\Tools\MaterialLibrary.cpp" />
     <ClCompile Include="src\Tools\Utils.cpp" />

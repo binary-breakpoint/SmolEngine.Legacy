@@ -82,8 +82,8 @@ int main(int argc, char** argv)
 	bool process = true;
 	ClearInfo clearInfo = {};
 
+	DebugLog* log = new DebugLog([&](const std::string&& msg, LogLevel level) { std::cout << msg << "\n"; });
 	context = new GraphicsContext(&info);
-	context->SetDebugLogCallback([&](const std::string&& msg, LogLevel level) { std::cout << msg << "\n"; });
 	context->SetEventCallback([&](Event& e) { if (e.IsType(EventType::WINDOW_CLOSE)) { process = false; }  camera->OnEvent(e); });
 
 	storage = new RendererStorage();

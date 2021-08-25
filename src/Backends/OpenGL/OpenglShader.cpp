@@ -1,11 +1,7 @@
 #include "stdafx.h"
-#ifdef FROSTIUM_OPENGL_IMPL
-#include "OpenGL/OpenglShader.h"
 
-#include "Common/SLog.h"
-#include "Common/VertexArray.h"
-#include "Common/VertexBuffer.h"
-#include "Common/IndexBuffer.h"
+#ifdef FROSTIUM_OPENGL_IMPL
+#include "Backends/OpenGL/OpenglShader.h"
 
 #include <fstream>
 #include <glad/glad.h>
@@ -311,6 +307,5 @@ namespace Frostium
 
 		return result;
 	}
-
 }
 #endif

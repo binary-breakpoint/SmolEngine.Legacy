@@ -1,10 +1,6 @@
 #include "stdafx.h"
 #ifdef FROSTIUM_OPENGL_IMPL
-#include "OpenGL/OpenglBuffer.h"
-#include "OpenGL/OpenglFramebuffer.h"
-
-#include "Common/SLog.h"
-#include "Common/Framebuffer.h"
+#include "Backends/OpenGL/OpenglFramebuffer.h"
 
 #include <glad/glad.h>
 
@@ -58,10 +54,12 @@ namespace Frostium
 		glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH24_STENCIL8, m_Data.Width, m_Data.Height);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, m_DepthAttachment, 0);
 
+#if 0
 		if (!glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
 		{
 			DebugLog::LogError("Creating framebuffer is failed!");
 		}
+#endif
 
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);

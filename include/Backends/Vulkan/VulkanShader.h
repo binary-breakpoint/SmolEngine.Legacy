@@ -6,6 +6,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
@@ -15,6 +16,7 @@ namespace Frostium
 {
 	struct ReflectionData;
 	struct GraphicsPipelineShaderCreateInfo;
+	enum class ShaderType : int;
 
 	class VulkanShader
 	{

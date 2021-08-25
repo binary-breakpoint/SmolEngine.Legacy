@@ -1,6 +1,6 @@
 #pragma once
 #ifdef FROSTIUM_OPENGL_IMPL
-#include "Common/FramebufferSpecification.h"
+#include "Primitives/Framebuffer.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
@@ -42,5 +42,4 @@ namespace Frostium
 		const uint32_t              m_MaxSize = 8192;
 	};
 }
-
 #endif

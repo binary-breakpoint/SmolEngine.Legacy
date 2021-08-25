@@ -103,6 +103,9 @@
     <Filter Include="include\External\implot">
       <UniqueIdentifier>{7F8C122D-EBC3-5AC4-F4CD-BEE7608481BD}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\External\nuklear">
+      <UniqueIdentifier>{1CEA9562-080F-E5E2-315A-CA721DDEE300}</UniqueIdentifier>
+    </Filter>
     <Filter Include="include\External\spdlog">
       <UniqueIdentifier>{B3D79544-1F0F-DEDB-2819-42FF94CF04D5}</UniqueIdentifier>
     </Filter>
@@ -1797,6 +1800,18 @@
     <ClInclude Include="include\External\implot\implot_internal.h">
       <Filter>include\External\implot</Filter>
     </ClInclude>
+    <ClInclude Include="include\External\nuklear\nuklear.h">
+      <Filter>include\External\nuklear</Filter>
+    </ClInclude>
+    <ClInclude Include="include\External\nuklear\nuklear_internal.h">
+      <Filter>include\External\nuklear</Filter>
+    </ClInclude>
+    <ClInclude Include="include\External\nuklear\stb_rect_pack.h">
+      <Filter>include\External\nuklear</Filter>
+    </ClInclude>
+    <ClInclude Include="include\External\nuklear\stb_truetype.h">
+      <Filter>include\External\nuklear</Filter>
+    </ClInclude>
     <ClInclude Include="include\External\spdlog\bench\utils.h">
       <Filter>include\External\spdlog\bench</Filter>
     </ClInclude>
@@ -2265,13 +2280,13 @@
     <ClInclude Include="include\Raytracing\RaytracingPipeline.h">
       <Filter>include\Raytracing</Filter>
     </ClInclude>
+    <ClInclude Include="include\Renderer\Renderer2D.h">
+      <Filter>include\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="include\Renderer\RendererDebug.h">
       <Filter>include\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="include\Renderer\RendererDeferred.h">
-      <Filter>include\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Renderer\Renderer2D.h">
       <Filter>include\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="include\Tools\DefaultMeshes.h">
@@ -2474,13 +2489,13 @@
     <ClCompile Include="src\Raytracing\RaytracingPipeline.cpp">
       <Filter>src\Raytracing</Filter>
     </ClCompile>
+    <ClCompile Include="src\Renderer\Renderer2D.cpp">
+      <Filter>src\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\Renderer\RendererDebug.cpp">
       <Filter>src\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\Renderer\RendererDeferred.cpp">
-      <Filter>src\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Renderer\Renderer2D.cpp">
       <Filter>src\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\Tools\DefaultMeshes.cpp">

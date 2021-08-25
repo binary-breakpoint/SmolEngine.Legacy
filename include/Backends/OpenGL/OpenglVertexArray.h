@@ -1,7 +1,6 @@
 #pragma once
 #ifdef FROSTIUM_OPENGL_IMPL
-#include "Common/Core.h"
-
+#include "Common/Common.h"
 #include <vector>
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
@@ -42,5 +41,4 @@ namespace Frostium
 		bool                           m_IsInitialized = false;
 	};
 }
-
 #endif

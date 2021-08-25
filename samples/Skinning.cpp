@@ -144,11 +144,11 @@ int main(int argc, char** argv)
 	dirLight.IsActive = true;
 	dirLight.IsCastShadows = false;
 
+	DebugLog* log = new DebugLog([&](const std::string&& msg, LogLevel level) { std::cout << msg << "\n"; });
 	storage = new RendererStorage();
 	drawList = new RendererDrawList();
 	context = new GraphicsContext(&info);
 	context->SetEventCallback([&](Event& e) { if (e.IsType(EventType::WINDOW_CLOSE)) process = false; camera->OnEvent(e); });
-	context->SetDebugLogCallback([&](const std::string&& msg, LogLevel level) { std::cout << msg << "\n"; });
 
 	storage->Initilize();
 	context->PushStorage(storage);

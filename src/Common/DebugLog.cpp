@@ -7,7 +7,8 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
-	DebugLog::DebugLog()
+	DebugLog::DebugLog(const std::function<void(const std::string&&, LogLevel)>& callback)
+		: m_Callback(callback)
 	{
 		s_Instance = this;
 	}
@@ -15,10 +16,5 @@ namespace Frostium
 	DebugLog::~DebugLog()
 	{
 		s_Instance = nullptr;
-	}
-
-	void DebugLog::SetCallback(const std::function<void(const std::string&&, LogLevel)>& callback)
-	{
-		m_Callback = callback;
 	}
 }

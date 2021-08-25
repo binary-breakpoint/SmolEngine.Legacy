@@ -1,6 +1,6 @@
 #pragma once
 #ifdef FROSTIUM_OPENGL_IMPL
-#include "Common/BufferLayout.h"
+#include "Primitives/BufferLayout.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine

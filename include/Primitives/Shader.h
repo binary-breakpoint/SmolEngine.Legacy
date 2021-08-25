@@ -1,5 +1,6 @@
 #pragma once
 #include "Common/Common.h"
+#include "Common/Flags.h"
 
 #ifdef FROSTIUM_OPENGL_IMPL
 #include "Backends/OpenGL/OpenglShader.h"
@@ -90,7 +91,7 @@ namespace Frostium
 	struct GraphicsPipelineShaderCreateInfo
 	{
 		std::unordered_map<ShaderType, std::string>      FilePaths;
-		std::unordered_map<uint32_t, ShaderBufferInfo>  BufferInfos;
+		std::unordered_map<uint32_t, ShaderBufferInfo>   BufferInfos;
 	};
 
 #ifdef  FROSTIUM_OPENGL_IMPL
