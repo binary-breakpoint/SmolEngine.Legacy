@@ -24,20 +24,27 @@ namespace Frostium
 
 	}
 
+	VulkanTexture::VulkanTexture()
+		:
+		m_Device(VulkanContext::GetDevice().GetLogicalDevice())
+	{
+
+	}
+
 	VulkanTexture::~VulkanTexture()
 	{
 		if (m_Device)
 		{
-			if(m_Image != VK_NULL_HANDLE)
+			if(m_Image != nullptr)
 				vkDestroyImage(m_Device, m_Image, nullptr);
 
-			if(m_ImageView != VK_NULL_HANDLE)
+			if(m_ImageView != nullptr)
 				vkDestroyImageView(m_Device, m_ImageView, nullptr);
 
-			if(m_Samper != VK_NULL_HANDLE)
+			if(m_Samper != nullptr)
 				vkDestroySampler(m_Device, m_Samper, nullptr);
 
-			if(m_DeviceMemory != VK_NULL_HANDLE)
+			if(m_DeviceMemory != nullptr)
 				vkFreeMemory(m_Device, m_DeviceMemory, nullptr);
 		}
 	}
@@ -458,10 +465,13 @@ namespace Frostium
 		VulkanCommandBuffer::ExecuteCommandBuffer(&cmdStorage);
 
 		m_ImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		CreateSamplerAndImageView(mipMaps, m_Format, info->bAnisotropyEnable);
+		CreateSamplerAndImageView(mipMaps, m_Format, info ? info->bAnisotropyEnable: false);
 
-		if (info->bImGUIHandle)
-			m_Info->ImHandle = ImGui_ImplVulkan_AddTexture(m_DescriptorImageInfo);
+		if (info)
+		{
+			if (info->bImGUIHandle)
+				m_Info->ImHandle = ImGui_ImplVulkan_AddTexture(m_DescriptorImageInfo);
+		}
 	}
 
 	void VulkanTexture::CreateFromBuffer(const void* data, VkDeviceSize size, uint32_t width, uint32_t height)
@@ -686,6 +696,11 @@ namespace Frostium
 		m_DescriptorImageInfo.imageLayout = m_ImageLayout;
 		m_DescriptorImageInfo.imageView = m_ImageView;
 		m_DescriptorImageInfo.sampler = m_Samper;
+	}
+
+	void VulkanTexture::SetFormat(VkFormat format)
+	{
+		m_Format = format;
 	}
 
 	void VulkanTexture::SetImageLayout(VkCommandBuffer cmdbuffer, VkImage image, VkImageLayout oldImageLayout, VkImageLayout newImageLayout, VkImageSubresourceRange subresourceRange, VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask)

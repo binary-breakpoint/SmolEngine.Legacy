@@ -1,5 +1,4 @@
 #pragma once
-#include "Camera/EditorCamera.h"
 
 #ifdef  FROSTIUM_OPENGL_IMPL
 #include "Backends/OpenGL/OpenglContext.h"
@@ -12,11 +11,12 @@
 #include "Common/Flags.h"
 #include "Window/Window.h"
 #include "Window/Events.h"
+#include "Camera/EditorCamera.h"
 #include "Camera/Camera.h"
 #include "Primitives/Framebuffer.h"
-
-#include "GUI/ImGuiContext.h"
 #include "Tools/DefaultMeshes.h"
+#include "GUI/Backends/ImGuiContext.h"
+#include "GUI/Backends/NuklearContext.h"
 
 #include <functional>
 
@@ -134,7 +134,8 @@ namespace Frostium
 		Framebuffer*                      m_Framebuffer = nullptr;
 		Window*                           m_Window = nullptr;
 		DefaultMeshes*                    m_DefaultMeshes = nullptr;
-		ImGuiContext*                     m_ImGuiContext = nullptr;
+		ContextBaseGUI*                   m_ImGuiContext = nullptr;
+		ContextBaseGUI*                   m_NuklearContext = nullptr;
 		JobsSystemInstance*               m_JobsSystem = nullptr;
 		bool                              m_bWindowMinimized = false;
 		bool                              m_bIs2DStoragePreAlloc = false;

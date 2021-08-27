@@ -5,6 +5,9 @@
 
 #include "Common/Common.h"
 
+#include "GUI/Backends/ImGuiContext.h"
+#include "GUI/Backends/NuklearContext.h"
+
 #include <GLFW/glfw3.h>
 #include <imgui/examples/imgui_impl_vulkan.h>
 
@@ -73,6 +76,9 @@ namespace Frostium
 		// ImGUI pass
 		if ((m_Context->m_CreateInfo.eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
 			m_Context->m_ImGuiContext->Draw(&m_Swapchain);
+
+		// Nuklear pass
+		m_Context->m_NuklearContext->Draw(m_Context->m_Framebuffer);
 
 		const auto& present_ref = m_Semaphore.GetPresentCompleteSemaphore();
 		const auto& render_ref = m_Semaphore.GetRenderCompleteSemaphore();

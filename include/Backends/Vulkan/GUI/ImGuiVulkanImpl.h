@@ -1,5 +1,6 @@
 #pragma once
 #ifndef FROSTIUM_OPENGL_IMPL
+#include "GUI/Backends/ContextBaseGUI.h"
 #include "Backends/Vulkan/VulkanTexture.h"
 
 #include <imgui/examples/imgui_impl_vulkan.h>
@@ -13,22 +14,24 @@ namespace Frostium
 #endif
 {
 	class VulkanCommandBuffer;
-	class Framebuffer;
-	class VulkanSwapchain;
 
-	class ImGuiVulkanImpl
+	class ImGuiVulkanImpl: public ContextBaseGUI
 	{
 	public:
+		void               Init() override;
+		void               ShutDown() override;
+		void               NewFrame() override;
+		void               EndFrame() override;
+		void               OnEvent(Event& e) override;
+		void               Draw(VulkanSwapchain* target) override;
 
-		void Init();
-		void Reset();
-		void Draw(Framebuffer* target);
-		void Draw(VulkanSwapchain* target);
-		void InitResources();
+	private:
+		void               OnSetup();
 
-		VkDevice                                    g_Device;
-		VkPipelineCache                             g_PipelineCache = VK_NULL_HANDLE;
-		VkDescriptorPool                            g_DescriptorPool = VK_NULL_HANDLE;
+	private:
+		VkDevice           g_Device = VK_NULL_HANDLE;
+		VkPipelineCache    g_PipelineCache = VK_NULL_HANDLE;
+		VkDescriptorPool   g_DescriptorPool = VK_NULL_HANDLE;
 	};
 }
 

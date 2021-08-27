@@ -30,5 +30,6 @@ namespace Frostium
 		VulkanIndexBuffer&    GetVulkanIndexBuffer() { return *dynamic_cast<VulkanIndexBuffer*>(this); };
 #endif
 		static void           Create(IndexBuffer* out_ib, uint32_t* indices, uint32_t count, bool is_static = false);
+		static void           Create(IndexBuffer* out_ib, uint32_t size, bool is_static = false);
 	};
 }

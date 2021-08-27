@@ -101,6 +101,7 @@ namespace Frostium
 		bool                                 bDepthTestEnabled = true;
 		bool                                 bDepthWriteEnabled = true;
 		bool                                 bDepthBiasEnabled = false;
+		bool                                 bPrimitiveRestartEnable = false;
 		float                                MinDepth = 0.0f;
 		float                                MaxDepth = 1.0f;
 		int32_t                              DescriptorSets = 1;
@@ -155,6 +156,11 @@ namespace Frostium
 		void SetDrawMode(DrawMode mode);
 		void SetFramebufferIndex(uint32_t index);
 		void SetFramebufferAttachmentIndex(uint32_t index);
+
+		void BindPipeline();
+		void BindDescriptors();
+		void BindIndexBuffer(uint32_t index = 0);
+		void BindVertexBuffer(uint32_t index = 0);
 
 #ifndef FROSTIUM_OPENGL_IMPL
 		const VkPipeline& GetVkPipeline(DrawMode mode);

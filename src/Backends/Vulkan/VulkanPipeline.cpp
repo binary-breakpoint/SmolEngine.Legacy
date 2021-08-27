@@ -82,7 +82,7 @@ namespace Frostium
 		{
 			inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 			inputAssemblyState.topology = GetVkTopology(mode);
-			inputAssemblyState.primitiveRestartEnable = VK_FALSE;
+			inputAssemblyState.primitiveRestartEnable = m_PipelineSpecification->bPrimitiveRestartEnable;
 		}
 
 		// Rasterization state
@@ -94,7 +94,7 @@ namespace Frostium
 			rasterizationState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 			rasterizationState.depthClampEnable = VulkanContext::GetDevice().GetDeviceFeatures()->depthClamp;
 			rasterizationState.rasterizerDiscardEnable = VK_FALSE;
-			rasterizationState.depthBiasEnable = m_PipelineSpecification->bDepthBiasEnabled ? VK_TRUE: VK_FALSE;
+			rasterizationState.depthBiasEnable = m_PipelineSpecification->bDepthBiasEnabled;
 			rasterizationState.lineWidth = 1.0f;
 		}
 
@@ -143,6 +143,7 @@ namespace Frostium
 		{
 			dynamicStateEnables.push_back(VK_DYNAMIC_STATE_VIEWPORT);
 			dynamicStateEnables.push_back(VK_DYNAMIC_STATE_SCISSOR);
+
 			if(m_PipelineSpecification->bDepthBiasEnabled)
 				dynamicStateEnables.push_back(VK_DYNAMIC_STATE_DEPTH_BIAS);
 
@@ -157,8 +158,8 @@ namespace Frostium
 		VkPipelineDepthStencilStateCreateInfo depthStencilState = {};
 		{
 			depthStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-			depthStencilState.depthTestEnable = m_PipelineSpecification->bDepthTestEnabled ? VK_TRUE : VK_FALSE;
-			depthStencilState.depthWriteEnable = m_PipelineSpecification->bDepthWriteEnabled ? VK_TRUE : VK_FALSE;
+			depthStencilState.depthTestEnable = m_PipelineSpecification->bDepthTestEnabled;
+			depthStencilState.depthWriteEnable = m_PipelineSpecification->bDepthWriteEnabled;
 			depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 			depthStencilState.depthBoundsTestEnable = VK_FALSE;
 			depthStencilState.back.compareOp = VK_COMPARE_OP_ALWAYS;
@@ -531,6 +532,7 @@ namespace Frostium
 		case DataTypes::Int3:			                     return VK_FORMAT_R32G32B32_SINT;
 		case DataTypes::Int4:			                     return VK_FORMAT_R32G32B32A32_SINT;
 		case DataTypes::Bool:			                     return VK_FORMAT_R32_SINT;
+		case DataTypes::Byte:			                     return VK_FORMAT_R8G8B8A8_UINT;
 		}
 
 		return VK_FORMAT_R32G32B32_SFLOAT;

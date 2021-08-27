@@ -53,4 +53,12 @@ namespace Frostium
 		out_ib->Init(indices, count, is_static);
 #endif
 	}
+
+	void IndexBuffer::Create(IndexBuffer* out_ib, uint32_t size, bool is_static)
+	{
+#ifdef FROSTIUM_OPENGL_IMPL
+#else
+		out_ib->Init(size);
+#endif
+	}
 }

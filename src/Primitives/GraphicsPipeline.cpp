@@ -428,6 +428,30 @@ namespace Frostium
 		m_FBattachmentIndex = index;
 	}
 
+	void GraphicsPipeline::BindPipeline()
+	{
+		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_VulkanPipeline.GetVkPipeline(m_DrawMode));
+	}
+
+	void GraphicsPipeline::BindDescriptors()
+	{
+		const auto& descriptorSets = m_VulkanPipeline.GetVkDescriptorSets(m_DescriptorIndex);
+		vkCmdBindDescriptorSets(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+			m_VulkanPipeline.GetVkPipelineLayot(), 0, 1,
+			&descriptorSets, 0, nullptr);
+	}
+
+	void GraphicsPipeline::BindIndexBuffer(uint32_t index)
+	{
+		vkCmdBindIndexBuffer(m_CommandBuffer, m_IndexBuffers[index]->GetVulkanIndexBuffer().GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+	}
+
+	void GraphicsPipeline::BindVertexBuffer(uint32_t index)
+	{
+		VkDeviceSize offsets[1] = { 0 };
+		vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &m_VertexBuffers[index]->GetVulkanVertexBuffer().GetBuffer(), offsets);
+	}
+
 	const VkPipeline& GraphicsPipeline::GetVkPipeline(DrawMode mode)
 	{
 		return m_VulkanPipeline.GetVkPipeline(mode);

@@ -26,7 +26,8 @@ namespace Frostium
 		Int3, 
 		Int4,
 
-		Bool
+		Bool,
+		Byte
 	};
 
 	static uint32_t ShaderDataTypeSize(DataTypes type)

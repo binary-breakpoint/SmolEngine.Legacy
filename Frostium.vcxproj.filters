@@ -300,6 +300,9 @@
     <ClInclude Include="include\Backends\Vulkan\GUI\ImGuiVulkanImpl.h">
       <Filter>include\Backends\Vulkan\GUI</Filter>
     </ClInclude>
+    <ClInclude Include="include\Backends\Vulkan\GUI\NuklearVulkanImpl.h">
+      <Filter>include\Backends\Vulkan\GUI</Filter>
+    </ClInclude>
     <ClInclude Include="include\Backends\Vulkan\Raytracing\VulkanAccelerationStructure.h">
       <Filter>include\Backends\Vulkan\Raytracing</Filter>
     </ClInclude>
@@ -1803,15 +1806,6 @@
     <ClInclude Include="include\External\nuklear\nuklear.h">
       <Filter>include\External\nuklear</Filter>
     </ClInclude>
-    <ClInclude Include="include\External\nuklear\nuklear_internal.h">
-      <Filter>include\External\nuklear</Filter>
-    </ClInclude>
-    <ClInclude Include="include\External\nuklear\stb_rect_pack.h">
-      <Filter>include\External\nuklear</Filter>
-    </ClInclude>
-    <ClInclude Include="include\External\nuklear\stb_truetype.h">
-      <Filter>include\External\nuklear</Filter>
-    </ClInclude>
     <ClInclude Include="include\External\spdlog\bench\utils.h">
       <Filter>include\External\spdlog\bench</Filter>
     </ClInclude>
@@ -2226,7 +2220,10 @@
     <ClInclude Include="include\FrostiumCore.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="include\GUI\ImGuiContext.h">
+    <ClInclude Include="include\GUI\Backends\ImGuiContext.h">
+      <Filter>include\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\GUI\Backends\NuklearContext.h">
       <Filter>include\GUI</Filter>
     </ClInclude>
     <ClInclude Include="include\GraphicsContext.h">
@@ -2316,6 +2313,12 @@
     <ClInclude Include="src\stdafx.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="include\GUI\Backends\ContextBaseGUI.h" />
+    <ClInclude Include="include\GUI\UICanvas.h" />
+    <ClInclude Include="include\GUI\UIButton.h" />
+    <ClInclude Include="include\GUI\UIText.h" />
+    <ClInclude Include="include\GUI\UISlider.h" />
+    <ClInclude Include="include\GUI\UIFieldInput.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Animation\AnimationClip.cpp">
@@ -2346,6 +2349,9 @@
       <Filter>src\Backends\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\Backends\Vulkan\GUI\ImGuiVulkanImpl.cpp">
+      <Filter>src\Backends\Vulkan\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Backends\Vulkan\GUI\NuklearVulkanImpl.cpp">
       <Filter>src\Backends\Vulkan\GUI</Filter>
     </ClCompile>
     <ClCompile Include="src\Backends\Vulkan\Raytracing\VulkanAccelerationStructure.cpp">
@@ -2438,10 +2444,13 @@
     <ClCompile Include="src\Environment\EnvironmentMap.cpp">
       <Filter>src\Environment</Filter>
     </ClCompile>
-    <ClCompile Include="src\GUI\ImGuiBuid.cpp">
+    <ClCompile Include="src\GUI\Backends\ImGuiBuid.cpp">
       <Filter>src\GUI</Filter>
     </ClCompile>
-    <ClCompile Include="src\GUI\ImGuiContext.cpp">
+    <ClCompile Include="src\GUI\Backends\ImGuiContext.cpp">
+      <Filter>src\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GUI\Backends\NuklearContext.cpp">
       <Filter>src\GUI</Filter>
     </ClCompile>
     <ClCompile Include="src\GraphicsContext.cpp">
@@ -2531,5 +2540,10 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
+    <ClCompile Include="src\GUI\UIButton.cpp" />
+    <ClCompile Include="src\GUI\UICanvas.cpp" />
+    <ClCompile Include="src\GUI\UIText.cpp" />
+    <ClCompile Include="src\GUI\UISlider.cpp" />
+    <ClCompile Include="src\GUI\UIFieldInput.cpp" />
   </ItemGroup>
 </Project>

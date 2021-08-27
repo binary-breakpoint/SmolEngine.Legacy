@@ -45,13 +45,6 @@ namespace Frostium
 		m_DummyCubeMap = new CubeMap();
 		CubeMap::CreateEmpty(m_DummyCubeMap, 4, 4);
 
-		// Initialize ImGUI
-		if ((info->eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
-		{
-			m_ImGuiContext = new ImGuiContext();
-			m_ImGuiContext->Init(info);
-		}
-
 		m_DefaultMeshes = new DefaultMeshes(info->ResourcesFolderPath);
 		m_JobsSystem = new JobsSystemInstance();
 
@@ -79,11 +72,21 @@ namespace Frostium
 #ifdef  FROSTIUM_OPENGL_IMPL
 		GetOpenglRendererAPI()->Init();
 #endif
-
+		// Initialize debug renderer
 		if ((info->eFeaturesFlags & FeaturesFlags::RendererDebug) == FeaturesFlags::RendererDebug)
 		{
 			RendererDebug::Init();
-	    }
+		}
+
+		// Initialize ImGUI
+		if ((info->eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
+		{
+			m_ImGuiContext = ImGuiContext::CreateContext();;
+			m_ImGuiContext->Init();
+		}
+
+		m_NuklearContext = NuklearContext::CreateContext();
+		m_NuklearContext->Init();
 	}
 
 	GraphicsContext::~GraphicsContext()
@@ -94,7 +97,8 @@ namespace Frostium
 	void GraphicsContext::SwapBuffers()
 	{
 		if ((m_CreateInfo.eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
-			m_ImGuiContext->OnEnd();
+			m_ImGuiContext->EndFrame();
+
 #ifdef  FROSTIUM_OPENGL_IMPL
 		m_OpenglContext.SwapBuffers();
 #else
@@ -115,7 +119,10 @@ namespace Frostium
 		m_VulkanContext.BeginFrame();
 #endif
 		if ((m_CreateInfo.eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
-			m_ImGuiContext->OnBegin();
+			m_ImGuiContext->NewFrame();
+
+		m_NuklearContext->NewFrame();
+
 	}
 
 	void GraphicsContext::ShutDown()
@@ -129,7 +136,7 @@ namespace Frostium
 		m_VulkanContext.~VulkanContext();
 #endif
 		delete m_MaterialLibrary, m_DummyTexure,m_Framebuffer, m_Window, 
-			m_ImGuiContext, m_DefaultMeshes, m_JobsSystem;
+			m_ImGuiContext, m_NuklearContext, m_DefaultMeshes, m_JobsSystem;
 }
 
 	void GraphicsContext::Resize(uint32_t* width, uint32_t* height)
@@ -246,6 +253,8 @@ namespace Frostium
 	{
 		if ((m_CreateInfo.eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
 			m_ImGuiContext->OnEvent(e);
+
+		m_NuklearContext->OnEvent(e);
 
 		if (e.IsType(EventType::WINDOW_RESIZE))
 		{
