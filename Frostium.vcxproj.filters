@@ -2319,6 +2319,8 @@
     <ClInclude Include="include\GUI\UILayout.h" />
     <ClInclude Include="include\GUI\UICheckbox.h" />
     <ClInclude Include="include\GUI\UIStyle.h" />
+    <ClInclude Include="include\Primitives\ComputePipeline.h" />
+    <ClInclude Include="include\Backends\Vulkan\VulkanComputePipeline.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Animation\AnimationClip.cpp">
@@ -2544,5 +2546,7 @@
     <ClCompile Include="src\GUI\UITextField.cpp" />
     <ClCompile Include="src\GUI\UILayout.cpp" />
     <ClCompile Include="src\GUI\UICheckbox.cpp" />
+    <ClCompile Include="src\Primitives\ComputePipeline.cpp" />
+    <ClCompile Include="src\Backends\Vulkan\VulkanComputePipeline.cpp" />
   </ItemGroup>
 </Project>

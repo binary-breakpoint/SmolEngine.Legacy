@@ -42,14 +42,7 @@ namespace Frostium
 				m_VkDeviceProperties.driverVersion, m_RayTracingEnabled,
 				m_VkDeviceProperties.limits.maxPushConstantsSize);
 
-			bool setup_result = SetupLogicalDevice();
-			if (setup_result)
-			{
-				vkGetDeviceQueue(m_VkLogicalDevice, m_DeviceQueueFamilyIndex, 0, &m_Queue);
-				FindMaxUsableSampleCount();
-				GetFuncPtrs();
-			}
-			return setup_result;
+			return SetupLogicalDevice();
 		}
 
 		return false;
@@ -60,7 +53,7 @@ namespace Frostium
 		const VkInstance& instance = _instance->GetInstance();
 		m_ExtensionsList = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 		std::vector<const char*> rayTracingEX = m_ExtensionsList;
-		// Ray tracing related extensions required by this sample
+		// Ray tracing related extensions
 		rayTracingEX.push_back(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME);
 		rayTracingEX.push_back(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME);
 		// Required by VK_KHR_acceleration_structure
@@ -81,7 +74,7 @@ namespace Frostium
 		{
 			const VkPhysicalDevice& current_device = devices[i];
 
-			if (HasRequiredExtensions(current_device, rayTracingEX)) // RayTracing
+			if (HasRequiredExtensions(current_device, rayTracingEX)) // Ray Tracing
 			{
 				SelectDevice(current_device);
 				m_ExtensionsList = rayTracingEX;
@@ -89,7 +82,7 @@ namespace Frostium
 				break;
 			}
 
-			if (HasRequiredExtensions(current_device, m_ExtensionsList))
+			if (HasRequiredExtensions(current_device, m_ExtensionsList)) // No Ray Tracing
 				SelectDevice(current_device);
 		}
 
@@ -97,30 +90,62 @@ namespace Frostium
 		return m_VkPhysicalDevice != VK_NULL_HANDLE;
 	}
 
-
 	bool VulkanDevice::SetupLogicalDevice()
 	{
-		static const float priority = 1.0f;
+		const float priority = 0.0f;
+		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 
 		VkDeviceQueueCreateInfo queueCreateInfo = {};
 		{
 			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-			queueCreateInfo.queueFamilyIndex = m_DeviceQueueFamilyIndex;
+			queueCreateInfo.queueFamilyIndex = m_QueueFamilyIndices.Graphics;
 			queueCreateInfo.queueCount = 1;
 			queueCreateInfo.pQueuePriorities = &priority;
+
+			queueCreateInfos.push_back(queueCreateInfo);
+		}
+
+		// If compute family index differs, we need an additional queue create info for the compute queue
+		if (m_QueueFamilyIndices.Compute != m_QueueFamilyIndices.Graphics)
+		{
+			queueCreateInfo = {};
+			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			queueCreateInfo.queueFamilyIndex = m_QueueFamilyIndices.Compute;
+			queueCreateInfo.queueCount = 1;
+			queueCreateInfo.pQueuePriorities = &priority;
+
+			queueCreateInfos.push_back(queueCreateInfo);
+		}
+
+		if ((m_QueueFamilyIndices.Transfer != m_QueueFamilyIndices.Graphics) && (m_QueueFamilyIndices.Transfer != m_QueueFamilyIndices.Compute))
+		{
+			queueCreateInfo = {};
+			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			queueCreateInfo.queueFamilyIndex = m_QueueFamilyIndices.Transfer;
+			queueCreateInfo.queueCount = 1;
+			queueCreateInfo.pQueuePriorities = &priority;
+
+			queueCreateInfos.push_back(queueCreateInfo);
 		}
 
 		VkDeviceCreateInfo deviceInfo = {};
 		{
 			deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-			deviceInfo.pQueueCreateInfos = &queueCreateInfo;
-			deviceInfo.queueCreateInfoCount = 1;
-			deviceInfo.pEnabledFeatures = &m_VkDeviceFeatures;
-			deviceInfo.enabledExtensionCount = static_cast<uint32_t>(m_ExtensionsList.size());
+			deviceInfo.pQueueCreateInfos = queueCreateInfos.data();
+			deviceInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
 			deviceInfo.ppEnabledExtensionNames = m_ExtensionsList.data();
+			deviceInfo.enabledExtensionCount = static_cast<uint32_t>(m_ExtensionsList.size());
+			deviceInfo.pEnabledFeatures = &m_VkDeviceFeatures;
 		}
 
 		VkResult result = vkCreateDevice(m_VkPhysicalDevice, &deviceInfo, nullptr, &m_VkLogicalDevice);
+
+		vkGetDeviceQueue(m_VkLogicalDevice, m_QueueFamilyIndices.Graphics, 0, &m_GraphicsQueue);
+		vkGetDeviceQueue(m_VkLogicalDevice, m_QueueFamilyIndices.Compute, 0, &m_ComputeQueue);
+
+		FindMaxUsableSampleCount();
+		GetFuncPtrs();
+
 		assert(result == VK_SUCCESS);
 		return result == VK_SUCCESS;
 	}
@@ -156,32 +181,11 @@ namespace Frostium
 		return true;
 	}
 
-	bool VulkanDevice::GetFamilyQueue(const VkPhysicalDevice& device, VkQueueFlags flags, uint32_t& outQueueIndex)
-	{
-		uint32_t queueCount = 0;
-		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueCount, nullptr);
-		std::unique_ptr<VkQueueFamilyProperties[]> families = std::make_unique<VkQueueFamilyProperties[]>(queueCount);
-		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueCount, families.get());
-		for (uint32_t i = 0; i < queueCount; ++i)
-		{
-			if (families[i].queueCount > 0)
-			{
-				if ((families[i].queueFlags & flags) == flags)
-				{
-					outQueueIndex = i;
-
-					return true;
-				}
-			}
-		}
-
-		return false;
-	}
-
 	void VulkanDevice::FindMaxUsableSampleCount()
 	{
 		VkSampleCountFlagBits sampleCount;
 		VkSampleCountFlags counts = m_VkDeviceProperties.limits.framebufferColorSampleCounts & m_VkDeviceProperties.limits.framebufferDepthSampleCounts;
+
 		if (counts & VK_SAMPLE_COUNT_64_BIT) { sampleCount = VK_SAMPLE_COUNT_64_BIT; }
 		else if (counts & VK_SAMPLE_COUNT_32_BIT) { sampleCount = VK_SAMPLE_COUNT_32_BIT; }
 		else if (counts & VK_SAMPLE_COUNT_16_BIT) { sampleCount = VK_SAMPLE_COUNT_16_BIT; }
@@ -196,29 +200,32 @@ namespace Frostium
 
 	void VulkanDevice::SelectDevice(VkPhysicalDevice device)
 	{
-		uint32_t familyIndex = 0;
-		if (GetFamilyQueue(device, VkQueueFlagBits::VK_QUEUE_GRAPHICS_BIT, familyIndex))
+		uint32_t queueFamilyCount;
+		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+		assert(queueFamilyCount > 0);
+
+		m_QueueFamilyProperties.resize(queueFamilyCount);
+		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, m_QueueFamilyProperties.data());
+
+		VkPhysicalDeviceProperties2 deviceProperties2{};
+		deviceProperties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+		vkGetPhysicalDeviceProperties2(device, &deviceProperties2);
+		VkPhysicalDeviceFeatures2 deviceFeatures2 = {};
+		deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+		vkGetPhysicalDeviceFeatures2(device, &deviceFeatures2);
+		VkPhysicalDeviceMemoryProperties memoryProperties = {};
+		vkGetPhysicalDeviceMemoryProperties(device, &memoryProperties);
+
+		if (deviceProperties2.properties.deviceType == VkPhysicalDeviceType::VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
 		{
-			VkPhysicalDeviceProperties2 deviceProperties2{};
-			deviceProperties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
-			vkGetPhysicalDeviceProperties2(device, &deviceProperties2);
-			VkPhysicalDeviceFeatures2 deviceFeatures2 = {};
-			deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-			vkGetPhysicalDeviceFeatures2(device, &deviceFeatures2);
-			VkPhysicalDeviceMemoryProperties memoryProperties = {};
-			vkGetPhysicalDeviceMemoryProperties(device, &memoryProperties);
+			int requestedQueueTypes = VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT;
 
-			if (m_VkPhysicalDevice == VK_NULL_HANDLE || deviceProperties2.properties.deviceType == VkPhysicalDeviceType::VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
-			{
-				m_VkDeviceProperties = deviceProperties2.properties;
-				m_VkDeviceFeatures = deviceFeatures2.features;
-				m_VkMemoryProperties = memoryProperties;
-
-				m_VkDeviceFeatures.shaderSampledImageArrayDynamicIndexing = VK_TRUE;
-
-				m_VkPhysicalDevice = device;
-				m_DeviceQueueFamilyIndex = familyIndex;
-			}
+			m_QueueFamilyIndices = GetQueueFamilyIndices(requestedQueueTypes);
+			m_VkDeviceProperties = deviceProperties2.properties;
+			m_VkDeviceFeatures = deviceFeatures2.features;
+			m_VkMemoryProperties = memoryProperties;
+			m_VkDeviceFeatures.shaderSampledImageArrayDynamicIndexing = VK_TRUE;
+			m_VkPhysicalDevice = device;
 		}
 	}
 
@@ -238,6 +245,65 @@ namespace Frostium
 			m_vkGetRayTracingShaderGroupHandlesKHR = reinterpret_cast<PFN_vkGetRayTracingShaderGroupHandlesKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkGetRayTracingShaderGroupHandlesKHR"));
 			m_vkCreateRayTracingPipelinesKHR = reinterpret_cast<PFN_vkCreateRayTracingPipelinesKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkCreateRayTracingPipelinesKHR"));
 		}
+	}
+
+	QueueFamilyIndices VulkanDevice::GetQueueFamilyIndices(int flags)
+	{
+		QueueFamilyIndices indices;
+
+		// Dedicated queue for compute
+		// Try to find a queue family index that supports compute but not graphics
+		if (flags & VK_QUEUE_COMPUTE_BIT)
+		{
+			for (uint32_t i = 0; i < m_QueueFamilyProperties.size(); i++)
+			{
+				auto& queueFamilyProperties = m_QueueFamilyProperties[i];
+				if ((queueFamilyProperties.queueFlags & VK_QUEUE_COMPUTE_BIT) && ((queueFamilyProperties.queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0))
+				{
+					indices.Compute = i;
+					break;
+				}
+			}
+		}
+
+		// Dedicated queue for transfer
+		// Try to find a queue family index that supports transfer but not graphics and compute
+		if (flags & VK_QUEUE_TRANSFER_BIT)
+		{
+			for (uint32_t i = 0; i < m_QueueFamilyProperties.size(); i++)
+			{
+				auto& queueFamilyProperties = m_QueueFamilyProperties[i];
+				if ((queueFamilyProperties.queueFlags & VK_QUEUE_TRANSFER_BIT) && ((queueFamilyProperties.queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0) && ((queueFamilyProperties.queueFlags & VK_QUEUE_COMPUTE_BIT) == 0))
+				{
+					indices.Transfer = i;
+					break;
+				}
+			}
+		}
+
+		// For other queue types or if no separate compute queue is present, return the first one to support the requested flags
+		for (uint32_t i = 0; i < m_QueueFamilyProperties.size(); i++)
+		{
+			if ((flags & VK_QUEUE_TRANSFER_BIT) && indices.Transfer == -1)
+			{
+				if (m_QueueFamilyProperties[i].queueFlags & VK_QUEUE_TRANSFER_BIT)
+					indices.Transfer = i;
+			}
+
+			if ((flags & VK_QUEUE_COMPUTE_BIT) && indices.Compute == -1)
+			{
+				if (m_QueueFamilyProperties[i].queueFlags & VK_QUEUE_COMPUTE_BIT)
+					indices.Compute = i;
+			}
+
+			if (flags & VK_QUEUE_GRAPHICS_BIT)
+			{
+				if (m_QueueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
+					indices.Graphics = i;
+			}
+		}
+
+		return indices;
 	}
 
 	const VkPhysicalDeviceMemoryProperties* VulkanDevice::GetMemoryProperties() const
@@ -270,6 +336,11 @@ namespace Frostium
 		return m_VkLogicalDevice;
 	}
 
+	const QueueFamilyIndices& VulkanDevice::GetQueueFamilyIndices() const
+	{
+		return m_QueueFamilyIndices;
+	}
+
 	uint32_t VulkanDevice::GetMemoryTypeIndex(uint32_t typeBits, VkMemoryPropertyFlags memFlags) const
 	{
 		for (uint32_t i = 0; i < m_VkMemoryProperties.memoryTypeCount; ++i)
@@ -289,14 +360,9 @@ namespace Frostium
 		abort();
 	}
 
-	uint32_t VulkanDevice::GetQueueFamilyIndex() const
+	const VkQueue VulkanDevice::GetQueue(QueueFamilyFlags flag) const
 	{
-		return m_DeviceQueueFamilyIndex;
-	}
-
-	const VkQueue VulkanDevice::GetQueue() const
-	{
-		return m_Queue;
+		return flag == QueueFamilyFlags::Compute ? m_ComputeQueue : m_GraphicsQueue;
 	}
 
 	bool VulkanDevice::GetRaytracingSupport() const

@@ -107,7 +107,7 @@ namespace Frostium
 		// Submit to the graphics queue passing a wait fence
 #ifdef FROSTIUM_SMOLENGINE_IMPL
 		VulkanCommandBuffer::m_Mutex->lock();
-		VK_CHECK_RESULT(vkQueueSubmit(m_Device.GetQueue(), 1, &submitInfo, m_Semaphore.GetVkFences()[m_Swapchain.GetCurrentBufferIndex()]));
+		VK_CHECK_RESULT(vkQueueSubmit(m_Device.GetQueue(QueueFamilyFlags::Graphics), 1, &submitInfo, m_Semaphore.GetVkFences()[m_Swapchain.GetCurrentBufferIndex()]));
 		VulkanCommandBuffer::m_Mutex->unlock();
 #else
 		VK_CHECK_RESULT(vkQueueSubmit(m_Device.GetQueue(), 1, &submitInfo, m_Semaphore.GetVkFences()[m_Swapchain.GetCurrentBufferIndex()]));
@@ -115,7 +115,7 @@ namespace Frostium
 		// Present the current buffer to the swap chain
 		// Pass the semaphore signaled by the command buffer submission from the submit info as the wait semaphore for swap chain presentation
 		// This ensures that the image is not presented to the windowing system until all commands have been submitted
-		VkResult present = m_Swapchain.QueuePresent(m_Device.GetQueue(), render_ref);
+		VkResult present = m_Swapchain.QueuePresent(m_Device.GetQueue(QueueFamilyFlags::Graphics), render_ref);
 		if (!((present == VK_SUCCESS) || (present == VK_SUBOPTIMAL_KHR))) {
 
 			if (present == VK_ERROR_OUT_OF_DATE_KHR)

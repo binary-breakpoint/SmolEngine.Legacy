@@ -12,46 +12,64 @@ namespace Frostium
 {
 	class VulkanInstance;
 
+	struct QueueFamilyIndices
+	{
+		int32_t Graphics = -1;
+		int32_t Compute = -1;
+		int32_t Transfer = -1;
+	};
+
+	enum class QueueFamilyFlags
+	{
+		Graphics,
+		Compute,
+		Transfer
+	};
+
 	class VulkanDevice
 	{
 	public:
-
 		VulkanDevice();
 		~VulkanDevice();
 
-		bool Init(const VulkanInstance* instance);
-
-		// Getters
-		uint32_t GetMemoryTypeIndex(uint32_t typeBits, VkMemoryPropertyFlags memFlags) const;
-		const VkPhysicalDeviceMemoryProperties* GetMemoryProperties() const;
-		const VkPhysicalDeviceProperties* GetDeviceProperties() const;
-		const VkPhysicalDeviceFeatures* GetDeviceFeatures() const;
-		const VkSampleCountFlagBits GetMSAASamplesCount() const;
-		const VkPhysicalDevice GetPhysicalDevice() const;
-		const VkDevice GetLogicalDevice() const;
-		uint32_t GetQueueFamilyIndex() const;
-		const VkQueue GetQueue() const;
-		bool GetRaytracingSupport() const;
-
-	private:
-
-		// Helpers
-		bool SetupPhysicalDevice(const VulkanInstance* instance);
-		bool SetupLogicalDevice();
-		bool HasRequiredExtensions(const VkPhysicalDevice& device, const std::vector<const char*>& extensionsList);
-		bool GetFamilyQueue(const VkPhysicalDevice& device, VkQueueFlags flags, uint32_t& outQueueIndex);
-		void FindMaxUsableSampleCount();
-		void SelectDevice(VkPhysicalDevice device);
-		void GetFuncPtrs();
+		bool                                             Init(const VulkanInstance* instance);
+		// Getters										 
+		uint32_t                                         GetMemoryTypeIndex(uint32_t typeBits, VkMemoryPropertyFlags memFlags) const;
+		const VkPhysicalDeviceMemoryProperties*          GetMemoryProperties() const;
+		const VkPhysicalDeviceProperties*                GetDeviceProperties() const;
+		const VkPhysicalDeviceFeatures*                  GetDeviceFeatures() const;
+		const VkSampleCountFlagBits                      GetMSAASamplesCount() const;
+		const VkPhysicalDevice                           GetPhysicalDevice() const;
+		const VkDevice                                   GetLogicalDevice() const;
+		const QueueFamilyIndices&                        GetQueueFamilyIndices() const;
+		const VkQueue                                    GetQueue(QueueFamilyFlags flag) const;
+		bool                                             GetRaytracingSupport() const;
+														 
+	private:											 
+		bool                                             SetupPhysicalDevice(const VulkanInstance* instance);
+		bool                                             SetupLogicalDevice();
+		bool                                             HasRequiredExtensions(const VkPhysicalDevice& device, const std::vector<const char*>& extensionsList);
+		QueueFamilyIndices                               GetQueueFamilyIndices(int flags);
+		void                                             FindMaxUsableSampleCount();
+		void                                             SelectDevice(VkPhysicalDevice device);
+		void                                             GetFuncPtrs();
 
 	private:
 
-		VkPhysicalDevice                                 m_VkPhysicalDevice = VK_NULL_HANDLE;
-		VkDevice                                         m_VkLogicalDevice = VK_NULL_HANDLE;
+		VkQueue                                          m_GraphicsQueue = nullptr;
+		VkQueue                                          m_ComputeQueue = nullptr;
+		VkCommandPool                                    m_CommandPool = nullptr;
+		VkCommandPool                                    m_ComputeCommandPool = nullptr;
+		VkPhysicalDevice                                 m_VkPhysicalDevice = nullptr;
+		VkDevice                                         m_VkLogicalDevice = nullptr;
+		VkSampleCountFlagBits                            m_MSAASamplesCount = VK_SAMPLE_COUNT_1_BIT;
+		bool                                             m_RayTracingEnabled = false;
 		VkPhysicalDeviceProperties                       m_VkDeviceProperties = {};
 		VkPhysicalDeviceFeatures                         m_VkDeviceFeatures = {};
 		VkPhysicalDeviceMemoryProperties                 m_VkMemoryProperties = {};
-		VkQueue                                          m_Queue = nullptr;
+		QueueFamilyIndices                               m_QueueFamilyIndices = {};
+		std::vector<VkQueueFamilyProperties>             m_QueueFamilyProperties;
+		std::vector<const char*>                         m_ExtensionsList;
 
 		// Function pointers for ray tracing related stuff
 		PFN_vkGetBufferDeviceAddressKHR                  m_vkGetBufferDeviceAddressKHR;
@@ -64,14 +82,7 @@ namespace Frostium
 		PFN_vkCmdTraceRaysKHR                            m_vkCmdTraceRaysKHR;
 		PFN_vkGetRayTracingShaderGroupHandlesKHR         m_vkGetRayTracingShaderGroupHandlesKHR;
 		PFN_vkCreateRayTracingPipelinesKHR               m_vkCreateRayTracingPipelinesKHR;
-
-		bool                                             m_RayTracingEnabled = false;
-		uint32_t                                         m_DeviceQueueFamilyIndex = 0;
-		VkSampleCountFlagBits                            m_MSAASamplesCount = VK_SAMPLE_COUNT_1_BIT;
-		std::vector<const char*>                         m_ExtensionsList;
 										                 
-	private:
-
 		friend class VulkanRendererAPI;
 		friend class VulkanCommandPool;
 	};

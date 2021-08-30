@@ -346,7 +346,7 @@ namespace Frostium
 		VK_CHECK_RESULT(result);
 
 		VkBool32 supported;
-		vkGetPhysicalDeviceSurfaceSupportKHR(m_Device->GetPhysicalDevice(), m_Device->GetQueueFamilyIndex(), m_Surface, &supported);
+		vkGetPhysicalDeviceSurfaceSupportKHR(m_Device->GetPhysicalDevice(), m_Device->GetQueueFamilyIndices().Graphics, m_Surface, &supported);
 		assert(supported == 1);
 
 		FindColorSpaceFormat();

@@ -36,13 +36,14 @@ namespace Frostium
 
 		// Getters
 		VkCommandBuffer                GetVkCommandBuffer() const;
-		VkCommandPool                  GetVkCommandPool() const;
+		VkCommandPool                  GetVkCommandPool(bool compute = false) const;
 		size_t                         GetBufferSize() const;
 
 		inline static std::mutex*      m_Mutex = nullptr;
 
 	private:
 		VkCommandPool                  m_CommandPool = VK_NULL_HANDLE;
+		VkCommandPool                  m_ComputeCommandPool = VK_NULL_HANDLE;
 		VulkanDevice*                  m_Device = nullptr;
 		std::vector<VkCommandBuffer>   m_CommandBuffers;
 	};

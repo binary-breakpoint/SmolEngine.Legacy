@@ -118,8 +118,8 @@ namespace Frostium
 			init_info.Instance = VulkanContext::GetInstance().GetInstance();
 			init_info.PhysicalDevice = VulkanContext::GetDevice().GetPhysicalDevice();
 			init_info.Device = VulkanContext::GetDevice().GetLogicalDevice();
-			init_info.QueueFamily = VulkanContext::GetDevice().GetQueueFamilyIndex();
-			init_info.Queue = VulkanContext::GetDevice().GetQueue();
+			init_info.QueueFamily = VulkanContext::GetDevice().GetQueueFamilyIndices().Graphics;
+			init_info.Queue = VulkanContext::GetDevice().GetQueue(QueueFamilyFlags::Graphics);
 			init_info.DescriptorPool = g_DescriptorPool;
 			init_info.PipelineCache = g_PipelineCache;
 			init_info.Allocator = nullptr;
