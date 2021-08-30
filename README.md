@@ -14,8 +14,8 @@ Screenshots
   - Basic Shadow Mapping
   - 2D/3D/Debug renderers
   - Skeleton Animations
-  - Text Rendering (SDF)
-  - ImGUI Integration
+  - In-Game UI (text, buttons, input fields, etc)
+  - ImGUI Integration (Tools)
   - glTF 2.0
   - Multithreading
 
@@ -146,6 +146,7 @@ More samples can be found [here.](https://github.com/YellowDummy/Frostium3D/tree
 - [imgui](https://github.com/ocornut/imgui)
 - [implot](https://github.com/epezent/implot)
 - [imgizmo](https://github.com/CedricGuillemet/ImGuizmo)
+- [nuklear](https://github.com/Immediate-Mode-UI/Nuklear)
 
 ## Limitations
 - Developed by one person for learning purposes
