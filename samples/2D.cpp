@@ -44,15 +44,7 @@ int main(int argc, char** argv)
 	storage->Initilize();
 	context->PushStorage(storage);
 
-	RendererDrawList2D* drawList = new RendererDrawList2D();
-
-	Text text1 = {};
-	std::string str = "Frostium3D!";
-	Text::CreateSDF("Assets/sdf_fonts/font_1.fnt", "Assets/sdf_fonts/font_1.png", &text1);
-	text1.SetPosition({ 0, 5 });
-	text1.SetSize(25.0f);
-	text1.SetColor({ 0.2f, 0.7f, 1.0f, 1.0f });
-	text1.SetText(str);
+	RendererDrawList2D* drawList = new RendererDrawList2D();;
 
 	Texture texture = {};
 	Texture texture2 = {};
@@ -88,7 +80,6 @@ int main(int argc, char** argv)
 		drawList->SubmitSprite(glm::vec3(10, 0, 0), glm::vec3(10, 10, 0), { 0,0,0 }, 1, &texture2, false);
 		drawList->SubmitSprite(glm::vec3(0, 0, 0), glm::vec3(10, 10, 0), { 0,0,0 }, 0, &texture, false);
 		drawList->SubmitSprite(glm::vec3(20, 20, 0), glm::vec3(10, 10, 0), { 0,0, 0 }, 3, &texture2, false);
-		drawList->SubmitText(&text1);
 		drawList->EndSubmit();
 
 		context->BeginFrame(deltaTime);

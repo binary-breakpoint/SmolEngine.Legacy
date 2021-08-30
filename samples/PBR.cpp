@@ -115,6 +115,25 @@ int main(int argc, char** argv)
 	SceneViewProjection viewProj = SceneViewProjection(camera);
 	CreateDrawList(&viewProj, chunks, cube.get());
 
+	UICanvas canvas;
+	canvas.Rect.x = 0;
+	canvas.Rect.y = 0;
+	canvas.Rect.z = 720;
+	canvas.Rect.w = 480;
+
+	UIButton button;
+	button.SetLayout(100, 50, 1);
+
+	UIText text;
+	text.SetFont("../resources/Fonts/Font1.ttf", 44.0f);
+	text.SetLayout(600, 200, 1);
+	text.SetAlignment(AlignmentFlags::MidCentered);
+	text.Text = "Some text!";
+
+	UITextField textField;
+	textField.SetLayout(120, 30, 1);
+	textField.Label = "Player name:";
+
 	while (process)
 	{
 		context->ProcessEvents();
@@ -137,6 +156,13 @@ int main(int argc, char** argv)
 				ImGui::Text("Some Text");
 			}
 			ImGui::End();
+
+			canvas.Draw([&]() 
+			{
+				button.Draw();
+				text.Draw();
+				textField.Draw();
+			});
 
 			RendererDeferred::DrawFrame(&clearInfo, storage, drawList);
 		}

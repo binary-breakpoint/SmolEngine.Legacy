@@ -26,6 +26,8 @@ namespace Frostium
 		WINDOW_CLOSE,
 		WINDOW_RESIZE,
 		WINDOW_UPDATE,
+
+		CHAR_INPUT,
 	};
 
 	enum class EventCategory : uint32_t
@@ -65,11 +67,9 @@ namespace Frostium
 	class EventSender
 	{
 	public:
-
 		void SendEvent(Event& event, EventType eventType, EventCategory eventCategory, int action = -1, int key = -1);
 
 	public:
-
 		std::function<void(Event& event_to_send)> OnEventFn;
 	};
 
@@ -93,21 +93,24 @@ namespace Frostium
 	class WindowCloseEvent : public Event
 	{
 	public:
-
 		WindowCloseEvent() = default;
+	};
+
+	class CharInputEvent : public Event
+	{
+	public:
+		unsigned int m_Codepoint;
 	};
 
 	class KeyEvent : public Event
 	{
 	public:
-
 		KeyEvent() = default;
 	};
 
 	class MouseMoveEvent : public Event
 	{
 	public:
-
 		MouseMoveEvent(double& xPos, double& yPos)
 			:m_xPos(xPos), m_yPos(yPos) {}
 
@@ -117,7 +120,6 @@ namespace Frostium
 	class MouseScrollEvent : public Event
 	{
 	public:
-
 		MouseScrollEvent(float xOffset, float yOffset)
 			:m_xOffset(xOffset), m_yOffset(yOffset) {}
 
@@ -131,7 +133,6 @@ namespace Frostium
 	class MouseButtonEvent : public Event
 	{
 	public:
-
 		MouseButtonEvent(int mouseButton)
 			:m_MouseButton(m_MouseButton) {}
 

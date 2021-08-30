@@ -47,6 +47,7 @@ namespace Frostium
 		int is_double_click_down;
 		unsigned int text[NK_GLFW_TEXT_MAX];
 		GLFWwindow* win = nullptr;
+		nk_font* font = nullptr;
 	};
 
 	struct nk_glfw_vertex
@@ -88,17 +89,16 @@ namespace Frostium
 		free(str);
 	}
 
-	NK_INTERN void nk_glfw3_device_upload_atlas(const void* image, int width, int height)
+	NK_INTERN void nk_glfw3_device_upload_atlas(const void* image, int width, int height, Texture* _tex)
 	{
-		auto& info = NuklearVulkanImpl::s_Instance->m_Info;
+		auto& texture = *_tex;
+		texture = {};
 
-		info->atlas_tex = {};
-		auto vulkanTex = info->atlas_tex.GetVulkanTexture();
-
+		auto vulkanTex = texture.GetVulkanTexture();
 		vulkanTex->SetFormat(VK_FORMAT_R8G8B8A8_UNORM);
 		vulkanTex->CreateTexture(static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1, image, nullptr);
 
-		NuklearVulkanImpl::s_Instance->m_Pipeline.UpdateSampler(&info->atlas_tex, 1);
+		NuklearVulkanImpl::s_Instance->m_Pipeline.UpdateSampler(_tex, 1);
 	}
 
 	NK_API void nk_glfw3_mouse_button_callback(GLFWwindow* win, int button, int action, int mods)
@@ -130,7 +130,6 @@ namespace Frostium
 	NK_API void nk_glfw3_char_callback(unsigned int codepoint)
 	{
 		auto info = NuklearVulkanImpl::s_Instance->m_Info;
-
 		if (info->text_len < NK_GLFW_TEXT_MAX)
 			info->text[info->text_len++] = codepoint;
 	}
@@ -220,7 +219,7 @@ namespace Frostium
 		const void* image; int w, h;
 		auto& info = NuklearVulkanImpl::s_Instance->m_Info;
 		image = nk_font_atlas_bake(&info->atlas, &w, &h, NK_FONT_ATLAS_RGBA32);
-		nk_glfw3_device_upload_atlas(image, w, h);
+		nk_glfw3_device_upload_atlas(image, w, h, &info->atlas_tex);
 		nk_font_atlas_end(&info->atlas, nk_handle_ptr(&info->atlas_tex), &info->null);
 		if (info->atlas.default_font) {
 			nk_style_set_font(&info->ctx, &info->atlas.default_font->handle);
@@ -407,13 +406,12 @@ namespace Frostium
 
 		nk_glfw3_init(win, NK_GLFW3_INSTALL_CALLBACKS);
 
-		nk_font* droid = nullptr;
 		nk_glfw3_font_stash_begin(&atlas);
 		{
-			droid = nk_font_atlas_add_from_file(atlas, std::string(GraphicsContext::GetSingleton()->GetResourcesPath() + "Fonts/Font1.ttf").c_str(), 14, 0);
+			m_Info->font = nk_font_atlas_add_from_file(atlas, std::string(GraphicsContext::GetSingleton()->GetResourcesPath() + "Fonts/Font1.ttf").c_str(), 24, nullptr);
 		}
 		nk_glfw3_font_stash_end();
-		nk_style_set_font(&m_Info->ctx, &droid->handle);
+		nk_style_set_font(&m_Info->ctx, &m_Info->font->handle);
 	}
 
 	void NuklearVulkanImpl::ShutDown()
@@ -424,29 +422,6 @@ namespace Frostium
 	void NuklearVulkanImpl::NewFrame()
 	{
 		nk_glfw3_new_frame();
-
-#if 0
-		/* window flags */
-		auto& info = NuklearVulkanImpl::s_Instance->m_Info;
-
-		if (nk_begin(&info->ctx, "Overview", nk_rect(50, 50, 230, 250), NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_SCALABLE | NK_WINDOW_MINIMIZABLE))
-		{
-			enum { EASY, HARD };
-			static int op = EASY;
-			static int property = 20;
-			nk_layout_row_static(&info->ctx, 30, 80, 1);
-			if (nk_button_label(&info->ctx, "button"))
-				fprintf(stdout, "button pressed\n");
-
-			nk_layout_row_dynamic(&info->ctx, 30, 2);
-			if (nk_option_label(&info->ctx, "easy", op == EASY)) op = EASY;
-			if (nk_option_label(&info->ctx, "hard", op == HARD)) op = HARD;
-
-			nk_layout_row_dynamic(&info->ctx, 25, 1);
-			nk_property_int(&info->ctx, "Compression:", 0, &property, 100, 10, 1);
-		}
-		nk_end(&info->ctx);
-#endif
 	}
 
 	void NuklearVulkanImpl::Draw(Framebuffer* target)
@@ -469,11 +444,43 @@ namespace Frostium
 			MouseButtonEvent* mouseButton = e.Cast<MouseButtonEvent>();
 			nk_glfw3_mouse_button_callback(m_Info->win, mouseButton->m_MouseButton, mouseButton->m_Action, 0);
 		}
+
+		if (e.IsType(EventType::CHAR_INPUT))
+		{
+			CharInputEvent* input = e.Cast<CharInputEvent>();
+			nk_glfw3_char_callback(input->m_Codepoint);
+		}
 	}
 
 	nk_context* NuklearVulkanImpl::GetContext()
 	{
 		return &NuklearVulkanImpl::s_Instance->m_Info->ctx;
+	}
+
+	nk_font* NuklearVulkanImpl::GetFont()
+	{
+		return m_Info->font;
+	}
+
+	nk_font_atlas* NuklearVulkanImpl::GetFontAtlas()
+	{
+		return &m_Info->atlas;
+	}
+
+	void NuklearVulkanImpl::UpdateAtlas()
+	{
+		auto& info = NuklearVulkanImpl::s_Instance->m_Info;
+
+		const void* image; int w, h;
+		image = nk_font_atlas_bake(&info->atlas, &w, &h, NK_FONT_ATLAS_RGBA32);
+		nk_glfw3_device_upload_atlas(image, w, h, &info->atlas_tex);
+		nk_font_atlas_end(&info->atlas, nk_handle_ptr(&info->atlas_tex), &info->null);
+	}
+
+	void NuklearVulkanImpl::ClearAtlas()
+	{
+		auto& info = NuklearVulkanImpl::s_Instance->m_Info;
+		nk_font_atlas_clear(&info->atlas);
 	}
 
 	void NuklearVulkanImpl::SetupPipeline()

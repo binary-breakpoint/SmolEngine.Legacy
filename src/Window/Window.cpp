@@ -97,6 +97,12 @@ namespace Frostium
 			SetVSync(true);
 		}
 
+		glfwSetCharCallback(m_Window, [](GLFWwindow* window, unsigned int codepoint)
+		{
+				CharInputEvent input;
+				input.m_Codepoint = codepoint;
+				EventHandler->SendEvent(input, EventType::CHAR_INPUT, EventCategory::EVENT_KEYBOARD);
+		});
 
 		glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int height)
 		{

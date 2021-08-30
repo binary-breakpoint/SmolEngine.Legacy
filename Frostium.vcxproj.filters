@@ -2259,9 +2259,6 @@
     <ClInclude Include="include\Primitives\Shader.h">
       <Filter>include\Primitives</Filter>
     </ClInclude>
-    <ClInclude Include="include\Primitives\Text.h">
-      <Filter>include\Primitives</Filter>
-    </ClInclude>
     <ClInclude Include="include\Primitives\Texture.h">
       <Filter>include\Primitives</Filter>
     </ClInclude>
@@ -2318,7 +2315,10 @@
     <ClInclude Include="include\GUI\UIButton.h" />
     <ClInclude Include="include\GUI\UIText.h" />
     <ClInclude Include="include\GUI\UISlider.h" />
-    <ClInclude Include="include\GUI\UIFieldInput.h" />
+    <ClInclude Include="include\GUI\UITextField.h" />
+    <ClInclude Include="include\GUI\UILayout.h" />
+    <ClInclude Include="include\GUI\UICheckbox.h" />
+    <ClInclude Include="include\GUI\UIStyle.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Animation\AnimationClip.cpp">
@@ -2480,9 +2480,6 @@
     <ClCompile Include="src\Primitives\Shader.cpp">
       <Filter>src\Primitives</Filter>
     </ClCompile>
-    <ClCompile Include="src\Primitives\Text.cpp">
-      <Filter>src\Primitives</Filter>
-    </ClCompile>
     <ClCompile Include="src\Primitives\Texture.cpp">
       <Filter>src\Primitives</Filter>
     </ClCompile>
@@ -2544,6 +2541,8 @@
     <ClCompile Include="src\GUI\UICanvas.cpp" />
     <ClCompile Include="src\GUI\UIText.cpp" />
     <ClCompile Include="src\GUI\UISlider.cpp" />
-    <ClCompile Include="src\GUI\UIFieldInput.cpp" />
+    <ClCompile Include="src\GUI\UITextField.cpp" />
+    <ClCompile Include="src\GUI\UILayout.cpp" />
+    <ClCompile Include="src\GUI\UICheckbox.cpp" />
   </ItemGroup>
 </Project>

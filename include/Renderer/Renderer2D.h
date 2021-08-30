@@ -3,7 +3,6 @@
 #include "Primitives/GraphicsPipeline.h"
 #include "Primitives/Framebuffer.h"
 #include "Primitives/Mesh.h"
-#include "Primitives/Text.h"
 
 #include "Camera/Frustum.h"
 #include "Tools/GLM.h"
@@ -50,13 +49,6 @@ namespace Frostium
 		glm::ivec4   Params; // x - texture index
 	};
 
-	struct TextBuffer
-	{
-		glm::mat4    Model;
-		Text*        Obj = nullptr;
-		uint32_t     TextureIndex = 0;
-	};
-
 	struct RendererDrawList2D
 	{
 		RendererDrawList2D();
@@ -67,7 +59,6 @@ namespace Frostium
 		void                      SubmitSprite(const glm::vec3& worldPos, const glm::vec3& scale, const glm::vec3& rotation, uint32_t layerIndex, Texture* texture,  bool frustumCulling = true, const glm::vec4& color = glm::vec4(1.0f));
 		void                      SubmitQuad(const glm::vec3& worldPos, const glm::vec3& scale, const glm::vec3& rotation, uint32_t layerIndex, bool frustumCulling = true, const glm::vec4& color = glm::vec4(1.0f));
 		void                      SubmitLight2D(const glm::vec3& worldPos, const glm::vec4& color, float radius, float lightIntensity, bool frustumCulling = true);
-		void                      SubmitText(Text* text);
 
 		void                      CalculateFrustum(SceneViewProjection* viewProj);
 		Frustum&                  GetFrustum();
@@ -94,7 +85,6 @@ namespace Frostium
 
 		Frustum                   Frustum{};
 		ShaderInstance            ShaderInstances[MaxQuads];
-		TextBuffer                TextMessages[MaxTextMessages];
 		Instance                  Instances[MaxQuads];
 		CmdBuffer                 CommandBuffer[MaxLayers];
 		std::vector<Texture*>     Textures;
@@ -120,7 +110,6 @@ namespace Frostium
 		const uint32_t            SceneDataBP = 27;
 		Framebuffer*              MainFB = nullptr;
 		GraphicsPipeline          MainPipeline = {};
-		GraphicsPipeline          TextPipeline = {};
 		Mesh                      PlaneMesh = {};
 
 		struct TextPC

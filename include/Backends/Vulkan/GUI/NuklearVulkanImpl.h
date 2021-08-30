@@ -6,7 +6,6 @@
 #include "Primitives/IndexBuffer.h"
 #include "Primitives/Texture.h"
 
-#include "Window/Events.h"
 #include "GUI/Backends/ContextBaseGUI.h"
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL
@@ -24,6 +23,8 @@ namespace Frostium
 
 	struct NuklearStorage;
 	struct nk_context;
+	struct nk_font;
+	struct nk_font_atlas;
 
 	class NuklearVulkanImpl: public ContextBaseGUI
 	{
@@ -33,7 +34,12 @@ namespace Frostium
 		void                             NewFrame() override;
 		void                             Draw(Framebuffer* target) override;
 		void                             OnEvent(Event& e)override;
+		void                             UpdateAtlas();
+		void                             ClearAtlas();
+		// Getters
 		nk_context*                      GetContext();
+		nk_font*                         GetFont();
+		nk_font_atlas*                   GetFontAtlas();
 		
 		GraphicsPipeline                 m_Pipeline;
 		Ref<VertexBuffer>                m_VertexBuffer;

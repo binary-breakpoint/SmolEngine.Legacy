@@ -849,9 +849,12 @@ IF EXIST include\ (xcopy /Q /E /Y /I include ..\SmolEngine\smolengine\include\Li
     <ClInclude Include="include\GUI\Backends\ImGuiContext.h" />
     <ClInclude Include="include\GUI\Backends\NuklearContext.h" />
     <ClInclude Include="include\GraphicsContext.h" />
+    <ClInclude Include="include\GUI\UIStyle.h" />
     <ClInclude Include="include\GUI\UIButton.h" />
     <ClInclude Include="include\GUI\UICanvas.h" />
-    <ClInclude Include="include\GUI\UIFieldInput.h" />
+    <ClInclude Include="include\GUI\UICheckbox.h" />
+    <ClInclude Include="include\GUI\UILayout.h" />
+    <ClInclude Include="include\GUI\UITextField.h" />
     <ClInclude Include="include\GUI\UISlider.h" />
     <ClInclude Include="include\GUI\UIText.h" />
     <ClInclude Include="include\Import\OzzImported.h" />
@@ -864,7 +867,6 @@ IF EXIST include\ (xcopy /Q /E /Y /I include ..\SmolEngine\smolengine\include\Li
     <ClInclude Include="include\Primitives\IndexBuffer.h" />
     <ClInclude Include="include\Primitives\Mesh.h" />
     <ClInclude Include="include\Primitives\Shader.h" />
-    <ClInclude Include="include\Primitives\Text.h" />
     <ClInclude Include="include\Primitives\Texture.h" />
     <ClInclude Include="include\Primitives\VertexArray.h" />
     <ClInclude Include="include\Primitives\VertexBuffer.h" />
@@ -931,7 +933,9 @@ IF EXIST include\ (xcopy /Q /E /Y /I include ..\SmolEngine\smolengine\include\Li
     <ClCompile Include="src\GraphicsContext.cpp" />
     <ClCompile Include="src\GUI\UIButton.cpp" />
     <ClCompile Include="src\GUI\UICanvas.cpp" />
-    <ClCompile Include="src\GUI\UIFieldInput.cpp" />
+    <ClCompile Include="src\GUI\UICheckbox.cpp" />
+    <ClCompile Include="src\GUI\UITextField.cpp" />
+    <ClCompile Include="src\GUI\UILayout.cpp" />
     <ClCompile Include="src\GUI\UISlider.cpp" />
     <ClCompile Include="src\GUI\UIText.cpp" />
     <ClCompile Include="src\Import\OzzImported.cpp" />
@@ -942,7 +946,6 @@ IF EXIST include\ (xcopy /Q /E /Y /I include ..\SmolEngine\smolengine\include\Li
     <ClCompile Include="src\Primitives\IndexBuffer.cpp" />
     <ClCompile Include="src\Primitives\Mesh.cpp" />
     <ClCompile Include="src\Primitives\Shader.cpp" />
-    <ClCompile Include="src\Primitives\Text.cpp" />
     <ClCompile Include="src\Primitives\Texture.cpp" />
     <ClCompile Include="src\Primitives\VertexArray.cpp" />
     <ClCompile Include="src\Primitives\VertexBuffer.cpp" />

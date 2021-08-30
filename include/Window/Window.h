@@ -33,26 +33,22 @@ namespace Frostium
 	class Window
 	{
 	public:
-
-		void Init(const WindowCreateInfo* info, EventSender* eventHandler);
-		void ProcessEvents();
-		void ShutDown();
-
+		void           Init(const WindowCreateInfo* info, EventSender* eventHandler);
+		void           ProcessEvents();
+		void           ShutDown();
 		// Getters
-		GLFWwindow* GetNativeWindow() const;
-		WindowData* GetWindowData();
-		uint32_t GetWidth() const;
-		uint32_t GetHeight() const;
-
+		GLFWwindow*    GetNativeWindow() const;
+		WindowData*    GetWindowData();
+		uint32_t       GetWidth() const;
+		uint32_t       GetHeight() const;
 		// Setters
-		void SetWidth(uint32_t value);
-		void SetHeight(uint32_t value);
-		void SetVSync(bool enabled);
-		void SetTitle(const std::string& name);
+		void           SetWidth(uint32_t value);
+		void           SetHeight(uint32_t value);
+		void           SetVSync(bool enabled);
+		void           SetTitle(const std::string& name);
 
 	private:
-
-		void Create(const WindowCreateInfo* info);
+		void           Create(const WindowCreateInfo* info);
 
 	private:
 

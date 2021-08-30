@@ -10,7 +10,13 @@
 #include "Primitives/VertexBuffer.h"
 #include "Primitives/IndexBuffer.h"
 #include "Primitives/GraphicsPipeline.h"
-#include "Primitives/Text.h"
+
+#include "GUI/UICanvas.h"
+#include "GUI/UIButton.h"
+#include "GUI/UIText.h"
+#include "GUI/UISlider.h"
+#include "GUI/UITextField.h"
+#include "GUI/UICheckbox.h"
 
 #include "Environment/CubeMap.h"
 #include "Environment/EnvironmentMap.h"

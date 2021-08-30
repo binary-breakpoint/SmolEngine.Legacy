@@ -3,7 +3,6 @@
 
 #include "Primitives/GraphicsPipeline.h"
 #include "Primitives/Mesh.h"
-#include "Primitives/Text.h"
 
 #include "Tools/Utils.h"
 
@@ -74,35 +73,6 @@ namespace Frostium
 			assert(MainPipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
 		}
 
-		// Text Pipeline
-		{
-			pipelineCI = {};
-			BufferLayout layout =
-			{
-				{ DataTypes::Float3, "aPos" },
-				{ DataTypes::Float2, "aUV" },
-			};
-
-			GraphicsPipelineShaderCreateInfo shaderCI = {};
-			{
-				shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/Text.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/Text.frag";
-			};
-
-			pipelineCI.PipelineName = "Text";
-			pipelineCI.eCullMode = CullMode::None;
-			pipelineCI.bDepthTestEnabled = false;
-			pipelineCI.eSrcColorBlendFactor = BlendFactor::ONE;
-			pipelineCI.eDstColorBlendFactor = BlendFactor::ONE_MINUS_SRC_ALPHA;
-			pipelineCI.eSrcAlphaBlendFactor = BlendFactor::ONE;
-			pipelineCI.eDstAlphaBlendFactor = BlendFactor::ZERO;
-			pipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(TextVertex), layout) };
-			pipelineCI.TargetFramebuffers = { MainFB };
-			pipelineCI.ShaderCreateInfo = shaderCI;
-
-			assert(TextPipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
-		}
-
 		Mesh::Create(path + "Models/plane.gltf", &PlaneMesh);
 	}
 
@@ -116,7 +86,6 @@ namespace Frostium
 		MainPipeline.SubmitBuffer(SceneDataBP, sizeof(SceneViewProjection), drawList->SceneInfo);
 		MainPipeline.SubmitBuffer(InstancesBP, ShaderInstanceSize * drawList->InstIndex, drawList->ShaderInstances);
 		MainPipeline.UpdateSamplers(drawList->Textures, 0);
-		TextPipeline.UpdateSamplers(drawList->FontTextures, 1);
 	}
 
 	void Renderer2D::DrawFrame(ClearInfo* clearInfo, Renderer2DStorage* storage, RendererDrawList2D* drawList, bool batch_cmd)
@@ -137,7 +106,6 @@ namespace Frostium
 		{
 			storage->MainPipeline.BeginRenderPass();
 			{
-				// Sprites
 				for (uint32_t i = 0; i < RendererDrawList2D::MaxLayers; ++i)
 				{
 					auto& cmd = drawList->CommandBuffer[i];
@@ -148,19 +116,6 @@ namespace Frostium
 
 						cmd.Reset();
 					}
-				}
-
-				// Text
-				for (uint32_t i = 0; i < drawList->TextIndex; ++i)
-				{
-					auto& msg = drawList->TextMessages[i];
-
-					storage->TextPushConstant.Model = msg.Model;
-					storage->TextPushConstant.Color = msg.Obj->m_Color;
-					storage->TextPushConstant.TexIndex = msg.TextureIndex;
-
-					storage->TextPipeline.SubmitPushConstant(ShaderType::Vertex, storage->TextPCSize, &storage->TextPushConstant);
-					storage->TextPipeline.DrawIndexed(&msg.Obj->m_VertexBuffer, &msg.Obj->m_IndexBuffer);
 				}
 			}
 			storage->MainPipeline.EndRenderPass();
@@ -187,13 +142,11 @@ namespace Frostium
 		if (batch_cmd)
 		{
 			storage->MainPipeline.BeginCommandBuffer(batch_cmd);
-			storage->TextPipeline.BeginCommandBuffer(batch_cmd);
 			return;
 		}
 
 		VulkanCommandBuffer::CreateCommandBuffer(cmd);
 		storage->MainPipeline.SetCommandBuffer(cmd->Buffer);
-		storage->TextPipeline.SetCommandBuffer(cmd->Buffer);
 	}
 
 	RendererDrawList2D::RendererDrawList2D()
@@ -250,17 +203,6 @@ namespace Frostium
 	void RendererDrawList2D::SubmitLight2D(const glm::vec3& worldPos, const glm::vec4& color, float radius, float lightIntensity, bool frustumCulling)
 	{
 
-	}
-
-	void RendererDrawList2D::SubmitText(Text* text)
-	{
-		auto& msg = TextMessages[TextIndex];
-		msg.Obj = text;
-		msg.TextureIndex = TextIndex;
-
-		FontTextures[TextIndex] = &text->m_SDFTexture;
-		Utils::ComposeTransform(text->m_Pos, text->m_Rotation, text->m_Scale, msg.Model);
-		TextIndex++;
 	}
 
 	uint32_t RendererDrawList2D::AddTexture(Texture* in_texture)
