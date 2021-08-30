@@ -17,8 +17,8 @@ namespace Frostium
 	public:
 		void                                BeginCompute();
 		void                                EndCompute();
-		void                                Execute(uint32_t descriptorIndex, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
-		void                                Dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
+		void                                Execute(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
+		void                                Dispatch(uint32_t descriptorIndex, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
 
 	private:
 		bool                                Invalidate(ComputePipelineCreateInfo* pipelineSpec, VulkanShader* shader);
@@ -31,6 +31,7 @@ namespace Frostium
 		VkDescriptorPool                    m_DescriptorPool = nullptr;
 		VkPipelineLayout                    m_PipelineLayout = nullptr;
 		ComputePipelineCreateInfo*          m_Spec = nullptr;
+		CommandBufferStorage                m_CmdStorage{};
 		std::vector<VulkanDescriptor>       m_Descriptors;
 		std::vector<VkDescriptorSetLayout>  m_SetLayout;
 

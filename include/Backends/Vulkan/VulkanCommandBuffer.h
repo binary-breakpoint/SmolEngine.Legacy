@@ -19,7 +19,10 @@ namespace Frostium
 	{
 		VkCommandBuffer Buffer = VK_NULL_HANDLE;
 		VkCommandPool   Pool = VK_NULL_HANDLE;
+		VkFence         ComputeFence = VK_NULL_HANDLE;
 		bool            bNewPool = true;
+		bool            bCompute = false;
+		bool            bStartRecord = true;
 	};
 
 	class VulkanCommandBuffer

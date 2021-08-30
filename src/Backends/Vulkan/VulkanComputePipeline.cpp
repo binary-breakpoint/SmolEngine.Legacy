@@ -54,22 +54,35 @@ namespace Frostium
 
 	void VulkanComputePipeline::BeginCompute()
 	{
+		m_CmdStorage = {};
+		m_CmdStorage.bNewPool = false;
+		m_CmdStorage.bCompute = true;
+		m_CmdStorage.bStartRecord = true;
+		VulkanCommandBuffer::CreateCommandBuffer(&m_CmdStorage);
 
+		vkCmdBindPipeline(m_CmdStorage.Buffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_Pipeline);
 	}
 
 	void VulkanComputePipeline::EndCompute()
 	{
-
+		VulkanCommandBuffer::ExecuteCommandBuffer(&m_CmdStorage);
 	}
 
-	void VulkanComputePipeline::Execute(uint32_t descriptorIndex, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
+	void VulkanComputePipeline::Execute(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
 	{
+		for (uint32_t i = 0; i < static_cast<uint32_t>(m_Descriptors.size()); ++i)
+		{
+			Dispatch(i, groupCountX, groupCountY, groupCountZ);
+		}
 
+		VulkanCommandBuffer::ExecuteCommandBuffer(&m_CmdStorage);
 	}
 
-	void VulkanComputePipeline::Dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
+	void VulkanComputePipeline::Dispatch(uint32_t descriptorIndex, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
 	{
-
+		const auto& descriptorSet = m_Descriptors[descriptorIndex].GetDescriptorSets();
+		vkCmdBindDescriptorSets(m_CmdStorage.Buffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_PipelineLayout, 0, 1, &descriptorSet, 0, 0);
+		vkCmdDispatch(m_CmdStorage.Buffer, groupCountX, groupCountY, groupCountZ);
 	}
 }
 

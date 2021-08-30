@@ -77,14 +77,19 @@ namespace Frostium
 		{
 			VkCommandPoolCreateInfo poolInfo = {};
 			{
+				auto& queueFamilyIndices = VulkanContext::GetDevice().GetQueueFamilyIndices();
+
 				poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-				poolInfo.queueFamilyIndex = VulkanContext::GetDevice().GetQueueFamilyIndices().Graphics;
+				poolInfo.queueFamilyIndex = data->bCompute ? queueFamilyIndices.Compute: queueFamilyIndices.Graphics;
 				poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 				VK_CHECK_RESULT(vkCreateCommandPool(device, &poolInfo, nullptr, &data->Pool));
 			}
 		}
 		else
-			data->Pool = VulkanContext::GetCommandBuffer().m_CommandPool;
+		{
+			data->Pool = data->bCompute ? VulkanContext::GetCommandBuffer().m_ComputeCommandPool:
+				VulkanContext::GetCommandBuffer().m_CommandPool;
+		}
 
 		VkCommandBufferAllocateInfo allocInfo = {};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -93,10 +98,12 @@ namespace Frostium
 		allocInfo.commandBufferCount = 1;
 		VK_CHECK_RESULT(vkAllocateCommandBuffers(device, &allocInfo, &data->Buffer));
 
-		VkCommandBufferBeginInfo beginInfo = {};
-		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-
-		VK_CHECK_RESULT(vkBeginCommandBuffer(data->Buffer, &beginInfo));
+		if (data->bStartRecord)
+		{
+			VkCommandBufferBeginInfo beginInfo = {};
+			beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+			VK_CHECK_RESULT(vkBeginCommandBuffer(data->Buffer, &beginInfo));
+		}
 	}
 
 	void VulkanCommandBuffer::ExecuteCommandBuffer(CommandBufferStorage* data)
@@ -105,31 +112,46 @@ namespace Frostium
 		VkDevice device = VulkanContext::GetDevice().GetLogicalDevice();
 		VK_CHECK_RESULT(vkEndCommandBuffer(data->Buffer));
 
-		VkSubmitInfo submitInfo = {};
-		{
-			submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-			submitInfo.commandBufferCount = 1;
-			submitInfo.pCommandBuffers = &data->Buffer;
-		}
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &data->Buffer;
 
-		VkFence fence = {};
-		VkFenceCreateInfo fenceCI = {};
+		if (data->bCompute)
 		{
+			VkFenceCreateInfo fenceCreateInfo{};
+			fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+			fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+			VK_CHECK_RESULT(vkCreateFence(device, &fenceCreateInfo, nullptr, &data->ComputeFence));
+
+			// Make sure previous compute shader in pipeline has completed (TODO: this shouldn't be needed for all cases)
+			vkWaitForFences(device, 1, &data->ComputeFence, VK_TRUE, UINT64_MAX);
+			vkResetFences(device, 1, &data->ComputeFence);
+
+			VK_CHECK_RESULT(vkQueueSubmit(VulkanContext::GetDevice().GetQueue(QueueFamilyFlags::Compute), 1, &submitInfo, data->ComputeFence));
+
+			VK_CHECK_RESULT(vkWaitForFences(device, 1, &data->ComputeFence, VK_TRUE, UINT64_MAX));
+		}
+		else
+		{
+			VkFence fence = {};
+			VkFenceCreateInfo fenceCI = {};
 			fenceCI.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 			fenceCI.flags = 0;
-
 			VK_CHECK_RESULT(vkCreateFence(device, &fenceCI, nullptr, &fence));
+
+			{
+				std::lock_guard<std::mutex> lock(*m_Mutex);
+				VK_CHECK_RESULT(vkQueueSubmit(VulkanContext::GetDevice().GetQueue(QueueFamilyFlags::Graphics), 1, &submitInfo, fence));
+			}
+
+			VK_CHECK_RESULT(vkWaitForFences(device, 1, &fence, VK_TRUE, time_out));
+			vkDestroyFence(device, fence, nullptr);
 		}
 
-		{
-			std::lock_guard<std::mutex> lock(*m_Mutex);
-			VK_CHECK_RESULT(vkQueueSubmit(VulkanContext::GetDevice().GetQueue(QueueFamilyFlags::Graphics), 1, &submitInfo, fence));
-		}
-
-		VK_CHECK_RESULT(vkWaitForFences(device, 1, &fence, VK_TRUE, time_out));
-		vkDestroyFence(device, fence, nullptr);
 		vkFreeCommandBuffers(device, data->Pool, 1, &data->Buffer);
-		vkDestroyCommandPool(device, data->Pool, nullptr);
+		if (data->bNewPool)
+			vkDestroyCommandPool(device, data->Pool, nullptr);
 	}
 
 	size_t VulkanCommandBuffer::GetBufferSize() const
