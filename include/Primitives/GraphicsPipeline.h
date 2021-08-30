@@ -89,29 +89,29 @@ namespace Frostium
 	class Framebuffer;
 	struct GraphicsPipelineCreateInfo
 	{
-		BlendFactor                          eSrcColorBlendFactor = BlendFactor::NONE;
-		BlendFactor                          eDstColorBlendFactor = BlendFactor::NONE;
-		BlendFactor                          eSrcAlphaBlendFactor = BlendFactor::NONE;
-		BlendFactor                          eDstAlphaBlendFactor = BlendFactor::NONE;
-		BlendOp                              eColorBlendOp = BlendOp::ADD;
-		BlendOp                              eAlphaBlendOp = BlendOp::ADD;
-		CullMode                             eCullMode = CullMode::Back;
-		PolygonMode                          ePolygonMode = PolygonMode::Fill;
-
-		bool                                 bDepthTestEnabled = true;
-		bool                                 bDepthWriteEnabled = true;
-		bool                                 bDepthBiasEnabled = false;
-		bool                                 bPrimitiveRestartEnable = false;
-		float                                MinDepth = 0.0f;
-		float                                MaxDepth = 1.0f;
-		int32_t                              DescriptorSets = 1;
-		int32_t                              StageCount = -1;
-
-		std::string                          PipelineName = "";
-		GraphicsPipelineShaderCreateInfo     ShaderCreateInfo = {};
-		std::vector<DrawMode>                PipelineDrawModes = { DrawMode::Triangle };
-		std::vector<VertexInputInfo>         VertexInputInfos;
-		std::vector<Framebuffer*>            TargetFramebuffers;
+		BlendFactor                   eSrcColorBlendFactor = BlendFactor::NONE;
+		BlendFactor                   eDstColorBlendFactor = BlendFactor::NONE;
+		BlendFactor                   eSrcAlphaBlendFactor = BlendFactor::NONE;
+		BlendFactor                   eDstAlphaBlendFactor = BlendFactor::NONE;
+		BlendOp                       eColorBlendOp = BlendOp::ADD;
+		BlendOp                       eAlphaBlendOp = BlendOp::ADD;
+		CullMode                      eCullMode = CullMode::Back;
+		PolygonMode                   ePolygonMode = PolygonMode::Fill;
+									  
+		bool                          bDepthTestEnabled = true;
+		bool                          bDepthWriteEnabled = true;
+		bool                          bDepthBiasEnabled = false;
+		bool                          bPrimitiveRestartEnable = false;
+		float                         MinDepth = 0.0f;
+		float                         MaxDepth = 1.0f;
+		int32_t                       DescriptorSets = 1;
+		int32_t                       StageCount = -1;
+									  
+		std::string                   PipelineName = "";
+		ShaderCreateInfo              ShaderCreateInfo = {};
+		std::vector<DrawMode>         PipelineDrawModes = { DrawMode::Triangle };
+		std::vector<VertexInputInfo>  VertexInputInfos;
+		std::vector<Framebuffer*>     TargetFramebuffers;
 	};
 
 	class GraphicsPipeline

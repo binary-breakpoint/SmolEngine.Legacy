@@ -64,6 +64,7 @@ namespace Frostium
 	private:
 
 		friend class VulkanPipeline;
+		friend class VulkanComputePipeline;
 	};
 }
 #endif

@@ -93,7 +93,7 @@ namespace Frostium
 		}
 	}
 
-	void Shader::Create(GraphicsPipelineShaderCreateInfo* shaderCI, Shader* obj)
+	void Shader::Create(ShaderCreateInfo* shaderCI, Shader* obj)
 	{
 		if (obj == nullptr)
 			return;

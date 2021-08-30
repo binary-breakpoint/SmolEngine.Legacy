@@ -15,18 +15,7 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
-    VulkanShader::VulkanShader()
-    {
-
-    }
-
-    VulkanShader::~VulkanShader()
-    {
-
-    }
-
-    bool VulkanShader::Init(std::unordered_map<ShaderType, std::vector<uint32_t>>& binary, ReflectionData* reflectData,
-        GraphicsPipelineShaderCreateInfo* createInfo)
+    bool VulkanShader::Init(std::unordered_map<ShaderType, std::vector<uint32_t>>& binary, ReflectionData* reflectData,  ShaderCreateInfo* createInfo)
     {
         m_ReflectionData = reflectData;
         m_CreateInfo = createInfo;

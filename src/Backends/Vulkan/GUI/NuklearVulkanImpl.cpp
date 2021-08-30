@@ -493,7 +493,7 @@ namespace Frostium
 		};
 
 		GraphicsPipelineCreateInfo pipelineCI{};
-		GraphicsPipelineShaderCreateInfo shaderCI{};
+		ShaderCreateInfo shaderCI{};
 		{
 			const std::string& path = GraphicsContext::GetSingleton()->GetResourcesPath();
 

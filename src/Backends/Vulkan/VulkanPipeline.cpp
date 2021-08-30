@@ -14,21 +14,13 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
-	VulkanPipeline::VulkanPipeline()
-	{
-		m_Device = VulkanContext::GetDevice().GetLogicalDevice();
-	}
-
-	VulkanPipeline::~VulkanPipeline()
-	{
-
-	}
-
 	bool VulkanPipeline::Invalidate(GraphicsPipelineCreateInfo* pipelineSpec, VulkanShader* shader)
 	{
+		m_Device = VulkanContext::GetDevice().GetLogicalDevice();
 		m_PipelineSpecification = pipelineSpec;
 		m_Shader = shader;
-		BuildDescriptors(shader, pipelineSpec->DescriptorSets);
+
+		BuildDescriptors(shader, pipelineSpec->DescriptorSets, m_Descriptors, m_DescriptorPool);
 
 #ifndef FROSTIUM_OPENGL_IMPL
 		Framebuffer* fb = pipelineSpec->TargetFramebuffers[0];
@@ -419,13 +411,9 @@ namespace Frostium
 			m_PipelineSpecification->eDstAlphaBlendFactor != BlendFactor::NONE || m_PipelineSpecification->eSrcAlphaBlendFactor != BlendFactor::NONE;
 	}
 
-	void VulkanPipeline::BuildDescriptors(VulkanShader* shader, uint32_t DescriptorSets)
+	void VulkanPipeline::BuildDescriptors(VulkanShader* shader, uint32_t DescriptorSets, std::vector<VulkanDescriptor>& out_descriptors, VkDescriptorPool& pool)
 	{
-		m_Descriptors.clear();
-		if (m_DescriptorPool != VK_NULL_HANDLE)
-		{
-			vkDestroyDescriptorPool(m_Device, m_DescriptorPool, nullptr);
-		}
+		auto device = VulkanContext::GetDevice().GetLogicalDevice();
 
 		ReflectionData* refData = shader->m_ReflectionData;
 		std::vector< VkDescriptorPoolSize> DescriptorPoolSizes;
@@ -504,15 +492,16 @@ namespace Frostium
 			descriptorPoolInfo.pPoolSizes = DescriptorPoolSizes.data();
 			descriptorPoolInfo.maxSets = DescriptorSets;
 
-			VK_CHECK_RESULT(vkCreateDescriptorPool(m_Device, &descriptorPoolInfo, nullptr, &m_DescriptorPool));
+			if (pool != VK_NULL_HANDLE) { vkDestroyDescriptorPool(device, pool, nullptr); }
+			VK_CHECK_RESULT(vkCreateDescriptorPool(device, &descriptorPoolInfo, nullptr, &pool));
 		}
 
-		m_Descriptors.resize(DescriptorSets);
+		out_descriptors.resize(DescriptorSets);
 		for (uint32_t i = 0; i < DescriptorSets; ++i)
 		{
-			m_Descriptors[i].GenDescriptorSet(shader, m_DescriptorPool);
-			m_Descriptors[i].GenBuffersDescriptors(shader);
-			m_Descriptors[i].GenSamplersDescriptors(shader);
+			out_descriptors[i].GenDescriptorSet(shader, pool);
+			out_descriptors[i].GenBuffersDescriptors(shader);
+			out_descriptors[i].GenSamplersDescriptors(shader);
 		}
 	}
 

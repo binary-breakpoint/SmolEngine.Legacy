@@ -320,7 +320,7 @@ namespace Frostium
 
 		// Gbuffer
 		{
-			GraphicsPipelineShaderCreateInfo shaderCI = {};
+			ShaderCreateInfo shaderCI = {};
 			{
 				shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/Gbuffer.vert";
 				shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/Gbuffer.frag";
@@ -353,7 +353,7 @@ namespace Frostium
 
 		// Lighting
 		{
-			GraphicsPipelineShaderCreateInfo shaderCI = {};
+			ShaderCreateInfo shaderCI = {};
 			{
 				shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/GenTriangle.vert";
 				shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/Lighting.frag";
@@ -404,7 +404,7 @@ namespace Frostium
 					Mesh::Create(path + "Models/plane_v2.gltf", &m_PlaneMesh);
 
 					GraphicsPipelineCreateInfo pipelineCI = {};
-					GraphicsPipelineShaderCreateInfo shaderCI = {};
+					ShaderCreateInfo shaderCI = {};
 					{
 						shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/Grid.vert";
 						shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/Grid.frag";
@@ -423,7 +423,7 @@ namespace Frostium
 			// Skybox
 			JobsSystemInstance::Schedule([&]()
 				{
-					GraphicsPipelineShaderCreateInfo shaderCI = {};
+					ShaderCreateInfo shaderCI = {};
 					{
 						shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/Skybox.vert";
 						shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/Skybox.frag";
@@ -465,7 +465,7 @@ namespace Frostium
 			// Depth Pass
 			JobsSystemInstance::Schedule([&]()
 				{
-					GraphicsPipelineShaderCreateInfo shaderCI = {};
+					ShaderCreateInfo shaderCI = {};
 					{
 						shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/DepthPass.vert";
 						shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/DepthPass.frag";
@@ -492,7 +492,7 @@ namespace Frostium
 					DynamicPipelineCI.eCullMode = CullMode::None;
 					DynamicPipelineCI.TargetFramebuffers = { f_Main };
 
-					GraphicsPipelineShaderCreateInfo shaderCI = {};
+					ShaderCreateInfo shaderCI = {};
 					shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/GenTriangle.vert";
 					shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/Combination.frag";
 					DynamicPipelineCI.ShaderCreateInfo = shaderCI;
@@ -512,7 +512,7 @@ namespace Frostium
 					DynamicPipelineCI.eCullMode = CullMode::None;
 					DynamicPipelineCI.TargetFramebuffers = { f_Main };
 
-					GraphicsPipelineShaderCreateInfo shaderCI = {};
+					ShaderCreateInfo shaderCI = {};
 					shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/GenTriangle.vert";
 					shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/DebugView.frag";
 					DynamicPipelineCI.ShaderCreateInfo = shaderCI;
@@ -536,7 +536,7 @@ namespace Frostium
 					GraphicsPipelineCreateInfo DynamicPipelineCI = {};
 					DynamicPipelineCI.eCullMode = CullMode::None;
 
-					GraphicsPipelineShaderCreateInfo shaderCI = {};
+					ShaderCreateInfo shaderCI = {};
 					shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/GenTriangle.vert";
 					shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/Bloom.frag";
 					DynamicPipelineCI.ShaderCreateInfo = shaderCI;

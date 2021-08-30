@@ -43,7 +43,7 @@ namespace Frostium
 				{ DataTypes::Float4, "aWeight"}
 			};
 
-			GraphicsPipelineShaderCreateInfo shaderCI = {};
+			ShaderCreateInfo shaderCI = {};
 			{
 				shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/2D.vert";
 				shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/2D.frag";

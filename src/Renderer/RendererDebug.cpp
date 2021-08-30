@@ -404,7 +404,7 @@ namespace Frostium
 			};
 
 			GraphicsPipelineCreateInfo pipelineCI = {};
-			GraphicsPipelineShaderCreateInfo shaderCI = {};
+			ShaderCreateInfo shaderCI = {};
 			{
 				shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/DebugPrimitive.vert";
 				shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/DebugColor.frag";
@@ -425,7 +425,7 @@ namespace Frostium
 		{
 
 			GraphicsPipelineCreateInfo pipelineCI = {};
-			GraphicsPipelineShaderCreateInfo shaderCI = {};
+			ShaderCreateInfo shaderCI = {};
 			{
 				shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/DebugMesh.vert";
 				shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/DebugColor.frag";

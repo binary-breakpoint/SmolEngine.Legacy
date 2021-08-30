@@ -169,7 +169,7 @@ namespace Frostium
 			// Shader
 			Shader shader = {};
 			{
-				GraphicsPipelineShaderCreateInfo shaderCI;
+				ShaderCreateInfo shaderCI;
 				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/GenBRDflut.frag";
 				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/GenBRDflut.vert";
 				Shader::Create(&shaderCI, &shader);
@@ -647,7 +647,7 @@ namespace Frostium
 			// Shader
 			Shader shader = {};
 			{
-				GraphicsPipelineShaderCreateInfo shaderCI;
+				ShaderCreateInfo shaderCI;
 				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/IrradianceCube.frag";
 				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/FilterCube.vert";
 
@@ -1276,7 +1276,7 @@ namespace Frostium
 			// Shader
 			Shader shader = {};
 			{
-				GraphicsPipelineShaderCreateInfo shaderCI;
+				ShaderCreateInfo shaderCI;
 				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/PreFilterenvMap.frag";
 				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/FilterCube.vert";
 

@@ -14,48 +14,41 @@ namespace Frostium
 	class VulkanShader;
 	class VulkanTexture;
 	class VulkanShader;
+
+	struct GraphicsPipelineCreateInfo;
+
 	enum class DrawMode : uint16_t;
 	enum class CullMode : uint16_t;
 	enum class BlendFactor : uint16_t;
 	enum class BlendOp : uint16_t;
 	enum class PolygonMode : uint16_t;
 
-	struct GraphicsPipelineCreateInfo;
-
 	class VulkanPipeline
 	{
 	public:
-		VulkanPipeline();
-		~VulkanPipeline();
-
-		// Main
-		bool Invalidate(GraphicsPipelineCreateInfo* pipelineSpec, VulkanShader* shader);
-		bool CreatePipeline(DrawMode mode);
-		bool ReCreate();
-		void Destroy();
-
-		// Update Descriptors
-		bool UpdateSamplers2D(const std::vector<VulkanTexture*>& textures, uint32_t bindingPoint, uint32_t setIndex = 0);
-		bool UpdateCubeMap(const VulkanTexture* cubeMap, uint32_t bindingPoint, uint32_t setIndex = 0);
-
-		// Save / Load
-		bool SaveCache(const std::string& fileName, DrawMode mode);
-		bool CreateOrLoadCached(const std::string& fileName, DrawMode mode);
-
-		// Getters
-		const VkPipeline& GetVkPipeline(DrawMode mode);
-		const VkPipelineLayout& GetVkPipelineLayot() const;
-		const VkDescriptorSet GetVkDescriptorSets(uint32_t setIndex = 0) const;
-	private:
-
-		bool IsBlendEnableEnabled();
-		void BuildDescriptors(VulkanShader* shader, uint32_t DescriptorSets);
-		VkFormat GetVkInputFormat(DataTypes type);
-		VkPrimitiveTopology GetVkTopology(DrawMode mode);
-		VkCullModeFlags GetVkCullMode(CullMode mode);
-		VkPolygonMode GetVkPolygonMode(PolygonMode mode);
-		VkBlendFactor GetVkBlendFactor(BlendFactor factor);
-		VkBlendOp GetVkBlendOp(BlendOp op);
+		bool                                            Invalidate(GraphicsPipelineCreateInfo* pipelineSpec, VulkanShader* shader);
+		bool                                            CreatePipeline(DrawMode mode);
+		bool                                            ReCreate();
+		void                                            Destroy();
+		bool                                            UpdateSamplers2D(const std::vector<VulkanTexture*>& textures, uint32_t bindingPoint, uint32_t setIndex = 0);
+		bool                                            UpdateCubeMap(const VulkanTexture* cubeMap, uint32_t bindingPoint, uint32_t setIndex = 0);
+		bool                                            SaveCache(const std::string& fileName, DrawMode mode);
+		bool                                            CreateOrLoadCached(const std::string& fileName, DrawMode mode);
+		const VkPipeline&                               GetVkPipeline(DrawMode mode);
+		const VkPipelineLayout&                         GetVkPipelineLayot() const;
+		const VkDescriptorSet                           GetVkDescriptorSets(uint32_t setIndex = 0) const;
+										                
+		// Helpers						                
+		static void                                     BuildDescriptors(VulkanShader* shader, uint32_t descriptorSets, 
+			                                            std::vector<VulkanDescriptor>& outDescriptors, VkDescriptorPool& pool);
+	private:							                
+		bool                                            IsBlendEnableEnabled();
+		VkFormat                                        GetVkInputFormat(DataTypes type);
+		VkPrimitiveTopology                             GetVkTopology(DrawMode mode);
+		VkCullModeFlags                                 GetVkCullMode(CullMode mode);
+		VkPolygonMode                                   GetVkPolygonMode(PolygonMode mode);
+		VkBlendFactor                                   GetVkBlendFactor(BlendFactor factor);
+		VkBlendOp                                       GetVkBlendOp(BlendOp op);
 
 	private:
 		VkPipelineLayout                                m_PipelineLayout = VK_NULL_HANDLE;

@@ -31,7 +31,7 @@ namespace Frostium
 		// Pipeline
 		{
 			GraphicsPipelineCreateInfo pipelineCI = {};
-			GraphicsPipelineShaderCreateInfo shaderCI = {};
+			ShaderCreateInfo shaderCI = {};
 			{
 				shaderCI.FilePaths[ShaderType::Vertex] = resPath + "Shaders/DynamicSky.vert";
 				shaderCI.FilePaths[ShaderType::Fragment] = resPath + "Shaders/DynamicSky.frag";

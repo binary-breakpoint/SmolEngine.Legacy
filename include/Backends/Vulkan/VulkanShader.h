@@ -15,19 +15,14 @@ namespace Frostium
 #endif
 {
 	struct ReflectionData;
-	struct GraphicsPipelineShaderCreateInfo;
+	struct ShaderCreateInfo;
 	enum class ShaderType : int;
 
 	class VulkanShader
 	{
-	public:
-
-		VulkanShader();
-		~VulkanShader();
-														         
-		bool                                                     Init(std::unordered_map<ShaderType, std::vector<uint32_t>>& binary, ReflectionData* reflectData, GraphicsPipelineShaderCreateInfo* createInfo);
-		void                                                     Clean();
-														         
+	public:										         
+		bool                                                     Init(std::unordered_map<ShaderType, std::vector<uint32_t>>& binary, ReflectionData* reflectData, ShaderCreateInfo* createInfo);
+		void                                                     Clean();									         
 		std::vector<VkPipelineShaderStageCreateInfo>&            GetVkPipelineShaderStages();
 		static VkShaderStageFlagBits                             GetVkShaderStage(ShaderType type);
 														         
@@ -36,17 +31,17 @@ namespace Frostium
 
 	private:
 		ReflectionData*                                          m_ReflectionData = nullptr;
-		GraphicsPipelineShaderCreateInfo*                        m_CreateInfo = nullptr;
+		ShaderCreateInfo*                                        m_CreateInfo = nullptr;
 		std::unordered_map<ShaderType, VkShaderModule>           m_ShaderModules;
 		std::vector<VkPushConstantRange>                         m_VkPushConstantRanges;
 		std::vector<VkPipelineShaderStageCreateInfo>             m_PipelineShaderStages;
 
 	private:
-
 		friend class VulkanPipeline;
 		friend class VulkanPBR;
 		friend class VulkanDescriptor;
 		friend class GraphicsPipeline;
+		friend class VulkanComputePipeline;
 	};
 }
 #endif

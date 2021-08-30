@@ -88,7 +88,7 @@ namespace Frostium
 		size_t Size = 0;
     };
 
-	struct GraphicsPipelineShaderCreateInfo
+	struct ShaderCreateInfo
 	{
 		std::unordered_map<ShaderType, std::string>      FilePaths;
 		std::unordered_map<uint32_t, ShaderBufferInfo>   BufferInfos;
@@ -101,20 +101,20 @@ namespace Frostium
 #endif
 	{
 	public:
-		void                                Bind() const;
-		void                                UnBind() const;
-		bool                                Realod();
-#ifndef FROSTIUM_OPENGL_IMPL	                				                
-		VulkanShader*                       GetVulkanShader() { return dynamic_cast<VulkanShader*>(this); }
+		void                 Bind() const;
+		void                 UnBind() const;
+		bool                 Realod();
+#ifndef FROSTIUM_OPENGL_IMPL  				                
+		VulkanShader*        GetVulkanShader() { return dynamic_cast<VulkanShader*>(this); }
 #endif
-		static void                         Create(GraphicsPipelineShaderCreateInfo* shaderCI, Shader* shader);
+		static void          Create(ShaderCreateInfo* shaderCI, Shader* shader);
 
-	private:				                
-		void                                Reflect(const std::vector<uint32_t>& binaryData, ShaderType type);
+	private:				 
+		void                 Reflect(const std::vector<uint32_t>& binaryData, ShaderType type);
 
 	private:
-		GraphicsPipelineShaderCreateInfo    m_CreateInfo{};
-		ReflectionData                      m_ReflectData{};
+		ShaderCreateInfo     m_CreateInfo{};
+		ReflectionData       m_ReflectData{};
 
 		friend class GraphicsPipeline;
 	};
