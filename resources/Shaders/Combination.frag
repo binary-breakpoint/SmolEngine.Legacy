@@ -10,10 +10,14 @@ layout (location = 0) out vec4 outFragColor;
 
 layout(std140, binding = 34) uniform BloomProperties
 {   
-	float exposure;
-	float threshold;
-	float scale;
-	float strength;
+	float  Threshold;
+	float  Knee;
+	float  UpsampleScale;
+	float  Intensity;
+	float  DirtIntensity;
+	float  Exposure;
+	float  SkyboxMod;
+	bool   Enabled;
 } bloomState;
 
 layout(std140, binding = 35) uniform FXAAState
@@ -31,38 +35,31 @@ layout(push_constant) uniform ConstantData
     uint ppState;
     uint enabledFXAA;
     uint enabledMask;
-    float mask_intensity;
-    float mask_normal_intensity;
 };
 
-// From the OpenGL Super bible
-	const float weights[] = float[](0.0024499299678342,
-									0.0043538453346397,
-									0.0073599963704157,
-									0.0118349786570722,
-									0.0181026699707781,
-									0.0263392293891488,
-									0.0364543006660986,
-									0.0479932050577658,
-									0.0601029809166942,
-									0.0715974486241365,
-									0.0811305381519717,
-									0.0874493212267511,
-									0.0896631113333857,
-									0.0874493212267511,
-									0.0811305381519717,
-									0.0715974486241365,
-									0.0601029809166942,
-									0.0479932050577658,
-									0.0364543006660986,
-									0.0263392293891488,
-									0.0181026699707781,
-									0.0118349786570722,
-									0.0073599963704157,
-									0.0043538453346397,
-									0.0024499299678342);
+vec3 UpsampleTent9(sampler2D tex, float lod, vec2 uv, vec2 texelSize, float radius)
+{
+	vec4 offset = texelSize.xyxy * vec4(1.0f, 1.0f, -1.0f, 0.0f) * radius;
 
-                                    // Settings for FXAA.
+	// Center
+	vec3 result = textureLod(tex, uv, lod).rgb * 4.0f;
+
+	result += textureLod(tex, uv - offset.xy, lod).rgb;
+	result += textureLod(tex, uv - offset.wy, lod).rgb * 2.0;
+	result += textureLod(tex, uv - offset.zy, lod).rgb;
+
+	result += textureLod(tex, uv + offset.zw, lod).rgb * 2.0;
+	result += textureLod(tex, uv + offset.xw, lod).rgb * 2.0;
+
+	result += textureLod(tex, uv + offset.zy, lod).rgb;
+	result += textureLod(tex, uv + offset.wy, lod).rgb * 2.0;
+	result += textureLod(tex, uv + offset.xy, lod).rgb;
+
+	return result * (1.0f / 16.0f);
+}
+
+
+// Settings for FXAA.
 #define QUALITY(q) ((q) < 5 ? 1.0 : ((q) > 5 ? ((q) < 10 ? 2.0 : ((q) < 11 ? 4.0 : 8.0)) : 1.5))
 
 float rgb2luma(vec3 rgb){
@@ -266,92 +263,32 @@ vec4 FXAA(sampler2D screenTexture, vec2 inUV)
     return vec4(finalColor, 0.0);
 }
 
-vec3 applyBloom()
-{
-	vec4 color = texture(bloomSampler, inUV);
-    float strength = color.a;
-
-    vec2 tex_offset = 1.0 / textureSize(bloomSampler, 0); 
-    vec3 result = color.rgb * weights[0];
-    for (int i = 0; i < weights.length(); i++)
-	{
-	     result += texture(bloomSampler, inUV + vec2(0.0, tex_offset.y * i)).rgb * weights[i] * strength;
-        result += texture(bloomSampler, inUV - vec2(0.0, tex_offset.y * i)).rgb * weights[i] * strength;
-    }
-
-    return vec3(result * bloomState.scale);
-}
-
-vec4 applyVolumetricLight(vec3 screen)
-{
-    vec2 lightPositionOnScreen = vec2(300, 300);
-    vec4 color = vec4(0);
-    const float exposure = 1.0;
-    const float decay = 1.0;
-    const float density = 1.0;
-    const float weight = 0.01;
-    const int NUM_SAMPLES = 100;
-
-    vec2 texCoord = inUV;
-    vec2 deltaTextCoord = vec2( texCoord - lightPositionOnScreen.xy );
-    deltaTextCoord *= 1.0 / float(NUM_SAMPLES) * density;
-    float illuminationDecay = 1.0;
-    
-    for(int i=0; i < 100; i++)
-    {
-		texCoord -= deltaTextCoord;
-		vec3 samp = texture(colorSampler, texCoord).rgb;
-		samp *= illuminationDecay * weight;
-		color.rgb += samp;
-		illuminationDecay *= decay;
-    }
-
-	color *= exposure;
-    return color;
-}
-
-vec3 applyMask(vec3 bloom)
-{
-    vec4 maskColor = vec4(0.0);
-    if(enabledMask == 1)
-    {
-        if(bloom.r > 0.1 && bloom.g > 0.1 && bloom.b > 0.1)
-        {
-            maskColor = texture(DirtSampler, inUV) * vec4(bloom, 1) * mask_intensity;
-        }
-        else
-        {
-            maskColor = texture(DirtSampler, inUV) * mask_normal_intensity;
-        }
-    }
-
-    return maskColor.rgb;
-}
-
 void main() 
 {
-    vec4 color = vec4(0);
+	const float gamma = 2.2;
+	vec3 color =  vec3(0);
 
-    // FXAA
+	// FXAA
     if(enabledFXAA == 1)
     {
-        color = FXAA(colorSampler, inUV);
+        color = FXAA(colorSampler, inUV).rgb;
     }
-    else
-    {
-        color = texture(colorSampler, inUV);
-    }
+	else
+	{
+		color = texture(colorSampler, inUV).rgb;
+	}
 
-    // Post Processing
     switch(ppState)
     {
         case 1:
         {
-            vec3 bloom = applyBloom();
-            vec3 dirtColor = applyMask(bloom);
-            
-            bloom += dirtColor;
-            color = vec4(color.rgb + bloom, 1.0);
+			float sampleScale = 0.5;
+	        ivec2 texSize = textureSize(bloomSampler, 0);
+	        vec2 fTexSize = vec2(float(texSize.x), float(texSize.y));
+
+	        vec3 bloom = UpsampleTent9(bloomSampler, 0, inUV, 1.0f / fTexSize, sampleScale) * bloomState.Intensity;
+            color += bloom;
+			color *= bloomState.Exposure;
             break;
         }
     }

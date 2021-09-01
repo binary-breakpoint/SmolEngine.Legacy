@@ -4,7 +4,6 @@ layout (location = 0) in vec2 inUV;
 
 // Out
 layout (location = 0) out vec4 outColor;
-layout (location = 1) out vec4 outBrightness;
 
 // Samplers
 layout (binding = 1) uniform sampler2D shadowMap;
@@ -15,7 +14,6 @@ layout (binding = 5) uniform sampler2D albedroMap;
 layout (binding = 6) uniform sampler2D positionsMap;
 layout (binding = 7) uniform sampler2D normalsMap;
 layout (binding = 8) uniform sampler2D materialsMap;
-layout (binding = 9) uniform sampler2D shadowCoordMap;
 
 // Buffers
 // -----------------------------------------------------------------------------------------------------------------------
@@ -81,6 +79,7 @@ layout(std140, binding = 32) uniform DirLightBuffer
 	bool  is_use_soft_shadows;
 } dirLight;
 
+
 layout(std140, binding = 33) uniform LightingProperties
 {   
 	vec4  ambientColor;
@@ -91,13 +90,29 @@ layout(std140, binding = 33) uniform LightingProperties
 
 layout(std140, binding = 34) uniform BloomProperties
 {   
-	float exposure;
-	float threshold;
-	float scale;
-	float strength;
-	bool  is_active;
-
+	float  Threshold;
+	float  Knee;
+	float  UpsampleScale;
+	float  Intensity;
+	float  DirtIntensity;
+	float  Exposure;
+	float  SkyboxMod;
+	bool   Enabled;
 } bloomState;
+
+const mat4 biasMat = mat4( 
+	0.5, 0.0, 0.0, 0.0,
+	0.0, -0.5, 0.0, 0.0,
+	0.0, 0.0, 1.0, 0.0,
+	0.5, 0.5, 0.0, 1.0 
+);
+
+layout(push_constant) uniform ConstantData
+{
+	mat4 lightSpace;
+	uint numPointsLights;
+    uint numSpotLights; 
+};
 
 // PBR functions
 // -----------------------------------------------------------------------------------------------------------------------
@@ -201,7 +216,7 @@ vec3 CalcIBL(vec3 fragToView, vec3 baseReflectivity, vec3 reflectionVec, vec3 no
 	vec3 diffuseRatio = vec3(1.0) - specularRatio;
 	diffuseRatio *= 1.0 - metallic;
 
-    vec3 indirectDiffuse = texture(samplerIrradiance, normal).rgb * albedo * diffuseRatio;
+    vec3 indirectDiffuse = texture(samplerIrradiance, vec3(normal.x, -normal.y, normal.z)).rgb * albedo * diffuseRatio;
 	int specularTextureLevels = textureQueryLevels(prefilteredMap);
 	vec3 prefilterColour = textureLod(prefilteredMap, reflectionVec, unclampedRoughness * (specularTextureLevels - 1)).rgb;
 	vec2 brdfIntegration = texture(samplerBRDFLUT, vec2(max(dot(normal, fragToView), 0.0), roughness)).rg;
@@ -294,19 +309,31 @@ vec3 CalcSpotLight(SpotLight light, vec3 V, vec3 N, vec3 F0, vec3 albedo_color, 
 	return (albedo_color / PI + diffuseBRDF + specularBRDF) * radiance * NdotL * light.color.rgb;
 }
 
-layout(push_constant) uniform ConstantData
+// Based on http://www.oscars.org/science-technology/sci-tech-projects/aces
+vec3 ACESTonemap(vec3 color)
 {
-    uint numPointsLights;
-    uint numSpotLights; 
-};
+	mat3 m1 = mat3(
+		0.59719, 0.07600, 0.02840,
+		0.35458, 0.90834, 0.13383,
+		0.04823, 0.01566, 0.83777
+	);
+	mat3 m2 = mat3(
+		1.60475, -0.10208, -0.00327,
+		-0.53108, 1.10813, -0.07276,
+		-0.07367, -0.00605, 1.07602
+	);
+	vec3 v = m1 * color;
+	vec3 a = v * (v + 0.0245786) - 0.000090537;
+	vec3 b = v * (0.983729 * v + 0.4329510) + 0.238081;
+	return clamp(m2 * (a / b), 0.0, 1.0);
+}
 
 void main()
 {
     vec4 texColor = texture(albedroMap, inUV); // if w is zero, no lighting calculation is required (background)
     if(texColor.w == 0.0)
     {
-	    outColor = vec4(texColor.rgb, 1.0);
-	    outBrightness = vec4(outColor.rgb, 0.5 * bloomState.strength);
+	    outColor = vec4(bloomState.Enabled ? texColor.rgb * bloomState.SkyboxMod : texColor.rgb, 1.0);
         return;
     }
     
@@ -314,7 +341,7 @@ void main()
     vec4 position = texture(positionsMap, inUV);
     vec4 normals = texture(normalsMap, inUV);
     vec4 materials = texture(materialsMap, inUV);
-    vec4 shadowCoord = texture(shadowCoordMap, inUV);
+    vec4 shadowCoord = ( biasMat * lightSpace) * vec4(position.xyz, 1.0);
     vec3 ao = vec3(materials.z);
 
     float metallic = materials.x;
@@ -383,15 +410,5 @@ void main()
 		color *= shadow;
     }
 
-	// HDR
-	//--------------------------------------------
-	// Color with manual exposure into attachment 0
-	outColor.rgb = vec3(1.0) - exp(-color.rgb * (bloomState.exposure));
-
-	// Bright parts for bloom into attachment 1
-	float l = dot(outColor.rgb, vec3(0.2126, 0.7152, 0.0722));
-	float threshold = bloomState.threshold;
-	outBrightness.rgb = (l > threshold) ? outColor.rgb : vec3(0.0);
-
-	outBrightness.a = emission * bloomState.strength;
+	outColor.rgb = ACESTonemap(color * emission);
 }

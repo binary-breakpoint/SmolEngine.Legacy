@@ -129,6 +129,7 @@ namespace Frostium
 	private:	
 		static GraphicsContext*           s_Instance;
 		Texture*                          m_DummyTexure = nullptr;
+		Texture*                          m_StorageTexure = nullptr;
 		CubeMap*                          m_DummyCubeMap = nullptr;
 		MaterialLibrary*                  m_MaterialLibrary = nullptr;
 		Framebuffer*                      m_Framebuffer = nullptr;

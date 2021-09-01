@@ -1,5 +1,6 @@
 #pragma once
 #include "Primitives/GraphicsPipeline.h"
+#include "Primitives/ComputePipeline.h"
 #include "Primitives/Framebuffer.h"
 #include "Primitives/Texture.h"
 #include "Primitives/Mesh.h"
@@ -96,14 +97,16 @@ namespace Frostium
 
 	struct BloomProperties
 	{
+		float          Threshold = 0.7f;
+		float          Knee = 0.1f;
+		float          UpsampleScale = 1.0f;
+		float          Intensity = 1.0f;
+		float          DirtIntensity = 1.0f;
 		float          Exposure = 1.0f;
-		float          Threshold = 0.10f;
-		float          Scale = 0.5f;
-		float          Strength = 0.5f;
+		float          SkyboxMod = 1.0f;
 		bool           Enabled = false;
 	private:
 		GLSL_BOOLPAD   Pad1;
-		uint32_t       Pad2;
 	};
 
 	struct FXAAProperties
@@ -172,10 +175,10 @@ namespace Frostium
 		struct Package
 		{
 			uint32_t              MaterialID = 0;
-			glm::vec3* WorldPos = nullptr;
-			glm::vec3* Rotation = nullptr;
-			glm::vec3* Scale = nullptr;
-			AnimationController* AnimController = nullptr;
+			glm::vec3*            WorldPos = nullptr;
+			glm::vec3*            Rotation = nullptr;
+			glm::vec3*            Scale = nullptr;
+			AnimationController*  AnimController = nullptr;
 		};
 
 		uint32_t                  CurrentIndex = 0;
@@ -263,26 +266,29 @@ namespace Frostium
 		const uint32_t                m_BloomStateBinding = 34;
 		const uint32_t                m_FXAAStateBinding = 35;
 		const uint32_t                m_DynamicSkyBinding = 36;
+		const uint32_t                m_BloomComputeWorkgroupSize = 4;
 		// Pipelines				
 		GraphicsPipeline              p_Gbuffer = {};
 		GraphicsPipeline              p_Lighting = {};
-		GraphicsPipeline              p_Bloom = {};
 		GraphicsPipeline              p_Combination = {};
 		GraphicsPipeline              p_Skybox = {};
 		GraphicsPipeline              p_DepthPass = {};
 		GraphicsPipeline              p_Grid = {};
 		GraphicsPipeline              p_Debug = {};
 		GraphicsPipeline              p_Mask = {};
+		GraphicsPipeline              p_DOF = {};
+		ComputePipeline               p_Bloom = {};
 		// Framebuffers				
 		Framebuffer*                  f_Main = nullptr;
 		Framebuffer                   f_GBuffer = {};
 		Framebuffer                   f_Lighting = {};
-		Framebuffer                   f_Bloom = {};
 		Framebuffer                   f_Depth = {};
+		Framebuffer                   f_DOF = {};
 				            
 		Mesh                          m_PlaneMesh = {};
 		MaterialLibrary               m_MaterialLibrary{};
-		RendererStateEX               m_State{};						
+		RendererStateEX               m_State{};	
+		std::vector<Texture>          m_BloomTex{};
 				
 		VulkanPBR*                    m_VulkanPBR = nullptr;
 		Ref<EnvironmentMap>           m_EnvironmentMap = nullptr;
@@ -295,13 +301,23 @@ namespace Frostium
 
 	class RendererDeferred
 	{
+		struct SubmitInfo
+		{
+			ClearInfo*            pClearInfo = nullptr;
+			RendererStorage*      pStorage = nullptr;
+			RendererDrawList*     pDrawList = nullptr;
+			CommandBufferStorage* pCmdStorage = nullptr;
+		};
 	public:
-		static void DrawFrame(ClearInfo* clearInfo, RendererStorage* storage, RendererDrawList* drawList, bool batch_cmd = true);
+		static void DrawFrame(ClearInfo* clearInfo, RendererStorage* storage, RendererDrawList* drawList);
 
 	private:
-		static void PrepareCmdBuffer(CommandBufferStorage* cmdStorage, RendererStorage* rendererStorage, bool batch);
-		static void ClearAtachments(ClearInfo* clearInfo, RendererStorage* storage);
-		static void UpdateCmdBuffer(RendererStorage* storage, RendererDrawList* drawList);
-		static void UpdateUniforms(RendererStorage* storage, RendererDrawList* drawList);
+		static void GBufferPass(SubmitInfo* info);
+		static void LightingPass(SubmitInfo* info);
+		static void DepthPass(SubmitInfo* info);
+		static void BloomPass(SubmitInfo* info);
+		static bool DebugViewPass(SubmitInfo* info);
+		static void CompositionPass(SubmitInfo* info);
+		static void UpdateUniforms(SubmitInfo* info);
 	};
 }

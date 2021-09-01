@@ -75,6 +75,7 @@ void LoadMaterials()
 			materialCI.SetTexture(MaterialTexture::AO, &textureCI);
 
 			materialCI.SetMetalness(1.0f);
+			materialCI.SetEmissionStrength(4.0f);
 
 			stoneMaterialID = storage->GetMaterialLibrary().Add(&materialCI, "stone");
 		});
@@ -151,6 +152,7 @@ int main(int argc, char** argv)
 	context->SetEventCallback([&](Event& e) { if (e.IsType(EventType::WINDOW_CLOSE)) process = false; camera->OnEvent(e); });
 
 	storage->Initilize();
+	storage->GetState().bDrawGrid = false;
 	context->PushStorage(storage);
 
 	LoadMaterials();
@@ -171,9 +173,15 @@ int main(int argc, char** argv)
 			ImGui::Begin("Skinning Sample");
 			{
 				ImGui::Checkbox("Light", &dirLight.IsActive);
-				ImGui::DragFloat4("LightDir", glm::value_ptr(dirLight.Direction));
+				ImGui::DragFloat4("Light Dir", glm::value_ptr(dirLight.Direction));
+				ImGui::ColorEdit4("Light Color", glm::value_ptr(dirLight.Color));
+				ImGui::InputFloat("Light Intensity", &dirLight.Intensity);
 
 				ImGui::Checkbox("Bloom", &storage->GetState().Bloom.Enabled);
+				ImGui::InputFloat("Threshold", &storage->GetState().Bloom.Threshold);
+				ImGui::InputFloat("Knee", &storage->GetState().Bloom.Knee);
+				ImGui::InputFloat("SkyboxMo", &storage->GetState().Bloom.SkyboxMod);
+
 				ImGui::Checkbox("Fxaa", &storage->GetState().FXAA.Enabled);
 				ImGui::Checkbox("IBL", &storage->GetState().IBL.Enabled);
 
@@ -196,7 +204,7 @@ int main(int argc, char** argv)
 				drawList->SubmitMesh({ 0, 3.9f, -3 }, glm::radians(glm::vec3(-90.0f, 0.0f, 0.0f)), { 1, 1, 1, }, &jetMesh, metalMaterialID, true, jet_animController);
 				drawList->SubmitMesh({ 3, 2, 0 }, { 0, 0, 0 }, { 5, 5, 5, }, &characterMesh, metalMaterialID, true, character_animController);
 
-				drawList->SubmitMesh({ -5, 0, 0 }, { 0, 0, 0 }, { 2, 2, 2, }, cubeMesh, stoneMaterialID);
+				drawList->SubmitMesh({ -5, 0, 0 }, { 0, 0, 0 }, { 2, 2, 2, }, cubeMesh);
 			}
 			drawList->EndSubmit();
 

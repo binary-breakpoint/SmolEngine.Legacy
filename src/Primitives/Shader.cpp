@@ -249,19 +249,16 @@ namespace Frostium
 			m_ReflectData.PushConstant = pc;
 		}
 
-		for (const auto& res : resources.sampled_images)
+		auto processImage = [&](std::unordered_map<uint32_t, SamplerBuffer>& map, const spirv_cross::Resource& res)
 		{
 			auto& type = compiler.get_type(res.base_type_id);
 			uint32_t binding = compiler.get_decoration(res.id, spv::DecorationBinding);
 
-			auto& it = m_ReflectData.Resources.find(binding);
-			if (it != m_ReflectData.Resources.end())
-			{
-				it->second.Stage |= shaderType;
-			}
+			auto& it = map.find(binding);
+			if (it != map.end()) { it->second.Stage |= shaderType; }
 			else
 			{
-				UniformResource resBuffer = {};
+				SamplerBuffer resBuffer = {};
 				{
 					resBuffer.BindingPoint = compiler.get_decoration(res.id, spv::DecorationBinding);
 					resBuffer.Location = compiler.get_decoration(res.id, spv::DecorationLocation);
@@ -270,8 +267,11 @@ namespace Frostium
 					resBuffer.ArraySize = compiler.get_type(res.type_id).array[0];
 				}
 
-				m_ReflectData.Resources[resBuffer.BindingPoint] = std::move(resBuffer);
+				map[resBuffer.BindingPoint] = std::move(resBuffer);
 			}
-		}
+		};
+
+		for (const auto& res : resources.sampled_images) { processImage(m_ReflectData.ImageSamplers, res); }
+		for (const auto& res : resources.storage_images) { processImage(m_ReflectData.StorageImages, res); }
 	}
 }

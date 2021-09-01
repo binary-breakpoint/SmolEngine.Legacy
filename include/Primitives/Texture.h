@@ -50,11 +50,17 @@ namespace Frostium
 		INT_OPAQUE_WHITE
 	};
 
+	enum class TextureUsage
+	{
+
+	};
+
 	struct TextureCreateInfo
 	{
 		bool           bVerticalFlip = true;
 		bool           bAnisotropyEnable = true;
 		bool           bImGUIHandle = false;
+		bool           bIsStorage = false;
 		TextureFormat  eFormat = TextureFormat::R8G8B8A8_UNORM;
 		AddressMode    eAddressMode = AddressMode::REPEAT;
 		ImageFilter    eFilter = ImageFilter::LINEAR;

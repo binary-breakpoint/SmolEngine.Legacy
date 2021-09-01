@@ -48,7 +48,7 @@ namespace Frostium
 	{
 		std::vector< VkDescriptorSetLayoutBinding> layouts;
 		ReflectionData* refData = shader->m_ReflectionData;
-		layouts.reserve(refData->Buffers.size() + refData->Resources.size());
+		layouts.reserve(refData->Buffers.size() + refData->ImageSamplers.size() + refData->StorageImages.size());
 
 		for (auto& [bindingPoint, buffer] : refData->Buffers)
 		{
@@ -65,8 +65,7 @@ namespace Frostium
 			layouts.push_back(layoutBinding);
 		}
 
-		// Samplers
-		for (auto& info : refData->Resources)
+		for (auto& info : refData->ImageSamplers)
 		{
 			auto& [bindingPoint, res] = info;
 			VkDescriptorSetLayoutBinding layoutBinding = {};
@@ -74,6 +73,20 @@ namespace Frostium
 				layoutBinding.binding = res.BindingPoint;
 				layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 				layoutBinding.descriptorCount  = res.ArraySize > 0 ? res.ArraySize : 1;
+				layoutBinding.stageFlags = VulkanShader::GetVkShaderStage(res.Stage);
+			}
+
+			layouts.push_back(layoutBinding);
+		}
+
+		for (auto& info : refData->StorageImages)
+		{
+			auto& [bindingPoint, res] = info;
+			VkDescriptorSetLayoutBinding layoutBinding = {};
+			{
+				layoutBinding.binding = res.BindingPoint;
+				layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+				layoutBinding.descriptorCount = res.ArraySize > 0 ? res.ArraySize : 1;
 				layoutBinding.stageFlags = VulkanShader::GetVkShaderStage(res.Stage);
 			}
 
@@ -205,7 +218,7 @@ namespace Frostium
 #ifndef FROSTIUM_OPENGL_IMPL
 		m_ImageInfo = GraphicsContext::s_Instance->m_DummyTexure->GetVulkanTexture()->m_DescriptorImageInfo;
 #endif
-		for (auto& [bindingPoint, res] : refData->Resources)
+		for (auto& [bindingPoint, res] : refData->ImageSamplers)
 		{
 			if (res.Dimension == 3) // cubeMap
 			{
@@ -246,9 +259,28 @@ namespace Frostium
 				vkUpdateDescriptorSets(m_Device, 1, &m_WriteSets.back(), 0, nullptr);
 			}
 		}
+
+		auto storageInfo = GraphicsContext::s_Instance->m_StorageTexure->GetVulkanTexture()->m_DescriptorImageInfo;
+		for (auto& [bindingPoint, res] : refData->StorageImages)
+		{
+			std::vector<VkDescriptorImageInfo> infos;
+			if (res.ArraySize > 0)
+			{
+				infos.resize(res.ArraySize);
+				for (uint32_t i = 0; i < res.ArraySize; ++i)
+				{
+					infos[i] = storageInfo;
+				}
+			}
+			else
+				infos.push_back(storageInfo);
+
+			m_WriteSets.push_back(CreateWriteSet(m_DescriptorSet, res.BindingPoint, infos, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE));
+			vkUpdateDescriptorSets(m_Device, 1, &m_WriteSets.back(), 0, nullptr);
+		}
 	}
 
-	bool VulkanDescriptor::Update2DSamplers(const std::vector<VulkanTexture*>& textures, uint32_t bindingPoint)
+	bool VulkanDescriptor::Update2DSamplers(const std::vector<Texture*>& textures, uint32_t bindingPoint, bool storage)
 	{
 		VkWriteDescriptorSet* writeSet = nullptr;
 		for (auto& set: m_WriteSets)
@@ -270,7 +302,7 @@ namespace Frostium
 			{
 				if (textures[i])
 				{
-					infos[i] = textures[i]->m_DescriptorImageInfo;
+					infos[i] = textures[i]->GetVulkanTexture()->m_DescriptorImageInfo;
 					continue;
 				}
 			}
@@ -279,13 +311,13 @@ namespace Frostium
 		}
 
 		*writeSet = CreateWriteSet(m_DescriptorSet,
-			bindingPoint, infos, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+			bindingPoint, infos, storage ? VK_DESCRIPTOR_TYPE_STORAGE_IMAGE: VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
 
 		vkUpdateDescriptorSets(m_Device, 1, writeSet, 0, nullptr);
 		return true;
 	}
 
-	bool VulkanDescriptor::UpdateImageResource(uint32_t bindingPoint, const VkDescriptorImageInfo& imageInfo)
+	bool VulkanDescriptor::UpdateImageResource(uint32_t bindingPoint, const VkDescriptorImageInfo& imageInfo, bool storage)
 	{
 		VkWriteDescriptorSet* writeSet = nullptr;
 		for (auto& set : m_WriteSets)
@@ -302,7 +334,7 @@ namespace Frostium
 
 		writeSet->sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		writeSet->dstSet = m_DescriptorSet;
-		writeSet->descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		writeSet->descriptorType = storage ? VK_DESCRIPTOR_TYPE_STORAGE_IMAGE : VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		writeSet->dstBinding = bindingPoint;
 		writeSet->dstArrayElement = 0;
 		writeSet->descriptorCount = 1;
@@ -312,7 +344,7 @@ namespace Frostium
 		return true;
 	}
 
-	bool VulkanDescriptor::UpdateCubeMap(const VulkanTexture* cubeMap, uint32_t bindingPoint)
+	bool VulkanDescriptor::UpdateCubeMap(Texture* cubeMap, uint32_t bindingPoint)
 	{
 		if (!cubeMap)
 			return false;
@@ -331,7 +363,7 @@ namespace Frostium
 			return false;
 
 		*writeSet = CreateWriteSet(m_DescriptorSet,
-			bindingPoint, { cubeMap->m_DescriptorImageInfo }, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+			bindingPoint, { cubeMap->GetVulkanTexture()->m_DescriptorImageInfo }, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
 
 		vkUpdateDescriptorSets(m_Device, 1, writeSet, 0, nullptr);
 		return true;
@@ -354,7 +386,6 @@ namespace Frostium
 			}
 		}
 
-
 		// Global Buffers
 		{
 			buffer = VulkanBufferPool::GetSingleton()->GetBuffer(binding);
@@ -376,6 +407,11 @@ namespace Frostium
 	const VkDescriptorSet VulkanDescriptor::GetDescriptorSets() const
 	{
 		return m_DescriptorSet;
+	}
+
+	const VkDescriptorSetLayout VulkanDescriptor::GetLayout() const
+	{
+		return m_DescriptorSetLayout;
 	}
 
 	VkWriteDescriptorSet VulkanDescriptor::CreateWriteSet(VkDescriptorSet descriptorSet, uint32_t binding, 

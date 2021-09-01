@@ -29,201 +29,35 @@ namespace SmolEngine
 namespace Frostium
 #endif
 {
-	void RendererDeferred::DrawFrame(ClearInfo* clearInfo, RendererStorage* storage, RendererDrawList* drawList,  bool batch_cmd)
+	void RendererDeferred::DrawFrame(ClearInfo* clearInfo, RendererStorage* storage, RendererDrawList* drawList)
 	{
-		CommandBufferStorage cmdBuffer;
-		PrepareCmdBuffer(&cmdBuffer, storage, batch_cmd);
-		ClearAtachments(clearInfo, storage);
-		UpdateUniforms(storage, drawList);
-		UpdateCmdBuffer(storage, drawList);
+		CommandBufferStorage cmdStorage{};
+		cmdStorage.Buffer = VulkanContext::GetCurrentVkCmdBuffer();
 
-		if (!batch_cmd)
-			VulkanCommandBuffer::ExecuteCommandBuffer(&cmdBuffer);
-	}
+		storage->p_Gbuffer.SetCommandBuffer(cmdStorage.Buffer);
+		storage->p_Lighting.SetCommandBuffer(cmdStorage.Buffer);
+		storage->p_Skybox.SetCommandBuffer(cmdStorage.Buffer);
+		storage->p_DepthPass.SetCommandBuffer(cmdStorage.Buffer);
+		storage->p_Debug.SetCommandBuffer(cmdStorage.Buffer);
+		storage->p_Grid.SetCommandBuffer(cmdStorage.Buffer);
+		storage->p_Combination.SetCommandBuffer(cmdStorage.Buffer);
+		storage->p_DOF.SetCommandBuffer(cmdStorage.Buffer);
 
+		SubmitInfo submitInfo{};
+		submitInfo.pClearInfo = clearInfo;
+		submitInfo.pDrawList = drawList;
+		submitInfo.pStorage = storage;
+		submitInfo.pCmdStorage = &cmdStorage;
 
-	void RendererDeferred::PrepareCmdBuffer(CommandBufferStorage* cmdStorage, RendererStorage* rendererStorage, bool batch)
-	{
-		if (batch)
-		{
-			rendererStorage->p_Gbuffer.BeginCommandBuffer(batch);
-			rendererStorage->p_Lighting.BeginCommandBuffer(batch);
-			rendererStorage->p_Combination.BeginCommandBuffer(batch);
-			rendererStorage->p_Skybox.BeginCommandBuffer(batch);
-			rendererStorage->p_DepthPass.BeginCommandBuffer(batch);
-			rendererStorage->p_Bloom.BeginCommandBuffer(batch);
-			rendererStorage->p_Debug.BeginCommandBuffer(batch);
-			rendererStorage->p_Grid.BeginCommandBuffer(batch);
-			return;
-		}
+		UpdateUniforms(&submitInfo);
+		DepthPass(&submitInfo);
+		GBufferPass(&submitInfo);
 
-		VulkanCommandBuffer::CreateCommandBuffer(cmdStorage);
+		if (DebugViewPass(&submitInfo)) { return; }
 
-		rendererStorage->p_Gbuffer.SetCommandBuffer(cmdStorage->Buffer);
-		rendererStorage->p_Lighting.SetCommandBuffer(cmdStorage->Buffer);
-		rendererStorage->p_Combination.SetCommandBuffer(cmdStorage->Buffer);
-		rendererStorage->p_Skybox.SetCommandBuffer(cmdStorage->Buffer);
-		rendererStorage->p_DepthPass.SetCommandBuffer(cmdStorage->Buffer);
-		rendererStorage->p_Bloom.SetCommandBuffer(cmdStorage->Buffer);
-		rendererStorage->p_Debug.SetCommandBuffer(cmdStorage->Buffer);
-		rendererStorage->p_Grid.SetCommandBuffer(cmdStorage->Buffer);
-	}
-
-	void RendererDeferred::UpdateCmdBuffer(RendererStorage* storage, RendererDrawList* drawList)
-	{
-		struct PushConstant
-		{
-			glm::mat4                 DepthMVP = glm::mat4(1.0f);
-			uint32_t                  DataOffset = 0;
-		};
-
-		PushConstant pushConstant;
-		uint32_t     cmdCount = static_cast<uint32_t>(drawList->m_UsedMeshes.size());
-
-		// Depth Pass
-		if (drawList->m_DirLight.IsActive && drawList->m_DirLight.IsCastShadows)
-		{
-#ifndef FROSTIUM_OPENGL_IMPL
-			VkCommandBuffer cmdBuffer = storage->p_DepthPass.GetVkCommandBuffer();
-#endif
-			storage->p_DepthPass.BeginRenderPass();
-			{
-#ifndef FROSTIUM_OPENGL_IMPL
-				// Set depth bias (aka "Polygon offset")
-				// Required to avoid shadow mapping artifacts
-				vkCmdSetDepthBias(cmdBuffer, 1.25f, 0.0f, 1.75f);
-#endif
-				pushConstant.DepthMVP = drawList->m_DepthMVP;
-				for (uint32_t i = 0; i < cmdCount; ++i)
-				{
-					auto& cmd = drawList->m_DrawList[i];
-					pushConstant.DataOffset = cmd.Offset;
-
-					storage->p_DepthPass.SubmitPushConstant(ShaderType::Vertex, sizeof(PushConstant), &pushConstant);
-					storage->p_DepthPass.DrawMeshIndexed(cmd.Mesh, cmd.InstancesCount);
-	            }
-			}
-			storage->p_DepthPass.EndRenderPass();
-		}
-
-		// G-Buffer Pass
-		storage->p_Gbuffer.BeginRenderPass();
-		{
-			// SkyBox
-			if (storage->m_State.bDrawSkyBox)
-			{
-				uint32_t state = storage->m_EnvironmentMap->IsDynamic();
-				storage->p_Skybox.SubmitPushConstant(ShaderType::Fragment, sizeof(uint32_t), &state);
-				storage->p_Skybox.Draw(36);
-			}
-
-			// Grid
-			if (storage->m_State.bDrawGrid)
-			{
-				storage->p_Grid.SubmitPushConstant(ShaderType::Vertex, sizeof(glm::mat4), &storage->m_GridModel);
-				storage->p_Grid.DrawMeshIndexed(&storage->m_PlaneMesh);
-			}
-
-			for (uint32_t i = 0; i < cmdCount; ++i)
-			{
-				auto& cmd = drawList->m_DrawList[i];
-
-				pushConstant.DataOffset = cmd.Offset;
-				storage->p_Gbuffer.SubmitPushConstant(ShaderType::Vertex, sizeof(PushConstant), &pushConstant);
-				storage->p_Gbuffer.DrawMeshIndexed(cmd.Mesh, cmd.InstancesCount);
-			}
-		}
-		storage->p_Gbuffer.EndRenderPass();
-
-		// Debug View
-		if (storage->m_State.eDebugView != DebugViewFlags::None)
-		{
-			storage->p_Debug.BeginRenderPass();
-			{
-				uint32_t state = (uint32_t)storage->m_State.eDebugView;
-				storage->p_Debug.SubmitPushConstant(ShaderType::Fragment, sizeof(uint32_t), &state);
-				storage->p_Debug.Draw(3);
-			}
-			storage->p_Debug.EndRenderPass();
-
-			return;
-		}
-
-		// Lighting Pass
-		{
-			storage->p_Lighting.BeginRenderPass();
-			{
-				struct light_push_constant
-				{
-					uint32_t numPointLights;
-					uint32_t numSpotLights;
-				};
-
-				light_push_constant light_pc;
-				light_pc.numPointLights = drawList->m_PointLightIndex;
-				light_pc.numSpotLights = drawList->m_SpotLightIndex;
-				storage->p_Lighting.SubmitPushConstant(ShaderType::Fragment, sizeof(light_push_constant), &light_pc);
-				storage->p_Lighting.Draw(3);
-			}
-			storage->p_Lighting.EndRenderPass();
-		}
-
-		// Post-Processing: FXAA, Bloom
-		{
-			// Bloom
-			{
-				if (storage->m_State.Bloom.Enabled)
-				{
-					storage->p_Bloom.BeginRenderPass();
-					{
-						storage->p_Bloom.Draw(3);
-					}
-					storage->p_Bloom.EndRenderPass();
-				}
-			}
-
-			// FXAA + Composition
-			{
-				storage->p_Combination.BeginRenderPass();
-				{
-					// temp
-					struct comp_push_constant
-					{
-						uint32_t state;
-						uint32_t enabledFXAA;
-						uint32_t enabledMask;
-						float maskIntensity;
-						float maskBaseIntensity;
-					};
-
-					comp_push_constant comp_pc;
-					comp_pc.state = storage->m_State.Bloom.Enabled ? 1 : 0;
-					comp_pc.enabledMask = false;
-					comp_pc.enabledFXAA = storage->m_State.FXAA.Enabled;
-					comp_pc.maskIntensity = 0.0f;
-					comp_pc.maskBaseIntensity = 0.0f;
-
-					storage->p_Combination.SubmitPushConstant(ShaderType::Fragment, sizeof(comp_push_constant), &comp_pc);
-					storage->p_Combination.Draw(3);
-				}
-				storage->p_Combination.EndRenderPass();
-			}
-		}
-	}
-
-	void RendererDeferred::UpdateUniforms(RendererStorage* storage, RendererDrawList* drawList)
-	{
-		storage->UpdateUniforms(drawList, storage->f_Main);
-	}
-
-	void RendererDeferred::ClearAtachments(ClearInfo* clearInfo, RendererStorage* storage)
-	{
-		if (clearInfo->bClear)
-		{
-			storage->p_Combination.BeginRenderPass();
-			storage->p_Combination.ClearColors(clearInfo->color);
-			storage->p_Combination.EndRenderPass();
-		}
+		LightingPass(&submitInfo);
+		BloomPass(&submitInfo);
+		CompositionPass(&submitInfo);
 	}
 
 	void RendererStorage::Initilize()
@@ -392,7 +226,6 @@ namespace Frostium
 			p_Lighting.UpdateSampler(&f_GBuffer, 6, "position");
 			p_Lighting.UpdateSampler(&f_GBuffer, 7, "normals");
 			p_Lighting.UpdateSampler(&f_GBuffer, 8, "materials");
-			p_Lighting.UpdateSampler(&f_GBuffer, 9, "shadow_coord");
 		}
 
 		JobsSystemInstance::BeginSubmition();
@@ -485,6 +318,26 @@ namespace Frostium
 					}
 				});
 
+			// DOF
+			//JobsSystemInstance::Schedule([&]()
+			//	{
+			//		GraphicsPipelineCreateInfo DynamicPipelineCI = {};
+			//		DynamicPipelineCI.eCullMode = CullMode::None;
+			//		DynamicPipelineCI.TargetFramebuffers = { &f_DOF };
+			//
+			//		ShaderCreateInfo shaderCI = {};
+			//		shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/GenTriangle.vert";
+			//		shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/DOF.frag";
+			//		DynamicPipelineCI.ShaderCreateInfo = shaderCI;
+			//		DynamicPipelineCI.PipelineName = "DOF";
+			//
+			//		auto result = p_DOF.Create(&DynamicPipelineCI);
+			//		assert(result == PipelineCreateResult::SUCCESS);
+			//
+			//		p_DOF.UpdateSampler(&f_Lighting, 0);
+			//		p_DOF.UpdateSampler(&f_GBuffer, 1, "position");
+			//	});
+
 			// Combination
 			JobsSystemInstance::Schedule([&]()
 				{
@@ -502,7 +355,6 @@ namespace Frostium
 					assert(result == PipelineCreateResult::SUCCESS);
 
 					p_Combination.UpdateSampler(&f_Lighting, 0);
-					p_Combination.UpdateSampler(&f_Bloom, 1);
 				});
 
 			// Debug
@@ -526,32 +378,33 @@ namespace Frostium
 					p_Debug.UpdateSampler(&f_GBuffer, 6, "position");
 					p_Debug.UpdateSampler(&f_GBuffer, 7, "normals");
 					p_Debug.UpdateSampler(&f_GBuffer, 8, "materials");
-					p_Debug.UpdateSampler(&f_GBuffer, 9, "shadow_coord");
 				});
 
-
-			// Bloom
+			//Bloom
 			JobsSystemInstance::Schedule([&]()
 				{
-					GraphicsPipelineCreateInfo DynamicPipelineCI = {};
-					DynamicPipelineCI.eCullMode = CullMode::None;
+					ComputePipelineCreateInfo compCI = {};
+					compCI.ShaderPath = path + "Shaders/Bloom.comp";
+					compCI.DescriptorCount = 24;
+					p_Bloom.Create(&compCI);
 
-					ShaderCreateInfo shaderCI = {};
-					shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/GenTriangle.vert";
-					shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/Bloom.frag";
-					DynamicPipelineCI.ShaderCreateInfo = shaderCI;
-					DynamicPipelineCI.eColorBlendOp = BlendOp::ADD;
-					DynamicPipelineCI.eSrcColorBlendFactor = BlendFactor::ONE;
-					DynamicPipelineCI.eDstColorBlendFactor = BlendFactor::ONE;
-					DynamicPipelineCI.eAlphaBlendOp = BlendOp::ADD;
-					DynamicPipelineCI.eSrcAlphaBlendFactor = BlendFactor::SRC_ALPHA;
-					DynamicPipelineCI.eDstAlphaBlendFactor = BlendFactor::DST_ALPHA;
+					auto& spec = f_Main->GetSpecification();
+					uint32_t workgroupSize = 4;
+					uint32_t viewportWidth = spec.Width / 2;
+					uint32_t viewportHeight = spec.Height / 2;
 
-					DynamicPipelineCI.TargetFramebuffers = { &f_Bloom };
-					DynamicPipelineCI.PipelineName = "Bloom";
-					auto result = p_Bloom.Create(&DynamicPipelineCI);
-					assert(result == PipelineCreateResult::SUCCESS);
-					p_Bloom.UpdateSampler(&f_Lighting, 0, "color_2");
+					viewportWidth += (workgroupSize - (viewportWidth % workgroupSize));
+					viewportHeight += (workgroupSize - (viewportHeight % workgroupSize));
+
+					TextureCreateInfo TexCI{};
+					TexCI.eFormat = TextureFormat::R32G32B32A32_SFLOAT;
+					TexCI.eAddressMode = AddressMode::CLAMP_TO_EDGE;
+					TexCI.bIsStorage = true;
+					TexCI.bAnisotropyEnable = false;
+
+					m_BloomTex.resize(3);
+					for(auto& tex: m_BloomTex)
+						tex.GetVulkanTexture()->GenTexture(viewportWidth, viewportHeight, &TexCI);
 				});
 
 		}
@@ -566,75 +419,29 @@ namespace Frostium
 
 		JobsSystemInstance::BeginSubmition();
 		{
+			// Gbuffer
 			JobsSystemInstance::Schedule([&]()
 				{
-					// Gbuffer
-					{
-						const bool ClearOp = true;
-						FramebufferAttachment albedro = FramebufferAttachment(AttachmentFormat::Color, ClearOp, "albedro");
-						FramebufferAttachment position = FramebufferAttachment(AttachmentFormat::SFloat4_16, ClearOp, "position");
-						FramebufferAttachment normals = FramebufferAttachment(AttachmentFormat::SFloat4_16, ClearOp, "normals");
-						FramebufferAttachment materials = FramebufferAttachment(AttachmentFormat::SFloat4_32, ClearOp, "materials");
-						FramebufferAttachment shadow_coord = FramebufferAttachment(AttachmentFormat::SFloat4_32, ClearOp, "shadow_coord");
+					const bool ClearOp = true;
+					FramebufferAttachment albedro = FramebufferAttachment(AttachmentFormat::Color, ClearOp, "albedro");
+					FramebufferAttachment position = FramebufferAttachment(AttachmentFormat::SFloat4_32, ClearOp, "position");
+					FramebufferAttachment normals = FramebufferAttachment(AttachmentFormat::SFloat4_16, ClearOp, "normals");
+					FramebufferAttachment materials = FramebufferAttachment(AttachmentFormat::SFloat4_32, ClearOp, "materials");
 
-						FramebufferSpecification framebufferCI = {};
-						framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
-						framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
-						framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
-						framebufferCI.Attachments = { albedro, position, normals, materials, shadow_coord };
+					FramebufferSpecification framebufferCI = {};
+					framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
+					framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
+					framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
+					framebufferCI.Attachments = { albedro, position, normals, materials };
 
-						Framebuffer::Create(framebufferCI, &f_GBuffer);
-					}
+					Framebuffer::Create(framebufferCI, &f_GBuffer);
 
 				});
 
+			// Lighting
 			JobsSystemInstance::Schedule([&]()
 				{
-					// Lighting
-					{
-						FramebufferAttachment color = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "color_1");
-						FramebufferAttachment bloom = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "color_2");
-
-						FramebufferSpecification framebufferCI = {};
-						framebufferCI.eFiltering = ImageFilter::LINEAR;
-						framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
-						framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
-						framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
-						framebufferCI.Attachments = { color, bloom };
-
-						Framebuffer::Create(framebufferCI, &f_Lighting);
-					}
-
-				});
-
-			JobsSystemInstance::Schedule([&]()
-				{
-					// Depth
-					{
-						FramebufferSpecification framebufferCI = {};
-						uint32_t size = 8192;
-						switch (m_MapSize)
-						{
-						case ShadowMapSize::SIZE_2: size = 2048; break;
-						case ShadowMapSize::SIZE_4: size = 4096; break;
-						case ShadowMapSize::SIZE_8: size = 8192; break;
-						case ShadowMapSize::SIZE_16: size = 16384; break;
-						}
-						framebufferCI.Width = size;
-						framebufferCI.Height = size;
-						framebufferCI.bResizable = false;
-						framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
-						framebufferCI.eSpecialisation = FramebufferSpecialisation::ShadowMap;
-
-						Framebuffer::Create(framebufferCI, &f_Depth);
-					}
-
-				});
-
-			// Bloom
-			JobsSystemInstance::Schedule([&]()
-				{
-					FramebufferAttachment color = FramebufferAttachment(AttachmentFormat::SFloat4_32, true, "color_1");
+					FramebufferAttachment color = FramebufferAttachment(AttachmentFormat::SFloat4_16, true, "color_1");
 
 					FramebufferSpecification framebufferCI = {};
 					framebufferCI.eFiltering = ImageFilter::LINEAR;
@@ -643,7 +450,44 @@ namespace Frostium
 					framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
 					framebufferCI.Attachments = { color };
 
-					Framebuffer::Create(framebufferCI, &f_Bloom);
+					Framebuffer::Create(framebufferCI, &f_Lighting);
+
+				});
+
+			// DOF
+			//JobsSystemInstance::Schedule([&]()
+			//	{
+			//		FramebufferAttachment color = FramebufferAttachment(AttachmentFormat::Color, true, "color_1");
+			//
+			//		FramebufferSpecification framebufferCI = {};
+			//		framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
+			//		framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
+			//		framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
+			//		framebufferCI.Attachments = { color };
+			//
+			//		Framebuffer::Create(framebufferCI, &f_DOF);
+			//	});
+
+			// Depth
+			JobsSystemInstance::Schedule([&]()
+				{
+					FramebufferSpecification framebufferCI = {};
+					uint32_t size = 8192;
+					switch (m_MapSize)
+					{
+					case ShadowMapSize::SIZE_2: size = 2048; break;
+					case ShadowMapSize::SIZE_4: size = 4096; break;
+					case ShadowMapSize::SIZE_8: size = 8192; break;
+					case ShadowMapSize::SIZE_16: size = 16384; break;
+					}
+					framebufferCI.Width = size;
+					framebufferCI.Height = size;
+					framebufferCI.bResizable = false;
+					framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
+					framebufferCI.eSpecialisation = FramebufferSpecialisation::ShadowMap;
+
+					Framebuffer::Create(framebufferCI, &f_Depth);
+
 				});
 		}
 		JobsSystemInstance::EndSubmition();
@@ -762,6 +606,12 @@ namespace Frostium
 					p_Lighting.SubmitBuffer(m_LightingStateBinding, sizeof(IBLProperties), &m_State.IBL);
 				});
 
+			// Updates Bloom State
+			JobsSystemInstance::Schedule([&]()
+				{
+					p_Lighting.SubmitBuffer(m_BloomStateBinding, sizeof(BloomProperties), &m_State.Bloom);
+				});
+
 			// Updates FXAA State
 			JobsSystemInstance::Schedule([&]()
 				{
@@ -769,12 +619,6 @@ namespace Frostium
 					float height = 1.0f / static_cast<float>(target->GetSpecification().Height);
 					m_State.FXAA.InverseScreenSize = glm::vec2(width, height);
 					p_Combination.SubmitBuffer(m_FXAAStateBinding, sizeof(FXAAProperties), &m_State.FXAA);
-				});
-
-			// Updates Bloom State
-			JobsSystemInstance::Schedule([&]()
-				{
-					p_Lighting.SubmitBuffer(m_BloomStateBinding, sizeof(BloomProperties), &m_State.Bloom);
 				});
 
 			// Updates Directional Lights
@@ -874,7 +718,6 @@ namespace Frostium
 
 	void RendererStorage::OnResize(uint32_t width, uint32_t height)
 	{
-		f_Bloom.OnResize(width, height);
 		f_GBuffer.OnResize(width, height);
 		f_Lighting.OnResize(width, height);
 
@@ -884,20 +727,43 @@ namespace Frostium
 			p_Lighting.UpdateSampler(&f_GBuffer, 6, "position");
 			p_Lighting.UpdateSampler(&f_GBuffer, 7, "normals");
 			p_Lighting.UpdateSampler(&f_GBuffer, 8, "materials");
-			p_Lighting.UpdateSampler(&f_GBuffer, 9, "shadow_coord");
 			// Debug view pipeline
 			p_Debug.UpdateSampler(&f_Depth, 1, "Depth_Attachment");
 			p_Debug.UpdateSampler(&f_GBuffer, 5, "albedro");
 			p_Debug.UpdateSampler(&f_GBuffer, 6, "position");
 			p_Debug.UpdateSampler(&f_GBuffer, 7, "normals");
 			p_Debug.UpdateSampler(&f_GBuffer, 8, "materials");
-			p_Debug.UpdateSampler(&f_GBuffer, 9, "shadow_coord");
 
 			// Combination
 			p_Combination.UpdateSampler(&f_Lighting, 0);
-			p_Combination.UpdateSampler(&f_Bloom, 1);
-			// Bloon
-			p_Bloom.UpdateSampler(&f_Lighting, 0, "color_2");
+
+			//// FOV
+			// f_DOF.OnResize(width, height);
+			//p_DOF.UpdateSampler(&f_Lighting, 0);
+			//p_DOF.UpdateSampler(&f_GBuffer, 1, "position");
+
+			// Bloom Textures
+			{
+				uint32_t viewportWidth = width / 2;
+				uint32_t viewportHeight = height / 2;
+
+				viewportWidth += (m_BloomComputeWorkgroupSize - (viewportWidth % m_BloomComputeWorkgroupSize));
+				viewportHeight += (m_BloomComputeWorkgroupSize - (viewportHeight % m_BloomComputeWorkgroupSize));
+
+				TextureCreateInfo TexCI{};
+				TexCI.eFormat = TextureFormat::R32G32B32A32_SFLOAT;
+				TexCI.eAddressMode = AddressMode::CLAMP_TO_EDGE;
+				TexCI.bIsStorage = true;
+				TexCI.bAnisotropyEnable = false;
+
+				m_BloomTex.clear();
+				m_BloomTex.resize(3);
+				for (auto& tex : m_BloomTex)
+				{
+					auto vkTex = tex.GetVulkanTexture();
+					vkTex->GenTexture(viewportWidth, viewportHeight, &TexCI);
+				}
+			}
 		}
 	}
 
@@ -1000,5 +866,378 @@ namespace Frostium
 	{
 		m_SceneInfo = sceneViewProj;
 		m_Frustum.Update(m_SceneInfo->Projection * m_SceneInfo->View);
+	}
+
+	void RendererDeferred::GBufferPass(SubmitInfo* info)
+	{
+		auto drawList = info->pDrawList;
+		auto storage = info->pStorage;
+
+		storage->p_Gbuffer.BeginRenderPass();
+		{
+			// SkyBox
+			if (storage->m_State.bDrawSkyBox)
+			{
+				uint32_t state = storage->m_EnvironmentMap->IsDynamic();
+				storage->p_Skybox.SubmitPushConstant(ShaderType::Fragment, sizeof(uint32_t), &state);
+				storage->p_Skybox.Draw(36);
+			}
+
+			// Grid
+			if (storage->m_State.bDrawGrid)
+			{
+				storage->p_Grid.SubmitPushConstant(ShaderType::Vertex, sizeof(glm::mat4), &storage->m_GridModel);
+				storage->p_Grid.DrawMeshIndexed(&storage->m_PlaneMesh);
+			}
+
+			uint32_t cmdCount = static_cast<uint32_t>(drawList->m_UsedMeshes.size());
+			for (uint32_t i = 0; i < cmdCount; ++i)
+			{
+				auto& cmd = drawList->m_DrawList[i];
+
+				storage->p_Gbuffer.SubmitPushConstant(ShaderType::Vertex, sizeof(uint32_t), &cmd.Offset);
+				storage->p_Gbuffer.DrawMeshIndexed(cmd.Mesh, cmd.InstancesCount);
+			}
+		}
+		storage->p_Gbuffer.EndRenderPass();
+	}
+
+	void RendererDeferred::LightingPass(SubmitInfo* info)
+	{
+		auto drawList = info->pDrawList;
+		auto storage = info->pStorage;
+
+		storage->p_Lighting.BeginRenderPass();
+		{
+			struct push_constant
+			{
+				glm::mat4 lightSpace{};
+				uint32_t numPointLights;
+				uint32_t numSpotLights;
+			};
+
+			push_constant light_pc;
+			light_pc.numPointLights = drawList->m_PointLightIndex;
+			light_pc.numSpotLights = drawList->m_SpotLightIndex;
+			light_pc.lightSpace = info->pDrawList->m_DepthMVP;
+			storage->p_Lighting.SubmitPushConstant(ShaderType::Fragment, sizeof(push_constant), &light_pc);
+			storage->p_Lighting.Draw(3);
+		}
+		storage->p_Lighting.EndRenderPass();
+	}
+
+	void RendererDeferred::DepthPass(SubmitInfo* info)
+	{
+		struct PushConstant
+		{
+			glm::mat4 DepthMVP = glm::mat4(1.0f);
+			uint32_t  DataOffset = 0;
+		};
+
+		auto drawList = info->pDrawList;
+		auto storage = info->pStorage;
+
+		PushConstant  pushConstant{};
+		uint32_t      cmdCount = static_cast<uint32_t>(drawList->m_UsedMeshes.size());
+
+		if (drawList->m_DirLight.IsActive && drawList->m_DirLight.IsCastShadows)
+		{
+#ifndef FROSTIUM_OPENGL_IMPL
+			VkCommandBuffer cmdBuffer = storage->p_DepthPass.GetVkCommandBuffer();
+#endif
+			storage->p_DepthPass.BeginRenderPass();
+			{
+#ifndef FROSTIUM_OPENGL_IMPL
+				// Set depth bias (aka "Polygon offset")
+				// Required to avoid shadow mapping artifacts
+				vkCmdSetDepthBias(cmdBuffer, 1.25f, 0.0f, 1.75f);
+#endif
+				pushConstant.DepthMVP = drawList->m_DepthMVP;
+				for (uint32_t i = 0; i < cmdCount; ++i)
+				{
+					auto& cmd = drawList->m_DrawList[i];
+					pushConstant.DataOffset = cmd.Offset;
+
+					storage->p_DepthPass.SubmitPushConstant(ShaderType::Vertex, sizeof(PushConstant), &pushConstant);
+					storage->p_DepthPass.DrawMeshIndexed(cmd.Mesh, cmd.InstancesCount);
+				}
+			}
+			storage->p_DepthPass.EndRenderPass();
+		}
+	}
+
+	// Credits: https://www.youtube.com/watch?v=tI70-HIc5ro
+	void RendererDeferred::BloomPass(SubmitInfo* info)
+	{
+		if (info->pStorage->m_State.Bloom.Enabled == false)
+			return;
+
+		uint32_t descriptorIndex = 0;
+		auto storage = info->pStorage;
+		auto& bloomTex = storage->m_BloomTex;
+		auto& settings = storage->m_State.Bloom;
+
+		auto TEXTURE_STORAGE_SET = [&](Texture* tex, uint32_t mip = 0, uint32_t binding = 0) 
+		{
+			auto descriptor = tex->GetVulkanTexture()->GetMipImageView(mip);
+			storage->p_Bloom.GeDescriptor(descriptorIndex).UpdateImageResource(binding, descriptor, binding == 0 ? true : false);
+		};
+
+		auto TEXTURE_SET_SCENE = [&](Texture* tex)
+		{
+			storage->p_Bloom.GeDescriptor(descriptorIndex).Update2DSamplers({ tex }, 1);
+		};
+
+		const auto TEXTURE_BLOOM_SET_FROM_SECENE = [&](uint32_t binding = 2)
+		{
+			const auto& descriptor = storage->f_Lighting.GetVulkanFramebuffer().GetAttachment(0)->ImageInfo;
+			storage->p_Bloom.GeDescriptor(descriptorIndex).UpdateImageResource(binding, descriptor);
+		};
+
+		struct BloomComputePushConstants
+		{
+			glm::vec4 Params;
+			float LOD = 0.0f;
+			int Mode = 0; // 0 = prefilter, 1 = downsample, 2 = firstUpsample, 3 = upsample
+		} bloomComputePushConstants;
+		bloomComputePushConstants.Params = { settings.Threshold, settings.Threshold - settings.Knee, settings.Knee * 2.0f, 0.25f / settings.Knee };
+		bloomComputePushConstants.Mode = 0;
+
+		uint32_t workGroupsX = 0, workGroupsY = 0;
+
+		storage->p_Bloom.BeginCompute(info->pCmdStorage);
+		{
+			// Prefilter
+			{
+				TEXTURE_STORAGE_SET(&bloomTex[0]);
+				TEXTURE_BLOOM_SET_FROM_SECENE(1);
+
+				workGroupsX = bloomTex[0].GetInfo().Width / storage->m_BloomComputeWorkgroupSize;
+				workGroupsY = bloomTex[0].GetInfo().Height / storage->m_BloomComputeWorkgroupSize;
+
+				storage->p_Bloom.SubmitPushConstant(sizeof(bloomComputePushConstants), &bloomComputePushConstants);
+				storage->p_Bloom.Dispatch(workGroupsX, workGroupsY, 1, descriptorIndex);
+
+				VkImageMemoryBarrier imageMemoryBarrier = {};
+				imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+				imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+				imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+				imageMemoryBarrier.image = bloomTex[0].GetVulkanTexture()->GetVkImage();
+				imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, bloomTex[0].GetVulkanTexture()->GetMips(), 0, 1 };
+				imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+				imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+				vkCmdPipelineBarrier(
+					info->pCmdStorage->Buffer,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					0,
+					0, nullptr,
+					0, nullptr,
+					1, &imageMemoryBarrier);
+			}
+
+			// Downsample
+			bloomComputePushConstants.Mode = 1;
+			uint32_t mips = storage->m_BloomTex[0].GetVulkanTexture()->GetMips() - 2;
+			for (uint32_t i = 1; i < mips; i++)
+			{
+				descriptorIndex++;
+				auto [mipWidth, mipHeight] = bloomTex[0].GetVulkanTexture()->GetMipSize(i);
+
+				workGroupsX = (uint32_t)glm::ceil((float)mipWidth / (float)storage->m_BloomComputeWorkgroupSize);
+				workGroupsY = (uint32_t)glm::ceil((float)mipHeight / (float)storage->m_BloomComputeWorkgroupSize);
+
+				TEXTURE_STORAGE_SET(&bloomTex[1], i);
+				TEXTURE_SET_SCENE(&bloomTex[0]);
+				TEXTURE_BLOOM_SET_FROM_SECENE();
+
+				bloomComputePushConstants.LOD = i - 1.0f;
+				storage->p_Bloom.SubmitPushConstant(sizeof(bloomComputePushConstants), &bloomComputePushConstants);
+				storage->p_Bloom.Dispatch(workGroupsX, workGroupsY, 1, descriptorIndex);
+
+				{
+					VkImageMemoryBarrier imageMemoryBarrier = {};
+					imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+					imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+					imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+					imageMemoryBarrier.image = bloomTex[1].GetVulkanTexture()->GetVkImage();
+					imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, bloomTex[1].GetVulkanTexture()->GetMips(), 0, 1 };
+					imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+					imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+					vkCmdPipelineBarrier(
+						info->pCmdStorage->Buffer,
+						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+						0,
+						0, nullptr,
+						0, nullptr,
+						1, &imageMemoryBarrier);
+				}
+
+				descriptorIndex++;
+
+				TEXTURE_STORAGE_SET(&bloomTex[0], i);
+				TEXTURE_SET_SCENE(&bloomTex[1]);
+				TEXTURE_BLOOM_SET_FROM_SECENE();
+
+				bloomComputePushConstants.LOD = (float)i;
+				storage->p_Bloom.SubmitPushConstant(sizeof(bloomComputePushConstants), &bloomComputePushConstants);
+				storage->p_Bloom.Dispatch(workGroupsX, workGroupsY, 1, descriptorIndex);
+
+				VkImageMemoryBarrier imageMemoryBarrier = {};
+				imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+				imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+				imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+				imageMemoryBarrier.image = bloomTex[0].GetVulkanTexture()->GetVkImage();
+				imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, bloomTex[0].GetVulkanTexture()->GetMips(), 0, 1 };
+				imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+				imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+				vkCmdPipelineBarrier(
+					info->pCmdStorage->Buffer,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					0,
+					0, nullptr,
+					0, nullptr,
+					1, &imageMemoryBarrier);
+			}
+
+
+			// Upsample first
+			descriptorIndex++;
+			bloomComputePushConstants.Mode = 2;
+			{
+				workGroupsX *= 2;
+				workGroupsY *= 2;
+
+				TEXTURE_STORAGE_SET(&bloomTex[2], mips - 2);
+				TEXTURE_SET_SCENE(&bloomTex[0]);
+				TEXTURE_BLOOM_SET_FROM_SECENE();
+
+				bloomComputePushConstants.LOD--;
+				storage->p_Bloom.SubmitPushConstant(sizeof(bloomComputePushConstants), &bloomComputePushConstants);
+
+				auto [mipWidth, mipHeight] = bloomTex[2].GetVulkanTexture()->GetMipSize(mips - 2);
+				workGroupsX = (uint32_t)glm::ceil((float)mipWidth / (float)storage->m_BloomComputeWorkgroupSize);
+				workGroupsY = (uint32_t)glm::ceil((float)mipHeight / (float)storage->m_BloomComputeWorkgroupSize);
+
+				storage->p_Bloom.Dispatch(workGroupsX, workGroupsY, 1, descriptorIndex);
+
+				VkImageMemoryBarrier imageMemoryBarrier = {};
+				imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+				imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+				imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+				imageMemoryBarrier.image = bloomTex[2].GetVulkanTexture()->GetVkImage();
+				imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0,   bloomTex[2].GetVulkanTexture()->GetMips(), 0, 1 };
+				imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+				imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+				vkCmdPipelineBarrier(
+					info->pCmdStorage->Buffer,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					0,
+					0, nullptr,
+					0, nullptr,
+					1, &imageMemoryBarrier);
+			}
+
+			// Upsample
+			descriptorIndex++;
+			bloomComputePushConstants.Mode = 3;
+			for (int32_t mip = mips - 3; mip >= 0; mip--)
+			{
+				auto [mipWidth, mipHeight] = bloomTex[2].GetVulkanTexture()->GetMipSize(mip);
+				workGroupsX = (uint32_t)glm::ceil((float)mipWidth / (float)storage->m_BloomComputeWorkgroupSize);
+				workGroupsY = (uint32_t)glm::ceil((float)mipHeight / (float)storage->m_BloomComputeWorkgroupSize);
+
+				TEXTURE_STORAGE_SET(&bloomTex[2], mip);
+				TEXTURE_SET_SCENE(&bloomTex[0]);
+				storage->p_Bloom.GeDescriptor(descriptorIndex).Update2DSamplers({ &bloomTex[2] }, 2, false);
+
+				bloomComputePushConstants.LOD = (float)mip;
+				storage->p_Bloom.SubmitPushConstant(sizeof(bloomComputePushConstants), &bloomComputePushConstants);
+				storage->p_Bloom.Dispatch(workGroupsX, workGroupsY, 1, descriptorIndex);
+
+				VkImageMemoryBarrier imageMemoryBarrier = {};
+				imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+				imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+				imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+				imageMemoryBarrier.image = bloomTex[2].GetVulkanTexture()->GetVkImage();
+				imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, bloomTex[2].GetVulkanTexture()->GetMips(), 0, 1 };
+				imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+				imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+				vkCmdPipelineBarrier(
+					info->pCmdStorage->Buffer,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					0,
+					0, nullptr,
+					0, nullptr,
+					1, &imageMemoryBarrier);
+
+				descriptorIndex++;
+			}
+		}
+	}
+
+	bool RendererDeferred::DebugViewPass(SubmitInfo* info)
+	{
+		auto storage = info->pStorage;
+
+		// Debug View
+		if (storage->m_State.eDebugView != DebugViewFlags::None)
+		{
+			storage->p_Debug.BeginRenderPass();
+			{
+				uint32_t state = (uint32_t)storage->m_State.eDebugView;
+				storage->p_Debug.SubmitPushConstant(ShaderType::Fragment, sizeof(uint32_t), &state);
+				storage->p_Debug.Draw(3);
+			}
+			storage->p_Debug.EndRenderPass();
+			return true;
+		}
+
+		return false;
+	}
+
+	void RendererDeferred::CompositionPass(SubmitInfo* info)
+	{
+		struct push_constant
+		{
+			uint32_t state = 0;
+			uint32_t enabledFXAA = 0;
+			uint32_t enabledMask = 0;
+		};
+
+		auto storage = info->pStorage;
+		push_constant push_constant{};
+		push_constant.enabledMask = false;
+		push_constant.enabledFXAA = storage->m_State.FXAA.Enabled;
+		if (storage->m_State.Bloom.Enabled)
+		{
+			push_constant.state = 1;
+			storage->p_Combination.UpdateSampler(&storage->m_BloomTex[2], 1);
+		}
+
+		if (info->pClearInfo->bClear)
+		{
+			storage->p_Combination.BeginRenderPass();
+			storage->p_Combination.ClearColors(info->pClearInfo->color);
+			storage->p_Combination.EndRenderPass();
+		}
+
+		storage->p_Combination.BeginRenderPass();
+		{
+
+			storage->p_Combination.SubmitPushConstant(ShaderType::Fragment, sizeof(push_constant), &push_constant);
+			storage->p_Combination.Draw(3);
+		}
+		storage->p_Combination.EndRenderPass();
+	}
+
+	void RendererDeferred::UpdateUniforms(SubmitInfo* info)
+	{
+		info->pStorage->UpdateUniforms(info->pDrawList, info->pStorage->f_Main);
 	}
 }

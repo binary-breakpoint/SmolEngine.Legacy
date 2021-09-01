@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "Backends/Vulkan/VulkanComputePipeline.h"
+#include "Primitives/ComputePipeline.h"
 #include "Backends/Vulkan/VulkanPipeline.h"
 #include "Backends/Vulkan/VulkanShader.h"
 
@@ -13,7 +13,7 @@ namespace Frostium
 {
 	bool VulkanComputePipeline::Invalidate(ComputePipelineCreateInfo* pipelineSpec, VulkanShader* shader)
 	{
-		VulkanPipeline::BuildDescriptors(shader, 1, m_Descriptors, m_DescriptorPool);
+		VulkanPipeline::BuildDescriptors(shader, pipelineSpec->DescriptorCount, m_Descriptors, m_DescriptorPool);
 
 		m_Spec = pipelineSpec;
 		m_Shader = shader;
@@ -52,14 +52,27 @@ namespace Frostium
 		return true;
 	}
 
-	void VulkanComputePipeline::BeginCompute()
+	void VulkanComputePipeline::BeginCompute(CommandBufferStorage* cmdStorage)
 	{
-		m_CmdStorage = {};
-		m_CmdStorage.bNewPool = false;
-		m_CmdStorage.bCompute = true;
-		m_CmdStorage.bStartRecord = true;
-		VulkanCommandBuffer::CreateCommandBuffer(&m_CmdStorage);
+		if (!cmdStorage)
+		{
+			m_CmdStorage = {};
+			m_CmdStorage.bNewPool = false;
+			m_CmdStorage.bCompute = true;
+			m_CmdStorage.bStartRecord = true;
+			VulkanCommandBuffer::CreateCommandBuffer(&m_CmdStorage);
+		}
+		else
+		{
+			m_CmdStorage = *cmdStorage;
+		}
 
+		vkCmdBindPipeline(m_CmdStorage.Buffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_Pipeline);
+	}
+
+	void VulkanComputePipeline::BeginCompute(VkCommandBuffer cmdBuffer)
+	{
+		m_CmdStorage.Buffer = cmdBuffer;
 		vkCmdBindPipeline(m_CmdStorage.Buffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_Pipeline);
 	}
 
@@ -72,17 +85,27 @@ namespace Frostium
 	{
 		for (uint32_t i = 0; i < static_cast<uint32_t>(m_Descriptors.size()); ++i)
 		{
-			Dispatch(i, groupCountX, groupCountY, groupCountZ);
+			Dispatch(groupCountX, groupCountY, groupCountZ, i);
 		}
 
 		VulkanCommandBuffer::ExecuteCommandBuffer(&m_CmdStorage);
 	}
 
-	void VulkanComputePipeline::Dispatch(uint32_t descriptorIndex, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ)
+	void VulkanComputePipeline::Dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ, uint32_t descriptorIndex, VkDescriptorSet descriptorSet)
 	{
-		const auto& descriptorSet = m_Descriptors[descriptorIndex].GetDescriptorSets();
-		vkCmdBindDescriptorSets(m_CmdStorage.Buffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_PipelineLayout, 0, 1, &descriptorSet, 0, 0);
+		const auto& set = descriptorSet == nullptr ? m_Descriptors[descriptorIndex].GetDescriptorSets() : descriptorSet;
+		vkCmdBindDescriptorSets(m_CmdStorage.Buffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_PipelineLayout, 0, 1, &set, 0, 0);
 		vkCmdDispatch(m_CmdStorage.Buffer, groupCountX, groupCountY, groupCountZ);
+	}
+
+	void VulkanComputePipeline::SubmitPushConstant(size_t size, const void* data)
+	{
+		vkCmdPushConstants(m_CmdStorage.Buffer, m_PipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, static_cast<uint32_t>(size), data);
+	}
+
+	VulkanDescriptor& VulkanComputePipeline::GeDescriptor(uint32_t index)
+	{
+		return m_Descriptors[index];
 	}
 }
 

@@ -100,7 +100,7 @@ int main(int argc, char** argv)
 	GenerateMap(chunks, materialIDs);
 
 	RendererStateEX& state = storage->GetState();
-	state.Bloom.Strength = 0.1f;
+	state.Bloom.Threshold = 0.7f;
 	state.Bloom.Enabled = true;
 	state.bDrawGrid = false;
 
@@ -109,6 +109,7 @@ int main(int argc, char** argv)
 
 	DirectionalLight dirLight = {};
 	dirLight.IsActive = true;
+	dirLight.IsCastShadows = true;
 	dirLight.Direction = glm::vec4(105.0f, 53.0f, 102.0f, 0);
 	drawList->SubmitDirLight(&dirLight);
 
@@ -154,6 +155,8 @@ int main(int argc, char** argv)
 			ImGui::Begin("PBR Sample");
 			{
 				ImGui::Text("Some Text");
+
+				ImGui::DragFloat("Bloom", &storage->GetState().Bloom.Threshold);
 			}
 			ImGui::End();
 

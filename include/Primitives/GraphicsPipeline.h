@@ -146,8 +146,8 @@ namespace Frostium
 #ifndef FROSTIUM_OPENGL_IMPL
 		bool UpdateVulkanImageDescriptor(uint32_t bindingPoint, const VkDescriptorImageInfo& imageInfo);
 #endif
-		bool UpdateSamplers(const std::vector<Texture*>& textures, uint32_t bindingPoint);
-		bool UpdateSampler(Texture* tetxure, uint32_t bindingPoint);
+		bool UpdateSamplers(const std::vector<Texture*>& textures, uint32_t bindingPoint, bool storageImage = false);
+		bool UpdateSampler(Texture* tetxure, uint32_t bindingPoint, bool storageImage = false);
 		bool UpdateSampler(Framebuffer* framebuffer, uint32_t bindingPoint, uint32_t attachmentIndex = 0);
 		bool UpdateSampler(Framebuffer* framebuffer, uint32_t bindingPoint, const std::string& attachmentName);
 		bool UpdateCubeMap(Texture* cubeMap, uint32_t bindingPoint);

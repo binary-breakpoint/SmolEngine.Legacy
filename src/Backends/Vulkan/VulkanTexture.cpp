@@ -33,20 +33,7 @@ namespace Frostium
 
 	VulkanTexture::~VulkanTexture()
 	{
-		if (m_Device)
-		{
-			if(m_Image != nullptr)
-				vkDestroyImage(m_Device, m_Image, nullptr);
-
-			if(m_ImageView != nullptr)
-				vkDestroyImageView(m_Device, m_ImageView, nullptr);
-
-			if(m_Samper != nullptr)
-				vkDestroySampler(m_Device, m_Samper, nullptr);
-
-			if(m_DeviceMemory != nullptr)
-				vkFreeMemory(m_Device, m_DeviceMemory, nullptr);
-		}
+		Free();
 	}
 
 	void VulkanTexture::GenTexture(const void* data, uint32_t size, uint32_t width, uint32_t height, TextureFormat format)
@@ -68,6 +55,61 @@ namespace Frostium
 		CreateTexture(width, height, 1, &whiteTextureData, &info);
 	}
 
+	VkDescriptorImageInfo VulkanTexture::GetMipImageView(uint32_t mip)
+	{
+		if (m_ImageViewMap.find(mip) == m_ImageViewMap.end())
+		{
+			VkImageViewCreateInfo imageViewCreateInfo = {};
+			imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+			imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+			imageViewCreateInfo.format = m_Format;
+			imageViewCreateInfo.flags = 0;
+			imageViewCreateInfo.subresourceRange = {};
+			imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			imageViewCreateInfo.subresourceRange.baseMipLevel = mip;
+			imageViewCreateInfo.subresourceRange.levelCount = 1;
+			imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+			imageViewCreateInfo.subresourceRange.layerCount = 1;
+			imageViewCreateInfo.image = m_Image;
+
+			VkImageView pView = nullptr;
+			VK_CHECK_RESULT(vkCreateImageView(m_Device, &imageViewCreateInfo, nullptr, &pView));
+			m_ImageViewMap[mip] = pView;
+		}
+
+		VkDescriptorImageInfo imageinfo{};
+		imageinfo.imageLayout = m_DescriptorImageInfo.imageLayout;
+		imageinfo.sampler = m_DescriptorImageInfo.sampler;
+		imageinfo.imageView = m_ImageViewMap[mip];
+		return imageinfo;
+	}
+
+	void VulkanTexture::Resize(uint32_t width, uint32_t height)
+	{
+		VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	}
+
+	void VulkanTexture::Free()
+	{
+		if (m_Device)
+		{
+			if (m_Image != nullptr)
+				vkDestroyImage(m_Device, m_Image, nullptr);
+
+			if (m_ImageView != nullptr)
+				vkDestroyImageView(m_Device, m_ImageView, nullptr);
+
+			for(auto&[key, view]: m_ImageViewMap)
+				vkDestroyImageView(m_Device, view, nullptr);
+
+			if (m_Samper != nullptr)
+				vkDestroySampler(m_Device, m_Samper, nullptr);
+
+			if (m_DeviceMemory != nullptr)
+				vkFreeMemory(m_Device, m_DeviceMemory, nullptr);
+		}
+	}
+
 	void VulkanTexture::LoadTexture(const TextureCreateInfo* info)
 	{
 		int height, width, channels;
@@ -84,8 +126,7 @@ namespace Frostium
 			}
 		}
 
-		const uint32_t mipLevels = static_cast<uint32_t>(floor(log2(std::max(width, height)))) + 1;
-
+		m_Mips = static_cast<uint32_t>(floor(log2(std::max(width, height)))) + 1;
 		m_Format = GetImageFormat(info->eFormat);
 		m_Info->Width = width;
 		m_Info->Height = height;
@@ -93,7 +134,7 @@ namespace Frostium
 		m_AddressMode = GetVkSamplerAddressMode(info->eAddressMode);
 		m_BorderColor = GetVkBorderColor(info->eBorderColor);
 
-		CreateTexture(width, height, mipLevels, data, info);
+		CreateTexture(width, height, m_Mips, data, info);
 		stbi_image_free(data);
 	}
 
@@ -143,6 +184,7 @@ namespace Frostium
 			// Set number of mip levels
 			view.subresourceRange.levelCount = 1;
 			view.image = m_Image;
+
 			VK_CHECK_RESULT(vkCreateImageView(m_Device, &view, nullptr, &m_ImageView));
 		}
 
@@ -200,6 +242,16 @@ namespace Frostium
 		m_DescriptorImageInfo.imageLayout = m_ImageLayout;
 		m_DescriptorImageInfo.imageView = m_ImageView;
 		m_DescriptorImageInfo.sampler = m_Samper;
+	}
+
+	void VulkanTexture::GenTexture(uint32_t height, uint32_t width, const TextureCreateInfo* info)
+	{
+		m_Format = GetImageFormat(info->eFormat);
+		m_Info->Width = width;
+		m_Info->Height = height;
+		m_Mips = static_cast<uint32_t>(floor(log2(std::max(width, height)))) + 1;
+
+		CreateTexture(width, height, m_Mips, nullptr, info);
 	}
 
 	void VulkanTexture::LoadCubeMap(const TextureCreateInfo* info)
@@ -359,6 +411,7 @@ namespace Frostium
 			// Set number of mip levels
 			view.subresourceRange.levelCount = mipLevels;
 			view.image = m_Image;
+
 			VK_CHECK_RESULT(vkCreateImageView(m_Device, &view, nullptr, &m_ImageView));
 		}
 
@@ -386,7 +439,7 @@ namespace Frostium
 			imageCI.arrayLayers = arrayLayers;
 			imageCI.samples = numSamples;
 			imageCI.tiling = tiling;
-			imageCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+			//imageCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 			imageCI.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 			imageCI.extent = { (uint32_t)width, (uint32_t)height, 1 };
 			imageCI.usage = usage;
@@ -405,24 +458,31 @@ namespace Frostium
 
 	void VulkanTexture::CreateTexture(uint32_t width, uint32_t height, uint32_t mipMaps, const void* data, const TextureCreateInfo* info)
 	{
-		const VkDeviceSize size = width * height * 4;
+		VkDeviceSize size = width * height * 4;
+		if(info->eFormat == TextureFormat::R32G32B32A32_SFLOAT)
+			size = width * height * 4 * sizeof(float);
 
 		VulkanBuffer stagingBuffer;
 		stagingBuffer.CreateBuffer(size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-		stagingBuffer.SetData(data, size);
 
-		m_Image = CreateVkImage(width, height, mipMaps, VK_SAMPLE_COUNT_1_BIT, m_Format,
-			VK_IMAGE_TILING_OPTIMAL,
-			VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, m_DeviceMemory);
+		VkImageUsageFlags usage = VK_IMAGE_USAGE_SAMPLED_BIT;
+		if (info->bIsStorage) { usage |= VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT; }
+		else { usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT; }
 
-		VkImageSubresourceRange subresourceRange = {};
-		subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		subresourceRange.levelCount = 1;
-		subresourceRange.layerCount = 1;
+		m_Image = CreateVkImage(width, height, mipMaps, VK_SAMPLE_COUNT_1_BIT, m_Format, VK_IMAGE_TILING_OPTIMAL, usage, m_DeviceMemory);
 
 		CommandBufferStorage cmdStorage{};
 		VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
+
+		m_ImageLayout = info->bIsStorage ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL ;
+
+		if (data != nullptr)
 		{
+			VkImageSubresourceRange subresourceRange = {};
+			subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			subresourceRange.levelCount = 1;
+			subresourceRange.layerCount = 1;
+			stagingBuffer.SetData(data, size);
 
 			// Optimal image will be used as destination for the copy, so we must transfer from our initial undefined image layout to the transfer destination layout
 			InsertImageMemoryBarrier(
@@ -462,16 +522,27 @@ namespace Frostium
 
 			GenerateMipMaps(m_Image, cmdStorage.Buffer, width, height, mipMaps, subresourceRange);
 		}
+		else
+		{
+			VkImageSubresourceRange subresourceRange = {};
+			subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			subresourceRange.levelCount = mipMaps;
+			subresourceRange.layerCount = 1;
+
+			InsertImageMemoryBarrier(cmdStorage.Buffer, m_Image, 0, 0,
+				VK_IMAGE_LAYOUT_UNDEFINED, m_ImageLayout,
+				VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+				subresourceRange);
+
+			SetImageLayout(cmdStorage.Buffer, m_Image, VK_IMAGE_LAYOUT_UNDEFINED, m_ImageLayout, subresourceRange);
+
+		}
 		VulkanCommandBuffer::ExecuteCommandBuffer(&cmdStorage);
 
-		m_ImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		CreateSamplerAndImageView(mipMaps, m_Format, info ? info->bAnisotropyEnable: false);
 
-		if (info)
-		{
-			if (info->bImGUIHandle)
-				m_Info->ImHandle = ImGui_ImplVulkan_AddTexture(m_DescriptorImageInfo);
-		}
+		if (info->bImGUIHandle)
+			m_Info->ImHandle = ImGui_ImplVulkan_AddTexture(m_DescriptorImageInfo);
 	}
 
 	void VulkanTexture::CreateFromBuffer(const void* data, VkDeviceSize size, uint32_t width, uint32_t height)
@@ -880,6 +951,25 @@ namespace Frostium
 	VkImage VulkanTexture::GetVkImage() const
 	{
 		return m_Image;
+	}
+
+	uint32_t VulkanTexture::GetMips() const
+	{
+		return m_Mips;
+	}
+
+	std::pair<uint32_t, uint32_t> VulkanTexture::GetMipSize(uint32_t mip) const
+	{
+		uint32_t width = m_Info->Width;
+		uint32_t height = m_Info->Height;
+		while (mip != 0)
+		{
+			width /= 2;
+			height /= 2;
+			mip--;
+		}
+
+		return { width, height };
 	}
 }
 #endif

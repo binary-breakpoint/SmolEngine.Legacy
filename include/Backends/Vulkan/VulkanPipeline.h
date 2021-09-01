@@ -30,13 +30,12 @@ namespace Frostium
 		bool                                            CreatePipeline(DrawMode mode);
 		bool                                            ReCreate();
 		void                                            Destroy();
-		bool                                            UpdateSamplers2D(const std::vector<VulkanTexture*>& textures, uint32_t bindingPoint, uint32_t setIndex = 0);
-		bool                                            UpdateCubeMap(const VulkanTexture* cubeMap, uint32_t bindingPoint, uint32_t setIndex = 0);
-		bool                                            SaveCache(const std::string& fileName, DrawMode mode);
-		bool                                            CreateOrLoadCached(const std::string& fileName, DrawMode mode);
+
 		const VkPipeline&                               GetVkPipeline(DrawMode mode);
 		const VkPipelineLayout&                         GetVkPipelineLayot() const;
 		const VkDescriptorSet                           GetVkDescriptorSets(uint32_t setIndex = 0) const;
+		bool                                            SaveCache(const std::string& fileName, DrawMode mode);
+		bool                                            CreateOrLoadCached(const std::string& fileName, DrawMode mode);
 										                
 		// Helpers						                
 		static void                                     BuildDescriptors(VulkanShader* shader, uint32_t descriptorSets, 

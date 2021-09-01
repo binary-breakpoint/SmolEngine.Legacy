@@ -69,22 +69,14 @@ layout(std430, binding = 28) readonly buffer JointMatrices
 
 layout(push_constant) uniform ConstantData
 {
-	mat4 lightSpace;
 	uint dataOffset;
 };
-
-const mat4 biasMat = mat4( 
-	0.5, 0.0, 0.0, 0.0,
-	0.0, -0.5, 0.0, 0.0,
-	0.0, 0.0, 1.0, 0.0,
-	0.5, 0.5, 0.0, 1.0 
-);
 
 
 layout (location = 0)  out vec3 v_FragPos;
 layout (location = 1)  out vec3 v_Normal;
 layout (location = 2)  out vec2 v_UV;
-layout (location = 3)  out vec4 v_ShadowCoord;
+layout (location = 3)  out float v_LinearDepth;
 layout (location = 4)  out mat3 v_TBN;
 layout (location = 7)  out MaterialData v_Material;
 
@@ -111,7 +103,7 @@ void main()
 	v_FragPos = vec3(modelSkin *  vec4(a_Position, 1.0));
 	v_UV = a_UV;
 	v_Material =  materials[materialIndex];
-	v_ShadowCoord = ( biasMat * lightSpace) * vec4(v_FragPos, 1.0);
+	v_LinearDepth = -(sceneData.view * vec4(v_FragPos, 1)).z;
 
 	{
 		vec3 normal = mat3(transpose(inverse(modelSkin))) * a_Normal;

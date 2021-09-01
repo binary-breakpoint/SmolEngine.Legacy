@@ -478,36 +478,16 @@ namespace Frostium
 	}
 #endif
 
-	bool GraphicsPipeline::UpdateSamplers(const std::vector<Texture*>& textures, uint32_t bindingPoint)
+	bool GraphicsPipeline::UpdateSamplers(const std::vector<Texture*>& textures, uint32_t bindingPoint, bool storageImage)
 	{
-		m_Shader->Bind();
-		uint32_t index = 0;
 #ifndef FROSTIUM_OPENGL_IMPL
-		std::vector<VulkanTexture*> vkTextures(textures.size());
-#endif
-		for (const auto& tex : textures)
-		{
-			if (tex == nullptr)
-			{
-				break;
-			}
-
-#ifdef FROSTIUM_OPENGL_IMPL
-			tex->Bind(index);
-#else
-			vkTextures[index] = tex->GetVulkanTexture();
-#endif
-			index++;
-		}
-
-#ifndef FROSTIUM_OPENGL_IMPL
-		return m_VulkanPipeline.UpdateSamplers2D(vkTextures, bindingPoint, m_DescriptorIndex);
+		return m_VulkanPipeline.m_Descriptors[m_DescriptorIndex].Update2DSamplers(textures, bindingPoint, storageImage);
 #else
 		return true;
 #endif
 	}
 
-	bool GraphicsPipeline::UpdateSampler(Texture* tetxure, uint32_t bindingPoint)
+	bool GraphicsPipeline::UpdateSampler(Texture* tetxure, uint32_t bindingPoint, bool storageImage)
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
 		return false;
@@ -540,9 +520,9 @@ namespace Frostium
 	bool GraphicsPipeline::UpdateCubeMap(Texture* cubeMap, uint32_t bindingPoint)
 	{
 #ifdef FROSTIUM_OPENGL_IMPL
-		return false; // temp
+		return false; 
 #else
-		return m_VulkanPipeline.UpdateCubeMap(cubeMap->GetVulkanTexture(), bindingPoint, m_DescriptorIndex);
+		return m_VulkanPipeline.m_Descriptors[m_DescriptorIndex].UpdateCubeMap(cubeMap, bindingPoint);
 #endif
 	}
 

@@ -31,7 +31,7 @@ struct MaterialData
 layout (location = 0)  in vec3 v_FragPos;
 layout (location = 1)  in vec3 v_Normal;
 layout (location = 2)  in vec2 v_UV;
-layout (location = 3)  in vec4 v_ShadowCoord;
+layout (location = 3)  in float v_LinearDepth;
 layout (location = 4)  in mat3 v_TBN;
 layout (location = 7)  flat in MaterialData v_Material;
 
@@ -41,7 +41,6 @@ layout (location = 0) out vec4 out_color;
 layout (location = 1) out vec4 out_positions;
 layout (location = 2) out vec4 out_normals;
 layout (location = 3) out vec4 out_materials;
-layout (location = 4) out vec4 out_shadowCoord;
 
 layout (binding = 24) uniform sampler2D texturesMap[4096];
 
@@ -96,8 +95,7 @@ void main()
     float ao = v_Material.UseAOTex == 1 ? fetchAOMap() : 1.0;				
 
     out_color = albedro;
-    out_positions = vec4(v_FragPos, 1.0);
+    out_positions = vec4(v_FragPos, v_LinearDepth);
     out_normals = vec4(N, 1.0);
     out_materials = vec4(metallic, roughness, ao, emissive);
-    out_shadowCoord = v_ShadowCoord;
 }

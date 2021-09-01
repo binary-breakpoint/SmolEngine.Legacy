@@ -42,6 +42,13 @@ namespace Frostium
 		// Creates 4x4 white textures
 		m_DummyTexure = new Texture();
 		Texture::CreateWhiteTexture(m_DummyTexure);
+		m_StorageTexure = new Texture();
+		{
+			TextureCreateInfo texCI;
+			texCI.bIsStorage = true;
+			m_StorageTexure->GetVulkanTexture()->GenTexture(4, 4, &texCI);
+		}
+
 		m_DummyCubeMap = new CubeMap();
 		CubeMap::CreateEmpty(m_DummyCubeMap, 4, 4);
 

@@ -23,12 +23,7 @@ namespace Frostium
 	{
 		Uniform,
 		Storage
-};
-
-	enum class ElementType : uint16_t
-	{
-
-	};
+    };
 
 	struct Uniform
 	{
@@ -57,7 +52,7 @@ namespace Frostium
 
 	};
 
-	struct UniformResource
+	struct SamplerBuffer
 	{
 		ShaderType                       Stage;
 		uint32_t                         Location = 0;
@@ -69,12 +64,14 @@ namespace Frostium
 	struct ReflectionData
 	{
 		PushContantData                                PushConstant{};
-		std::unordered_map<uint32_t, UniformResource>  Resources;
+		std::unordered_map<uint32_t, SamplerBuffer>    ImageSamplers;
+		std::unordered_map<uint32_t, SamplerBuffer>    StorageImages;
 		std::unordered_map<uint32_t, ShaderBuffer>     Buffers;
 
 		void Clean()
 		{
-			Resources.clear();
+			ImageSamplers.clear();
+			StorageImages.clear();
 			Buffers.clear();
 			PushConstant = {};
 		}

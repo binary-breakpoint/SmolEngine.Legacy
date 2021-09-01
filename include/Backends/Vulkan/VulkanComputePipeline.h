@@ -15,10 +15,13 @@ namespace Frostium
 	class VulkanComputePipeline
 	{
 	public:
-		void                                BeginCompute();
+		void                                BeginCompute(CommandBufferStorage* cmdStorage = nullptr);
+		void                                BeginCompute(VkCommandBuffer cmdBuffer);
 		void                                EndCompute();
 		void                                Execute(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
-		void                                Dispatch(uint32_t descriptorIndex, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
+		void                                Dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ, uint32_t descriptorIndex = 0, VkDescriptorSet descriptorSet = nullptr);
+		void                                SubmitPushConstant(size_t size, const void* data);
+		VulkanDescriptor&                   GeDescriptor(uint32_t index = 0);
 
 	private:
 		bool                                Invalidate(ComputePipelineCreateInfo* pipelineSpec, VulkanShader* shader);

@@ -12,7 +12,7 @@ namespace Frostium
 #endif
 {
 	class VulkanShader;
-	class VulkanTexture;
+	class Texture;
 	struct BufferObject;
 
 	class VulkanDescriptor
@@ -28,14 +28,15 @@ namespace Frostium
 		void GenSamplersDescriptors(VulkanShader* shader);
 
 		// Update
-		bool Update2DSamplers(const std::vector<VulkanTexture*>& textures, uint32_t bindingPoint);
-		bool UpdateImageResource(uint32_t bindingPoint, const VkDescriptorImageInfo& imageInfo);
-		bool UpdateCubeMap(const VulkanTexture* cubeMap, uint32_t bindingPoint);
+		bool Update2DSamplers(const std::vector<Texture*>& textures, uint32_t bindingPoint, bool storage = false);
+		bool UpdateImageResource(uint32_t bindingPoint, const VkDescriptorImageInfo& imageInfo, bool storage = false);
+		bool UpdateCubeMap(Texture* cubeMap, uint32_t bindingPoint);
 		bool UpdateBuffer(uint32_t binding, size_t size, const void* data, uint32_t offset = 0);
 		void UpdateWriteSets();
 
 		// Getters
 		const VkDescriptorSet GetDescriptorSets() const;
+		const VkDescriptorSetLayout GetLayout() const;
 
 	private:
 
@@ -65,6 +66,7 @@ namespace Frostium
 
 		friend class VulkanPipeline;
 		friend class VulkanComputePipeline;
+		friend class DeferredRenderer;
 	};
 }
 #endif

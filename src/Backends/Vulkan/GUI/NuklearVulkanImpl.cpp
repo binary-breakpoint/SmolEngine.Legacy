@@ -96,7 +96,8 @@ namespace Frostium
 
 		auto vulkanTex = texture.GetVulkanTexture();
 		vulkanTex->SetFormat(VK_FORMAT_R8G8B8A8_UNORM);
-		vulkanTex->CreateTexture(static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1, image, nullptr);
+		TextureCreateInfo ci = {};
+		vulkanTex->CreateTexture(static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1, image, &ci);
 
 		NuklearVulkanImpl::s_Instance->m_Pipeline.UpdateSampler(_tex, 1);
 	}

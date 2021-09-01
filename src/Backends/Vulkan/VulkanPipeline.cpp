@@ -311,16 +311,6 @@ namespace Frostium
 		m_PipelineCaches.clear();
 	}
 
-	bool VulkanPipeline::UpdateCubeMap(const VulkanTexture* cubeMap, uint32_t bindingPoint, uint32_t setIndex)
-	{
-		return m_Descriptors[setIndex].UpdateCubeMap(cubeMap, bindingPoint);
-	}
-
-	bool VulkanPipeline::UpdateSamplers2D(const std::vector<VulkanTexture*>& textures, uint32_t bindingPoint,  uint32_t setIndex)
-	{
-		return m_Descriptors[setIndex].Update2DSamplers(textures, bindingPoint);
-	}
-
 	bool VulkanPipeline::SaveCache(const std::string& fileName, DrawMode mode)
 	{
 		FILE* f = fopen(fileName.c_str(), "wb");
@@ -453,11 +443,10 @@ namespace Frostium
 			}
 		}
 
-		// Samplers
-		if(refData->Resources.size() > 0)
+		if(refData->ImageSamplers.size() > 0)
 		{
 			uint32_t samplerDescriptors = 0;
-			for (auto& info : refData->Resources)
+			for (auto& info : refData->ImageSamplers)
 			{
 				auto& [bindingPoint, res] = info;
 				samplerDescriptors += res.ArraySize > 0 ? res.ArraySize : 1;
@@ -472,8 +461,26 @@ namespace Frostium
 			DescriptorPoolSizes.push_back(poolSize);
 		}
 
-		if (refData->Resources.size() == 0 &&
-			refData->Buffers.size() == 0)
+		if (refData->StorageImages.size() > 0)
+		{
+			uint32_t samplerDescriptors = 0;
+			for (auto& info : refData->StorageImages)
+			{
+				auto& [bindingPoint, res] = info;
+				samplerDescriptors += res.ArraySize > 0 ? res.ArraySize : 1;
+			}
+
+			VkDescriptorPoolSize poolSize = {};
+			{
+				poolSize.descriptorCount = samplerDescriptors;
+				poolSize.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+			}
+
+			DescriptorPoolSizes.push_back(poolSize);
+		}
+
+		if (refData->ImageSamplers.size() == 0 && refData->Buffers.size() == 0
+			&& refData->StorageImages.size() == 0)
 		{
 			// dummy
 			VkDescriptorPoolSize poolSize = {};

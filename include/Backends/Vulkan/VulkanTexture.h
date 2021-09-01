@@ -26,20 +26,24 @@ namespace Frostium
 		void                            LoadTexture(const TextureCreateInfo* info);
 		void                            LoadCubeMap(const TextureCreateInfo* info);
 			                            
-		void                            GenWhiteTetxure(uint32_t width, uint32_t height);
 		void                            GenCubeMap(uint32_t width, uint32_t height, TextureFormat format);
+		void                            GenTexture(uint32_t height, uint32_t width, const  TextureCreateInfo* info);
 		void                            GenTexture(const void* data, uint32_t size, uint32_t width, uint32_t height, TextureFormat format);
+		void                            GenWhiteTetxure(uint32_t width, uint32_t height);
 
-		// Setters
+		void                            Free();
+		VkDescriptorImageInfo           GetMipImageView(uint32_t mip);
+		void                            Resize(uint32_t width, uint32_t height);
 		void                            SetFormat(VkFormat format);
+		const VkDescriptorImageInfo&    GetVkDescriptorImageInfo() const;
+		VkImage                         GetVkImage() const;
+		uint32_t                        GetMips() const;
+		std::pair<uint32_t, uint32_t>   GetMipSize(uint32_t mip) const;
+
 		static void                     SetImageLayout(VkCommandBuffer cmdbuffer, VkImage image, VkImageLayout oldImageLayout, VkImageLayout newImageLayout,
 			                            VkImageSubresourceRange subresourceRange, VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
 		static void                     SetImageLayout(VkCommandBuffer cmdbuffer, VkImage image, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout,
-			                            VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);			    
-		// Getters					    
-		const VkDescriptorImageInfo&    GetVkDescriptorImageInfo() const;
-		VkImage                         GetVkImage() const;
-
+			                            VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
 		void                            CreateTexture(uint32_t width, uint32_t height, uint32_t mipMaps, const void* data, const TextureCreateInfo* info);
 		static VkImage                  CreateVkImage(uint32_t width, uint32_t height, int32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage,
 			                            VkDeviceMemory& imageMemory, uint32_t arrayLayers = 1);
@@ -56,19 +60,21 @@ namespace Frostium
 
 	private:
 
-		VkDescriptorImageInfo           m_DescriptorImageInfo;
-		VkFormat                        m_Format;
-		VkImageLayout                   m_ImageLayout;
-		VkFilter                        m_Filter = VK_FILTER_LINEAR;
-		VkSamplerAddressMode            m_AddressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-		VkBorderColor                   m_BorderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-		VkDevice                        m_Device = nullptr;
-		VkSampler                       m_Samper = nullptr;
-		VkImageView                     m_ImageView = nullptr;
-		VkImage                         m_Image = nullptr;
-		VkDeviceMemory                  m_DeviceMemory = nullptr;
-									    
-		TextureInfo*                    m_Info = nullptr;
+		VkDescriptorImageInfo                      m_DescriptorImageInfo;
+		VkFormat                                   m_Format;
+		VkImageLayout                              m_ImageLayout;
+		VkFilter                                   m_Filter = VK_FILTER_LINEAR;
+		VkSamplerAddressMode                       m_AddressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		VkBorderColor                              m_BorderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+		VkDevice                                   m_Device = nullptr;
+		VkSampler                                  m_Samper = nullptr;
+		VkImage                                    m_Image = nullptr;
+		VkDeviceMemory                             m_DeviceMemory = nullptr;
+		TextureInfo*                               m_Info = nullptr;
+		uint32_t                                   m_Mips = 0;
+		VkImageView                                m_ImageView =  nullptr;
+		std::unordered_map<uint32_t,VkImageView>   m_ImageViewMap;
+
 	private:
 
 		friend class VulkanPipeline;
