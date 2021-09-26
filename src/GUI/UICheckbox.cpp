@@ -1,11 +1,7 @@
 #include "stdafx.h"
 #include "GUI/UICheckbox.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 #include "nuklear/nuklear.h"
 

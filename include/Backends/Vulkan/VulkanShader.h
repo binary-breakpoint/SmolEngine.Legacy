@@ -8,11 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	struct ReflectionData;
 	struct ShaderCreateInfo;

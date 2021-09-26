@@ -7,11 +7,7 @@
 #include "Tools/Utils.h"
 #include "Import/glTFImporter.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
     Mesh::~Mesh()
     {

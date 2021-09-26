@@ -10,11 +10,7 @@
 #include <iostream>
 #include <cmath>
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	EditorCamera::EditorCamera(EditorCameraCreateInfo* createInfo)
 	{

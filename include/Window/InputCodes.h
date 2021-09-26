@@ -2,11 +2,7 @@
 
 #include <iostream>
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	typedef enum class KeyCode : uint16_t
 	{
@@ -174,7 +170,6 @@ namespace Frostium
 	}
 }
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 // From glfw3.h
 #define F_KEY_SPACE           ::SmolEngine::Key::Space
 #define F_KEY_APOSTROPHE      ::SmolEngine::Key::Apostrophe    /* ' */
@@ -226,8 +221,8 @@ namespace Frostium
 #define F_KEY_GRAVE_ACCENT    ::SmolEngine::Key::GraveAccent   /* ` */
 #define F_KEY_WORLD_1         ::SmolEngine::Key::World1        /* non-US #1 */
 #define F_KEY_WORLD_2         ::SmolEngine::Key::World2        /* non-US #2 */
-								
-/* FunctFn keys */				
+
+/* FunctFn keys */
 #define F_KEY_ESCAPE          ::SmolEngine::Key::Escape
 #define F_KEY_ENTER           ::SmolEngine::Key::Enter
 #define F_KEY_TAB             ::SmolEngine::Key::Tab
@@ -272,7 +267,7 @@ namespace Frostium
 #define F_KEY_F23             ::SmolEngine::Key::F23
 #define F_KEY_F24             ::SmolEngine::Key::F24
 #define F_KEY_F25             ::SmolEngine::Key::F25
-/* Keypa*/			
+/* Keypa*/
 
 #define F_KEY_KP_0            ::SmolEngine::Key::KP0
 #define F_KEY_KP_1            ::SmolEngine::Key::KP1
@@ -314,143 +309,3 @@ namespace Frostium
 #define F_MOUSE_BUTTON_LEFT   ::SmolEngine::Mouse::ButtonLeft
 #define F_MOUSE_BUTTON_RIGHT  ::SmolEngine::Mouse::ButtonRight
 #define F_MOUSE_BUTTON_MIDDLE ::SmolEngine::Mouse::ButtonMiddle
-#else
-// From glfw3.h
-#define F_KEY_SPACE           ::Frostium::Key::Space
-#define F_KEY_APOSTROPHE      ::Frostium::Key::Apostrophe    /* ' */
-#define F_KEY_COMMA           ::Frostium::Key::Comma         /* , */
-#define F_KEY_MINUS           ::Frostium::Key::Minus         /* - */
-#define F_KEY_PERIOD          ::Frostium::Key::Period        /* . */
-#define F_KEY_SLASH           ::Frostium::Key::Slash         /* / */
-#define F_KEY_0               ::Frostium::Key::D0
-#define F_KEY_1               ::Frostium::Key::D1
-#define F_KEY_2               ::Frostium::Key::D2
-#define F_KEY_3               ::Frostium::Key::D3
-#define F_KEY_4               ::Frostium::Key::D4
-#define F_KEY_5               ::Frostium::Key::D5
-#define F_KEY_6               ::Frostium::Key::D6
-#define F_KEY_7               ::Frostium::Key::D7
-#define F_KEY_8               ::Frostium::Key::D8
-#define F_KEY_9               ::Frostium::Key::D9
-#define F_KEY_SEMICOLON       ::Frostium::Key::Semicolon     /* ; */
-#define F_KEY_EQUAL           ::Frostium::Key::Equal         /* = */
-#define F_KEY_A               ::Frostium::Key::A
-#define F_KEY_B               ::Frostium::Key::B
-#define F_KEY_C               ::Frostium::Key::C
-#define F_KEY_D               ::Frostium::Key::D
-#define F_KEY_E               ::Frostium::Key::E
-#define F_KEY_F               ::Frostium::Key::F
-#define F_KEY_G               ::Frostium::Key::G
-#define F_KEY_H               ::Frostium::Key::H
-#define F_KEY_I               ::Frostium::Key::I
-#define F_KEY_J               ::Frostium::Key::J
-#define F_KEY_K               ::Frostium::Key::K
-#define F_KEY_L               ::Frostium::Key::L
-#define F_KEY_M               ::Frostium::Key::M
-#define F_KEY_N               ::Frostium::Key::N
-#define F_KEY_O               ::Frostium::Key::O
-#define F_KEY_P               ::Frostium::Key::P
-#define F_KEY_Q               ::Frostium::Key::Q
-#define F_KEY_R               ::Frostium::Key::R
-#define F_KEY_S               ::Frostium::Key::S
-#define F_KEY_T               ::Frostium::Key::T
-#define F_KEY_U               ::Frostium::Key::U
-#define F_KEY_V               ::Frostium::Key::V
-#define F_KEY_W               ::Frostium::Key::W
-#define F_KEY_X               ::Frostium::Key::X
-#define F_KEY_Y               ::Frostium::Key::Y
-#define F_KEY_Z               ::Frostium::Key::Z
-#define F_KEY_LEFT_BRACKET    ::Frostium::Key::LeftBracket   /* [ */
-#define F_KEY_BACKSLASH       ::Frostium::Key::Backslash     /* \ */
-#define F_KEY_RIGHT_BRACKET   ::Frostium::Key::RightBracket  /* ] */
-#define F_KEY_GRAVE_ACCENT    ::Frostium::Key::GraveAccent   /* ` */
-#define F_KEY_WORLD_1         ::Frostium::Key::World1        /* non-US #1 */
-#define F_KEY_WORLD_2         ::Frostium::Key::World2        /* non-US #2 */
-
-/* FunctFn keys */
-#define F_KEY_ESCAPE          ::Frostium::Key::Escape
-#define F_KEY_ENTER           ::Frostium::Key::Enter
-#define F_KEY_TAB             ::Frostium::Key::Tab
-#define F_KEY_BACKSPACE       ::Frostium::Key::Backspace
-#define F_KEY_INSERT          ::Frostium::Key::Insert
-#define F_KEY_DELETE          ::Frostium::Key::Delete
-#define F_KEY_RIGHT           ::Frostium::Key::Right
-#define F_KEY_LEFT            ::Frostium::Key::Left
-#define F_KEY_DOWN            ::Frostium::Key::Down
-#define F_KEY_UP              ::Frostium::Key::Up
-#define F_KEY_PAGE_UP         ::Frostium::Key::PageUp
-#define F_KEY_PAGE_DOWN       ::Frostium::Key::PageDown
-#define F_KEY_HOME            ::Frostium::Key::Home
-#define F_KEY_END             ::Frostium::Key::End
-#define F_KEY_CAPS_LOCK       ::Frostium::Key::CapsLock
-#define F_KEY_SCROLL_LOCK     ::Frostium::Key::ScrollLock
-#define F_KEY_NUM_LOCK        ::Frostium::Key::NumLock
-#define F_KEY_PRINT_SCREEN    ::Frostium::Key::PrintScreen
-#define F_KEY_PAUSE           ::Frostium::Key::Pause
-#define F_KEY_F1              ::Frostium::Key::F1
-#define F_KEY_F2              ::Frostium::Key::F2
-#define F_KEY_F3              ::Frostium::Key::F3
-#define F_KEY_F4              ::Frostium::Key::F4
-#define F_KEY_F5              ::Frostium::Key::F5
-#define F_KEY_F6              ::Frostium::Key::F6
-#define F_KEY_F7              ::Frostium::Key::F7
-#define F_KEY_F8              ::Frostium::Key::F8
-#define F_KEY_F9              ::Frostium::Key::F9
-#define F_KEY_F10             ::Frostium::Key::F10
-#define F_KEY_F11             ::Frostium::Key::F11
-#define F_KEY_F12             ::Frostium::Key::F12
-#define F_KEY_F13             ::Frostium::Key::F13
-#define F_KEY_F14             ::Frostium::Key::F14
-#define F_KEY_F15             ::Frostium::Key::F15
-#define F_KEY_F16             ::Frostium::Key::F16
-#define F_KEY_F17             ::Frostium::Key::F17
-#define F_KEY_F18             ::Frostium::Key::F18
-#define F_KEY_F19             ::Frostium::Key::F19
-#define F_KEY_F20             ::Frostium::Key::F20
-#define F_KEY_F21             ::Frostium::Key::F21
-#define F_KEY_F22             ::Frostium::Key::F22
-#define F_KEY_F23             ::Frostium::Key::F23
-#define F_KEY_F24             ::Frostium::Key::F24
-#define F_KEY_F25             ::Frostium::Key::F25
-/* Keypa*/
-#define F_KEY_KP_0            ::Frostium::Key::KP0
-#define F_KEY_KP_1            ::Frostium::Key::KP1
-#define F_KEY_KP_2            ::Frostium::Key::KP2
-#define F_KEY_KP_3            ::Frostium::Key::KP3
-#define F_KEY_KP_4            ::Frostium::Key::KP4
-#define F_KEY_KP_5            ::Frostium::Key::KP5
-#define F_KEY_KP_6            ::Frostium::Key::KP6
-#define F_KEY_KP_7            ::Frostium::Key::KP7
-#define F_KEY_KP_8            ::Frostium::Key::KP8
-#define F_KEY_KP_9            ::Frostium::Key::KP9
-#define F_KEY_KP_DECIMAL      ::Frostium::Key::KPDecimal
-#define F_KEY_KP_DIVIDE       ::Frostium::Key::KPDivide
-#define F_KEY_KP_MULTIPLY     ::Frostium::Key::KPMultiply
-#define F_KEY_KP_SUBTRACT     ::Frostium::Key::KPSubtract
-#define F_KEY_KP_ADD          ::Frostium::Key::KPAdd
-#define F_KEY_KP_ENTER        ::Frostium::Key::KPEnter
-#define F_KEY_KP_EQUAL        ::Frostium::Key::KPEqual
-
-#define F_KEY_LEFT_SHIFT      ::Frostium::Key::LeftShift
-#define F_KEY_LEFT_CONTROL    ::Frostium::Key::LeftControl
-#define F_KEY_LEFT_ALT        ::Frostium::Key::LeftAlt
-#define F_KEY_LEFT_SUPER      ::Frostium::Key::LeftSuper
-#define F_KEY_RIGHT_SHIFT     ::Frostium::Key::RightShift
-#define F_KEY_RIGHT_CONTROL   ::Frostium::Key::RightControl
-#define F_KEY_RIGHT_ALT       ::Frostium::Key::RightAlt
-#define F_KEY_RIGHT_SUPER     ::Frostium::Key::RightSuper
-#define F_KEY_MENU            ::Frostium::Key::Menu
-
-#define F_MOUSE_BUTTON_0      ::Frostium::Mouse::Button0
-#define F_MOUSE_BUTTON_1      ::Frostium::Mouse::Button1
-#define F_MOUSE_BUTTON_2      ::Frostium::Mouse::Button2
-#define F_MOUSE_BUTTON_3      ::Frostium::Mouse::Button3
-#define F_MOUSE_BUTTON_4      ::Frostium::Mouse::Button4
-#define F_MOUSE_BUTTON_5      ::Frostium::Mouse::Button5
-#define F_MOUSE_BUTTON_6      ::Frostium::Mouse::Button6
-#define F_MOUSE_BUTTON_7      ::Frostium::Mouse::Button7
-#define F_MOUSE_BUTTON_LAST   ::Frostium::Mouse::ButtonLast
-#define F_MOUSE_BUTTON_LEFT   ::Frostium::Mouse::ButtonLeft
-#define F_MOUSE_BUTTON_RIGHT  ::Frostium::Mouse::ButtonRight
-#define F_MOUSE_BUTTON_MIDDLE ::Frostium::Mouse::ButtonMiddle
-#endif

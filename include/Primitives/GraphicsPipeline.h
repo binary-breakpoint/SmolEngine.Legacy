@@ -11,11 +11,7 @@
 #include "Primitives/IndexBuffer.h"
 #include "Primitives/Shader.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	class Framebuffer;
 	class CubeMap;

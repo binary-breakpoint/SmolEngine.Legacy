@@ -6,11 +6,7 @@
 #include "Backends/Vulkan/VulkanSwapchain.h"
 #include "Backends/Vulkan/VulkanContext.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	VulkanCommandBuffer::VulkanCommandBuffer()
 	{

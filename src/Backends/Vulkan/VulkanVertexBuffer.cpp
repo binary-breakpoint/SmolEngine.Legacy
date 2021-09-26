@@ -2,11 +2,7 @@
 #ifndef FROSTIUM_OPENGL_IMPL
 #include "Backends/Vulkan/VulkanVertexBuffer.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	void VulkanVertexBuffer::Init(const void* data, uint64_t size, bool is_static)
 	{

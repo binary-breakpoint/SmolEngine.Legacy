@@ -6,11 +6,7 @@
 #include "Backends/Vulkan/GUI/NuklearVulkanImpl.h"
 #endif
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 #include "nuklear/nuklear.h"
 

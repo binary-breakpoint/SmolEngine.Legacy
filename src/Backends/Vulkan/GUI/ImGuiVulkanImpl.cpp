@@ -23,11 +23,7 @@
 #include <implot/implot.h>
 #include <imgizmo/src/ImGuizmo.h>
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	void ImGuiVulkanImpl::Init()
 	{

@@ -8,11 +8,7 @@
 #include "Primitives/GraphicsPipeline.h"
 #include "Primitives/Framebuffer.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	bool VulkanPipeline::Invalidate(GraphicsPipelineCreateInfo* pipelineSpec, VulkanShader* shader)
 	{

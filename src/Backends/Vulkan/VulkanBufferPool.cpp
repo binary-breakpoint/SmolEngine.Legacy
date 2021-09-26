@@ -2,11 +2,7 @@
 #ifndef FROSTIUM_OPENGL_IMPL
 #include "Backends/Vulkan/VulkanBufferPool.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	VulkanBufferPool* VulkanBufferPool::s_Instance = new VulkanBufferPool();
 
@@ -46,7 +42,7 @@ namespace Frostium
 			return;
 		}
 
-#ifdef FROSTIUM_DEBUG
+#ifdef SMOLENGINE_DEBUG
 		DebugLog::LogInfo("UBO/SSBO with binding {} is reused", binding);
 #endif
 		outDescriptorBufferInfo = it->second->DesriptorBufferInfo;

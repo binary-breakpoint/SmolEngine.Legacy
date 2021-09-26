@@ -5,11 +5,7 @@
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
     void OpenglContext::Setup(GLFWwindow* window)
     {

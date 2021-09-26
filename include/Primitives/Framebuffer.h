@@ -7,11 +7,7 @@
 #include "Backends/Vulkan/VulkanFramebuffer.h"
 #endif
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	enum class AttachmentFormat : uint16_t
 	{

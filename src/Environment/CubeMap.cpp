@@ -1,11 +1,7 @@
 #include "stdafx.h"
 #include "Environment/CubeMap.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	void CubeMap::Create(const TextureCreateInfo* info, CubeMap* out_tex)
 	{

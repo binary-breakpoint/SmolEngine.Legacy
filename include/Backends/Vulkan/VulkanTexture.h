@@ -4,11 +4,7 @@
 
 #include "Common/Common.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	enum class TextureFormat : int;
 	enum class AddressMode : int;

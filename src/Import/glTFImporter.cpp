@@ -11,11 +11,7 @@
 
 using namespace tinygltf;
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	void LoadNode(const tinygltf::Node& inputNode, const tinygltf::Model& input, uint32_t nodeIndex, ImportedDataGlTF* out_data)
 	{

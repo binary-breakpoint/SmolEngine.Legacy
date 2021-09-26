@@ -15,11 +15,7 @@
 #include "Backends/Vulkan/VulkanTexture.h"
 
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	VulkanDescriptor::VulkanDescriptor()
 	{
@@ -148,7 +144,7 @@ namespace Frostium
 
 						if (found == false)
 						{
-#ifdef FROSTIUM_DEBUG
+#ifdef SMOLENGINE_DEBUG
 							DebugLog::LogError("Storage buffer dataSize must be declared inside GraphicsPipelineShaderCreateInfo!");
 #endif
 							continue;
@@ -205,7 +201,7 @@ namespace Frostium
 
 			vkUpdateDescriptorSets(m_Device, 1, &m_WriteSets.back(), 0, nullptr);
 
-#ifdef FROSTIUM_DEBUG
+#ifdef SMOLENGINE_DEBUG
 			DebugLog::LogWarn("Created " + buffer.ObjectName + " {}: Members Count: {}, Binding Point: {}",
 				buffer.Name, buffer.Uniforms.size(), buffer.BindingPoint);
 #endif
@@ -404,12 +400,12 @@ namespace Frostium
 		vkUpdateDescriptorSets(m_Device, static_cast<uint32_t>(m_WriteSets.size()), m_WriteSets.data(), 0, nullptr);
 	}
 
-	const VkDescriptorSet VulkanDescriptor::GetDescriptorSets() const
+	VkDescriptorSet VulkanDescriptor::GetDescriptorSets() const
 	{
 		return m_DescriptorSet;
 	}
 
-	const VkDescriptorSetLayout VulkanDescriptor::GetLayout() const
+	VkDescriptorSetLayout VulkanDescriptor::GetLayout() const
 	{
 		return m_DescriptorSetLayout;
 	}

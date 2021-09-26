@@ -8,11 +8,7 @@
 #include <spirv_cross/spirv_cross.hpp>
 #include <spirv_cross/spirv_glsl.hpp>
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	shaderc_shader_kind GetShaderType(ShaderType type)
 	{
@@ -49,7 +45,7 @@ namespace Frostium
 #else
 		options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
 #endif
-#ifndef FROSTIUM_DEBUG
+#ifndef SMOLENGINE_DEBUG
 		options.SetOptimizationLevel(shaderc_optimization_level_performance);
 #endif
 		// Load source

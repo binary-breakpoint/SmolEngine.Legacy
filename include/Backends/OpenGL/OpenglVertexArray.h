@@ -3,11 +3,7 @@
 #include "Common/Common.h"
 #include <vector>
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	class VertexBuffer;
 	class IndexBuffer;

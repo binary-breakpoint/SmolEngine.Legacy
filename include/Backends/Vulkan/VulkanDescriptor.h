@@ -5,11 +5,7 @@
 #include <vector>
 #include <unordered_map>
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	class VulkanShader;
 	class Texture;
@@ -35,8 +31,8 @@ namespace Frostium
 		void UpdateWriteSets();
 
 		// Getters
-		const VkDescriptorSet GetDescriptorSets() const;
-		const VkDescriptorSetLayout GetLayout() const;
+		VkDescriptorSet GetDescriptorSets() const;
+		VkDescriptorSetLayout GetLayout() const;
 
 	private:
 

@@ -12,11 +12,7 @@
 
 #include <GLFW/glfw3.h>
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	static int result = 0;
 	GraphicsContext* GraphicsContext::s_Instance = nullptr;
@@ -55,6 +51,13 @@ namespace Frostium
 		m_DefaultMeshes = new DefaultMeshes(info->ResourcesFolderPath);
 		m_JobsSystem = new JobsSystemInstance();
 
+		// Initialize ImGUI
+		if ((info->eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
+		{
+			m_ImGuiContext = ImGuiContext::CreateContext();;
+			m_ImGuiContext->Init();
+		}
+
 		// Creates default framebuffer
 		m_Framebuffer = new Framebuffer();
 		FramebufferSpecification framebufferCI = {};
@@ -83,13 +86,6 @@ namespace Frostium
 		if ((info->eFeaturesFlags & FeaturesFlags::RendererDebug) == FeaturesFlags::RendererDebug)
 		{
 			RendererDebug::Init();
-		}
-
-		// Initialize ImGUI
-		if ((info->eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
-		{
-			m_ImGuiContext = ImGuiContext::CreateContext();;
-			m_ImGuiContext->Init();
 		}
 
 		m_NuklearContext = NuklearContext::CreateContext();

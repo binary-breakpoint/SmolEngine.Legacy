@@ -3,11 +3,7 @@
 
 #include "GUI/Backends/NuklearContext.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 #include "nuklear/nuklear.h"
 
@@ -35,6 +31,8 @@ namespace Frostium
         NuklearContext::GetColor(Style.Border_Normal, &pNkStyle->border_color);
         NuklearContext::GetColor(Style.Text_Normal, &pNkStyle->text_normal);
         NuklearContext::GetTextAlignment(eAlignment, pNkStyle->text_alignment);
+
+        pNkStyle->rounding = Style.Rounding;
 
         OnDraw();
 

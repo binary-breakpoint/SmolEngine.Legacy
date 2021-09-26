@@ -5,11 +5,7 @@
 
 #ifndef FROSTIUM_OPENGL_IMPL
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	bool VulkanComputePipeline::Invalidate(ComputePipelineCreateInfo* pipelineSpec, VulkanShader* shader)
 	{
@@ -18,17 +14,14 @@ namespace Frostium
 		m_Spec = pipelineSpec;
 		m_Shader = shader;
 		m_Device = VulkanContext::GetDevice().GetLogicalDevice();
-		m_SetLayout.clear();
-
-		for (auto& descriptor : m_Descriptors)
-			m_SetLayout.push_back(descriptor.m_DescriptorSetLayout);
 
 		VkPipelineLayoutCreateInfo pipelineLayoutCI = {};
 		{
 			pipelineLayoutCI.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 			pipelineLayoutCI.pNext = nullptr;
-			pipelineLayoutCI.setLayoutCount = static_cast<uint32_t>(m_SetLayout.size());
-			pipelineLayoutCI.pSetLayouts = m_SetLayout.data();
+			auto layout = m_Descriptors[0].GetLayout();
+			pipelineLayoutCI.pSetLayouts = &layout;
+			pipelineLayoutCI.setLayoutCount = 1;
 			pipelineLayoutCI.pushConstantRangeCount = static_cast<uint32_t>(shader->m_VkPushConstantRanges.size());
 			pipelineLayoutCI.pPushConstantRanges = shader->m_VkPushConstantRanges.data();
 

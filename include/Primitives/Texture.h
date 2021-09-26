@@ -15,11 +15,7 @@ namespace cereal
 	class access;
 }
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	enum class TextureFormat : int
 	{

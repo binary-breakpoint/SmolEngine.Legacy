@@ -3,11 +3,7 @@
 #include "Backends/Vulkan/Raytracing/VulkanAccelerationStructure.h"
 #include "Backends/Vulkan/VulkanContext.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	VulkanAccelerationStructure::~VulkanAccelerationStructure()
 	{

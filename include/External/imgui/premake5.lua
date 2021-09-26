@@ -32,31 +32,10 @@ project "ImGui"
 		cppdialect "C++17"
 		staticruntime "on"
 
-	--------------------------------------- Debug
-
-	filter "configurations:Debug (Vulkan)"
-	buildoptions "/MDd"
-	symbols "on"
-
-	filter "configurations:Debug (OpenGL)"
-	buildoptions "/MDd"
-	symbols "on"
-
-	--------------------------------------- Release
-
-	filter "configurations:Release (Vulkan)"
-	buildoptions "/MD"
-	optimize "full"
-
-	filter "configurations:Release (OpenGL)"
-	buildoptions "/MD"
-	optimize "full"
-
-	
-	filter "configurations:SmolEngine_R"
-	buildoptions "/MD"
-	optimize "full"
-
-	filter "configurations:SmolEngine_D"
-	buildoptions "/MDd"
-	symbols "on"
+		filter "configurations:Debug_Vulkan"
+		buildoptions "/MDd"
+		symbols "on"
+		
+		filter "configurations:Release_Vulkan"
+		buildoptions "/MD"
+		optimize "full"

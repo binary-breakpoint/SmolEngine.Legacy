@@ -10,11 +10,7 @@
 #include "Multithreading/JobsSystemInstance.h"
 #include "Renderer/RendererDeferred.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	const uint32_t maxTextures = 4096;
 

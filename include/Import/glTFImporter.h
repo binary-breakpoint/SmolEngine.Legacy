@@ -11,11 +11,7 @@ namespace tinygltf
 	class Model;
 }
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {					    
 	struct Primitive
 	{

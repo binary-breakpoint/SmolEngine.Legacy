@@ -4,11 +4,7 @@
 #include "GUI/Backends/NuklearContext.h"
 #include "Backends/Vulkan/GUI/NuklearVulkanImpl.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 #define NK_INCLUDE_STANDARD_IO
 #define NK_INCLUDE_FONT_BAKING

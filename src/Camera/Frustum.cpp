@@ -1,11 +1,7 @@
 #include "stdafx.h"
 #include "Camera/Frustum.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	void Frustum::SetRadius(float value)
 	{

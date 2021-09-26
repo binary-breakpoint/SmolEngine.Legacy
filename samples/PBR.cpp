@@ -1,12 +1,8 @@
 #include "PBR.h"
 
-#include <FrostiumCore.h>
+#include <GraphicsCore.h>
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 using namespace SmolEngine;
-#else
-using namespace Frostium;
-#endif
 
 GraphicsContext*   context = nullptr;
 RendererDrawList*  drawList = nullptr;
@@ -124,6 +120,7 @@ int main(int argc, char** argv)
 
 	UIButton button;
 	button.SetLayout(100, 50, 1);
+	button.SetOffset(500, 0);
 
 	UIText text;
 	text.SetFont("../resources/Fonts/Font1.ttf", 44.0f);

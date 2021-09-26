@@ -2,11 +2,7 @@
 #include "Import/OzzImported.h"
 #include <regex>
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	bool OzzImporter::ImportGltf(const std::string& filePath, const std::string& exePath)
 	{

@@ -22,17 +22,15 @@
 #include "Backends/Vulkan/VulkanPBR.h"
 #endif
 
-
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
-	void RendererDeferred::DrawFrame(ClearInfo* clearInfo, RendererStorage* storage, RendererDrawList* drawList)
+	void RendererDeferred::DrawFrame(ClearInfo* clearInfo, RendererStorage* storage, RendererDrawList* drawList, bool batch_cmd)
 	{
 		CommandBufferStorage cmdStorage{};
-		cmdStorage.Buffer = VulkanContext::GetCurrentVkCmdBuffer();
+		if (batch_cmd)
+			cmdStorage.Buffer = VulkanContext::GetCurrentVkCmdBuffer();
+		else
+			VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
 
 		storage->p_Gbuffer.SetCommandBuffer(cmdStorage.Buffer);
 		storage->p_Lighting.SetCommandBuffer(cmdStorage.Buffer);
@@ -58,6 +56,9 @@ namespace Frostium
 		LightingPass(&submitInfo);
 		BloomPass(&submitInfo);
 		CompositionPass(&submitInfo);
+
+		if (!batch_cmd)
+			VulkanCommandBuffer::ExecuteCommandBuffer(&cmdStorage);
 	}
 
 	void RendererStorage::Initilize()

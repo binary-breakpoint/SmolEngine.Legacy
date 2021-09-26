@@ -20,11 +20,7 @@
 
 #include <functional>
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	struct WindowCreateInfo;
 	struct WindowData;

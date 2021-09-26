@@ -5,11 +5,7 @@
 #include "Backends/Vulkan/VulkanDevice.h"
 #include "Backends/Vulkan/VulkanContext.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
     VulkanSemaphore::VulkanSemaphore()
     {

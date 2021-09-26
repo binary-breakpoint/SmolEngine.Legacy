@@ -6,11 +6,7 @@
 
 #include <memory>
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	struct ImportedDataGlTF;
 	struct Primitive;

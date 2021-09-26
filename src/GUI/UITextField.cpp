@@ -2,11 +2,7 @@
 #include "GUI/UITextField.h"
 #include "GUI/Backends/NuklearContext.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 #include "nuklear/nuklear.h"
 

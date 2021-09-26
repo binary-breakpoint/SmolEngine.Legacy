@@ -2,11 +2,7 @@
 #include "Common/Common.h"
 #include "Tools/GLM.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	class Mesh;
 

@@ -11,11 +11,7 @@
 #include <ktxvulkan.h>
 #include <stb_image.h>
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	VulkanTexture::VulkanTexture(TextureInfo* info)
 		: m_Info(info), 

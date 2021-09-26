@@ -2,11 +2,7 @@
 #include "Common/Common.h"
 #include "Primitives/Texture.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	class CubeMap: Texture
 	{

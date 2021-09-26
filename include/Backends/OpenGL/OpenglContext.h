@@ -2,11 +2,7 @@
 #ifdef FROSTIUM_OPENGL_IMPL
 struct GLFWwindow;
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	class OpenglContext
 	{

@@ -29,25 +29,8 @@ project "SPIRV-Cross"
 		filter "configurations:Debug_Vulkan"
 		buildoptions "/MDd"
 		symbols "on"
-	
-		filter "configurations:Debug_OpenGL"
-		buildoptions "/MDd"
-		symbols "on"
-	
+		
 		filter "configurations:Release_Vulkan"
 		buildoptions "/MD"
 		optimize "full"
-	
-		filter "configurations:Release_OpenGL"
-		buildoptions "/MD"
-		optimize "full"
-	
-		
-		filter "configurations:SmolEngine_R"
-		buildoptions "/MD"
-		optimize "full"
-	
-		filter "configurations:SmolEngine_D"
-		buildoptions "/MDd"
-		symbols "on"
 

@@ -7,11 +7,7 @@
 #include "Backends/Vulkan/VulkanVertexBuffer.h"
 #endif
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 #ifdef  FROSTIUM_OPENGL_IMPL
 	class VertexBuffer: OpenglVertexBuffer

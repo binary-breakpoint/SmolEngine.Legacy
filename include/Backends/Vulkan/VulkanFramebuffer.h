@@ -6,11 +6,7 @@
 #include <vector>
 #include <unordered_map>
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	struct FramebufferSpecification;
 	enum class MSAASamples : uint16_t;

@@ -1,11 +1,7 @@
 #include "stdafx.h"
 #include "Common/Profiler.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	void Profiler::Start()
 	{

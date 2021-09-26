@@ -13,11 +13,7 @@
 
 #include <stb_image/stb_image.h>
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	Texture::Texture()
 #ifdef  FROSTIUM_OPENGL_IMPL

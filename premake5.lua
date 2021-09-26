@@ -1,5 +1,5 @@
 
-workspace "Frostium"
+workspace "SmolEngine.Graphics"
 	architecture "x64"
 	startproject "PBR"
 
@@ -7,9 +7,6 @@ workspace "Frostium"
 	{
 		"Debug_Vulkan",
 		"Release_Vulkan",
-
-		"SmolEngine_R",
-		"SmolEngine_D"
 	}
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
@@ -39,7 +36,7 @@ include "vendor/ktx"
 include "vendor/imgizmo"
 group ""
 
-project "Frostium"
+project "SmolEngine.Graphics"
 	kind "StaticLib"
 	language "C++"
 	cppdialect "C++17"
@@ -152,46 +149,13 @@ project "Frostium"
 
 		defines
 		{
-			"FROSTIUM_DEBUG"
-		}
-
-	filter "configurations:SmolEngine_D"
-	buildoptions "/MDd"
-	buildoptions "/bigobj"
-	buildoptions "/Zm500"
-	symbols "on"
-
-	    links 
-		{ 
-			"vendor/vulkan/libs/VkLayer_utils.lib",
-			"vendor/vulkan/libs/shaderc_d.lib",
-			"vendor/vulkan/libs/shaderc_util_d.lib",
-			"vendor/vulkan/libs/glslang_d.lib",
-			"vendor/vulkan/libs/SPIRV_d.lib",
-			"vendor/vulkan/libs/SPIRV-Tools_d.lib",
-			"vendor/vulkan/libs/SPIRV-Tools-opt_d.lib",
-			"vendor/vulkan/libs/machineIndependent_d.lib",
-			"vendor/vulkan/libs/genericCodeGen_d.lib",
-			"vendor/vulkan/libs/OGLCompiler_d.lib",
-			"vendor/vulkan/libs/OSDependent_d.lib",
-
-			"vendor/ozz-animation/libs/ozz_animation_d.lib",
-			"vendor/ozz-animation/libs/ozz_animation_offline_d.lib",
-			"vendor/ozz-animation/libs/ozz_base_d.lib",
-			"vendor/ozz-animation/libs/ozz_geometry_d.lib",
-			"vendor/ozz-animation/libs/ozz_options_d.lib",
+			"SMOLENGINE_DEBUG"
 		}
 
 		postbuildcommands
 		{
-			"{COPY} bin/" ..outputdir .. "/Frostium/Frostium.lib ../SmolEngine/vendor/frostium/libs/debug/",
+			"{COPY} bin/" ..outputdir .. "/SmolEngine.Graphics/SmolEngine.Graphics.lib ../SmolEngine/vendor/frostium/libs/debug/",
 			"{COPY} include ../SmolEngine/smolengine/include/Libraries/frostium/",
-		}
-	
-		defines
-		{
-			"FROSTIUM_SMOLENGINE_IMPL",
-			"FROSTIUM_DEBUG"
 		}
 
 	filter "configurations:Release_Vulkan"
@@ -220,59 +184,11 @@ project "Frostium"
 			"vendor/ozz-animation/libs/ozz_options_r.lib",
 		}
 
-
-	filter "configurations:SmolEngine_R"
-	buildoptions "/MD"
-	buildoptions "/bigobj"
-	buildoptions "/Zm500"
-	optimize "on"
-
-		links 
-		{ 
-			"vendor/vulkan/libs/shaderc.lib",
-			"vendor/vulkan/libs/shaderc_util.lib",
-			"vendor/vulkan/libs/glslang.lib",
-			"vendor/vulkan/libs/SPIRV.lib",
-			"vendor/vulkan/libs/SPIRV-Tools.lib",
-			"vendor/vulkan/libs/SPIRV-Tools-opt.lib",
-			"vendor/vulkan/libs/machineIndependent.lib",
-			"vendor/vulkan/libs/genericCodeGen.lib",
-			"vendor/vulkan/libs/OGLCompiler.lib",
-			"vendor/vulkan/libs/OSDependent.lib",
-
-			"vendor/ozz-animation/libs/ozz_animation_r.lib",
-			"vendor/ozz-animation/libs/ozz_animation_offline_r.lib",
-			"vendor/ozz-animation/libs/ozz_base_r.lib",
-			"vendor/ozz-animation/libs/ozz_geometry_r.lib",
-			"vendor/ozz-animation/libs/ozz_options_r.lib",
-		}
-
 		postbuildcommands
 		{
-			"{COPY} bin/" ..outputdir .. "/Frostium/Frostium.lib ../SmolEngine/vendor/frostium/libs/release/",
+			"{COPY} bin/" ..outputdir .. "/SmolEngine.Graphics/SmolEngine.Graphics.lib ../SmolEngine/vendor/frostium/libs/release/",
 			"{COPY} include ../SmolEngine/smolengine/include/Libraries/frostium/",
 		}
-
-		defines
-		{
-		  "FROSTIUM_SMOLENGINE_IMPL"
-		}
-
-	filter "configurations:Release_OpenGL"
-	buildoptions "/MD"
-	buildoptions "/bigobj"
-	buildoptions "/Zm500"
-	optimize "on"
-
-	   links 
-	   { 
-		"opengl32.lib"
-	   }
-
-	    defines
-	   {
-		 "FROSTIUM_OPENGL_IMPL"
-	   }
 
 --------------------------------------------------------------------------------- PBR
 
@@ -307,7 +223,7 @@ project "PBR"
 
 	links
 	{
-		"bin/" ..outputdir .. "/Frostium/Frostium.lib"
+		"bin/" ..outputdir .. "/SmolEngine.Graphics/SmolEngine.Graphics.lib"
 	}
 
 	filter "system:windows"
@@ -328,27 +244,6 @@ project "PBR"
 		buildoptions "/MD"
 		buildoptions "/bigobj"
 		optimize "on"
-	
-		filter "configurations:SmolEngine_R"
-		buildoptions "/MD"
-		buildoptions "/bigobj"
-		optimize "on"
-
-		defines
-		{
-			"FROSTIUM_SMOLENGINE_IMPL"
-		}
-	
-		filter "configurations:SmolEngine_D"
-		buildoptions "/MDd"
-		buildoptions "/bigobj"
-		symbols "on"
-
-		defines
-		{
-			"FROSTIUM_SMOLENGINE_IMPL",
-			"FROSTIUM_DEBUG"
-		}
 
 
 ------------------------------------------------- 2D
@@ -381,7 +276,7 @@ project "2D"
 
 	links
 	{
-		"bin/" ..outputdir .. "/Frostium/Frostium.lib"
+		"bin/" ..outputdir .. "/SmolEngine.Graphics/SmolEngine.Graphics.lib"
 	}
 
 	filter "system:windows"
@@ -402,27 +297,6 @@ project "2D"
 		buildoptions "/MD"
 		buildoptions "/bigobj"
 		optimize "on"
-	
-		filter "configurations:SmolEngine_R"
-		buildoptions "/MD"
-		buildoptions "/bigobj"
-		optimize "on"
-
-		defines
-		{
-			"FROSTIUM_SMOLENGINE_IMPL"
-		}
-	
-		filter "configurations:SmolEngine_D"
-		buildoptions "/MDd"
-		buildoptions "/bigobj"
-		symbols "on"
-
-		defines
-		{
-			"FROSTIUM_SMOLENGINE_IMPL",
-			"FROSTIUM_DEBUG"
-		}
 
 	------------------------------------------------- 3D Animations
 
@@ -454,7 +328,7 @@ project "2D"
 
 	links
 	{
-		"bin/" ..outputdir .. "/Frostium/Frostium.lib"
+		"bin/" ..outputdir .. "/SmolEngine.Graphics/SmolEngine.Graphics.lib"
 	}
 
 	filter "system:windows"
@@ -475,26 +349,5 @@ project "2D"
 		buildoptions "/MD"
 		buildoptions "/bigobj"
 		optimize "on"
-	
-		filter "configurations:SmolEngine_R"
-		buildoptions "/MD"
-		buildoptions "/bigobj"
-		optimize "on"
-
-		defines
-		{
-			"FROSTIUM_SMOLENGINE_IMPL"
-		}
-	
-		filter "configurations:SmolEngine_D"
-		buildoptions "/MDd"
-		buildoptions "/bigobj"
-		symbols "on"
-
-		defines
-		{
-			"FROSTIUM_SMOLENGINE_IMPL",
-			"FROSTIUM_DEBUG"
-		}
 
 	group ""

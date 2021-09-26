@@ -20,11 +20,7 @@ static PFN_vkGetSwapchainImagesKHR fpGetSwapchainImagesKHR = nullptr;
 static PFN_vkAcquireNextImageKHR fpAcquireNextImageKHR = nullptr;
 static PFN_vkQueuePresentKHR fpQueuePresentKHR = nullptr;
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
     VulkanSwapchain::VulkanSwapchain()
     {

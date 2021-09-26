@@ -3,11 +3,7 @@
 #include "Backends/Vulkan/VulkanMemoryAllocator.h"
 #include "Backends/Vulkan/VulkanDevice.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	bool VulkanMemoryAllocator::Allocate(VkDevice device, const VkMemoryRequirements& memRequirements, VkDeviceMemory* dest, uint32_t memoryTypeIndex)
 	{

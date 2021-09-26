@@ -2,11 +2,7 @@
 #ifndef FROSTIUM_OPENGL_IMPL
 #include "Backends/Vulkan/GUI/NuklearVulkanImpl.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 #define NK_INCLUDE_FIXED_TYPES
 #define NK_INCLUDE_STANDARD_IO

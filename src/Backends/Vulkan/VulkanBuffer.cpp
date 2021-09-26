@@ -5,11 +5,7 @@
 #include "Backends/Vulkan/VulkanContext.h"
 #include "Backends/Vulkan/VulkanStagingBuffer.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	VulkanBuffer::VulkanBuffer()
 	{
@@ -57,9 +53,9 @@ namespace Frostium
 			VkResult result = vkAllocateMemory(device, &memAllocateInfo, nullptr, &m_DeviceMemory);
 			assert(result == VK_SUCCESS);
 
-#ifdef Frostium_DEBUG
+#ifdef SMOLENGINE_DEBUG
 			DebugLog::LogInfo("VulkanBuffer:: Allocating {} bytes of memory", size);
-#endif // Frostium_DEBUG
+#endif // SMOLENGINE_DEBUG
 
 		}
 
@@ -114,7 +110,7 @@ namespace Frostium
 			VkResult result = vkAllocateMemory(device, &memAllocateInfo, nullptr, &m_DeviceMemory);
 			assert(result == VK_SUCCESS);
 
-#ifdef FROSTIUM_DEBUG
+#ifdef SMOLENGINE_DEBUG
 			DebugLog::LogInfo("VulkanBuffer:: Allocating {} bytes of memory", size);
 #endif
 

@@ -3,11 +3,7 @@
 
 #include "Backends/Vulkan/GUI/NuklearVulkanImpl.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 #include "nuklear/nuklear.h"
 
@@ -53,8 +49,6 @@ namespace Frostium
 			case LayoutFlags::Static: nk_layout_row_static(pContext, Size.y, static_cast<int>(Size.x), Rows); break;
 			case LayoutFlags::Dynamic: nk_layout_row_dynamic(pContext, Size.y, Rows); break;
 			}
-
-			nk_layout_space_push(pContext, nk_rect(Offset.x, Offset.y, Size.x, Size.y));
 		}
 	}
 }

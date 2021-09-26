@@ -9,11 +9,7 @@
 #include "Tools/Utils.h"
 #include <shaderc/shaderc.hpp>
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
     bool VulkanShader::Init(std::unordered_map<ShaderType, std::vector<uint32_t>>& binary, ReflectionData* reflectData,  ShaderCreateInfo* createInfo)
     {

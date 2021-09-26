@@ -4,11 +4,7 @@
 #include <glm/glm.hpp>
 #include <functional>
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	struct nk_context;
 

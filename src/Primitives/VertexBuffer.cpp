@@ -1,11 +1,7 @@
 #include "stdafx.h"
 #include "Primitives/VertexBuffer.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	void VertexBuffer::Create(VertexBuffer* buffer, uint32_t size)
 	{

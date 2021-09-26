@@ -32,21 +32,12 @@ project "KTX-Tools"
 			"_CRT_SECURE_NO_WARNINGS"
 		}
 
-
 		filter "configurations:Debug_Vulkan"
 		buildoptions "/MDd"
 		symbols "on"
-	
-		filter "configurations:Debug_OpenGL"
-		buildoptions "/MDd"
-		symbols "on"
-	
-		filter "configurations:SmolEngine_R"
+		
+		filter "configurations:Release_Vulkan"
 		buildoptions "/MD"
 		optimize "full"
-	
-		filter "configurations:SmolEngine_D"
-		buildoptions "/MDd"
-		symbols "on"
 	
 

@@ -3,11 +3,7 @@
 #include "Backends/Vulkan/VulkanIndexBuffer.h"
 #include "Backends/Vulkan/VulkanDevice.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	void VulkanIndexBuffer::Init(const uint32_t* data, uint64_t count, bool is_static)
 	{

@@ -6,11 +6,7 @@
 
 #define VK_KHR_WIN32_SURFACE_EXTENSION_NAME "VK_KHR_win32_surface"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	VulkanInstance::VulkanInstance()
 	{
@@ -54,7 +50,7 @@ namespace Frostium
 	{
 		std::vector<const char*> instanceLayers = {};
 		std::vector<const char*> instanceExt = { VK_KHR_SURFACE_EXTENSION_NAME };
-#ifdef FROSTIUM_DEBUG
+#ifdef SMOLENGINE_DEBUG
 		instanceLayers.push_back("VK_LAYER_KHRONOS_validation");
 		instanceExt.push_back("VK_EXT_debug_utils");
 #endif

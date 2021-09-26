@@ -5,11 +5,7 @@
 #include <glad/glad.h>
 #include <stb_image.h>
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	OpenglTexture2D::OpenglTexture2D()
 	{

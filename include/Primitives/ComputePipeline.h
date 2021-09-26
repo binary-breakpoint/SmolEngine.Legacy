@@ -5,11 +5,7 @@
 #include "Backends/Vulkan/VulkanComputePipeline.h"
 #endif
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	struct ComputePipelineCreateInfo
 	{

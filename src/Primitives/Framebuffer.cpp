@@ -2,11 +2,7 @@
 #include "Common/DebugLog.h"
 #include "Primitives/Framebuffer.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	void Framebuffer::Create(const FramebufferSpecification& data, Framebuffer* out_fb)
 	{

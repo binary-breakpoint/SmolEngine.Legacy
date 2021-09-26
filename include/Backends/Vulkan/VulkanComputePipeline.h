@@ -3,11 +3,7 @@
 
 #include "Backends/Vulkan/VulkanDescriptor.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	struct ComputePipelineCreateInfo;
 	class  VulkanShader;
@@ -36,7 +32,6 @@ namespace Frostium
 		ComputePipelineCreateInfo*          m_Spec = nullptr;
 		CommandBufferStorage                m_CmdStorage{};
 		std::vector<VulkanDescriptor>       m_Descriptors;
-		std::vector<VkDescriptorSetLayout>  m_SetLayout;
 
 		friend class ComputePipeline;
 	};

@@ -4,11 +4,7 @@
 #include <glm/glm/glm.hpp>
 #include <memory>
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	extern "C++"
 	{

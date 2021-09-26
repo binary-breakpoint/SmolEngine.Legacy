@@ -2,11 +2,7 @@
 
 #include <glm/glm.hpp>
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	struct UIStyle
 	{
@@ -20,5 +16,6 @@ namespace Frostium
 		glm::vec4 Border_Normal = glm::vec4(230.0f, 230.0f, 230.0f, 255.0f);
 
 		float     Padding = 1.0f;
+		float     Rounding = 1.0f;
 	};
 }

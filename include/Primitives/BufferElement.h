@@ -3,11 +3,7 @@
 
 #include <string>
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	enum class DataTypes : uint16_t
 	{

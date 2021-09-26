@@ -1,11 +1,7 @@
 #include "stdafx.h"
 #include "Primitives/VertexArray.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	void VertexArray::Bind() const
 	{

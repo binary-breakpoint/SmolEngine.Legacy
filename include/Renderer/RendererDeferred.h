@@ -11,11 +11,7 @@
 #include "Camera/Frustum.h"
 #include "Tools/GLM.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	struct SceneData;
 	struct SceneViewProjection;
@@ -309,7 +305,7 @@ namespace Frostium
 			CommandBufferStorage* pCmdStorage = nullptr;
 		};
 	public:
-		static void DrawFrame(ClearInfo* clearInfo, RendererStorage* storage, RendererDrawList* drawList);
+		static void DrawFrame(ClearInfo* clearInfo, RendererStorage* storage, RendererDrawList* drawList, bool batch_cmd = true);
 
 	private:
 		static void GBufferPass(SubmitInfo* info);

@@ -1,11 +1,7 @@
 #include "stdafx.h"
 #include "Animation/AnimationController.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	bool AnimationController::AddClip(const AnimationClipCreateInfo& info, const std::string& name, bool set_as_active)
 	{

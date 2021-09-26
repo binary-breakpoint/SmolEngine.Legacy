@@ -1,11 +1,7 @@
 #include "stdafx.h"
 #include "Window/Events.h"
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 namespace SmolEngine
-#else
-namespace Frostium
-#endif
 {
 	void EventSender::SendEvent(Event& event, EventType eventType, EventCategory eventCategory, int action, int key)
 	{
