@@ -70,10 +70,10 @@ namespace SmolEngine
 		glfwInit();
 		glfwSetErrorCallback([](int error, const char* description) { DebugLog::LogError("GLFW Error ({0}): {1}", error, description); });
 
-#ifndef FROSTIUM_OPENGL_IMPL
+#ifndef OPENGL_IMPL
 		// No need to create OpenGL window automatically
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-#endif //!FROSTIUM_OPENGL_IMPL
+#endif //!OPENGL_IMPL
 
 		// Create Window
 		m_Window = glfwCreateWindow((int)info->Width, (int)info->Height, info->Title.c_str(), nullptr, nullptr);

@@ -164,7 +164,7 @@ namespace SmolEngine
 		BuildDrawList();
 	}
 
-	void RendererDrawList2D::SubmitSprite(const glm::vec3& worldPos, const glm::vec3& scale, const glm::vec3& rotation, uint32_t layerIndex, Texture* texture, bool frustumCulling, const glm::vec4& color)
+	void RendererDrawList2D::SubmitSprite(const glm::vec3& worldPos, const glm::vec3& scale, const glm::vec3& rotation, uint32_t layerIndex, Ref<Texture>& texture, bool frustumCulling, const glm::vec4& color)
 	{
 		if (!IsDrawable(worldPos, frustumCulling))
 			return;
@@ -201,12 +201,12 @@ namespace SmolEngine
 
 	}
 
-	uint32_t RendererDrawList2D::AddTexture(Texture* in_texture)
+	uint32_t RendererDrawList2D::AddTexture(Ref<Texture>& in_texture)
 	{
 		// temp
 		for (uint32_t i = 0; i < SampleIndex; ++i)
 		{
-			Texture* tex = Textures[i];
+			auto tex = Textures[i];
 			if (tex == in_texture)
 				return i;
 		}

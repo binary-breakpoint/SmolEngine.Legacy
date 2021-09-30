@@ -1,11 +1,6 @@
 #pragma once
 #include "Common/Common.h"
 
-#ifdef FROSTIUM_OPENGL_IMPL
-#include "Backends/OpenGL/OpenglTexture.h"
-#else
-#include "Backends/Vulkan/VulkanTexture.h"
-#endif
 
 #include <glm/glm.hpp>
 #include <string>
@@ -46,9 +41,12 @@ namespace SmolEngine
 		INT_OPAQUE_WHITE
 	};
 
-	enum class TextureUsage
+	struct TextureInfo
 	{
-
+		uint32_t ID = 0;
+		uint32_t Width = 0;
+		uint32_t Height = 0;
+		void*    ImHandle = nullptr; // imgui texture id
 	};
 
 	struct TextureCreateInfo
@@ -56,12 +54,15 @@ namespace SmolEngine
 		bool           bVerticalFlip = true;
 		bool           bAnisotropyEnable = true;
 		bool           bImGUIHandle = false;
-		bool           bIsStorage = false;
+		bool           bIsCube = false;
 		TextureFormat  eFormat = TextureFormat::R8G8B8A8_UNORM;
 		AddressMode    eAddressMode = AddressMode::REPEAT;
 		ImageFilter    eFilter = ImageFilter::LINEAR;
 		BorderColor    eBorderColor = BorderColor::FLOAT_OPAQUE_WHITE;
 		std::string    FilePath = "";
+		uint32_t       Width = 0;
+		uint32_t       Height = 0;
+		uint32_t       Mips = 0;
 
 	public:
 		bool           Save(const std::string& filePath);
@@ -73,43 +74,39 @@ namespace SmolEngine
 		template<typename Archive>
 		void serialize(Archive& archive)
 		{
-			archive(bVerticalFlip, bAnisotropyEnable, bImGUIHandle, eFormat, eAddressMode, eFilter, eBorderColor, FilePath);
+			archive(bVerticalFlip, bAnisotropyEnable, bImGUIHandle, bIsCube, eFormat, eAddressMode, eFilter, eBorderColor, Width, Height, Mips, FilePath);
 		}
 	};
 
-	struct TextureInfo
-	{
-		uint32_t ID = 0;
-		uint32_t Width = 0;
-		uint32_t Height = 0;
-		void*    ImHandle = nullptr; // imgui texture id
-	};
-
-#ifdef  FROSTIUM_OPENGL_IMPL
-	class Texture: OpenglTexture2D
-#else
-	class Texture: VulkanTexture
-#endif
+	class Texture
 	{
 	public:
 		Texture();
 		~Texture() = default;
 
-		void                Bind(uint32_t slot = 0) const;
-		void                UnBind() const;
-		bool                IsReady() const; 
-		const TextureInfo&  GetInfo() const;
-		void*               GetImGuiTexture() const;
-#ifndef  FROSTIUM_OPENGL_IMPL
-		VulkanTexture*      GetVulkanTexture();
-#endif
+	public:
+		virtual void                          LoadFromFile(TextureCreateInfo* info) = 0;
+		virtual void                          LoadFromMemory(const void* data, uint32_t size, TextureCreateInfo* info) = 0;
+		virtual void                          LoadAsCubeFromKtx(TextureCreateInfo* info) = 0;
+		virtual void                          LoadAsWhiteCube(TextureCreateInfo* info) = 0;
+		virtual void                          LoadAsStorage(TextureCreateInfo* info) = 0;
+		virtual void                          LoadAsWhite() = 0;
+		virtual void                          Free() = 0;
+
+		virtual uint32_t                      GetMips() const {};
+		virtual std::pair<uint32_t, uint32_t> GetMipSize(uint32_t mip) const {};
+		const TextureInfo&                    GetInfo() const { return m_Info; }
+		void*                                 GetImGuiTexture() const { return m_Info.ImHandle; }
+		bool                                  IsGood() const { return m_Info.Width > 0; }
 		// Factory
-		static void         CreateWhiteTexture(Texture* out_texture);
-		static void         Create(const TextureCreateInfo* ifno, Texture* out_texture);
-		static void         Create(const void* data, uint32_t size, uint32_t width, uint32_t height, 
-			                Texture* out_texture, TextureFormat format = TextureFormat::R8G8B8A8_UNORM);
+		static Ref<Texture>                   Create();
+
+		template<typename T>
+		T* Cast() { return dynamic_cast<T*>(this); }
 
 	private:
-		TextureInfo         m_Info = {};
+		TextureInfo                           m_Info{};
+
+		friend class VulkanTexture;
 	};
 }

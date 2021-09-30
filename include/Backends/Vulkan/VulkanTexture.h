@@ -1,58 +1,50 @@
 #pragma once
-#ifndef FROSTIUM_OPENGL_IMPL
+#ifndef OPENGL_IMPL
 #include "Backends/Vulkan/Vulkan.h"
 
+#include "Primitives/Texture.h"
 #include "Common/Common.h"
 
 namespace SmolEngine
 {
-	enum class TextureFormat : int;
-	enum class AddressMode : int;
-	enum class BorderColor : int;
-	struct TextureCreateInfo;
-	struct TextureInfo;
-
-	class VulkanTexture
+	class VulkanTexture: public Texture
 	{
 	public:
-		VulkanTexture(TextureInfo* info);
-		VulkanTexture();
+		VulkanTexture() = default;
 		~VulkanTexture();
 
-		void                            LoadTexture(const TextureCreateInfo* info);
-		void                            LoadCubeMap(const TextureCreateInfo* info);
-			                            
-		void                            GenCubeMap(uint32_t width, uint32_t height, TextureFormat format);
-		void                            GenTexture(uint32_t height, uint32_t width, const  TextureCreateInfo* info);
-		void                            GenTexture(const void* data, uint32_t size, uint32_t width, uint32_t height, TextureFormat format);
-		void                            GenWhiteTetxure(uint32_t width, uint32_t height);
+		void                                       LoadFromFile(TextureCreateInfo* info) override;
+		void                                       LoadFromMemory(const void* data, uint32_t size, TextureCreateInfo* info) override;
+		void                                       LoadAsCubeFromKtx(TextureCreateInfo* info) override;
+		void                                       LoadAsWhiteCube(TextureCreateInfo* info) override;
+		void                                       LoadAsStorage(TextureCreateInfo* info) override;
+		void                                       LoadAsWhite() override;
+		void                                       Free() override;
+		void                                       SetFormat(VkFormat format);
 
-		void                            Free();
-		VkDescriptorImageInfo           GetMipImageView(uint32_t mip);
-		void                            Resize(uint32_t width, uint32_t height);
-		void                            SetFormat(VkFormat format);
-		const VkDescriptorImageInfo&    GetVkDescriptorImageInfo() const;
-		VkImage                         GetVkImage() const;
-		uint32_t                        GetMips() const;
-		std::pair<uint32_t, uint32_t>   GetMipSize(uint32_t mip) const;
-
-		static void                     SetImageLayout(VkCommandBuffer cmdbuffer, VkImage image, VkImageLayout oldImageLayout, VkImageLayout newImageLayout,
-			                            VkImageSubresourceRange subresourceRange, VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
-		static void                     SetImageLayout(VkCommandBuffer cmdbuffer, VkImage image, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout,
-			                            VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
-		void                            CreateTexture(uint32_t width, uint32_t height, uint32_t mipMaps, const void* data, const TextureCreateInfo* info);
-		static VkImage                  CreateVkImage(uint32_t width, uint32_t height, int32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage,
-			                            VkDeviceMemory& imageMemory, uint32_t arrayLayers = 1);
-		static void                     InsertImageMemoryBarrier(VkCommandBuffer cmdbuffer, VkImage image, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout,
-			                            VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask,VkImageSubresourceRange subresourceRange);
-	private:
-		void                            GenerateMipMaps(VkImage image, VkCommandBuffer cmd, int32_t width, int32_t height, int32_t mipMaps, VkImageSubresourceRange& range);
-		void                            CreateFromBuffer(const void* data, VkDeviceSize size, uint32_t width, uint32_t height);
-		void                            CreateSamplerAndImageView(uint32_t mipMaps, VkFormat format, bool anisotropy = true);
-
-		VkFormat                        GetImageFormat(TextureFormat format);
-		VkSamplerAddressMode            GetVkSamplerAddressMode(AddressMode mode);
-		VkBorderColor                   GetVkBorderColor(BorderColor color);
+		uint32_t                                   GetMips() const override;
+		std::pair<uint32_t, uint32_t>              GetMipSize(uint32_t mip) const override;
+		VkDescriptorImageInfo                      GetMipImageView(uint32_t mip);
+		const VkDescriptorImageInfo&               GetVkDescriptorImageInfo() const;
+		VkImage                                    GetVkImage() const;
+									               
+		VkFormat                                   GetImageFormat(TextureFormat format);
+		VkSamplerAddressMode                       GetVkSamplerAddressMode(AddressMode mode);
+		VkBorderColor                              GetVkBorderColor(BorderColor color);
+									               
+		static void                                SetImageLayout(VkCommandBuffer cmdbuffer, VkImage image, VkImageLayout oldImageLayout, VkImageLayout newImageLayout,
+			                                       VkImageSubresourceRange subresourceRange, VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
+		static void                                SetImageLayout(VkCommandBuffer cmdbuffer, VkImage image, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout,
+			                                       VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
+		static VkImage                             CreateVkImage(uint32_t width, uint32_t height, int32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage,
+			                                       VkDeviceMemory& imageMemory, uint32_t arrayLayers = 1);
+		static void                                InsertImageMemoryBarrier(VkCommandBuffer cmdbuffer, VkImage image, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout,
+			                                       VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask, VkImageSubresourceRange subresourceRange);
+	private:						               
+		void                                       LoadEX(TextureCreateInfo* info, void* data, bool is_storage = false);
+		void                                       GenerateMipMaps(VkImage image, VkCommandBuffer cmd, int32_t width, int32_t height, int32_t mipMaps, VkImageSubresourceRange& range);
+		void                                       CreateSamplerAndImageView(uint32_t mipMaps, VkFormat format, bool anisotropy = true);
+		void                                       FindTextureParams(TextureCreateInfo* info);
 
 	private:
 
@@ -66,7 +58,6 @@ namespace SmolEngine
 		VkSampler                                  m_Samper = nullptr;
 		VkImage                                    m_Image = nullptr;
 		VkDeviceMemory                             m_DeviceMemory = nullptr;
-		TextureInfo*                               m_Info = nullptr;
 		uint32_t                                   m_Mips = 0;
 		VkImageView                                m_ImageView =  nullptr;
 		std::unordered_map<uint32_t,VkImageView>   m_ImageViewMap;

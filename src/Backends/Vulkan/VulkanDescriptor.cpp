@@ -1,12 +1,10 @@
 #include "stdafx.h"
-#ifndef FROSTIUM_OPENGL_IMPL
+#ifndef OPENGL_IMPL
 #include "Backends/Vulkan/VulkanDescriptor.h"
 
 #include "GraphicsContext.h"
 #include "Primitives/Shader.h"
 #include "Primitives/Texture.h"
-
-#include "Environment/CubeMap.h"
 
 #include "Backends/Vulkan/VulkanShader.h"
 #include "Backends/Vulkan/VulkanContext.h"
@@ -211,8 +209,8 @@ namespace SmolEngine
 	void VulkanDescriptor::GenSamplersDescriptors(VulkanShader* shader)
 	{
 		ReflectionData* refData = shader->m_ReflectionData;
-#ifndef FROSTIUM_OPENGL_IMPL
-		m_ImageInfo = GraphicsContext::s_Instance->m_DummyTexure->GetVulkanTexture()->m_DescriptorImageInfo;
+#ifndef OPENGL_IMPL
+		m_ImageInfo = GraphicsContext::s_Instance->m_DummyTexure->Cast<VulkanTexture>()->m_DescriptorImageInfo;
 #endif
 		for (auto& [bindingPoint, res] : refData->ImageSamplers)
 		{
@@ -227,7 +225,7 @@ namespace SmolEngine
 					writeSet.dstBinding = res.BindingPoint;
 					writeSet.dstArrayElement = 0;
 					writeSet.descriptorCount = 1;
-					writeSet.pImageInfo = &cube->GetTexture()->GetVulkanTexture()->m_DescriptorImageInfo;
+					writeSet.pImageInfo = &cube->Cast<VulkanTexture>()->m_DescriptorImageInfo;
 				}
 
 				m_WriteSets.push_back(writeSet);
@@ -256,7 +254,7 @@ namespace SmolEngine
 			}
 		}
 
-		auto storageInfo = GraphicsContext::s_Instance->m_StorageTexure->GetVulkanTexture()->m_DescriptorImageInfo;
+		auto storageInfo = GraphicsContext::s_Instance->m_StorageTexure->Cast<VulkanTexture>()->m_DescriptorImageInfo;
 		for (auto& [bindingPoint, res] : refData->StorageImages)
 		{
 			std::vector<VkDescriptorImageInfo> infos;
@@ -276,7 +274,7 @@ namespace SmolEngine
 		}
 	}
 
-	bool VulkanDescriptor::Update2DSamplers(const std::vector<Texture*>& textures, uint32_t bindingPoint, bool storage)
+	bool VulkanDescriptor::Update2DSamplers(const std::vector<Ref<Texture>>& textures, uint32_t bindingPoint, bool storage)
 	{
 		VkWriteDescriptorSet* writeSet = nullptr;
 		for (auto& set: m_WriteSets)
@@ -298,7 +296,7 @@ namespace SmolEngine
 			{
 				if (textures[i])
 				{
-					infos[i] = textures[i]->GetVulkanTexture()->m_DescriptorImageInfo;
+					infos[i] = textures[i]->Cast<VulkanTexture>()->m_DescriptorImageInfo;
 					continue;
 				}
 			}
@@ -340,7 +338,7 @@ namespace SmolEngine
 		return true;
 	}
 
-	bool VulkanDescriptor::UpdateCubeMap(Texture* cubeMap, uint32_t bindingPoint)
+	bool VulkanDescriptor::UpdateCubeMap(Ref<Texture>& cubeMap, uint32_t bindingPoint)
 	{
 		if (!cubeMap)
 			return false;
@@ -359,7 +357,7 @@ namespace SmolEngine
 			return false;
 
 		*writeSet = CreateWriteSet(m_DescriptorSet,
-			bindingPoint, { cubeMap->GetVulkanTexture()->m_DescriptorImageInfo }, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+			bindingPoint, { cubeMap->Cast<VulkanTexture>()->m_DescriptorImageInfo }, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
 
 		vkUpdateDescriptorSets(m_Device, 1, writeSet, 0, nullptr);
 		return true;

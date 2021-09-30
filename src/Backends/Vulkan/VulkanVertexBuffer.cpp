@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#ifndef FROSTIUM_OPENGL_IMPL
+#ifndef OPENGL_IMPL
 #include "Backends/Vulkan/VulkanVertexBuffer.h"
 
 namespace SmolEngine

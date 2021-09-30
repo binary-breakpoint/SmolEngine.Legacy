@@ -9,7 +9,7 @@
 #include <string>
 #include <memory>
 
-#ifdef FROSTIUM_OPENGL_IMPL
+#ifdef OPENGL_IMPL
 #include "OpenGL/OpenglBuffer.h"
 #include "OpenGL/OpenglVertexArray.h"
 #endif
@@ -39,7 +39,7 @@ namespace SmolEngine
 
 	private:
 
-#ifdef  FROSTIUM_OPENGL_IMPL
+#ifdef  OPENGL_IMPL
 		OpenglVertexArray m_OpenglVertexArray = {};
 #endif
 

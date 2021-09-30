@@ -1,5 +1,5 @@
 #pragma once
-#ifndef FROSTIUM_OPENGL_IMPL
+#ifndef OPENGL_IMPL
 
 #include "Backends/Vulkan/Vulkan.h"
 #include "Backends/Vulkan/VulkanFramebuffer.h"

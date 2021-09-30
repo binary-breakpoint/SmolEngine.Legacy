@@ -12,7 +12,7 @@ namespace SmolEngine
 	{
 		if (out_vb)
 		{
-#ifdef FROSTIUM_OPENGL_IMPL
+#ifdef OPENGL_IMPL
 			out_vb->Init(vertices, size);
 #else
 			out_vb->Init(vertices, size, is_static);
@@ -33,7 +33,7 @@ namespace SmolEngine
 	{
 		if (IsReady())
 		{
-#ifdef FROSTIUM_OPENGL_IMPL
+#ifdef OPENGL_IMPL
 #else
 			Destroy();
 #endif
@@ -47,7 +47,7 @@ namespace SmolEngine
 
 	void VertexBuffer::UploadData(const void* data, const uint32_t size, const uint32_t offset)
 	{
-#ifdef FROSTIUM_OPENGL_IMPL
+#ifdef OPENGL_IMPL
 #else
 		SetData(data, size, offset);
 #endif

@@ -15,7 +15,7 @@ namespace SmolEngine
 		m_Shader = {};
 		Shader::Create(&shaderCI, &m_Shader);
 
-#ifndef FROSTIUM_OPENGL_IMPL
+#ifndef OPENGL_IMPL
 		return Invalidate(info, m_Shader.GetVulkanShader());
 #endif
 	}

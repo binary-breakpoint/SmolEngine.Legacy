@@ -1,7 +1,7 @@
 #pragma once
 #include "Primitives/Shader.h"
 
-#ifndef FROSTIUM_OPENGL_IMPL
+#ifndef OPENGL_IMPL
 #include "Backends/Vulkan/VulkanComputePipeline.h"
 #endif
 
@@ -14,7 +14,7 @@ namespace SmolEngine
 		std::unordered_map<uint32_t, ShaderBufferInfo>   ShaderBufferInfos;
 	};
 
-#ifdef FROSTIUM_OPENGL_IMPL
+#ifdef OPENGL_IMPL
 	class ComputePipeline
 #else
 	class ComputePipeline: public VulkanComputePipeline

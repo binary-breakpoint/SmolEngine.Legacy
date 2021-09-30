@@ -1,53 +1,19 @@
 #include "stdafx.h"
-#ifndef FROSTIUM_OPENGL_IMPL
+#ifndef OPENGL_IMPL
 #include "Backends/Vulkan/VulkanPipeline.h"
 #include "Backends/Vulkan/VulkanRenderPass.h"
 #include "Backends/Vulkan/VulkanShader.h"
 #include "Backends/Vulkan/VulkanContext.h"
+#include "Backends/Vulkan/VulkanTexture.h"
 
 #include "Primitives/GraphicsPipeline.h"
 #include "Primitives/Framebuffer.h"
 
 namespace SmolEngine
 {
-	bool VulkanPipeline::Invalidate(GraphicsPipelineCreateInfo* pipelineSpec, VulkanShader* shader)
-	{
-		m_Device = VulkanContext::GetDevice().GetLogicalDevice();
-		m_PipelineSpecification = pipelineSpec;
-		m_Shader = shader;
-
-		BuildDescriptors(shader, pipelineSpec->DescriptorSets, m_Descriptors, m_DescriptorPool);
-
-#ifndef FROSTIUM_OPENGL_IMPL
-		Framebuffer* fb = pipelineSpec->TargetFramebuffers[0];
-		m_TargetRenderPass = fb->GetVulkanFramebuffer().GetRenderPass();
-#endif
-		m_SetLayout.clear();
-		m_SetLayout.reserve(m_Descriptors.size());
-		for (auto& descriptor : m_Descriptors)
-		{
-			m_SetLayout.push_back(descriptor.m_DescriptorSetLayout);
-		}
-
-		VkPipelineLayoutCreateInfo pipelineLayoutCI = {};
-		{
-			pipelineLayoutCI.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-			pipelineLayoutCI.pNext = nullptr;
-			pipelineLayoutCI.setLayoutCount = static_cast<uint32_t>(m_SetLayout.size());
-			pipelineLayoutCI.pSetLayouts = m_SetLayout.data();
-			pipelineLayoutCI.pushConstantRangeCount = static_cast<uint32_t>(shader->m_VkPushConstantRanges.size());
-			pipelineLayoutCI.pPushConstantRanges = shader->m_VkPushConstantRanges.data();
-
-			VK_CHECK_RESULT(vkCreatePipelineLayout(m_Device, &pipelineLayoutCI, nullptr, &m_PipelineLayout));
-		}
-
-		m_FilePath = "../resources/PipelineCache/" + pipelineSpec->PipelineName;
-		return true;
-	}
-
 	bool VulkanPipeline::CreatePipeline(DrawMode mode)
 	{
-		Framebuffer* fb = m_PipelineSpecification->TargetFramebuffers[0];
+		Framebuffer* fb = m_PiplineCreateInfo.TargetFramebuffers[0];
 		// Create the graphics pipeline
 		// Vulkan uses the concept of rendering pipelines to encapsulate fixed states, replacing OpenGL's complex state machine
 		// A pipeline is then stored and hashed on the GPU making pipeline changes very fast
@@ -70,19 +36,19 @@ namespace SmolEngine
 		{
 			inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 			inputAssemblyState.topology = GetVkTopology(mode);
-			inputAssemblyState.primitiveRestartEnable = m_PipelineSpecification->bPrimitiveRestartEnable;
+			inputAssemblyState.primitiveRestartEnable = m_PiplineCreateInfo.bPrimitiveRestartEnable;
 		}
 
 		// Rasterization state
 		VkPipelineRasterizationStateCreateInfo rasterizationState = {};
 		{
 			rasterizationState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-			rasterizationState.polygonMode = GetVkPolygonMode(m_PipelineSpecification->ePolygonMode);
-			rasterizationState.cullMode = GetVkCullMode(m_PipelineSpecification->eCullMode);
+			rasterizationState.polygonMode = GetVkPolygonMode(m_PiplineCreateInfo.ePolygonMode);
+			rasterizationState.cullMode = GetVkCullMode(m_PiplineCreateInfo.eCullMode);
 			rasterizationState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 			rasterizationState.depthClampEnable = VulkanContext::GetDevice().GetDeviceFeatures()->depthClamp;
 			rasterizationState.rasterizerDiscardEnable = VK_FALSE;
-			rasterizationState.depthBiasEnable = m_PipelineSpecification->bDepthBiasEnabled;
+			rasterizationState.depthBiasEnable = m_PiplineCreateInfo.bDepthBiasEnabled;
 			rasterizationState.lineWidth = 1.0f;
 		}
 
@@ -97,12 +63,12 @@ namespace SmolEngine
 			{
 				blendAttachmentState[i].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 				blendAttachmentState[i].blendEnable = IsBlendEnableEnabled() ? VK_TRUE: VK_FALSE;
-				blendAttachmentState[i].srcColorBlendFactor = GetVkBlendFactor(m_PipelineSpecification->eSrcColorBlendFactor);
-				blendAttachmentState[i].dstColorBlendFactor = GetVkBlendFactor(m_PipelineSpecification->eDstColorBlendFactor);;
-				blendAttachmentState[i].colorBlendOp = GetVkBlendOp(m_PipelineSpecification->eColorBlendOp);
-				blendAttachmentState[i].srcAlphaBlendFactor = GetVkBlendFactor(m_PipelineSpecification->eSrcAlphaBlendFactor);
-				blendAttachmentState[i].dstAlphaBlendFactor = GetVkBlendFactor(m_PipelineSpecification->eDstAlphaBlendFactor);
-				blendAttachmentState[i].alphaBlendOp = GetVkBlendOp(m_PipelineSpecification->eAlphaBlendOp);
+				blendAttachmentState[i].srcColorBlendFactor = GetVkBlendFactor(m_PiplineCreateInfo.eSrcColorBlendFactor);
+				blendAttachmentState[i].dstColorBlendFactor = GetVkBlendFactor(m_PiplineCreateInfo.eDstColorBlendFactor);;
+				blendAttachmentState[i].colorBlendOp = GetVkBlendOp(m_PiplineCreateInfo.eColorBlendOp);
+				blendAttachmentState[i].srcAlphaBlendFactor = GetVkBlendFactor(m_PiplineCreateInfo.eSrcAlphaBlendFactor);
+				blendAttachmentState[i].dstAlphaBlendFactor = GetVkBlendFactor(m_PiplineCreateInfo.eDstAlphaBlendFactor);
+				blendAttachmentState[i].alphaBlendOp = GetVkBlendOp(m_PiplineCreateInfo.eAlphaBlendOp);
 			}
 		}
 
@@ -132,7 +98,7 @@ namespace SmolEngine
 			dynamicStateEnables.push_back(VK_DYNAMIC_STATE_VIEWPORT);
 			dynamicStateEnables.push_back(VK_DYNAMIC_STATE_SCISSOR);
 
-			if(m_PipelineSpecification->bDepthBiasEnabled)
+			if(m_PiplineCreateInfo.bDepthBiasEnabled)
 				dynamicStateEnables.push_back(VK_DYNAMIC_STATE_DEPTH_BIAS);
 
 
@@ -146,14 +112,14 @@ namespace SmolEngine
 		VkPipelineDepthStencilStateCreateInfo depthStencilState = {};
 		{
 			depthStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-			depthStencilState.depthTestEnable = m_PipelineSpecification->bDepthTestEnabled;
-			depthStencilState.depthWriteEnable = m_PipelineSpecification->bDepthWriteEnabled;
+			depthStencilState.depthTestEnable = m_PiplineCreateInfo.bDepthTestEnabled;
+			depthStencilState.depthWriteEnable = m_PiplineCreateInfo.bDepthWriteEnabled;
 			depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 			depthStencilState.depthBoundsTestEnable = VK_FALSE;
 			depthStencilState.back.compareOp = VK_COMPARE_OP_ALWAYS;
 			depthStencilState.stencilTestEnable = VK_FALSE;
-			depthStencilState.minDepthBounds = m_PipelineSpecification->MinDepth;
-			depthStencilState.maxDepthBounds = m_PipelineSpecification->MaxDepth;
+			depthStencilState.minDepthBounds = m_PiplineCreateInfo.MinDepth;
+			depthStencilState.maxDepthBounds = m_PiplineCreateInfo.MaxDepth;
 		}
 
 		// Multi sampling state
@@ -173,12 +139,12 @@ namespace SmolEngine
 			}
 		}
 
-		std::vector<VkVertexInputBindingDescription> vertexInputBindings(m_PipelineSpecification->VertexInputInfos.size());
+		std::vector<VkVertexInputBindingDescription> vertexInputBindings(m_PiplineCreateInfo.VertexInputInfos.size());
 		std::vector<VkVertexInputAttributeDescription> vertexInputAttributs;
 		{
 			uint32_t index = 0;
 			uint32_t location = 0;
-			for (const auto& inputInfo : m_PipelineSpecification->VertexInputInfos)
+			for (const auto& inputInfo : m_PiplineCreateInfo.VertexInputInfos)
 			{
 				// Vertex input binding
 				// This example uses a single vertex input binding at binding point 0 (see vkCmdBindVertexBuffers)
@@ -239,7 +205,7 @@ namespace SmolEngine
 		VkPipelineVertexInputStateCreateInfo vertexInputState = {};
 		{
 			vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-			if (m_PipelineSpecification->VertexInputInfos.size() > 0)
+			if (m_PiplineCreateInfo.VertexInputInfos.size() > 0)
 			{
 				vertexInputState.vertexBindingDescriptionCount = static_cast<uint32_t>(vertexInputBindings.size());
 				vertexInputState.pVertexBindingDescriptions = vertexInputBindings.data();
@@ -249,7 +215,7 @@ namespace SmolEngine
 		}
 
 		// Set pipeline shader stage info
-		pipelineCreateInfo.stageCount = m_PipelineSpecification->StageCount == -1? static_cast<uint32_t>(m_Shader->GetVkPipelineShaderStages().size()): m_PipelineSpecification->StageCount;
+		pipelineCreateInfo.stageCount = m_PiplineCreateInfo.StageCount == -1? static_cast<uint32_t>(m_Shader->GetVkPipelineShaderStages().size()): m_PiplineCreateInfo.StageCount;
 		pipelineCreateInfo.pStages = m_Shader->GetVkPipelineShaderStages().data();
 
 		// Assign the pipeline states to the pipeline creation info structure
@@ -275,19 +241,137 @@ namespace SmolEngine
 		return true;
 	}
 
-	bool VulkanPipeline::ReCreate()
+	bool VulkanPipeline::Invalidate(GraphicsPipelineCreateInfo* pipelineInfo)
 	{
-		Destroy();
-		if (Invalidate(m_PipelineSpecification, m_Shader))
+		if (InvalidateBase(pipelineInfo))
 		{
-			for (auto mode : m_PipelineSpecification->PipelineDrawModes)
+			m_Device = VulkanContext::GetDevice().GetLogicalDevice();
+			auto vkShader = m_Shader->Cast<VulkanShader>();
+			BuildDescriptors(vkShader, pipelineInfo->DescriptorSets, m_Descriptors, m_DescriptorPool);
+
+#ifndef OPENGL_IMPL
+			Framebuffer* fb = pipelineInfo->TargetFramebuffers[0];
+			m_TargetRenderPass = fb->GetVulkanFramebuffer().GetRenderPass();
+#endif
+			m_SetLayout.clear();
+			m_SetLayout.reserve(m_Descriptors.size());
+			for (auto& descriptor : m_Descriptors)
 			{
-				CreatePipeline(mode);
+				m_SetLayout.push_back(descriptor.m_DescriptorSetLayout);
 			}
+
+			VkPipelineLayoutCreateInfo pipelineLayoutCI = {};
+			{
+				pipelineLayoutCI.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+				pipelineLayoutCI.pNext = nullptr;
+				pipelineLayoutCI.setLayoutCount = static_cast<uint32_t>(m_SetLayout.size());
+				pipelineLayoutCI.pSetLayouts = m_SetLayout.data();
+				pipelineLayoutCI.pushConstantRangeCount = static_cast<uint32_t>(vkShader->m_VkPushConstantRanges.size());
+				pipelineLayoutCI.pPushConstantRanges = vkShader->m_VkPushConstantRanges.data();
+
+				VK_CHECK_RESULT(vkCreatePipelineLayout(m_Device, &pipelineLayoutCI, nullptr, &m_PipelineLayout));
+			}
+
+			m_FilePath = "../resources/PipelineCache/" + pipelineInfo->PipelineName;
 			return true;
 		}
 
 		return false;
+	}
+
+	void VulkanPipeline::ClearColors(const glm::vec4& clearColors)
+	{
+		Framebuffer* target_fb = m_PiplineCreateInfo.TargetFramebuffers[m_FBIndex];
+		VkClearRect clearRect = {};
+
+		clearRect.layerCount = 1;
+		clearRect.baseArrayLayer = 0;
+		clearRect.rect.offset = { 0, 0 };
+		clearRect.rect.extent = { (uint32_t)target_fb->GetSpecification().Width, (uint32_t)target_fb->GetSpecification().Height };
+
+		auto& framebuffer = target_fb->GetVulkanFramebuffer();
+		framebuffer.SetClearColors(clearColors);
+
+		vkCmdClearAttachments(m_CommandBuffer, static_cast<uint32_t>(framebuffer.GetClearAttachments().size()),
+			framebuffer.GetClearAttachments().data(), 1, &clearRect);
+	}
+
+	void VulkanPipeline::BeginRenderPass(bool flip)
+	{
+		Framebuffer* target_fb = m_PiplineCreateInfo.TargetFramebuffers[m_FBIndex];
+		auto& vulkanFB = target_fb->GetVulkanFramebuffer();
+		const VkFramebuffer vkFramebuffer = m_FBattachmentIndex == 0 ? vulkanFB.GetCurrentVkFramebuffer() : vulkanFB.GetVkFramebuffer(m_FBattachmentIndex);
+		const FramebufferSpecification& fb_specs = target_fb->GetSpecification();
+		uint32_t width = fb_specs.Width;
+		uint32_t height = fb_specs.Height;
+
+		VkRenderPassBeginInfo renderPassBeginInfo = {};
+		{
+			renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+			renderPassBeginInfo.renderPass = vulkanFB.GetRenderPass();
+			renderPassBeginInfo.framebuffer = vkFramebuffer;
+			renderPassBeginInfo.renderArea.offset.x = 0;
+			renderPassBeginInfo.renderArea.offset.y = 0;
+			renderPassBeginInfo.renderArea.extent.width = width;
+			renderPassBeginInfo.renderArea.extent.height = height;
+			renderPassBeginInfo.clearValueCount = static_cast<uint32_t>(vulkanFB.GetClearValues().size());
+			renderPassBeginInfo.pClearValues = vulkanFB.GetClearValues().data();
+		}
+
+		vkCmdBeginRenderPass(m_CommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+		// Update dynamic viewport state
+		VkViewport viewport = {};
+		if (flip)
+		{
+			viewport.height = (float)height;
+			viewport.width = (float)width;
+			viewport.minDepth = (float)0.0f;
+			viewport.maxDepth = (float)1.0f;
+		}
+		else
+		{
+			viewport.x = 0;
+			viewport.y = (float)height;
+			viewport.height = -(float)height;
+			viewport.width = (float)width;
+			viewport.minDepth = (float)0.0f;
+			viewport.maxDepth = (float)1.0f;
+		}
+
+		vkCmdSetViewport(m_CommandBuffer, 0, 1, &viewport);
+
+		// Update dynamic scissor state
+		VkRect2D scissor = {};
+		scissor.extent.width = width;
+		scissor.extent.height = height;
+		scissor.offset.x = 0;
+		scissor.offset.y = 0;
+		vkCmdSetScissor(m_CommandBuffer, 0, 1, &scissor);
+	}
+
+	void VulkanPipeline::EndRenderPass()
+	{
+		vkCmdEndRenderPass(m_CommandBuffer);
+	}
+
+	void VulkanPipeline::BeginCommandBuffer(bool isMainCmdBufferInUse)
+	{
+		if (isMainCmdBufferInUse)
+		{
+			m_CommandBuffer = VulkanContext::GetCurrentVkCmdBuffer();
+			m_IsMainCmdBufferInUse = true;
+			return;
+		}
+
+		VulkanCommandBuffer::CreateCommandBuffer(&m_CmdStorage);
+		m_CommandBuffer = m_CmdStorage.Buffer;
+	}
+
+	void VulkanPipeline::EndCommandBuffer()
+	{
+		if (!m_IsMainCmdBufferInUse)
+			VulkanCommandBuffer::ExecuteCommandBuffer(&m_CmdStorage);
 	}
 
 	void VulkanPipeline::Destroy()
@@ -305,6 +389,157 @@ namespace SmolEngine
 		vkDestroyPipelineLayout(m_Device, m_PipelineLayout, nullptr);
 		m_Pipelines.clear();
 		m_PipelineCaches.clear();
+	}
+
+	void VulkanPipeline::Reload()
+	{
+
+	}
+
+	void VulkanPipeline::DrawIndexed(uint32_t vbIndex, uint32_t ibIndex)
+	{
+		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GetVkPipeline(m_DrawMode));
+
+		VkDeviceSize offsets[1] = { 0 };
+		vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &m_VertexBuffers[vbIndex]->GetVulkanVertexBuffer().GetBuffer(), offsets);
+
+		vkCmdBindIndexBuffer(m_CommandBuffer, m_IndexBuffers[ibIndex]->GetVulkanIndexBuffer().GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+
+		const auto& descriptorSets = GetVkDescriptorSets(m_DescriptorIndex);
+		vkCmdBindDescriptorSets(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, &descriptorSets, 0, nullptr);
+		vkCmdDrawIndexed(m_CommandBuffer, m_IndexBuffers[ibIndex]->GetVulkanIndexBuffer().GetElementsCount(), 1, 0, 0, 1);
+	}
+
+	void VulkanPipeline::DrawIndexed(VertexBuffer* vb, IndexBuffer* ib)
+	{
+		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GetVkPipeline(m_DrawMode));
+
+		VkDeviceSize offsets[1] = { 0 };
+		vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &vb->GetVulkanVertexBuffer().GetBuffer(), offsets);
+
+		vkCmdBindIndexBuffer(m_CommandBuffer, ib->GetVulkanIndexBuffer().GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+
+		const auto& descriptorSets = GetVkDescriptorSets(m_DescriptorIndex);
+		vkCmdBindDescriptorSets(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, &descriptorSets, 0, nullptr);
+		vkCmdDrawIndexed(m_CommandBuffer, ib->GetVulkanIndexBuffer().GetElementsCount(), 1, 0, 0, 1);
+	}
+
+	void VulkanPipeline::Draw(VertexBuffer* vb, uint32_t vertextCount)
+	{
+		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GetVkPipeline(m_DrawMode));
+
+		VkDeviceSize offsets[1] = { 0 };
+		vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &vb->GetVulkanVertexBuffer().GetBuffer(), offsets);
+
+		const auto& descriptorSets = GetVkDescriptorSets(m_DescriptorIndex);
+		vkCmdBindDescriptorSets(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, &descriptorSets, 0, nullptr);
+
+		vkCmdDraw(m_CommandBuffer, vertextCount, 1, 0, 0);
+	}
+
+	void VulkanPipeline::Draw(uint32_t vertextCount, uint32_t vertexBufferIndex)
+	{
+		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GetVkPipeline(m_DrawMode));
+
+		VkDeviceSize offsets[1] = { 0 };
+		if (m_VertexBuffers.size() > 0)
+		{
+			vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &m_VertexBuffers[vertexBufferIndex]->GetVulkanVertexBuffer().GetBuffer(), offsets);
+		}
+
+		const auto& descriptorSets = GetVkDescriptorSets(m_DescriptorIndex);
+		vkCmdBindDescriptorSets(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, &descriptorSets, 0, nullptr);
+		vkCmdDraw(m_CommandBuffer, vertextCount, 1, 0, 0);
+	}
+
+	void VulkanPipeline::DrawMeshIndexed(Mesh* mesh, uint32_t instances)
+	{
+		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,GetVkPipeline(m_DrawMode));
+
+		VkDeviceSize offsets[1] = { 0 };
+		vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &mesh->GetVertexBuffer()->GetVulkanVertexBuffer().GetBuffer(), offsets);
+		vkCmdBindIndexBuffer(m_CommandBuffer, mesh->GetIndexBuffer()->GetVulkanIndexBuffer().GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+
+		const auto& descriptorSets = GetVkDescriptorSets(m_DescriptorIndex);
+		vkCmdBindDescriptorSets(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, &descriptorSets, 0, nullptr);
+		vkCmdDrawIndexed(m_CommandBuffer, mesh->GetIndexBuffer()->GetCount(), instances, 0, 0, 0);
+	}
+
+	void VulkanPipeline::DrawMesh(Mesh* mesh, uint32_t instances)
+	{
+		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GetVkPipeline(m_DrawMode));
+
+		VkDeviceSize offsets[1] = { 0 };
+		vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &mesh->GetVertexBuffer()->GetVulkanVertexBuffer().GetBuffer(), offsets);
+		vkCmdBindIndexBuffer(m_CommandBuffer, mesh->GetIndexBuffer()->GetVulkanIndexBuffer().GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+
+		const auto& descriptorSets =GetVkDescriptorSets(m_DescriptorIndex);
+		vkCmdBindDescriptorSets(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, &descriptorSets, 0, nullptr);
+		vkCmdDraw(m_CommandBuffer, mesh->GetVertexCount(), instances, 0, 0);
+	}
+
+	bool VulkanPipeline::SubmitBuffer(uint32_t bindingPoint, size_t size, const void* data, uint32_t offset)
+	{
+		return m_Descriptors[m_DescriptorIndex].UpdateBuffer(bindingPoint, size, data, offset);
+	}
+
+	void VulkanPipeline::SubmitPushConstant(ShaderType shaderStage, size_t size, const void* data)
+	{
+		vkCmdPushConstants(m_CommandBuffer, m_PipelineLayout, VulkanShader::GetVkShaderStage(shaderStage), 0, static_cast<uint32_t>(size), data);
+	}
+
+	bool VulkanPipeline::UpdateSamplers(const std::vector<Ref<Texture>>& textures, uint32_t bindingPoint, bool storageImage)
+	{
+		return m_Descriptors[m_DescriptorIndex].Update2DSamplers(textures, bindingPoint, storageImage);
+	}
+
+	bool VulkanPipeline::UpdateSampler(Ref<Texture>& tetxure, uint32_t bindingPoint, bool storageImage)
+	{
+		return m_Descriptors[m_DescriptorIndex].UpdateImageResource(bindingPoint, tetxure->Cast<VulkanTexture>()->GetVkDescriptorImageInfo());
+	}
+
+	bool VulkanPipeline::UpdateSampler(Framebuffer* framebuffer, uint32_t bindingPoint, uint32_t attachmentIndex)
+	{
+		const auto& descriptor = framebuffer->GetVulkanFramebuffer().GetAttachment(attachmentIndex)->ImageInfo;
+		return m_Descriptors[m_DescriptorIndex].UpdateImageResource(bindingPoint, descriptor);
+	}
+
+	bool VulkanPipeline::UpdateSampler(Framebuffer* framebuffer, uint32_t bindingPoint, const std::string& attachmentName)
+	{
+		const auto& descriptor = framebuffer->GetVulkanFramebuffer().GetAttachment(attachmentName)->ImageInfo;
+		return m_Descriptors[m_DescriptorIndex].UpdateImageResource(bindingPoint, descriptor);
+	}
+
+	bool VulkanPipeline::UpdateCubeMap(Ref<Texture>& cubeMap, uint32_t bindingPoint)
+	{
+		return m_Descriptors[m_DescriptorIndex].UpdateCubeMap(cubeMap, bindingPoint);
+	}
+
+	void VulkanPipeline::UpdateImageDescriptor(uint32_t bindingPoint, const VkDescriptorImageInfo& imageInfo)
+	{
+		m_Descriptors[m_DescriptorIndex].UpdateImageResource(bindingPoint, imageInfo);
+	}
+
+	void VulkanPipeline::BindPipeline()
+	{
+		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GetVkPipeline(m_DrawMode));
+	}
+
+	void VulkanPipeline::BindDescriptors()
+	{
+		const auto& descriptorSets = GetVkDescriptorSets(m_DescriptorIndex);
+		vkCmdBindDescriptorSets(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, &descriptorSets, 0, nullptr);
+	}
+
+	void VulkanPipeline::BindIndexBuffer(uint32_t index)
+	{
+		vkCmdBindIndexBuffer(m_CommandBuffer, m_IndexBuffers[index]->GetVulkanIndexBuffer().GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+	}
+
+	void VulkanPipeline::BindVertexBuffer(uint32_t index)
+	{
+		VkDeviceSize offsets[1] = { 0 };
+		vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &m_VertexBuffers[index]->GetVulkanVertexBuffer().GetBuffer(), offsets);
 	}
 
 	bool VulkanPipeline::SaveCache(const std::string& fileName, DrawMode mode)
@@ -386,6 +621,11 @@ namespace SmolEngine
 		return m_PipelineLayout;
 	}
 
+	VkCommandBuffer VulkanPipeline::GetCommandBuffer()
+	{
+		return m_CommandBuffer;
+	}
+
 	const VkDescriptorSet VulkanPipeline::GetVkDescriptorSets(uint32_t setIndex) const
 	{
 		return m_Descriptors[setIndex].GetDescriptorSets();
@@ -393,8 +633,8 @@ namespace SmolEngine
 
 	bool VulkanPipeline::IsBlendEnableEnabled()
 	{
-		return m_PipelineSpecification->eSrcColorBlendFactor != BlendFactor::NONE || m_PipelineSpecification->eDstColorBlendFactor != BlendFactor::NONE ||
-			m_PipelineSpecification->eDstAlphaBlendFactor != BlendFactor::NONE || m_PipelineSpecification->eSrcAlphaBlendFactor != BlendFactor::NONE;
+		return m_PiplineCreateInfo.eSrcColorBlendFactor != BlendFactor::NONE || m_PiplineCreateInfo.eDstColorBlendFactor != BlendFactor::NONE ||
+			m_PiplineCreateInfo.eDstAlphaBlendFactor != BlendFactor::NONE || m_PiplineCreateInfo.eSrcAlphaBlendFactor != BlendFactor::NONE;
 	}
 
 	void VulkanPipeline::BuildDescriptors(VulkanShader* shader, uint32_t DescriptorSets, std::vector<VulkanDescriptor>& out_descriptors, VkDescriptorPool& pool)

@@ -15,7 +15,7 @@
 
 #include "Multithreading/JobsSystemInstance.h"
 
-#ifdef FROSTIUM_OPENGL_IMPL
+#ifdef OPENGL_IMPL
 #include "Backends/OpenGL/OpenglShader.h"
 #include "Backends/OpenGL/OpenglRendererAPI.h"
 #else
@@ -218,7 +218,7 @@ namespace SmolEngine
 			assert(result == PipelineCreateResult::SUCCESS);
 
 			p_Lighting.UpdateSampler(&f_Depth, 1, "Depth_Attachment");
-#ifndef FROSTIUM_OPENGL_IMPL
+#ifndef OPENGL_IMPL
 			p_Lighting.UpdateVulkanImageDescriptor(2, m_VulkanPBR->GetIrradianceImageInfo());
 			p_Lighting.UpdateVulkanImageDescriptor(3, m_VulkanPBR->GetBRDFLUTImageInfo());
 			p_Lighting.UpdateVulkanImageDescriptor(4, m_VulkanPBR->GetPrefilteredCubeImageInfo());
@@ -285,7 +285,7 @@ namespace SmolEngine
 
 					auto result = p_Skybox.Create(&DynamicPipelineCI);
 					assert(result == PipelineCreateResult::SUCCESS);
-#ifndef FROSTIUM_OPENGL_IMPL
+#ifndef OPENGL_IMPL
 					auto map = m_EnvironmentMap->GetCubeMap();
 					p_Skybox.UpdateVulkanImageDescriptor(1,
 						map->GetTexture()->GetVulkanTexture()->GetVkDescriptorImageInfo());
@@ -943,12 +943,12 @@ namespace SmolEngine
 
 		if (drawList->m_DirLight.IsActive && drawList->m_DirLight.IsCastShadows)
 		{
-#ifndef FROSTIUM_OPENGL_IMPL
+#ifndef OPENGL_IMPL
 			VkCommandBuffer cmdBuffer = storage->p_DepthPass.GetVkCommandBuffer();
 #endif
 			storage->p_DepthPass.BeginRenderPass();
 			{
-#ifndef FROSTIUM_OPENGL_IMPL
+#ifndef OPENGL_IMPL
 				// Set depth bias (aka "Polygon offset")
 				// Required to avoid shadow mapping artifacts
 				vkCmdSetDepthBias(cmdBuffer, 1.25f, 0.0f, 1.75f);

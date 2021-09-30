@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "GUI/Backends/NuklearContext.h"
 
-#ifdef FROSTIUM_OPENGL_IMPL
+#ifdef OPENGL_IMPL
 #else
 #include "Backends/Vulkan/GUI/NuklearVulkanImpl.h"
 #endif
@@ -12,7 +12,7 @@ namespace SmolEngine
 
 	ContextBaseGUI* NuklearContext::CreateContext()
 	{
-#ifdef FROSTIUM_OPENGL_IMPL
+#ifdef OPENGL_IMPL
 #else
 		return new NuklearVulkanImpl();
 #endif

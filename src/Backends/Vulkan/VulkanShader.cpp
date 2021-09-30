@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#ifndef FROSTIUM_OPENGL_IMPL
+#ifndef OPENGL_IMPL
 #include "Common/Common.h"
 #include "Backends/Vulkan/VulkanShader.h"
 #include "Backends/Vulkan/VulkanContext.h"

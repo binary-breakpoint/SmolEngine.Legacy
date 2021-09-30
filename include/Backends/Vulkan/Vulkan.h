@@ -1,5 +1,5 @@
 #pragma once
-#ifndef FROSTIUM_OPENGL_IMPL
+#ifndef OPENGL_IMPL
 #include "Common/DebugLog.h"
 #include <vulkan/include/vulkan/vulkan.h>
 

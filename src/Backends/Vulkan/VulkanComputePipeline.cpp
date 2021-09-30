@@ -3,7 +3,7 @@
 #include "Backends/Vulkan/VulkanPipeline.h"
 #include "Backends/Vulkan/VulkanShader.h"
 
-#ifndef FROSTIUM_OPENGL_IMPL
+#ifndef OPENGL_IMPL
 
 namespace SmolEngine
 {

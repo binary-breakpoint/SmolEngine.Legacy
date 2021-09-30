@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#ifdef FROSTIUM_OPENGL_IMPL
+#ifdef OPENGL_IMPL
 #include "Backends/OpenGL/OpenglBuffer.h"
 
 #include <glad/glad.h>

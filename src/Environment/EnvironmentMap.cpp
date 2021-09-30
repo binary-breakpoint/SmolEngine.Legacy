@@ -1,6 +1,11 @@
 #include "stdafx.h"
 #include "Environment/EnvironmentMap.h"
+
+#ifdef OPENGL_IMPL
+#else
 #include "Backends/Vulkan/VulkanPBR.h"
+#include "Backends/Vulkan/VulkanTexture.h"
+#endif
 
 #include "GraphicsContext.h"
 #include "Tools/GLM.h"
@@ -105,7 +110,7 @@ namespace SmolEngine
 		
 	}
 
-	void EnvironmentMap::GenerateStatic(CubeMap* cubeMap)
+	void EnvironmentMap::GenerateStatic(Ref<Texture>& cubeMap)
 	{
 		Free();
 		m_IsDynamic = false;
@@ -118,8 +123,12 @@ namespace SmolEngine
 	{
 		Free();
 		m_IsDynamic = true;
-		m_CubeMap = new CubeMap();
-		CubeMap::CreateEmpty(m_CubeMap, m_Dimension, m_Dimension);
+		m_CubeMap = Texture::Create();
+		TextureCreateInfo info{};
+		info.Width = 4;
+		info.Height = 4;
+
+		m_CubeMap->LoadAsWhiteCube(&info);
 
 		struct push_constant
 		{
@@ -170,7 +179,8 @@ namespace SmolEngine
 
 				// Copy commands
 				{
-					auto cube_image = m_CubeMap->GetTexture()->GetVulkanTexture()->GetVkImage();
+					auto vkTexture = m_CubeMap->Cast<VulkanTexture>();
+					auto cube_image = vkTexture->GetVkImage();
 					auto fb_image = m_Framebuffer.GetVulkanFramebuffer().GetAttachment()->AttachmentVkInfo.image;
 
 					// Make sure color writes to the framebuffer are finished before using it as transfer source
@@ -211,8 +221,8 @@ namespace SmolEngine
 					copyRegion.dstSubresource.layerCount = 1;
 					copyRegion.dstOffset = { 0, 0, 0 };
 
-					copyRegion.extent.width = m_CubeMap->GetTexture()->GetInfo().Width;
-					copyRegion.extent.height = m_CubeMap->GetTexture()->GetInfo().Height;
+					copyRegion.extent.width = vkTexture->GetInfo().Width;
+					copyRegion.extent.height = vkTexture->GetInfo().Height;
 					copyRegion.extent.depth = 1;
 
 					// Put image copy into command buffer
@@ -257,7 +267,7 @@ namespace SmolEngine
 		m_Dimension = dim;
 	}
 
-	CubeMap* EnvironmentMap::GetCubeMap() const
+	Ref<Texture> EnvironmentMap::GetCubeMap() const
 	{
 		return m_CubeMap;
 	}
@@ -269,16 +279,13 @@ namespace SmolEngine
 
 	void EnvironmentMap::Free()
 	{
-		if (m_CubeMap != nullptr)
-		{
-			delete m_CubeMap;
+		if (m_CubeMap)
 			m_CubeMap = nullptr;
-		}
 	}
 
-	bool EnvironmentMap::IsReady() const
+	bool EnvironmentMap::IsGood() const
 	{
-		return m_CubeMap->GetTexture()->IsReady();
+		return m_CubeMap->IsGood();
 	}
 
 	bool EnvironmentMap::IsDynamic() const

@@ -15,7 +15,7 @@ namespace SmolEngine
 
 	void IndexBuffer::Clear()
 	{
-#ifdef FROSTIUM_OPENGL_IMPL
+#ifdef OPENGL_IMPL
 #else
 		Destroy();
 #endif
@@ -28,7 +28,7 @@ namespace SmolEngine
 
 	void IndexBuffer::UploadData(uint32_t* indices, uint32_t count)
 	{
-#ifdef FROSTIUM_OPENGL_IMPL
+#ifdef OPENGL_IMPL
 
 #else
 		SetData(indices, count);
@@ -42,7 +42,7 @@ namespace SmolEngine
 
 	void IndexBuffer::Create(IndexBuffer* out_ib, uint32_t* indices, uint32_t count, bool is_static)
 	{
-#ifdef FROSTIUM_OPENGL_IMPL
+#ifdef OPENGL_IMPL
 
 		out_ib->Init(indices, count);
 #else
@@ -52,7 +52,7 @@ namespace SmolEngine
 
 	void IndexBuffer::Create(IndexBuffer* out_ib, uint32_t size, bool is_static)
 	{
-#ifdef FROSTIUM_OPENGL_IMPL
+#ifdef OPENGL_IMPL
 #else
 		out_ib->Init(size);
 #endif

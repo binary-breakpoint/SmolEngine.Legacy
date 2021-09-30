@@ -52,7 +52,7 @@ namespace SmolEngine
 		void                      BeginSubmit(SceneViewProjection* viewProj);
 		void                      EndSubmit();
 
-		void                      SubmitSprite(const glm::vec3& worldPos, const glm::vec3& scale, const glm::vec3& rotation, uint32_t layerIndex, Texture* texture,  bool frustumCulling = true, const glm::vec4& color = glm::vec4(1.0f));
+		void                      SubmitSprite(const glm::vec3& worldPos, const glm::vec3& scale, const glm::vec3& rotation, uint32_t layerIndex, Ref<Texture>& texture,  bool frustumCulling = true, const glm::vec4& color = glm::vec4(1.0f));
 		void                      SubmitQuad(const glm::vec3& worldPos, const glm::vec3& scale, const glm::vec3& rotation, uint32_t layerIndex, bool frustumCulling = true, const glm::vec4& color = glm::vec4(1.0f));
 		void                      SubmitLight2D(const glm::vec3& worldPos, const glm::vec4& color, float radius, float lightIntensity, bool frustumCulling = true);
 
@@ -63,7 +63,7 @@ namespace SmolEngine
 		void                      ClearDrawList();
 		void                      BuildDrawList();
 		bool                      IsDrawable(const glm::vec3& worldPos, bool frustumCulling);
-		uint32_t                  AddTexture(Texture* tex);
+		uint32_t                  AddTexture(Ref<Texture>& tex);
 
 	private:
 		static const uint32_t     Light2DBufferMaxSize = 100;
@@ -83,8 +83,8 @@ namespace SmolEngine
 		ShaderInstance            ShaderInstances[MaxQuads];
 		Instance                  Instances[MaxQuads];
 		CmdBuffer                 CommandBuffer[MaxLayers];
-		std::vector<Texture*>     Textures;
-		std::vector<Texture*>     FontTextures;
+		std::vector<Ref<Texture>> Textures;
+		std::vector<Ref<Texture>> FontTextures;
 
 		friend struct Renderer2DStorage;
 		friend class Renderer2D;

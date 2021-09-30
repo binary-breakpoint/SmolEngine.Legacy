@@ -1,7 +1,7 @@
 #pragma once
 #include "Common/Common.h"
 
-#ifdef FROSTIUM_OPENGL_IMPL
+#ifdef OPENGL_IMPL
 #include "Backends/OpenGL/OpenglFramebuffer.h"
 #else
 #include "Backends/Vulkan/VulkanFramebuffer.h"
@@ -96,7 +96,7 @@ namespace SmolEngine
 		std::vector<FramebufferAttachment>   Attachments;
 	};
 
-#ifdef  FROSTIUM_OPENGL_IMPL
+#ifdef  OPENGL_IMPL
 	class Framebuffer : OpenglFramebuffer
 #else
 	class Framebuffer : VulkanFramebuffer
@@ -108,7 +108,7 @@ namespace SmolEngine
 		void                             OnResize(const uint32_t width, const uint32_t height);
 		const FramebufferSpecification&  GetSpecification() const;
 		void*                            GetImGuiTextureID(uint32_t index = 0);
-#ifndef FROSTIUM_OPENGL_IMPL
+#ifndef OPENGL_IMPL
 		VulkanFramebuffer&               GetVulkanFramebuffer() { return *dynamic_cast<VulkanFramebuffer*>(this); }
 #endif
 		static void                      Create(const FramebufferSpecification& data, Framebuffer* out_fb);

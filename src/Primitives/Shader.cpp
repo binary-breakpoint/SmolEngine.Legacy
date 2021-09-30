@@ -41,7 +41,7 @@ namespace SmolEngine
 	{
 		shaderc::Compiler compiler;
 		shaderc::CompileOptions options;
-#ifdef FROSTIUM_OPENGL_IMPL
+#ifdef OPENGL_IMPL
 #else
 		options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
 #endif
@@ -115,7 +115,7 @@ namespace SmolEngine
 		}
 
 		obj->m_CreateInfo = *shaderCI;
-#ifdef FROSTIUM_OPENGL_IMPL
+#ifdef OPENGL_IMPL
 #else
 		obj->Init(binaryData, &obj->m_ReflectData, &obj->m_CreateInfo);
 #endif
@@ -134,7 +134,7 @@ namespace SmolEngine
 
 	bool Shader::Realod()
 	{
-#ifdef FROSTIUM_OPENGL_IMPL
+#ifdef OPENGL_IMPL
 		return false;
 #else
 		Create(&m_CreateInfo, this);

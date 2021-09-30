@@ -1,5 +1,5 @@
 #pragma once
-#ifdef FROSTIUM_OPENGL_IMPL
+#ifdef OPENGL_IMPL
 #include "Primitives/Framebuffer.h"
 
 namespace SmolEngine

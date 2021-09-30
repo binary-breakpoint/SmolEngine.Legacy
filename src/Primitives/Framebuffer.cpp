@@ -22,7 +22,7 @@ namespace SmolEngine
 
 	void Framebuffer::OnResize(const uint32_t width, const uint32_t height)
 	{
-#ifdef FROSTIUM_OPENGL_IMPL
+#ifdef OPENGL_IMPL
 
 #else
 		SetSize(width, height);
@@ -36,7 +36,7 @@ namespace SmolEngine
 
 	void* Framebuffer::GetImGuiTextureID(uint32_t index)
 	{
-#ifdef FROSTIUM_OPENGL_IMPL
+#ifdef OPENGL_IMPL
 
 		return reinterpret_cast<void*>(GetColorAttachmentID());
 #else

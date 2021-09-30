@@ -1,7 +1,7 @@
 #pragma once
 #include "Primitives/BufferLayout.h"
 
-#ifdef FROSTIUM_OPENGL_IMPL
+#ifdef OPENGL_IMPL
 #include "Backends/OpenGL/OpenglBuffer.h"
 #else
 #include "Backends/Vulkan/VulkanVertexBuffer.h"
@@ -9,7 +9,7 @@
 
 namespace SmolEngine
 {
-#ifdef  FROSTIUM_OPENGL_IMPL
+#ifdef  OPENGL_IMPL
 	class VertexBuffer: OpenglVertexBuffer
 #else
 	class VertexBuffer: VulkanVertexBuffer
@@ -21,7 +21,7 @@ namespace SmolEngine
 		void                  Clear();
 		bool                  IsReady() const;
 		void                  UploadData(const void* data, const uint32_t size, const uint32_t offset = 0);
-#ifndef FROSTIUM_OPENGL_IMPL
+#ifndef OPENGL_IMPL
 		VulkanVertexBuffer&   GetVulkanVertexBuffer() { return *dynamic_cast<VulkanVertexBuffer*>(this); }
 #endif
 		// Factory

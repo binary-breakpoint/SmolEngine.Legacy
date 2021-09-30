@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-#ifdef FROSTIUM_OPENGL_IMPL
+#ifdef OPENGL_IMPL
 #include "Backends/OpenGL/OpenglShader.h"
 
 #include <fstream>

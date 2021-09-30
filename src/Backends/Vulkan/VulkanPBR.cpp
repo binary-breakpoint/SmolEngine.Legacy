@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#ifndef FROSTIUM_OPENGL_IMPL
+#ifndef OPENGL_IMPL
 #include "Backends/Vulkan/VulkanPBR.h"
 #include "Backends/Vulkan/VulkanTexture.h"
 #include "Backends/Vulkan/VulkanContext.h"
@@ -13,7 +13,6 @@
 #include "Primitives/IndexBuffer.h"
 #include "Primitives/Shader.h"
 
-#include "Environment/CubeMap.h"
 #include "Multithreading/JobsSystemInstance.h"
 
 #include <glm/glm.hpp>
@@ -925,7 +924,7 @@ namespace SmolEngine
 						vkCmdBindDescriptorSets(cmdStorage.Buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelinelayout, 0, 1, &descriptorset, 0, NULL);
 
 						VkDeviceSize offsets[1] = { 0 };
-#ifndef FROSTIUM_OPENGL_IMPL
+#ifndef OPENGL_IMPL
 						vkCmdBindVertexBuffers(cmdStorage.Buffer, 0, 1, &skyBoxFB.GetVulkanVertexBuffer().GetBuffer(), offsets);
 #endif
 
@@ -1553,7 +1552,7 @@ namespace SmolEngine
 						vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelinelayout, 0, 1, &descriptorset, 0, NULL);
 
 						VkDeviceSize offsets[1] = { 0 };
-#ifndef FROSTIUM_OPENGL_IMPL
+#ifndef OPENGL_IMPL
 						vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &skyBoxFB.GetVulkanVertexBuffer().GetBuffer(), offsets);
 #endif
 
@@ -1655,10 +1654,10 @@ namespace SmolEngine
 		s_Instance = this;
 	}
 
-	void VulkanPBR::GeneratePBRCubeMaps(CubeMap* environment_map)
+	void VulkanPBR::GeneratePBRCubeMaps(Ref<Texture>& environment_map)
 	{
 		Free();
-		VulkanTexture* vulkanTex = environment_map->GetTexture()->GetVulkanTexture();
+		VulkanTexture* vulkanTex = environment_map->Cast<VulkanTexture>();
 
 		JobsSystemInstance::BeginSubmition();
 		{

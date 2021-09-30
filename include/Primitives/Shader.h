@@ -2,7 +2,7 @@
 #include "Common/Common.h"
 #include "Common/Flags.h"
 
-#ifdef FROSTIUM_OPENGL_IMPL
+#ifdef OPENGL_IMPL
 #include "Backends/OpenGL/OpenglShader.h"
 #else
 #include "Backends/Vulkan/VulkanShader.h"
@@ -87,7 +87,7 @@ namespace SmolEngine
 		std::unordered_map<uint32_t, ShaderBufferInfo>   BufferInfos;
 	};
 
-#ifdef  FROSTIUM_OPENGL_IMPL
+#ifdef  OPENGL_IMPL
 	class Shader : OpenglShader
 #else
 	class Shader: VulkanShader
@@ -97,10 +97,13 @@ namespace SmolEngine
 		void                 Bind() const;
 		void                 UnBind() const;
 		bool                 Realod();
-#ifndef FROSTIUM_OPENGL_IMPL  				                
+#ifndef OPENGL_IMPL  				                
 		VulkanShader*        GetVulkanShader() { return dynamic_cast<VulkanShader*>(this); }
 #endif
 		static void          Create(ShaderCreateInfo* shaderCI, Shader* shader);
+
+		template<typename T>
+		T* Cast() { return dynamic_cast<T*>(this); }
 
 	private:				 
 		void                 Reflect(const std::vector<uint32_t>& binaryData, ShaderType type);

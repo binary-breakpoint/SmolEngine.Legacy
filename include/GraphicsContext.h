@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef  FROSTIUM_OPENGL_IMPL
+#ifdef  OPENGL_IMPL
 #include "Backends/OpenGL/OpenglContext.h"
 #include "Backends/OpenGL/OpenglRendererAPI.h"
 #else
@@ -98,12 +98,12 @@ namespace SmolEngine
 		Window*                           GetWindow() const;
 	    WindowData*                       GetWindowData();
 		DefaultMeshes*                    GetDefaultMeshes() const;
-		Texture*                          GetWhiteTexture() const;
+		Ref<Texture>                      GetWhiteTexture() const;
 		float                             GetGltfTime() const;
 		float                             GetDeltaTime() const;
 		float                             GetLastFrameTime() const;
 		const std::string&                GetResourcesPath() const;
-#ifdef  FROSTIUM_OPENGL_IMPL	          
+#ifdef  OPENGL_IMPL	          
 		static OpenglRendererAPI*         GetOpenglRendererAPI();
 #else							          
 		static VulkanContext&             GetVulkanContext();
@@ -124,9 +124,9 @@ namespace SmolEngine
 
 	private:	
 		static GraphicsContext*           s_Instance;
-		Texture*                          m_DummyTexure = nullptr;
-		Texture*                          m_StorageTexure = nullptr;
-		CubeMap*                          m_DummyCubeMap = nullptr;
+		Ref<Texture>                      m_DummyTexure = nullptr;
+		Ref<Texture>                      m_StorageTexure = nullptr;
+		Ref<Texture>                      m_DummyCubeMap = nullptr;
 		MaterialLibrary*                  m_MaterialLibrary = nullptr;
 		Framebuffer*                      m_Framebuffer = nullptr;
 		Window*                           m_Window = nullptr;
@@ -139,7 +139,7 @@ namespace SmolEngine
 		bool                              m_bIsStoragePreAlloc = false;
 		float                             m_LastFrameTime = 1.0f;
 		float                             m_DeltaTime = 0.0f;
-#ifdef  FROSTIUM_OPENGL_IMPL		      
+#ifdef  OPENGL_IMPL		      
 		OpenglContext                     m_OpenglContext = {};
 		OpenglRendererAPI*                m_RendererAPI = nullptr;
 #else								      

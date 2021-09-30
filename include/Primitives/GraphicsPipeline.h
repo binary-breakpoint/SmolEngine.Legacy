@@ -1,9 +1,5 @@
 #pragma once
 #include "GraphicsContext.h"
-#ifndef FROSTIUM_OPENGL_IMPL
-#include "Backends/Vulkan/VulkanPipeline.h"
-#endif
-
 #include "Common/Common.h"
 
 #include "Primitives/VertexArray.h"
@@ -73,15 +69,6 @@ namespace SmolEngine
 		Front
 	};
 
-	enum class PipelineCreateResult : uint16_t
-	{
-		SUCCESS,
-		ERROR_INVALID_CREATE_INFO,
-		ERROR_PIPELINE_NOT_INVALIDATED,
-		ERROR_PIPELINE_NOT_CREATED,
-		ERROR_SHADER_NOT_RELOADED
-	};
-
 	class Framebuffer;
 	struct GraphicsPipelineCreateInfo
 	{
@@ -115,68 +102,52 @@ namespace SmolEngine
 	public:
 		GraphicsPipeline() = default;
 		~GraphicsPipeline();
+							              
+		virtual bool                      Invalidate(GraphicsPipelineCreateInfo* info) = 0;
+		virtual void                      ClearColors(const glm::vec4& color = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f)) = 0;
+		virtual void                      BeginRenderPass(bool flip = false) = 0;
+		virtual void                      BeginCommandBuffer(bool batchCmd = false) = 0;
+		virtual void                      EndCommandBuffer() = 0;
+		virtual void                      EndRenderPass() = 0;
+		virtual void                      Destroy() = 0;
+		virtual void                      Reload() {};
+					                      
+		virtual void                      DrawIndexed(uint32_t vbIndex = 0, uint32_t ibIndex = 0) = 0;
+		virtual void                      DrawIndexed(VertexBuffer* vb, IndexBuffer* ib) = 0;
+		virtual void                      Draw(VertexBuffer* vb, uint32_t vertextCount) = 0;
+		virtual void                      Draw(uint32_t vertextCount, uint32_t vbIndex = 0) = 0;
+		virtual void                      DrawMeshIndexed(Mesh* mesh, uint32_t instances = 1) = 0;
+		virtual void                      DrawMesh(Mesh* mesh, uint32_t instances = 1) = 0;
+					                      
+		virtual bool                      SubmitBuffer(uint32_t binding, size_t size, const void* data, uint32_t offset = 0) = 0;
+		virtual void                      SubmitPushConstant(ShaderType stage, size_t size, const void* data) {};
+					                      
+		virtual bool                      UpdateSamplers(const std::vector<Ref<Texture>>& textures, uint32_t binding, bool storageImage = false) = 0;
+		virtual bool                      UpdateSampler(Ref<Texture>& tetxure, uint32_t binding, bool storageImage = false) = 0;
+		virtual bool                      UpdateSampler(Framebuffer* framebuffer, uint32_t binding, uint32_t attachmentIndex = 0) = 0;
+		virtual bool                      UpdateSampler(Framebuffer* framebuffer, uint32_t binding, const std::string& attachmentName) = 0;
+		virtual bool                      UpdateCubeMap(Ref<Texture>& cubeMap, uint32_t binding) = 0;
+					                      
+		virtual void                      BindPipeline() {};
+		virtual void                      BindDescriptors() {};
+		virtual void                      BindIndexBuffer(uint32_t index = 0) {};
+		virtual void                      BindVertexBuffer(uint32_t index = 0) {};
 
-		PipelineCreateResult Create(GraphicsPipelineCreateInfo* pipelineInfo);
-		PipelineCreateResult Reload();
-
-		void ClearColors(const glm::vec4& clearColors = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
-		void BeginRenderPass(bool flip = false);
-		void EndRenderPass();
-		void BeginCommandBuffer(bool isMainCmdBufferInUse = false);
-		void EndCommandBuffer();
-		void ResetStates();
-		void Destroy();
-
-		void DrawIndexed(uint32_t vbIndex = 0, uint32_t ibIndex = 0);
-		void DrawIndexed(VertexBuffer* vb, IndexBuffer* ib);
-		void Draw(VertexBuffer* vb, uint32_t vertextCount);
-		void Draw(uint32_t vertextCount, uint32_t vertexBufferIndex = 0);
-		void DrawMeshIndexed(Mesh* mesh, uint32_t instances = 1);
-		void DrawMesh(Mesh* mesh, uint32_t instances = 1);
-
-		bool SubmitBuffer(uint32_t bindingPoint, size_t size, const void* data, uint32_t offset = 0);
-		void SubmitPushConstant(ShaderType shaderStage, size_t size, const void* data);
-		void SetFramebuffers(const std::vector<Framebuffer*>& fb);
-		void SetVertexBuffers(const std::vector<Ref<VertexBuffer>>& vb);
-		void SetIndexBuffers(const std::vector<Ref<IndexBuffer>>& ib);
-#ifndef FROSTIUM_OPENGL_IMPL
-		bool UpdateVulkanImageDescriptor(uint32_t bindingPoint, const VkDescriptorImageInfo& imageInfo);
-#endif
-		bool UpdateSamplers(const std::vector<Texture*>& textures, uint32_t bindingPoint, bool storageImage = false);
-		bool UpdateSampler(Texture* tetxure, uint32_t bindingPoint, bool storageImage = false);
-		bool UpdateSampler(Framebuffer* framebuffer, uint32_t bindingPoint, uint32_t attachmentIndex = 0);
-		bool UpdateSampler(Framebuffer* framebuffer, uint32_t bindingPoint, const std::string& attachmentName);
-		bool UpdateCubeMap(Texture* cubeMap, uint32_t bindingPoint);
-
-		void SetDescriptorIndex(uint32_t value);
-		void SetDrawMode(DrawMode mode);
-		void SetFramebufferIndex(uint32_t index);
-		void SetFramebufferAttachmentIndex(uint32_t index);
-
-		void BindPipeline();
-		void BindDescriptors();
-		void BindIndexBuffer(uint32_t index = 0);
-		void BindVertexBuffer(uint32_t index = 0);
-
-#ifndef FROSTIUM_OPENGL_IMPL
-		const VkPipeline& GetVkPipeline(DrawMode mode);
-		const VulkanShader* GetVulkanShader();
-		VkCommandBuffer GetVkCommandBuffer() const;
-		void SetCommandBuffer(VkCommandBuffer cmdBuffer);
-#else
-		void BindOpenGLShader();
-#endif
-	private:
-		bool IsPipelineCreateInfoValid(const GraphicsPipelineCreateInfo* pipelineInfo);
+		static Ref<GraphicsPipeline>      Create();
+		void                              Reset();
+		void                              SetDescriptorIndex(uint32_t value);
+		void                              SetDrawMode(DrawMode mode);
+		void                              SetFramebufferIndex(uint32_t index);
+		void                              SetFramebufferAttachmentIndex(uint32_t index);
+		void                              SetFramebuffers(const std::vector<Framebuffer*>& fb);
+		void                              SetVertexBuffers(const std::vector<Ref<VertexBuffer>>& vb);
+		void                              SetIndexBuffers(const std::vector<Ref<IndexBuffer>>& ib);
 
 	private:
+		bool                              InvalidateBase(GraphicsPipelineCreateInfo* pipelineInfo);
+		bool                              IsPipelineCreateInfoValid(const GraphicsPipelineCreateInfo* pipelineInfo);
 
-#ifndef FROSTIUM_OPENGL_IMPL
-		CommandBufferStorage              m_CmdStorage{};
-		VulkanPipeline                    m_VulkanPipeline = {};
-		VkCommandBuffer                   m_CommandBuffer = nullptr;
-		bool                              m_IsMainCmdBufferInUse = false;
-#endif
+	private:
 		Ref<VertexArray>                  m_VextexArray = nullptr;
 		Ref<Shader>                       m_Shader = nullptr;
 		GraphicsContext*                  m_GraphicsContext = nullptr;
@@ -187,5 +158,7 @@ namespace SmolEngine
 		GraphicsPipelineCreateInfo        m_PiplineCreateInfo;
 		std::vector<Ref<VertexBuffer>>    m_VertexBuffers;
 		std::vector<Ref<IndexBuffer>>     m_IndexBuffers;
+
+		friend class VulkanPipeline;
 	};
 }

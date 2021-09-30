@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#ifndef FROSTIUM_OPENGL_IMPL
+#ifndef OPENGL_IMPL
 #include "Backends/Vulkan/GUI/ImGuiVulkanImpl.h"
 #include "Backends/Vulkan/VulkanContext.h"
 #include "Backends/Vulkan/VulkanStagingBuffer.h"
@@ -12,7 +12,7 @@
 
 #include <GLFW/glfw3.h>
 
-#ifdef FROSTIUM_OPENGL_IMPL
+#ifdef OPENGL_IMPL
 #include <imgui/examples/imgui_impl_opengl3.h>
 #include <glad/glad.h>
 #else

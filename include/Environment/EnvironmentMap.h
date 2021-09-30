@@ -2,7 +2,7 @@
 
 #include "Primitives/Framebuffer.h"
 #include "Primitives/GraphicsPipeline.h"
-#include "Environment/CubeMap.h"
+#include "Primitives/Texture.h"
 
 #include <glm/glm.hpp>
 
@@ -40,19 +40,19 @@ namespace SmolEngine
 	{
 	public:
 		void                    Initialize();
-		void                    GenerateStatic(CubeMap* cubeMap);
+		void                    GenerateStatic(Ref<Texture>& cubeMap);
 		void                    GenerateDynamic(const glm::mat4& cameraProj = glm::mat4(0));
 		void                    UpdateDescriptors();
 		void                    SetDimension(uint32_t dim);
-		bool                    IsReady() const;
+		bool                    IsGood() const;
 		bool                    IsDynamic() const;
-		CubeMap*                GetCubeMap() const;
+		Ref<Texture>            GetCubeMap() const;
 		DynamicSkyProperties&   GetDynamicSkyProperties();
 	private:
 		void                    Free();
 	private:
 		bool                    m_IsDynamic = false;
-		CubeMap*                m_CubeMap = nullptr;
+		Ref<Texture>            m_CubeMap = nullptr;
 		uint32_t                m_Dimension = 1024;
 		GraphicsPipeline        m_GraphicsPipeline = {};
 		Framebuffer             m_Framebuffer = {};

@@ -3,7 +3,6 @@
 
 #include "Renderer/RendererDebug.h"
 #include "Tools/MaterialLibrary.h"
-#include "Environment/CubeMap.h"
 #include "Common/DebugLog.h"
 #include "Common/Common.h"
 #include "Window/Input.h"
@@ -29,24 +28,27 @@ namespace SmolEngine
 		m_Window->Init(info->pWindowCI, &m_EventHandler);
 		GLFWwindow* window = m_Window->GetNativeWindow();
 		// Creates API context
-#ifdef  FROSTIUM_OPENGL_IMPL
+#ifdef  OPENGL_IMPL
 		m_OpenglContext.Setup(window);
 #else
 		m_VulkanContext.Setup(window, this,
 			&m_Window->GetWindowData()->Width, &m_Window->GetWindowData()->Height);
 #endif
 		// Creates 4x4 white textures
-		m_DummyTexure = new Texture();
-		Texture::CreateWhiteTexture(m_DummyTexure);
-		m_StorageTexure = new Texture();
 		{
 			TextureCreateInfo texCI;
-			texCI.bIsStorage = true;
-			m_StorageTexure->GetVulkanTexture()->GenTexture(4, 4, &texCI);
-		}
+			texCI.Width = 4;
+			texCI.Height = 4;
 
-		m_DummyCubeMap = new CubeMap();
-		CubeMap::CreateEmpty(m_DummyCubeMap, 4, 4);
+			m_DummyTexure = Texture::Create();
+			m_DummyTexure->LoadAsWhite();
+
+			m_StorageTexure = Texture::Create();
+			m_StorageTexure->LoadAsStorage(&texCI);
+
+			m_DummyCubeMap = Texture::Create();
+			m_DummyCubeMap->LoadAsWhiteCube(&texCI);
+		}
 
 		m_DefaultMeshes = new DefaultMeshes(info->ResourcesFolderPath);
 		m_JobsSystem = new JobsSystemInstance();
@@ -62,7 +64,7 @@ namespace SmolEngine
 		m_Framebuffer = new Framebuffer();
 		FramebufferSpecification framebufferCI = {};
 		{
-#ifdef  FROSTIUM_OPENGL_IMPL
+#ifdef  OPENGL_IMPL
 			framebufferCI.Width = info->pWindowCI->Width;
 			framebufferCI.Height = info->pWindowCI->Height;
 #else
@@ -79,7 +81,7 @@ namespace SmolEngine
 			Framebuffer::Create(framebufferCI, m_Framebuffer);
 		}
 
-#ifdef  FROSTIUM_OPENGL_IMPL
+#ifdef  OPENGL_IMPL
 		GetOpenglRendererAPI()->Init();
 #endif
 		// Initialize debug renderer
@@ -102,7 +104,7 @@ namespace SmolEngine
 		if ((m_CreateInfo.eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
 			m_ImGuiContext->EndFrame();
 
-#ifdef  FROSTIUM_OPENGL_IMPL
+#ifdef  OPENGL_IMPL
 		m_OpenglContext.SwapBuffers();
 #else
 		m_VulkanContext.SwapBuffers();
@@ -117,7 +119,7 @@ namespace SmolEngine
 	void GraphicsContext::BeginFrame(float time)
 	{
 		m_DeltaTime = time;
-#ifdef  FROSTIUM_OPENGL_IMPL
+#ifdef  OPENGL_IMPL
 #else
 		m_VulkanContext.BeginFrame();
 #endif
@@ -134,17 +136,17 @@ namespace SmolEngine
 			m_ImGuiContext->ShutDown();
 
 		m_Window->ShutDown();
-#ifdef FROSTIUM_OPENGL_IMPL
+#ifdef OPENGL_IMPL
 #else
 		m_VulkanContext.~VulkanContext();
 #endif
-		delete m_MaterialLibrary, m_DummyTexure,m_Framebuffer, m_Window, 
+		delete m_MaterialLibrary, m_Framebuffer, m_Window, 
 			m_ImGuiContext, m_NuklearContext, m_DefaultMeshes, m_JobsSystem;
 }
 
 	void GraphicsContext::Resize(uint32_t* width, uint32_t* height)
 	{
-#ifdef  FROSTIUM_OPENGL_IMPL
+#ifdef  OPENGL_IMPL
 #else
 		m_VulkanContext.OnResize(width, height);
 #endif
@@ -193,7 +195,7 @@ namespace SmolEngine
 		return m_DefaultMeshes;
 	}
 
-	Texture* GraphicsContext::GetWhiteTexture() const
+	Ref<Texture> GraphicsContext::GetWhiteTexture() const
 	{
 		return m_DummyTexure;
 	}
@@ -278,7 +280,7 @@ namespace SmolEngine
 			m_EventCallback(std::forward<Event>(e));
 	}
 
-#ifdef FROSTIUM_OPENGL_IMPL
+#ifdef OPENGL_IMPL
 	OpenglRendererAPI* GraphicsContext::GetOpenglRendererAPI()
 	{
 		return nullptr;

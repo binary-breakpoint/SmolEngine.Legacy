@@ -1,5 +1,5 @@
 #pragma once
-#ifndef FROSTIUM_OPENGL_IMPL
+#ifndef OPENGL_IMPL
 
 #include "Backends/Vulkan/VulkanDescriptor.h"
 

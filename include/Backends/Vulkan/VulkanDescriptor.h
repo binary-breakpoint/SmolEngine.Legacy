@@ -1,5 +1,5 @@
 #pragma once
-#ifndef FROSTIUM_OPENGL_IMPL
+#ifndef OPENGL_IMPL
 #include "Backends/Vulkan/Vulkan.h"
 
 #include <vector>
@@ -14,39 +14,30 @@ namespace SmolEngine
 	class VulkanDescriptor
 	{
 	public:
-
 		VulkanDescriptor();
 		~VulkanDescriptor();
 
-		void Free();
-		void GenDescriptorSet(VulkanShader* shader, VkDescriptorPool pool);
-		void GenBuffersDescriptors(VulkanShader* shader);
-		void GenSamplersDescriptors(VulkanShader* shader);
-
-		// Update
-		bool Update2DSamplers(const std::vector<Texture*>& textures, uint32_t bindingPoint, bool storage = false);
-		bool UpdateImageResource(uint32_t bindingPoint, const VkDescriptorImageInfo& imageInfo, bool storage = false);
-		bool UpdateCubeMap(Texture* cubeMap, uint32_t bindingPoint);
-		bool UpdateBuffer(uint32_t binding, size_t size, const void* data, uint32_t offset = 0);
-		void UpdateWriteSets();
-
-		// Getters
-		VkDescriptorSet GetDescriptorSets() const;
-		VkDescriptorSetLayout GetLayout() const;
-
-	private:
-
-		VkWriteDescriptorSet CreateWriteSet(VkDescriptorSet descriptorSet, uint32_t binding,
-			VkDescriptorBufferInfo* descriptorBufferInfo,
-			VkDescriptorType descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
-
-		VkWriteDescriptorSet CreateWriteSet(VkDescriptorSet descriptorSet, uint32_t binding,
-			VkDescriptorImageInfo* imageInfo,
-			VkDescriptorType descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
-
-		VkWriteDescriptorSet CreateWriteSet(VkDescriptorSet descriptorSet, uint32_t binding,
-			const std::vector<VkDescriptorImageInfo>& descriptorimageInfos,
-			VkDescriptorType descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+		void                                             Free();
+		void                                             GenDescriptorSet(VulkanShader* shader, VkDescriptorPool pool);
+		void                                             GenBuffersDescriptors(VulkanShader* shader);
+		void                                             GenSamplersDescriptors(VulkanShader* shader);
+			                                             
+		bool                                             Update2DSamplers(const std::vector<Ref<Texture>>& textures, uint32_t bindingPoint, bool storage = false);
+		bool                                             UpdateImageResource(uint32_t bindingPoint, const VkDescriptorImageInfo& imageInfo, bool storage = false);
+		bool                                             UpdateCubeMap(Ref<Texture>& cubeMap, uint32_t bindingPoint);
+		bool                                             UpdateBuffer(uint32_t binding, size_t size, const void* data, uint32_t offset = 0);
+		void                                             UpdateWriteSets();
+														 
+		VkDescriptorSet                                  GetDescriptorSets() const;
+		VkDescriptorSetLayout                            GetLayout() const;
+														 
+	private:											 
+		VkWriteDescriptorSet                             CreateWriteSet(VkDescriptorSet descriptorSet, uint32_t binding, VkDescriptorBufferInfo* descriptorBufferInfo, 
+			                                             VkDescriptorType descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+		VkWriteDescriptorSet                             CreateWriteSet(VkDescriptorSet descriptorSet, uint32_t binding, VkDescriptorImageInfo* imageInfo, 
+			                                             VkDescriptorType descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+		VkWriteDescriptorSet                             CreateWriteSet(VkDescriptorSet descriptorSet, uint32_t binding, const std::vector<VkDescriptorImageInfo>& descriptorimageInfos,
+			                                             VkDescriptorType descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
 
 	private:
 												    

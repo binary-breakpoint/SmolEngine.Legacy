@@ -22,7 +22,7 @@
 #include <string>
 
 #include "GraphicsContext.h"
-#ifndef FROSTIUM_OPENGL_IMPL
+#ifndef OPENGL_IMPL
 #include "Vulkan/Vulkan.h"
 #endif
 
