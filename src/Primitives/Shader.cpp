@@ -8,6 +8,12 @@
 #include <spirv_cross/spirv_cross.hpp>
 #include <spirv_cross/spirv_glsl.hpp>
 
+#ifdef OPENGL_IMPL
+#include "Backends/OpenGL/OpenglShader.h"
+#else
+#include "Backends/Vulkan/VulkanShader.h"
+#endif
+
 namespace SmolEngine
 {
 	shaderc_shader_kind GetShaderType(ShaderType type)
@@ -89,57 +95,51 @@ namespace SmolEngine
 		}
 	}
 
-	void Shader::Create(ShaderCreateInfo* shaderCI, Shader* obj)
+	const ReflectionData& Shader::GetReflection() const
 	{
-		if (obj == nullptr)
-			return;
+		return m_ReflectData;
+	}
 
-		obj->m_ReflectData.Clean();
-		std::unordered_map<ShaderType, std::vector<uint32_t>> binaryData;
-		for (auto& [type, path] : shaderCI->FilePaths)
+	ShaderCreateInfo& Shader::GetCreateInfo()
+	{
+		return m_CreateInfo;
+	}
+
+	Ref<Shader> Shader::Create()
+	{
+		Ref<Shader> shader = nullptr;
+#ifdef OPENGL_IMPL
+#else
+		shader = std::make_shared<VulkanShader>();
+#endif
+		return shader;
+	}
+
+	bool Shader::BuildBase(ShaderCreateInfo* info)
+	{
+		m_ReflectData.Clean();
+		m_Binary.clear();
+
+		for (auto& [type, path] : info->FilePaths)
 		{
 			if (path.empty())
 				continue;
 
 			std::string cachedPath = Utils::GetCachedPath(path, CachedPathType::Shader);
-			auto& binaries = binaryData[type];
+			auto& binaries = m_Binary[type];
 			if (Utils::IsPathValid(cachedPath))
 			{
 				LoadSPIRV(cachedPath, binaries);
-				obj->Reflect(binaries, type); // TODO:: serialize
+				Reflect(binaries, type); // TODO:: serialize
 				continue;
 			}
 
-			CompileSPIRV(path, binaryData[type], type);
-			obj->Reflect(binaries, type);
+			CompileSPIRV(path, m_Binary[type], type);
+			Reflect(binaries, type);
 		}
 
-		obj->m_CreateInfo = *shaderCI;
-#ifdef OPENGL_IMPL
-#else
-		obj->Init(binaryData, &obj->m_ReflectData, &obj->m_CreateInfo);
-#endif
-
-	}
-
-	void Shader::Bind() const
-	{
-
-	}
-
-	void Shader::UnBind() const
-	{
-
-	}
-
-	bool Shader::Realod()
-	{
-#ifdef OPENGL_IMPL
-		return false;
-#else
-		Create(&m_CreateInfo, this);
+		m_CreateInfo = *info;
 		return true;
-#endif
 	}
 
 	void Shader::Reflect(const std::vector<uint32_t>& binaryData, ShaderType shaderType)

@@ -53,8 +53,8 @@ namespace SmolEngine
 	private:
 		bool                    m_IsDynamic = false;
 		Ref<Texture>            m_CubeMap = nullptr;
+		Ref<GraphicsPipeline>   m_GraphicsPipeline = nullptr;
 		uint32_t                m_Dimension = 1024;
-		GraphicsPipeline        m_GraphicsPipeline = {};
 		Framebuffer             m_Framebuffer = {};
 		DynamicSkyProperties    m_UBO = {};
 	};

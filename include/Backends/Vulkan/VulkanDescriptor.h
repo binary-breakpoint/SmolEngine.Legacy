@@ -7,7 +7,7 @@
 
 namespace SmolEngine
 {
-	class VulkanShader;
+	class Shader;
 	class Texture;
 	struct BufferObject;
 
@@ -18,9 +18,9 @@ namespace SmolEngine
 		~VulkanDescriptor();
 
 		void                                             Free();
-		void                                             GenDescriptorSet(VulkanShader* shader, VkDescriptorPool pool);
-		void                                             GenBuffersDescriptors(VulkanShader* shader);
-		void                                             GenSamplersDescriptors(VulkanShader* shader);
+		void                                             GenDescriptorSet(Ref<Shader>& shader, VkDescriptorPool pool);
+		void                                             GenBuffersDescriptors(Ref<Shader>& shader);
+		void                                             GenSamplersDescriptors(Ref<Shader>& shader);
 			                                             
 		bool                                             Update2DSamplers(const std::vector<Ref<Texture>>& textures, uint32_t bindingPoint, bool storage = false);
 		bool                                             UpdateImageResource(uint32_t bindingPoint, const VkDescriptorImageInfo& imageInfo, bool storage = false);

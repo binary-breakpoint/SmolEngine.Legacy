@@ -1,27 +1,36 @@
 #include "stdafx.h"
-#include "Primitives/ComputePipeline.h"
+
+#ifdef OPENGL_IMPL
+#else
+#include "Backends/Vulkan/VulkanComputePipeline.h"
+#endif
 
 namespace SmolEngine
 {
-	bool ComputePipeline::Create(ComputePipelineCreateInfo* info)
+	Ref<ComputePipeline> ComputePipeline::Create()
 	{
-		if(info->ShaderPath.empty())
+		Ref<ComputePipeline> pipeline = nullptr;
+
+#ifdef OPENGL_IMPL
+#else
+		pipeline = std::make_shared<VulkanComputePipeline>();
+#endif
+		return pipeline;
+	}
+
+	bool ComputePipeline::BuildBase(ComputePipelineCreateInfo* info)
+	{
+		if (info->ShaderPath.empty())
 			return false;
 
 		ShaderCreateInfo shaderCI = {};
 		shaderCI.BufferInfos = info->ShaderBufferInfos;
 		shaderCI.FilePaths[ShaderType::Compute] = info->ShaderPath;
 
-		m_Shader = {};
-		Shader::Create(&shaderCI, &m_Shader);
+		m_Info = *info;
+		m_Shader = Shader::Create();
+		m_Shader->Build(&shaderCI);
 
-#ifndef OPENGL_IMPL
-		return Invalidate(info, m_Shader.GetVulkanShader());
-#endif
-	}
-
-	bool ComputePipeline::Reload()
-	{
-		return false;
+		return true;
 	}
 }

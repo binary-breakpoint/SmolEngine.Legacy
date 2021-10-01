@@ -71,12 +71,6 @@ namespace SmolEngine
 		m_MaterialIndex = 0;
 		m_TextureIndex = 0;
 
-		for (const auto& tex : m_Textures)
-		{
-			if (tex)
-				delete tex;
-		}
-
 		m_Textures.clear();
 		m_Textures.resize(maxTextures);
 
@@ -84,13 +78,13 @@ namespace SmolEngine
 		m_MaterialMap.clear();
 	}
 
-	uint32_t MaterialLibrary::AddTexture(const TextureCreateInfo* info, uint32_t& useTetxure)
+	uint32_t MaterialLibrary::AddTexture(TextureCreateInfo* info, uint32_t& useTetxure)
 	{
 		uint32_t index = 0;
 		if (info->FilePath.empty() == false)
 		{
-			Texture* tex = new Texture();
-			Texture::Create(info, tex);
+			Ref<Texture> tex = Texture::Create();
+			tex->LoadFromFile(info);
 			{
 				std::lock_guard<std::mutex> lock(m_Mutex);
 
@@ -157,9 +151,9 @@ namespace SmolEngine
 		}
 	}
 
-	void MaterialLibrary::GetTextures(std::vector<Texture*>& out_textures) const
+	const std::vector<Ref<Texture>>& MaterialLibrary::GetTextures() const
 	{
-		out_textures = m_Textures;
+		return m_Textures;
 	}
 
 	void MaterialCreateInfo::SetMetalness(float value)

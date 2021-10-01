@@ -6,12 +6,12 @@
 #include "Backends/Vulkan/VulkanDevice.h"
 #include "Backends/Vulkan/VulkanMemoryAllocator.h"
 #include "Backends/Vulkan/VulkanCommandBuffer.h"
+#include "Backends/Vulkan/VulkanShader.h"
 
 #include "GraphicsContext.h"
 #include "Primitives/BufferLayout.h"
 #include "Primitives/VertexBuffer.h"
 #include "Primitives/IndexBuffer.h"
-#include "Primitives/Shader.h"
 
 #include "Multithreading/JobsSystemInstance.h"
 
@@ -162,12 +162,12 @@ namespace SmolEngine
 			VK_CHECK_RESULT(vkCreateFramebuffer(device, &framebufferCI, nullptr, &framebuffer));
 
 			// Shader
-			Shader shader = {};
+			Ref<Shader> shader = Shader::Create();
 			{
 				ShaderCreateInfo shaderCI;
 				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/GenBRDflut.frag";
 				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/GenBRDflut.vert";
-				Shader::Create(&shaderCI, &shader);
+				shader->Build(&shaderCI);
 			}
 
 			// Descriptors
@@ -221,8 +221,8 @@ namespace SmolEngine
 					pipelineLayoutCI.pNext = nullptr;
 					pipelineLayoutCI.setLayoutCount = 1;
 					pipelineLayoutCI.pSetLayouts = &descriptorsetlayout;
-					pipelineLayoutCI.pushConstantRangeCount = static_cast<uint32_t>(shader.GetVulkanShader()->m_VkPushConstantRanges.size());
-					pipelineLayoutCI.pPushConstantRanges = shader.GetVulkanShader()->m_VkPushConstantRanges.data();
+					pipelineLayoutCI.pushConstantRangeCount = static_cast<uint32_t>(shader->Cast<VulkanShader>()->m_VkPushConstantRanges.size());
+					pipelineLayoutCI.pPushConstantRanges = shader->Cast<VulkanShader>()->m_VkPushConstantRanges.data();
 
 					VK_CHECK_RESULT(vkCreatePipelineLayout(device, &pipelineLayoutCI, nullptr, &pipelinelayout));
 				}
@@ -284,8 +284,8 @@ namespace SmolEngine
 				VkPipelineVertexInputStateCreateInfo vertexInputState = {};
 				vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
-				pipelineCreateInfo.stageCount = static_cast<uint32_t>(shader.GetVulkanShader()->GetVkPipelineShaderStages().size());
-				pipelineCreateInfo.pStages = shader.GetVulkanShader()->GetVkPipelineShaderStages().data();
+				pipelineCreateInfo.stageCount = static_cast<uint32_t>(shader->Cast<VulkanShader>()->GetVkPipelineShaderStages().size());
+				pipelineCreateInfo.pStages = shader->Cast<VulkanShader>()->GetVkPipelineShaderStages().data();
 
 				// Assign the pipeline states to the pipeline creation info structure
 
@@ -640,13 +640,12 @@ namespace SmolEngine
 
 
 			// Shader
-			Shader shader = {};
+			Ref<Shader> shader = Shader::Create();
 			{
 				ShaderCreateInfo shaderCI;
 				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/IrradianceCube.frag";
 				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/FilterCube.vert";
-
-				Shader::Create(&shaderCI, &shader);
+				shader->Build(&shaderCI);
 			}
 
 			// Pipeline Layout
@@ -761,8 +760,8 @@ namespace SmolEngine
 				vertexInputState.vertexAttributeDescriptionCount = static_cast<uint32_t>(vertexInputAttributs.size());
 				vertexInputState.pVertexAttributeDescriptions = vertexInputAttributs.data();
 
-				pipelineCreateInfo.stageCount = static_cast<uint32_t>(shader.GetVulkanShader()->GetVkPipelineShaderStages().size());
-				pipelineCreateInfo.pStages = shader.GetVulkanShader()->GetVkPipelineShaderStages().data();
+				pipelineCreateInfo.stageCount = static_cast<uint32_t>(shader->Cast<VulkanShader>()->GetVkPipelineShaderStages().size());
+				pipelineCreateInfo.pStages = shader->Cast<VulkanShader>()->GetVkPipelineShaderStages().data();
 
 				// Assign the pipeline states to the pipeline creation info structure
 
@@ -1269,13 +1268,12 @@ namespace SmolEngine
 			} pushBlock;
 
 			// Shader
-			Shader shader = {};
+			Ref<Shader> shader = Shader::Create();
 			{
 				ShaderCreateInfo shaderCI;
 				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/PreFilterenvMap.frag";
 				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/FilterCube.vert";
-
-				Shader::Create(&shaderCI, &shader);
+				shader->Build(&shaderCI);
 			}
 
 			// Pipeline Layout
@@ -1390,8 +1388,8 @@ namespace SmolEngine
 				vertexInputState.vertexAttributeDescriptionCount = static_cast<uint32_t>(vertexInputAttributs.size());
 				vertexInputState.pVertexAttributeDescriptions = vertexInputAttributs.data();
 
-				pipelineCreateInfo.stageCount = static_cast<uint32_t>(shader.GetVulkanShader()->GetVkPipelineShaderStages().size());
-				pipelineCreateInfo.pStages = shader.GetVulkanShader()->GetVkPipelineShaderStages().data();
+				pipelineCreateInfo.stageCount = static_cast<uint32_t>(shader->Cast<VulkanShader>()->GetVkPipelineShaderStages().size());
+				pipelineCreateInfo.pStages = shader->Cast<VulkanShader>()->GetVkPipelineShaderStages().data();
 
 				// Assign the pipeline states to the pipeline creation info structure
 

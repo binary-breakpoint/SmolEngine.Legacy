@@ -2,19 +2,12 @@
 #include "Common/Common.h"
 #include "Common/Flags.h"
 
-#ifdef OPENGL_IMPL
-#include "Backends/OpenGL/OpenglShader.h"
-#else
-#include "Backends/Vulkan/VulkanShader.h"
-#endif
-
 #include <unordered_map>
 #include <string>
 #include <glm/glm.hpp>
 
 namespace SmolEngine
 {
-
 	enum class BufferType : uint16_t
 	{
 		Uniform,
@@ -87,31 +80,31 @@ namespace SmolEngine
 		std::unordered_map<uint32_t, ShaderBufferInfo>   BufferInfos;
 	};
 
-#ifdef  OPENGL_IMPL
-	class Shader : OpenglShader
-#else
-	class Shader: VulkanShader
-#endif
+	class Shader
 	{
 	public:
-		void                 Bind() const;
-		void                 UnBind() const;
-		bool                 Realod();
-#ifndef OPENGL_IMPL  				                
-		VulkanShader*        GetVulkanShader() { return dynamic_cast<VulkanShader*>(this); }
-#endif
-		static void          Create(ShaderCreateInfo* shaderCI, Shader* shader);
+		virtual bool           Build(ShaderCreateInfo* info) = 0;
+		virtual bool           Realod() = 0;
+		virtual void           Free() = 0;
+		const ReflectionData&  GetReflection() const;
+		ShaderCreateInfo&      GetCreateInfo();
+		static Ref<Shader>     Create();
 
 		template<typename T>
 		T* Cast() { return dynamic_cast<T*>(this); }
 
-	private:				 
-		void                 Reflect(const std::vector<uint32_t>& binaryData, ShaderType type);
+	private:	
+		bool                   BuildBase(ShaderCreateInfo* info);
+		void                   Reflect(const std::vector<uint32_t>& binaryData, ShaderType type);
 
 	private:
-		ShaderCreateInfo     m_CreateInfo{};
-		ReflectionData       m_ReflectData{};
+		ShaderCreateInfo       m_CreateInfo{};
+		ReflectionData         m_ReflectData{};
 
-		friend class GraphicsPipeline;
+		std::unordered_map<
+		ShaderType, 
+		std::vector<uint32_t>> m_Binary;
+
+		friend class VulkanShader;
 	};
 }

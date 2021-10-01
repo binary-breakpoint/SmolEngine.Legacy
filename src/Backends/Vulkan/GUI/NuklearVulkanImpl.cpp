@@ -32,7 +32,6 @@ namespace SmolEngine
 	{
 		nk_buffer cmds{};
 		nk_context ctx{};
-		Texture atlas_tex{};
 		nk_draw_null_texture null{};
 		nk_font_atlas atlas{};
 		struct nk_vec2 fb_scale;
@@ -44,6 +43,7 @@ namespace SmolEngine
 		unsigned int text[NK_GLFW_TEXT_MAX];
 		GLFWwindow* win = nullptr;
 		nk_font* font = nullptr;
+		Ref<Texture> atlas_tex = nullptr;
 	};
 
 	struct nk_glfw_vertex
@@ -85,17 +85,19 @@ namespace SmolEngine
 		free(str);
 	}
 
-	NK_INTERN void nk_glfw3_device_upload_atlas(const void* image, int width, int height, Texture* _tex)
+	NK_INTERN void nk_glfw3_device_upload_atlas(const void* image, int width, int height, Ref<Texture>& _tex)
 	{
-		auto& texture = *_tex;
-		texture = {};
+		_tex = Texture::Create();
 
-		auto vulkanTex = texture.GetVulkanTexture();
-		vulkanTex->SetFormat(VK_FORMAT_R8G8B8A8_UNORM);
+		auto vulkanTex = _tex->Cast<VulkanTexture>();
 		TextureCreateInfo ci = {};
-		vulkanTex->CreateTexture(static_cast<uint32_t>(width), static_cast<uint32_t>(height), 1, image, &ci);
+		ci.Width = width;
+		ci.Height = height;
+		ci.Mips = 1;
 
-		NuklearVulkanImpl::s_Instance->m_Pipeline.UpdateSampler(_tex, 1);
+		vulkanTex->LoadFromMemory(image, width * height * sizeof(float), &ci);
+
+		NuklearVulkanImpl::s_Instance->m_Pipeline->UpdateSampler(_tex, 1);
 	}
 
 	NK_API void nk_glfw3_mouse_button_callback(GLFWwindow* win, int button, int action, int mods)
@@ -216,7 +218,7 @@ namespace SmolEngine
 		const void* image; int w, h;
 		auto& info = NuklearVulkanImpl::s_Instance->m_Info;
 		image = nk_font_atlas_bake(&info->atlas, &w, &h, NK_FONT_ATLAS_RGBA32);
-		nk_glfw3_device_upload_atlas(image, w, h, &info->atlas_tex);
+		nk_glfw3_device_upload_atlas(image, w, h, info->atlas_tex);
 		nk_font_atlas_end(&info->atlas, nk_handle_ptr(&info->atlas_tex), &info->null);
 		if (info->atlas.default_font) {
 			nk_style_set_font(&info->ctx, &info->atlas.default_font->handle);
@@ -271,7 +273,7 @@ namespace SmolEngine
 		ortho[1][1] /= static_cast<float>(h);
 
 		NuklearVulkanImpl* inst = NuklearVulkanImpl::s_Instance;
-		GraphicsPipeline* pipeline = &inst->m_Pipeline;
+		Ref<GraphicsPipeline> pipeline = inst->m_Pipeline;
 		VulkanIndexBuffer* indexBuffer = &inst->m_IndexBuffer->GetVulkanIndexBuffer();
 		VulkanVertexBuffer* vertexBuffer = &inst->m_VertexBuffer->GetVulkanVertexBuffer();
 
@@ -318,7 +320,7 @@ namespace SmolEngine
 			vertexBuffer->UnMapMemory();
 			indexBuffer->UnMapMemory();
 
-			VkCommandBuffer cmdBuffer = pipeline->GetVkCommandBuffer();
+			VkCommandBuffer cmdBuffer = pipeline->Cast<VulkanPipeline>()->GetCommandBuffer();
 
 			// Set clear values for all framebuffer attachments with loadOp set to clear
 			// We use two attachments (color and depth) that are cleared at the start of the subpass and as such we need to set clear values for both
@@ -470,7 +472,7 @@ namespace SmolEngine
 
 		const void* image; int w, h;
 		image = nk_font_atlas_bake(&info->atlas, &w, &h, NK_FONT_ATLAS_RGBA32);
-		nk_glfw3_device_upload_atlas(image, w, h, &info->atlas_tex);
+		nk_glfw3_device_upload_atlas(image, w, h, info->atlas_tex);
 		nk_font_atlas_end(&info->atlas, nk_handle_ptr(&info->atlas_tex), &info->null);
 	}
 
@@ -513,10 +515,11 @@ namespace SmolEngine
 		pipelineCI.ShaderCreateInfo = shaderCI;
 		pipelineCI.TargetFramebuffers = { GraphicsContext::GetSingleton()->GetFramebuffer() };
 
-		assert(m_Pipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
+		m_Pipeline = GraphicsPipeline::Create();
+		assert(m_Pipeline->Build(&pipelineCI) == true);
 
-		m_Pipeline.SetVertexBuffers({m_VertexBuffer});
-		m_Pipeline.SetIndexBuffers({ m_IndexBuffer });
+		m_Pipeline->SetVertexBuffers({m_VertexBuffer});
+		m_Pipeline->SetIndexBuffers({ m_IndexBuffer });
 	}
 
 	void NuklearVulkanImpl::SetupBuffers()

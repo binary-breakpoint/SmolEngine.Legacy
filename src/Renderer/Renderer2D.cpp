@@ -1,10 +1,13 @@
 #include "stdafx.h"
 #include "Renderer/Renderer2D.h"
 
-#include "Primitives/GraphicsPipeline.h"
 #include "Primitives/Mesh.h"
-
 #include "Tools/Utils.h"
+
+#ifdef OPENGL_IMPL
+#else
+#include "Backends/Vulkan/VulkanPipeline.h"
+#endif
 
 #include <imgui/imgui.h>
 
@@ -18,7 +21,7 @@ namespace SmolEngine
 
 	void Renderer2DStorage::SetRenderTarget(Framebuffer* target)
 	{
-		MainPipeline.SetFramebuffers({ target });
+		MainPipeline->SetFramebuffers({ target });
 		MainFB = target;
 	}
 
@@ -66,7 +69,9 @@ namespace SmolEngine
 			pipelineCI.TargetFramebuffers = { MainFB };
 			pipelineCI.ShaderCreateInfo = shaderCI;
 
-			assert(MainPipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
+			MainPipeline = GraphicsPipeline::Create();
+			assert(MainPipeline->Build(&pipelineCI) == true);
+
 		}
 
 		Mesh::Create(path + "Models/plane.gltf", &PlaneMesh);
@@ -79,9 +84,9 @@ namespace SmolEngine
 
 	void Renderer2DStorage::UpdateUniforms(RendererDrawList2D* drawList)
 	{
-		MainPipeline.SubmitBuffer(SceneDataBP, sizeof(SceneViewProjection), drawList->SceneInfo);
-		MainPipeline.SubmitBuffer(InstancesBP, ShaderInstanceSize * drawList->InstIndex, drawList->ShaderInstances);
-		MainPipeline.UpdateSamplers(drawList->Textures, 0);
+		MainPipeline->SubmitBuffer(SceneDataBP, sizeof(SceneViewProjection), drawList->SceneInfo);
+		MainPipeline->SubmitBuffer(InstancesBP, ShaderInstanceSize * drawList->InstIndex, drawList->ShaderInstances);
+		MainPipeline->UpdateSamplers(drawList->Textures, 0);
 	}
 
 	void Renderer2D::DrawFrame(ClearInfo* clearInfo, Renderer2DStorage* storage, RendererDrawList2D* drawList, bool batch_cmd)
@@ -100,21 +105,21 @@ namespace SmolEngine
 	{
 		if (drawList->InstIndex > 0 || drawList->TextIndex > 0)
 		{
-			storage->MainPipeline.BeginRenderPass();
+			storage->MainPipeline->BeginRenderPass();
 			{
 				for (uint32_t i = 0; i < RendererDrawList2D::MaxLayers; ++i)
 				{
 					auto& cmd = drawList->CommandBuffer[i];
 					if (cmd.Instances > 0)
 					{
-						storage->MainPipeline.SubmitPushConstant(ShaderType::Vertex, sizeof(uint32_t), &cmd.DataOffset);
-						storage->MainPipeline.DrawMeshIndexed(&storage->PlaneMesh, cmd.Instances);
+						storage->MainPipeline->SubmitPushConstant(ShaderType::Vertex, sizeof(uint32_t), &cmd.DataOffset);
+						storage->MainPipeline->DrawMeshIndexed(&storage->PlaneMesh, cmd.Instances);
 
 						cmd.Reset();
 					}
 				}
 			}
-			storage->MainPipeline.EndRenderPass();
+			storage->MainPipeline->EndRenderPass();
 		}
 	}
 
@@ -122,9 +127,9 @@ namespace SmolEngine
 	{
 		if (clearInfo->bClear)
 		{
-			storage->MainPipeline.BeginRenderPass();
-			storage->MainPipeline.ClearColors(clearInfo->color);
-			storage->MainPipeline.EndRenderPass();
+			storage->MainPipeline->BeginRenderPass();
+			storage->MainPipeline->ClearColors(clearInfo->color);
+			storage->MainPipeline->EndRenderPass();
 		}
 	}
 
@@ -137,12 +142,12 @@ namespace SmolEngine
 	{
 		if (batch_cmd)
 		{
-			storage->MainPipeline.BeginCommandBuffer(batch_cmd);
+			storage->MainPipeline->BeginCommandBuffer(batch_cmd);
 			return;
 		}
 
 		VulkanCommandBuffer::CreateCommandBuffer(cmd);
-		storage->MainPipeline.SetCommandBuffer(cmd->Buffer);
+		storage->MainPipeline->Cast<VulkanPipeline>()->SetCommandBuffer(cmd->Buffer);
 	}
 
 	RendererDrawList2D::RendererDrawList2D()

@@ -20,6 +20,9 @@
 #include "Backends/OpenGL/OpenglRendererAPI.h"
 #else
 #include "Backends/Vulkan/VulkanPBR.h"
+#include "Backends/Vulkan/VulkanPipeline.h"
+#include "Backends/Vulkan/VulkanTexture.h"
+#include "Backends/Vulkan/VulkanComputePipeline.h"
 #endif
 
 namespace SmolEngine
@@ -32,14 +35,14 @@ namespace SmolEngine
 		else
 			VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
 
-		storage->p_Gbuffer.SetCommandBuffer(cmdStorage.Buffer);
-		storage->p_Lighting.SetCommandBuffer(cmdStorage.Buffer);
-		storage->p_Skybox.SetCommandBuffer(cmdStorage.Buffer);
-		storage->p_DepthPass.SetCommandBuffer(cmdStorage.Buffer);
-		storage->p_Debug.SetCommandBuffer(cmdStorage.Buffer);
-		storage->p_Grid.SetCommandBuffer(cmdStorage.Buffer);
-		storage->p_Combination.SetCommandBuffer(cmdStorage.Buffer);
-		storage->p_DOF.SetCommandBuffer(cmdStorage.Buffer);
+		storage->p_Gbuffer->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
+		storage->p_Lighting->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
+		storage->p_Skybox->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
+		storage->p_DepthPass->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
+		storage->p_Debug->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
+		storage->p_Grid->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
+		storage->p_Combination->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
+		storage->p_DOF->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
 
 		SubmitInfo submitInfo{};
 		submitInfo.pClearInfo = clearInfo;
@@ -72,20 +75,19 @@ namespace SmolEngine
 	void RendererStorage::SetRenderTarget(Framebuffer* target)
 	{
 		f_Main = target;
-		p_Combination.SetFramebuffers({ f_Main });
-		p_Debug.SetFramebuffers({ f_Main });
+		p_Combination->SetFramebuffers({ f_Main });
+		p_Debug->SetFramebuffers({ f_Main });
 	}
 
 	void RendererStorage::OnUpdateMaterials()
 	{
-		std::vector<Texture*> tetxures;
-		m_MaterialLibrary.GetTextures(tetxures);
-		p_Gbuffer.UpdateSamplers(tetxures, m_TexturesBinding);
+		auto& textures = m_MaterialLibrary.GetTextures();
+		p_Gbuffer->UpdateSamplers(textures, m_TexturesBinding);
 
 		void* data = nullptr;
 		uint32_t size = 0;
 		m_MaterialLibrary.GetMaterialsPtr(data, size);
-		p_Gbuffer.SubmitBuffer(m_MaterialsBinding, size, data);
+		p_Gbuffer->SubmitBuffer(m_MaterialsBinding, size, data);
 	}
 
 	void RendererStorage::SetDefaultState()
@@ -182,8 +184,9 @@ namespace SmolEngine
 				DynamicPipelineCI.TargetFramebuffers = { &f_GBuffer };
 			}
 
-			auto result = p_Gbuffer.Create(&DynamicPipelineCI);
-			assert(result == PipelineCreateResult::SUCCESS);
+			p_Gbuffer = GraphicsPipeline::Create();
+			auto result = p_Gbuffer->Build(&DynamicPipelineCI);
+			assert(result == true);
 		}
 
 		// Lighting
@@ -214,19 +217,20 @@ namespace SmolEngine
 				DynamicPipelineCI.TargetFramebuffers = { &f_Lighting };
 			}
 
-			auto result = p_Lighting.Create(&DynamicPipelineCI);
-			assert(result == PipelineCreateResult::SUCCESS);
+			p_Lighting = GraphicsPipeline::Create();
+			auto result = p_Lighting->Build(&DynamicPipelineCI);
+			assert(result == true);
 
-			p_Lighting.UpdateSampler(&f_Depth, 1, "Depth_Attachment");
+			p_Lighting->UpdateSampler(&f_Depth, 1, "Depth_Attachment");
 #ifndef OPENGL_IMPL
-			p_Lighting.UpdateVulkanImageDescriptor(2, m_VulkanPBR->GetIrradianceImageInfo());
-			p_Lighting.UpdateVulkanImageDescriptor(3, m_VulkanPBR->GetBRDFLUTImageInfo());
-			p_Lighting.UpdateVulkanImageDescriptor(4, m_VulkanPBR->GetPrefilteredCubeImageInfo());
+			p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(2, m_VulkanPBR->GetIrradianceImageInfo());
+			p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(3, m_VulkanPBR->GetBRDFLUTImageInfo());
+			p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(4, m_VulkanPBR->GetPrefilteredCubeImageInfo());
 #endif
-			p_Lighting.UpdateSampler(&f_GBuffer, 5, "albedro");
-			p_Lighting.UpdateSampler(&f_GBuffer, 6, "position");
-			p_Lighting.UpdateSampler(&f_GBuffer, 7, "normals");
-			p_Lighting.UpdateSampler(&f_GBuffer, 8, "materials");
+			p_Lighting->UpdateSampler(&f_GBuffer, 5, "albedro");
+			p_Lighting->UpdateSampler(&f_GBuffer, 6, "position");
+			p_Lighting->UpdateSampler(&f_GBuffer, 7, "normals");
+			p_Lighting->UpdateSampler(&f_GBuffer, 8, "materials");
 		}
 
 		JobsSystemInstance::BeginSubmition();
@@ -251,7 +255,10 @@ namespace SmolEngine
 					pipelineCI.bDepthWriteEnabled = false;
 					pipelineCI.TargetFramebuffers = { &f_GBuffer };
 					pipelineCI.ShaderCreateInfo = shaderCI;
-					assert(p_Grid.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
+
+					p_Grid = GraphicsPipeline::Create();
+					auto result = p_Grid->Build(&pipelineCI);
+					assert(result == true);
 				});
 
 			// Skybox
@@ -283,16 +290,16 @@ namespace SmolEngine
 						DynamicPipelineCI.TargetFramebuffers = { &f_GBuffer };
 					}
 
-					auto result = p_Skybox.Create(&DynamicPipelineCI);
-					assert(result == PipelineCreateResult::SUCCESS);
-#ifndef OPENGL_IMPL
+					p_Skybox = GraphicsPipeline::Create();
+					auto result = p_Skybox->Build(&DynamicPipelineCI);
+					assert(result == true);
+
 					auto map = m_EnvironmentMap->GetCubeMap();
-					p_Skybox.UpdateVulkanImageDescriptor(1,
-						map->GetTexture()->GetVulkanTexture()->GetVkDescriptorImageInfo());
-#endif
+					p_Skybox->UpdateSampler(map, 1);
+
 					Ref<VertexBuffer> skyBoxFB = std::make_shared<VertexBuffer>();
 					VertexBuffer::Create(skyBoxFB.get(), skyboxVertices, sizeof(skyboxVertices));
-					p_Skybox.SetVertexBuffers({ skyBoxFB });
+					p_Skybox->SetVertexBuffers({ skyBoxFB });
 				});
 
 
@@ -314,8 +321,9 @@ namespace SmolEngine
 						DynamicPipelineCI.bDepthBiasEnabled = true;
 						DynamicPipelineCI.StageCount = 1;
 
-						auto result = p_DepthPass.Create(&DynamicPipelineCI);
-						assert(result == PipelineCreateResult::SUCCESS);
+						p_DepthPass = GraphicsPipeline::Create();
+						auto result = p_DepthPass->Build(&DynamicPipelineCI);
+						assert(result == true);
 					}
 				});
 
@@ -352,10 +360,11 @@ namespace SmolEngine
 					DynamicPipelineCI.ShaderCreateInfo = shaderCI;
 					DynamicPipelineCI.PipelineName = "Combination";
 
-					auto result = p_Combination.Create(&DynamicPipelineCI);
-					assert(result == PipelineCreateResult::SUCCESS);
+					p_Combination = GraphicsPipeline::Create();
+					auto result = p_Combination->Build(&DynamicPipelineCI);
+					assert(result == true);
 
-					p_Combination.UpdateSampler(&f_Lighting, 0);
+					p_Combination->UpdateSampler(&f_Lighting, 0);
 				});
 
 			// Debug
@@ -371,14 +380,15 @@ namespace SmolEngine
 					DynamicPipelineCI.ShaderCreateInfo = shaderCI;
 					DynamicPipelineCI.PipelineName = "Debug";
 
-					auto result = p_Debug.Create(&DynamicPipelineCI);
-					assert(result == PipelineCreateResult::SUCCESS);
+					p_Debug = GraphicsPipeline::Create();
+					auto result = p_Debug->Build(&DynamicPipelineCI);
+					assert(result == true);
 
-					p_Debug.UpdateSampler(&f_Depth, 1, "Depth_Attachment");
-					p_Debug.UpdateSampler(&f_GBuffer, 5, "albedro");
-					p_Debug.UpdateSampler(&f_GBuffer, 6, "position");
-					p_Debug.UpdateSampler(&f_GBuffer, 7, "normals");
-					p_Debug.UpdateSampler(&f_GBuffer, 8, "materials");
+					p_Debug->UpdateSampler(&f_Depth, 1, "Depth_Attachment");
+					p_Debug->UpdateSampler(&f_GBuffer, 5, "albedro");
+					p_Debug->UpdateSampler(&f_GBuffer, 6, "position");
+					p_Debug->UpdateSampler(&f_GBuffer, 7, "normals");
+					p_Debug->UpdateSampler(&f_GBuffer, 8, "materials");
 				});
 
 			//Bloom
@@ -387,7 +397,10 @@ namespace SmolEngine
 					ComputePipelineCreateInfo compCI = {};
 					compCI.ShaderPath = path + "Shaders/Bloom.comp";
 					compCI.DescriptorCount = 24;
-					p_Bloom.Create(&compCI);
+
+					p_Bloom = ComputePipeline::Create();
+					auto result = p_Bloom->Build(&compCI);
+					assert(result == true);
 
 					auto& spec = f_Main->GetSpecification();
 					uint32_t workgroupSize = 4;
@@ -397,15 +410,20 @@ namespace SmolEngine
 					viewportWidth += (workgroupSize - (viewportWidth % workgroupSize));
 					viewportHeight += (workgroupSize - (viewportHeight % workgroupSize));
 
-					TextureCreateInfo TexCI{};
-					TexCI.eFormat = TextureFormat::R32G32B32A32_SFLOAT;
-					TexCI.eAddressMode = AddressMode::CLAMP_TO_EDGE;
-					TexCI.bIsStorage = true;
-					TexCI.bAnisotropyEnable = false;
+					TextureCreateInfo texCI{};
+					texCI.eFormat = TextureFormat::R32G32B32A32_SFLOAT;
+					texCI.eAddressMode = AddressMode::CLAMP_TO_EDGE;
+					texCI.bAnisotropyEnable = false;
+					texCI.Width = viewportWidth;
+					texCI.Height = viewportHeight;
 
 					m_BloomTex.resize(3);
-					for(auto& tex: m_BloomTex)
-						tex.GetVulkanTexture()->GenTexture(viewportWidth, viewportHeight, &TexCI);
+
+					for (auto& tex : m_BloomTex)
+					{
+						tex = Texture::Create();
+						tex->LoadAsStorage(&texCI);
+					}
 				});
 
 		}
@@ -598,19 +616,19 @@ namespace SmolEngine
 			// Updates Scene Data
 			JobsSystemInstance::Schedule([&]()
 				{
-					p_Gbuffer.SubmitBuffer(m_SceneDataBinding, sizeof(SceneViewProjection), drawList->m_SceneInfo);
+					p_Gbuffer->SubmitBuffer(m_SceneDataBinding, sizeof(SceneViewProjection), drawList->m_SceneInfo);
 				});
 
 			// Updates Lighting State
 			JobsSystemInstance::Schedule([&]()
 				{
-					p_Lighting.SubmitBuffer(m_LightingStateBinding, sizeof(IBLProperties), &m_State.IBL);
+					p_Lighting->SubmitBuffer(m_LightingStateBinding, sizeof(IBLProperties), &m_State.IBL);
 				});
 
 			// Updates Bloom State
 			JobsSystemInstance::Schedule([&]()
 				{
-					p_Lighting.SubmitBuffer(m_BloomStateBinding, sizeof(BloomProperties), &m_State.Bloom);
+					p_Lighting->SubmitBuffer(m_BloomStateBinding, sizeof(BloomProperties), &m_State.Bloom);
 				});
 
 			// Updates FXAA State
@@ -619,13 +637,13 @@ namespace SmolEngine
 					float width = 1.0f / static_cast<float>(target->GetSpecification().Width);
 					float height = 1.0f / static_cast<float>(target->GetSpecification().Height);
 					m_State.FXAA.InverseScreenSize = glm::vec2(width, height);
-					p_Combination.SubmitBuffer(m_FXAAStateBinding, sizeof(FXAAProperties), &m_State.FXAA);
+					p_Combination->SubmitBuffer(m_FXAAStateBinding, sizeof(FXAAProperties), &m_State.FXAA);
 				});
 
 			// Updates Directional Lights
 			JobsSystemInstance::Schedule([&]()
 				{
-					p_Lighting.SubmitBuffer(m_DirLightBinding, sizeof(DirectionalLight), &drawList->m_DirLight);
+					p_Lighting->SubmitBuffer(m_DirLightBinding, sizeof(DirectionalLight), &drawList->m_DirLight);
 				});
 
 			// Updates Point Lights
@@ -633,7 +651,7 @@ namespace SmolEngine
 				{
 					if (drawList->m_PointLightIndex > 0)
 					{
-						p_Lighting.SubmitBuffer(m_PointLightBinding,
+						p_Lighting->SubmitBuffer(m_PointLightBinding,
 							sizeof(PointLight) * drawList->m_PointLightIndex, drawList->m_PointLights.data());
 					}
 				});
@@ -643,7 +661,7 @@ namespace SmolEngine
 				{
 					if (drawList->m_SpotLightIndex > 0)
 					{
-						p_Lighting.SubmitBuffer(m_SpotLightBinding,
+						p_Lighting->SubmitBuffer(m_SpotLightBinding,
 							sizeof(SpotLight) * drawList->m_SpotLightIndex, drawList->m_SpotLights.data());
 					}
 				});
@@ -653,7 +671,7 @@ namespace SmolEngine
 				{
 					if (drawList->m_LastAnimationOffset > 0)
 					{
-						p_Gbuffer.SubmitBuffer(m_AnimBinding,
+						p_Gbuffer->SubmitBuffer(m_AnimBinding,
 							sizeof(glm::mat4) * drawList->m_LastAnimationOffset, drawList->m_AnimationJoints.data());
 					}
 				});
@@ -663,7 +681,7 @@ namespace SmolEngine
 				{
 					if (drawList->m_InstanceDataIndex > 0)
 					{
-						p_Gbuffer.SubmitBuffer(m_ShaderDataBinding,
+						p_Gbuffer->SubmitBuffer(m_ShaderDataBinding,
 							sizeof(InstanceData) * drawList->m_InstanceDataIndex, drawList->m_InstancesData.data());
 					}
 				});
@@ -681,30 +699,30 @@ namespace SmolEngine
 		{
 			m_EnvironmentMap->GenerateDynamic(proj);
 
-			CubeMap* cubeMap = m_EnvironmentMap->GetCubeMap();
+			auto cubeMap = m_EnvironmentMap->GetCubeMap();
 			m_VulkanPBR->GeneratePBRCubeMaps(cubeMap);
 
 			// Update Descriptors
-			p_Lighting.UpdateVulkanImageDescriptor(2, m_VulkanPBR->GetIrradianceImageInfo());
-			p_Lighting.UpdateVulkanImageDescriptor(3, m_VulkanPBR->GetBRDFLUTImageInfo());
-			p_Lighting.UpdateVulkanImageDescriptor(4, m_VulkanPBR->GetPrefilteredCubeImageInfo());
-			p_Skybox.UpdateVulkanImageDescriptor(1, cubeMap->GetTexture()->GetVulkanTexture()->GetVkDescriptorImageInfo());
+			p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(2, m_VulkanPBR->GetIrradianceImageInfo());
+			p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(3, m_VulkanPBR->GetBRDFLUTImageInfo());
+			p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(4, m_VulkanPBR->GetPrefilteredCubeImageInfo());
+			p_Skybox->UpdateSampler(cubeMap, 1);
 		}
 		else
 			m_EnvironmentMap->UpdateDescriptors();
 	}
 
-	void RendererStorage::SetStaticSkybox(CubeMap* cube)
+	void RendererStorage::SetStaticSkybox(Ref<Texture>& skybox)
 	{
-		m_EnvironmentMap->GenerateStatic(cube);
-		CubeMap* cubeMap = m_EnvironmentMap->GetCubeMap();
+		m_EnvironmentMap->GenerateStatic(skybox);
+		auto cubeMap = m_EnvironmentMap->GetCubeMap();
 		m_VulkanPBR->GeneratePBRCubeMaps(cubeMap);
 
 		// Update Descriptors
-		p_Lighting.UpdateVulkanImageDescriptor(2, m_VulkanPBR->GetIrradianceImageInfo());
-		p_Lighting.UpdateVulkanImageDescriptor(3, m_VulkanPBR->GetBRDFLUTImageInfo());
-		p_Lighting.UpdateVulkanImageDescriptor(4, m_VulkanPBR->GetPrefilteredCubeImageInfo());
-		p_Skybox.UpdateVulkanImageDescriptor(1, cubeMap->GetTexture()->GetVulkanTexture()->GetVkDescriptorImageInfo());
+		p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(2, m_VulkanPBR->GetIrradianceImageInfo());
+		p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(3, m_VulkanPBR->GetBRDFLUTImageInfo());
+		p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(4, m_VulkanPBR->GetPrefilteredCubeImageInfo());
+		p_Skybox->UpdateSampler(cubeMap, 1);
 	}
 
 	RendererStateEX& RendererStorage::GetState()
@@ -724,19 +742,19 @@ namespace SmolEngine
 
 		{
 			// Lighting pipeline
-			p_Lighting.UpdateSampler(&f_GBuffer, 5, "albedro");
-			p_Lighting.UpdateSampler(&f_GBuffer, 6, "position");
-			p_Lighting.UpdateSampler(&f_GBuffer, 7, "normals");
-			p_Lighting.UpdateSampler(&f_GBuffer, 8, "materials");
+			p_Lighting->UpdateSampler(&f_GBuffer, 5, "albedro");
+			p_Lighting->UpdateSampler(&f_GBuffer, 6, "position");
+			p_Lighting->UpdateSampler(&f_GBuffer, 7, "normals");
+			p_Lighting->UpdateSampler(&f_GBuffer, 8, "materials");
 			// Debug view pipeline
-			p_Debug.UpdateSampler(&f_Depth, 1, "Depth_Attachment");
-			p_Debug.UpdateSampler(&f_GBuffer, 5, "albedro");
-			p_Debug.UpdateSampler(&f_GBuffer, 6, "position");
-			p_Debug.UpdateSampler(&f_GBuffer, 7, "normals");
-			p_Debug.UpdateSampler(&f_GBuffer, 8, "materials");
+			p_Debug->UpdateSampler(&f_Depth, 1, "Depth_Attachment");
+			p_Debug->UpdateSampler(&f_GBuffer, 5, "albedro");
+			p_Debug->UpdateSampler(&f_GBuffer, 6, "position");
+			p_Debug->UpdateSampler(&f_GBuffer, 7, "normals");
+			p_Debug->UpdateSampler(&f_GBuffer, 8, "materials");
 
 			// Combination
-			p_Combination.UpdateSampler(&f_Lighting, 0);
+			p_Combination->UpdateSampler(&f_Lighting, 0);
 
 			//// FOV
 			// f_DOF.OnResize(width, height);
@@ -751,18 +769,20 @@ namespace SmolEngine
 				viewportWidth += (m_BloomComputeWorkgroupSize - (viewportWidth % m_BloomComputeWorkgroupSize));
 				viewportHeight += (m_BloomComputeWorkgroupSize - (viewportHeight % m_BloomComputeWorkgroupSize));
 
-				TextureCreateInfo TexCI{};
-				TexCI.eFormat = TextureFormat::R32G32B32A32_SFLOAT;
-				TexCI.eAddressMode = AddressMode::CLAMP_TO_EDGE;
-				TexCI.bIsStorage = true;
-				TexCI.bAnisotropyEnable = false;
+				TextureCreateInfo texCI{};
+				texCI.eFormat = TextureFormat::R32G32B32A32_SFLOAT;
+				texCI.eAddressMode = AddressMode::CLAMP_TO_EDGE;
+				texCI.bAnisotropyEnable = false;
+				texCI.Width = viewportWidth;
+				texCI.Height = viewportHeight;
 
 				m_BloomTex.clear();
 				m_BloomTex.resize(3);
+
 				for (auto& tex : m_BloomTex)
 				{
-					auto vkTex = tex.GetVulkanTexture();
-					vkTex->GenTexture(viewportWidth, viewportHeight, &TexCI);
+					tex = Texture::Create();
+					tex->LoadAsStorage(&texCI);
 				}
 			}
 		}
@@ -874,21 +894,21 @@ namespace SmolEngine
 		auto drawList = info->pDrawList;
 		auto storage = info->pStorage;
 
-		storage->p_Gbuffer.BeginRenderPass();
+		storage->p_Gbuffer->BeginRenderPass();
 		{
 			// SkyBox
 			if (storage->m_State.bDrawSkyBox)
 			{
 				uint32_t state = storage->m_EnvironmentMap->IsDynamic();
-				storage->p_Skybox.SubmitPushConstant(ShaderType::Fragment, sizeof(uint32_t), &state);
-				storage->p_Skybox.Draw(36);
+				storage->p_Skybox->SubmitPushConstant(ShaderType::Fragment, sizeof(uint32_t), &state);
+				storage->p_Skybox->Draw(36);
 			}
 
 			// Grid
 			if (storage->m_State.bDrawGrid)
 			{
-				storage->p_Grid.SubmitPushConstant(ShaderType::Vertex, sizeof(glm::mat4), &storage->m_GridModel);
-				storage->p_Grid.DrawMeshIndexed(&storage->m_PlaneMesh);
+				storage->p_Grid->SubmitPushConstant(ShaderType::Vertex, sizeof(glm::mat4), &storage->m_GridModel);
+				storage->p_Grid->DrawMeshIndexed(&storage->m_PlaneMesh);
 			}
 
 			uint32_t cmdCount = static_cast<uint32_t>(drawList->m_UsedMeshes.size());
@@ -896,11 +916,11 @@ namespace SmolEngine
 			{
 				auto& cmd = drawList->m_DrawList[i];
 
-				storage->p_Gbuffer.SubmitPushConstant(ShaderType::Vertex, sizeof(uint32_t), &cmd.Offset);
-				storage->p_Gbuffer.DrawMeshIndexed(cmd.Mesh, cmd.InstancesCount);
+				storage->p_Gbuffer->SubmitPushConstant(ShaderType::Vertex, sizeof(uint32_t), &cmd.Offset);
+				storage->p_Gbuffer->DrawMeshIndexed(cmd.Mesh, cmd.InstancesCount);
 			}
 		}
-		storage->p_Gbuffer.EndRenderPass();
+		storage->p_Gbuffer->EndRenderPass();
 	}
 
 	void RendererDeferred::LightingPass(SubmitInfo* info)
@@ -908,7 +928,7 @@ namespace SmolEngine
 		auto drawList = info->pDrawList;
 		auto storage = info->pStorage;
 
-		storage->p_Lighting.BeginRenderPass();
+		storage->p_Lighting->BeginRenderPass();
 		{
 			struct push_constant
 			{
@@ -921,10 +941,10 @@ namespace SmolEngine
 			light_pc.numPointLights = drawList->m_PointLightIndex;
 			light_pc.numSpotLights = drawList->m_SpotLightIndex;
 			light_pc.lightSpace = info->pDrawList->m_DepthMVP;
-			storage->p_Lighting.SubmitPushConstant(ShaderType::Fragment, sizeof(push_constant), &light_pc);
-			storage->p_Lighting.Draw(3);
+			storage->p_Lighting->SubmitPushConstant(ShaderType::Fragment, sizeof(push_constant), &light_pc);
+			storage->p_Lighting->Draw(3);
 		}
-		storage->p_Lighting.EndRenderPass();
+		storage->p_Lighting->EndRenderPass();
 	}
 
 	void RendererDeferred::DepthPass(SubmitInfo* info)
@@ -944,9 +964,9 @@ namespace SmolEngine
 		if (drawList->m_DirLight.IsActive && drawList->m_DirLight.IsCastShadows)
 		{
 #ifndef OPENGL_IMPL
-			VkCommandBuffer cmdBuffer = storage->p_DepthPass.GetVkCommandBuffer();
+			VkCommandBuffer cmdBuffer = storage->p_DepthPass->Cast<VulkanPipeline>()->GetCommandBuffer();
 #endif
-			storage->p_DepthPass.BeginRenderPass();
+			storage->p_DepthPass->BeginRenderPass();
 			{
 #ifndef OPENGL_IMPL
 				// Set depth bias (aka "Polygon offset")
@@ -959,11 +979,11 @@ namespace SmolEngine
 					auto& cmd = drawList->m_DrawList[i];
 					pushConstant.DataOffset = cmd.Offset;
 
-					storage->p_DepthPass.SubmitPushConstant(ShaderType::Vertex, sizeof(PushConstant), &pushConstant);
-					storage->p_DepthPass.DrawMeshIndexed(cmd.Mesh, cmd.InstancesCount);
+					storage->p_DepthPass->SubmitPushConstant(ShaderType::Vertex, sizeof(PushConstant), &pushConstant);
+					storage->p_DepthPass->DrawMeshIndexed(cmd.Mesh, cmd.InstancesCount);
 				}
 			}
-			storage->p_DepthPass.EndRenderPass();
+			storage->p_DepthPass->EndRenderPass();
 		}
 	}
 
@@ -978,21 +998,21 @@ namespace SmolEngine
 		auto& bloomTex = storage->m_BloomTex;
 		auto& settings = storage->m_State.Bloom;
 
-		auto TEXTURE_STORAGE_SET = [&](Texture* tex, uint32_t mip = 0, uint32_t binding = 0) 
+		auto TEXTURE_STORAGE_SET = [&](Ref<Texture>& tex, uint32_t mip = 0, uint32_t binding = 0) 
 		{
-			auto descriptor = tex->GetVulkanTexture()->GetMipImageView(mip);
-			storage->p_Bloom.GeDescriptor(descriptorIndex).UpdateImageResource(binding, descriptor, binding == 0 ? true : false);
+			auto descriptor = tex->Cast<VulkanTexture>()->GetMipImageView(mip);
+			storage->p_Bloom->Cast<VulkanComputePipeline>()->GeDescriptor(descriptorIndex).UpdateImageResource(binding, descriptor, binding == 0 ? true : false);
 		};
 
-		auto TEXTURE_SET_SCENE = [&](Texture* tex)
+		auto TEXTURE_SET_SCENE = [&](Ref<Texture>& tex)
 		{
-			storage->p_Bloom.GeDescriptor(descriptorIndex).Update2DSamplers({ tex }, 1);
+			storage->p_Bloom->Cast<VulkanComputePipeline>()->GeDescriptor(descriptorIndex).Update2DSamplers({ tex }, 1);
 		};
 
 		const auto TEXTURE_BLOOM_SET_FROM_SECENE = [&](uint32_t binding = 2)
 		{
 			const auto& descriptor = storage->f_Lighting.GetVulkanFramebuffer().GetAttachment(0)->ImageInfo;
-			storage->p_Bloom.GeDescriptor(descriptorIndex).UpdateImageResource(binding, descriptor);
+			storage->p_Bloom->Cast<VulkanComputePipeline>()->GeDescriptor(descriptorIndex).UpdateImageResource(binding, descriptor);
 		};
 
 		struct BloomComputePushConstants
@@ -1006,25 +1026,25 @@ namespace SmolEngine
 
 		uint32_t workGroupsX = 0, workGroupsY = 0;
 
-		storage->p_Bloom.BeginCompute(info->pCmdStorage);
+		storage->p_Bloom->BeginCompute(info->pCmdStorage);
 		{
 			// Prefilter
 			{
-				TEXTURE_STORAGE_SET(&bloomTex[0]);
+				TEXTURE_STORAGE_SET(bloomTex[0]);
 				TEXTURE_BLOOM_SET_FROM_SECENE(1);
 
-				workGroupsX = bloomTex[0].GetInfo().Width / storage->m_BloomComputeWorkgroupSize;
-				workGroupsY = bloomTex[0].GetInfo().Height / storage->m_BloomComputeWorkgroupSize;
+				workGroupsX = bloomTex[0]->GetInfo().Width / storage->m_BloomComputeWorkgroupSize;
+				workGroupsY = bloomTex[0]->GetInfo().Height / storage->m_BloomComputeWorkgroupSize;
 
-				storage->p_Bloom.SubmitPushConstant(sizeof(bloomComputePushConstants), &bloomComputePushConstants);
-				storage->p_Bloom.Dispatch(workGroupsX, workGroupsY, 1, descriptorIndex);
+				storage->p_Bloom->SubmitPushConstant(sizeof(bloomComputePushConstants), &bloomComputePushConstants);
+				storage->p_Bloom->Dispatch(workGroupsX, workGroupsY, 1, descriptorIndex);
 
 				VkImageMemoryBarrier imageMemoryBarrier = {};
 				imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 				imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
 				imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
-				imageMemoryBarrier.image = bloomTex[0].GetVulkanTexture()->GetVkImage();
-				imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, bloomTex[0].GetVulkanTexture()->GetMips(), 0, 1 };
+				imageMemoryBarrier.image = bloomTex[0]->Cast<VulkanTexture>()->GetVkImage();
+				imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, bloomTex[0]->GetMips(), 0, 1 };
 				imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
 				imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
@@ -1040,30 +1060,30 @@ namespace SmolEngine
 
 			// Downsample
 			bloomComputePushConstants.Mode = 1;
-			uint32_t mips = storage->m_BloomTex[0].GetVulkanTexture()->GetMips() - 2;
+			uint32_t mips = storage->m_BloomTex[0]->GetMips() - 2;
 			for (uint32_t i = 1; i < mips; i++)
 			{
 				descriptorIndex++;
-				auto [mipWidth, mipHeight] = bloomTex[0].GetVulkanTexture()->GetMipSize(i);
+				auto [mipWidth, mipHeight] = bloomTex[0]->GetMipSize(i);
 
 				workGroupsX = (uint32_t)glm::ceil((float)mipWidth / (float)storage->m_BloomComputeWorkgroupSize);
 				workGroupsY = (uint32_t)glm::ceil((float)mipHeight / (float)storage->m_BloomComputeWorkgroupSize);
 
-				TEXTURE_STORAGE_SET(&bloomTex[1], i);
-				TEXTURE_SET_SCENE(&bloomTex[0]);
+				TEXTURE_STORAGE_SET(bloomTex[1], i);
+				TEXTURE_SET_SCENE(bloomTex[0]);
 				TEXTURE_BLOOM_SET_FROM_SECENE();
 
 				bloomComputePushConstants.LOD = i - 1.0f;
-				storage->p_Bloom.SubmitPushConstant(sizeof(bloomComputePushConstants), &bloomComputePushConstants);
-				storage->p_Bloom.Dispatch(workGroupsX, workGroupsY, 1, descriptorIndex);
+				storage->p_Bloom->SubmitPushConstant(sizeof(bloomComputePushConstants), &bloomComputePushConstants);
+				storage->p_Bloom->Dispatch(workGroupsX, workGroupsY, 1, descriptorIndex);
 
 				{
 					VkImageMemoryBarrier imageMemoryBarrier = {};
 					imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 					imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
 					imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
-					imageMemoryBarrier.image = bloomTex[1].GetVulkanTexture()->GetVkImage();
-					imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, bloomTex[1].GetVulkanTexture()->GetMips(), 0, 1 };
+					imageMemoryBarrier.image = bloomTex[1]->Cast<VulkanTexture>()->GetVkImage();
+					imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, bloomTex[1]->GetMips(), 0, 1 };
 					imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
 					imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 					vkCmdPipelineBarrier(
@@ -1078,20 +1098,20 @@ namespace SmolEngine
 
 				descriptorIndex++;
 
-				TEXTURE_STORAGE_SET(&bloomTex[0], i);
-				TEXTURE_SET_SCENE(&bloomTex[1]);
+				TEXTURE_STORAGE_SET(bloomTex[0], i);
+				TEXTURE_SET_SCENE(bloomTex[1]);
 				TEXTURE_BLOOM_SET_FROM_SECENE();
 
 				bloomComputePushConstants.LOD = (float)i;
-				storage->p_Bloom.SubmitPushConstant(sizeof(bloomComputePushConstants), &bloomComputePushConstants);
-				storage->p_Bloom.Dispatch(workGroupsX, workGroupsY, 1, descriptorIndex);
+				storage->p_Bloom->SubmitPushConstant(sizeof(bloomComputePushConstants), &bloomComputePushConstants);
+				storage->p_Bloom->Dispatch(workGroupsX, workGroupsY, 1, descriptorIndex);
 
 				VkImageMemoryBarrier imageMemoryBarrier = {};
 				imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 				imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
 				imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
-				imageMemoryBarrier.image = bloomTex[0].GetVulkanTexture()->GetVkImage();
-				imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, bloomTex[0].GetVulkanTexture()->GetMips(), 0, 1 };
+				imageMemoryBarrier.image = bloomTex[0]->Cast<VulkanTexture>()->GetVkImage();
+				imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, bloomTex[0]->GetMips(), 0, 1 };
 				imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
 				imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 				vkCmdPipelineBarrier(
@@ -1112,25 +1132,25 @@ namespace SmolEngine
 				workGroupsX *= 2;
 				workGroupsY *= 2;
 
-				TEXTURE_STORAGE_SET(&bloomTex[2], mips - 2);
-				TEXTURE_SET_SCENE(&bloomTex[0]);
+				TEXTURE_STORAGE_SET(bloomTex[2], mips - 2);
+				TEXTURE_SET_SCENE(bloomTex[0]);
 				TEXTURE_BLOOM_SET_FROM_SECENE();
 
 				bloomComputePushConstants.LOD--;
-				storage->p_Bloom.SubmitPushConstant(sizeof(bloomComputePushConstants), &bloomComputePushConstants);
+				storage->p_Bloom->SubmitPushConstant(sizeof(bloomComputePushConstants), &bloomComputePushConstants);
 
-				auto [mipWidth, mipHeight] = bloomTex[2].GetVulkanTexture()->GetMipSize(mips - 2);
+				auto [mipWidth, mipHeight] = bloomTex[2]->GetMipSize(mips - 2);
 				workGroupsX = (uint32_t)glm::ceil((float)mipWidth / (float)storage->m_BloomComputeWorkgroupSize);
 				workGroupsY = (uint32_t)glm::ceil((float)mipHeight / (float)storage->m_BloomComputeWorkgroupSize);
 
-				storage->p_Bloom.Dispatch(workGroupsX, workGroupsY, 1, descriptorIndex);
+				storage->p_Bloom->Dispatch(workGroupsX, workGroupsY, 1, descriptorIndex);
 
 				VkImageMemoryBarrier imageMemoryBarrier = {};
 				imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 				imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
 				imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
-				imageMemoryBarrier.image = bloomTex[2].GetVulkanTexture()->GetVkImage();
-				imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0,   bloomTex[2].GetVulkanTexture()->GetMips(), 0, 1 };
+				imageMemoryBarrier.image = bloomTex[2]->Cast<VulkanTexture>()->GetVkImage();
+				imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0,   bloomTex[2]->GetMips(), 0, 1 };
 				imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
 				imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 				vkCmdPipelineBarrier(
@@ -1148,24 +1168,24 @@ namespace SmolEngine
 			bloomComputePushConstants.Mode = 3;
 			for (int32_t mip = mips - 3; mip >= 0; mip--)
 			{
-				auto [mipWidth, mipHeight] = bloomTex[2].GetVulkanTexture()->GetMipSize(mip);
+				auto [mipWidth, mipHeight] = bloomTex[2]->GetMipSize(mip);
 				workGroupsX = (uint32_t)glm::ceil((float)mipWidth / (float)storage->m_BloomComputeWorkgroupSize);
 				workGroupsY = (uint32_t)glm::ceil((float)mipHeight / (float)storage->m_BloomComputeWorkgroupSize);
 
-				TEXTURE_STORAGE_SET(&bloomTex[2], mip);
-				TEXTURE_SET_SCENE(&bloomTex[0]);
-				storage->p_Bloom.GeDescriptor(descriptorIndex).Update2DSamplers({ &bloomTex[2] }, 2, false);
+				TEXTURE_STORAGE_SET(bloomTex[2], mip);
+				TEXTURE_SET_SCENE(bloomTex[0]);
+				storage->p_Bloom->Cast<VulkanComputePipeline>()->GeDescriptor(descriptorIndex).Update2DSamplers({ bloomTex[2] }, 2, false);
 
 				bloomComputePushConstants.LOD = (float)mip;
-				storage->p_Bloom.SubmitPushConstant(sizeof(bloomComputePushConstants), &bloomComputePushConstants);
-				storage->p_Bloom.Dispatch(workGroupsX, workGroupsY, 1, descriptorIndex);
+				storage->p_Bloom->SubmitPushConstant(sizeof(bloomComputePushConstants), &bloomComputePushConstants);
+				storage->p_Bloom->Dispatch(workGroupsX, workGroupsY, 1, descriptorIndex);
 
 				VkImageMemoryBarrier imageMemoryBarrier = {};
 				imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 				imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
 				imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
-				imageMemoryBarrier.image = bloomTex[2].GetVulkanTexture()->GetVkImage();
-				imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, bloomTex[2].GetVulkanTexture()->GetMips(), 0, 1 };
+				imageMemoryBarrier.image = bloomTex[2]->Cast<VulkanTexture>()->GetVkImage();
+				imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, bloomTex[2]->GetMips(), 0, 1 };
 				imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
 				imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 				vkCmdPipelineBarrier(
@@ -1189,13 +1209,13 @@ namespace SmolEngine
 		// Debug View
 		if (storage->m_State.eDebugView != DebugViewFlags::None)
 		{
-			storage->p_Debug.BeginRenderPass();
+			storage->p_Debug->BeginRenderPass();
 			{
 				uint32_t state = (uint32_t)storage->m_State.eDebugView;
-				storage->p_Debug.SubmitPushConstant(ShaderType::Fragment, sizeof(uint32_t), &state);
-				storage->p_Debug.Draw(3);
+				storage->p_Debug->SubmitPushConstant(ShaderType::Fragment, sizeof(uint32_t), &state);
+				storage->p_Debug->Draw(3);
 			}
-			storage->p_Debug.EndRenderPass();
+			storage->p_Debug->EndRenderPass();
 			return true;
 		}
 
@@ -1218,23 +1238,23 @@ namespace SmolEngine
 		if (storage->m_State.Bloom.Enabled)
 		{
 			push_constant.state = 1;
-			storage->p_Combination.UpdateSampler(&storage->m_BloomTex[2], 1);
+			storage->p_Combination->UpdateSampler(storage->m_BloomTex[2], 1);
 		}
 
 		if (info->pClearInfo->bClear)
 		{
-			storage->p_Combination.BeginRenderPass();
-			storage->p_Combination.ClearColors(info->pClearInfo->color);
-			storage->p_Combination.EndRenderPass();
+			storage->p_Combination->BeginRenderPass();
+			storage->p_Combination->ClearColors(info->pClearInfo->color);
+			storage->p_Combination->EndRenderPass();
 		}
 
-		storage->p_Combination.BeginRenderPass();
+		storage->p_Combination->BeginRenderPass();
 		{
 
-			storage->p_Combination.SubmitPushConstant(ShaderType::Fragment, sizeof(push_constant), &push_constant);
-			storage->p_Combination.Draw(3);
+			storage->p_Combination->SubmitPushConstant(ShaderType::Fragment, sizeof(push_constant), &push_constant);
+			storage->p_Combination->Draw(3);
 		}
-		storage->p_Combination.EndRenderPass();
+		storage->p_Combination->EndRenderPass();
 	}
 
 	void RendererDeferred::UpdateUniforms(SubmitInfo* info)

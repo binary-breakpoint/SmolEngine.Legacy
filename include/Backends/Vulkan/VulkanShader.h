@@ -3,6 +3,7 @@
 
 #include "Backends/Vulkan/Vulkan.h"
 #include "Backends/Vulkan/VulkanDescriptor.h"
+#include "Primitives/Shader.h"
 
 #include <string>
 #include <unordered_map>
@@ -10,29 +11,22 @@
 
 namespace SmolEngine
 {
-	struct ReflectionData;
-	struct ShaderCreateInfo;
-	enum class ShaderType : int;
-
-	class VulkanShader
+	class VulkanShader: public Shader
 	{
-	public:										         
-		bool                                                     Init(std::unordered_map<ShaderType, std::vector<uint32_t>>& binary, ReflectionData* reflectData, ShaderCreateInfo* createInfo);
-		void                                                     Clean();									         
-		std::vector<VkPipelineShaderStageCreateInfo>&            GetVkPipelineShaderStages();
-		static VkShaderStageFlagBits                             GetVkShaderStage(ShaderType type);
-														         
-	private:											         
+	public:							
+		bool                                                     Build(ShaderCreateInfo* info) override;
+		bool                                                     Realod() override;
+		void                                                     Free() override;
+							         
+		std::vector<VkPipelineShaderStageCreateInfo>&            GetVkPipelineShaderStages();									        									         
 		void                                                     DeleteShaderModules();
+		static VkShaderStageFlagBits                             GetVkShaderStage(ShaderType type);
 
 	private:
-		ReflectionData*                                          m_ReflectionData = nullptr;
-		ShaderCreateInfo*                                        m_CreateInfo = nullptr;
-		std::unordered_map<ShaderType, VkShaderModule>           m_ShaderModules;
 		std::vector<VkPushConstantRange>                         m_VkPushConstantRanges;
 		std::vector<VkPipelineShaderStageCreateInfo>             m_PipelineShaderStages;
+		std::unordered_map<ShaderType, VkShaderModule>           m_ShaderModules;
 
-	private:
 		friend class VulkanPipeline;
 		friend class VulkanPBR;
 		friend class VulkanDescriptor;

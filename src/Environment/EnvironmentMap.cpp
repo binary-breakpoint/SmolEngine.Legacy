@@ -5,6 +5,7 @@
 #else
 #include "Backends/Vulkan/VulkanPBR.h"
 #include "Backends/Vulkan/VulkanTexture.h"
+#include "Backends/Vulkan/VulkanPipeline.h"
 #endif
 
 #include "GraphicsContext.h"
@@ -101,11 +102,12 @@ namespace SmolEngine
 				DynamicPipelineCI.TargetFramebuffers = { &m_Framebuffer };
 			}
 
-			auto result = m_GraphicsPipeline.Create(&DynamicPipelineCI);
-			assert(result == PipelineCreateResult::SUCCESS);
+			m_GraphicsPipeline = GraphicsPipeline::Create();
+			assert(m_GraphicsPipeline->Build(&DynamicPipelineCI) == true);
+
 			Ref<VertexBuffer> skyBoxFB = std::make_shared<VertexBuffer>();
 			VertexBuffer::Create(skyBoxFB.get(), skyboxVertices, sizeof(skyboxVertices));
-			m_GraphicsPipeline.SetVertexBuffers({ skyBoxFB });
+			m_GraphicsPipeline->SetVertexBuffers({ skyBoxFB });
 		}
 		
 	}
@@ -140,12 +142,12 @@ namespace SmolEngine
 		VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
 		{
 			UpdateDescriptors();
-			m_GraphicsPipeline.SetCommandBuffer(cmdStorage.Buffer);
+			m_GraphicsPipeline->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
 			pc.proj = cameraProj == glm::mat4(0.0f) ? glm::perspective(glm::radians(75.0f), 1.0f, 0.1f, 1000.0f): cameraProj;
 
 			for (uint32_t face = 0; face < 6; face++)
 			{
-				m_GraphicsPipeline.BeginRenderPass();
+				m_GraphicsPipeline->BeginRenderPass();
 
 				glm::mat4 viewMatrix = glm::mat4(1.0f);
 				switch (face)
@@ -173,9 +175,9 @@ namespace SmolEngine
 				}
 				pc.view = viewMatrix;
 
-				m_GraphicsPipeline.SubmitPushConstant(ShaderType::Vertex, sizeof(push_constant), &pc);
-				m_GraphicsPipeline.Draw(36);
-				m_GraphicsPipeline.EndRenderPass();
+				m_GraphicsPipeline->SubmitPushConstant(ShaderType::Vertex, sizeof(push_constant), &pc);
+				m_GraphicsPipeline->Draw(36);
+				m_GraphicsPipeline->EndRenderPass();
 
 				// Copy commands
 				{
@@ -259,7 +261,7 @@ namespace SmolEngine
 
 	void EnvironmentMap::UpdateDescriptors()
 	{
-		m_GraphicsPipeline.SubmitBuffer(512, sizeof(DynamicSkyProperties), &m_UBO);
+		m_GraphicsPipeline->SubmitBuffer(512, sizeof(DynamicSkyProperties), &m_UBO);
 	}
 
 	void EnvironmentMap::SetDimension(uint32_t dim)

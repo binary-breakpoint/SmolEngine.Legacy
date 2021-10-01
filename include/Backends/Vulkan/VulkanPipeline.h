@@ -8,13 +8,11 @@
 
 namespace SmolEngine
 {
-	class VulkanShader;
-
 	class VulkanPipeline: public GraphicsPipeline
 	{
 	public:
 		// Interface
-		bool                                            Invalidate(GraphicsPipelineCreateInfo* pipelineInfo) override;
+		bool                                            Build(GraphicsPipelineCreateInfo* pipelineInfo) override;
 		void                                            ClearColors(const glm::vec4& clearColors = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f)) override;
 		void                                            BeginRenderPass(bool flip = false) override;
 		void                                            EndRenderPass() override;
@@ -49,11 +47,12 @@ namespace SmolEngine
 		const VkPipelineLayout&                         GetVkPipelineLayot() const;
 		VkCommandBuffer                                 GetCommandBuffer();
 		const VkDescriptorSet                           GetVkDescriptorSets(uint32_t setIndex = 0) const;
+		void                                            SetCommandBuffer(VkCommandBuffer cmd);
 		bool                                            SaveCache(const std::string& fileName, DrawMode mode);
 		bool                                            CreateOrLoadCached(const std::string& fileName, DrawMode mode);
 		void                                            UpdateImageDescriptor(uint32_t bindingPoint, const VkDescriptorImageInfo& imageInfo);
 		// Helpers						                
-		static void                                     BuildDescriptors(VulkanShader* shader, uint32_t descriptorSets, 
+		static void                                     BuildDescriptors(Ref<Shader>& shader, uint32_t descriptorSets, 
 			                                            std::vector<VulkanDescriptor>& outDescriptors, VkDescriptorPool& pool);
 	private:							                
 		bool                                            IsBlendEnableEnabled();

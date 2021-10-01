@@ -2,8 +2,12 @@
 #include "Renderer/RendererDebug.h"
 
 #include "Primitives/Framebuffer.h"
-#include "Primitives/GraphicsPipeline.h"
 #include "Primitives/Mesh.h"
+
+#ifdef OPENGL_IMPL
+#else
+#include "Backends/Vulkan/VulkanPipeline.h"
+#endif
 
 #include "Tools/Utils.h"
 
@@ -35,28 +39,28 @@ namespace SmolEngine
 
 	struct DebugRendererStorage
 	{
-		GraphicsPipeline   PrimitivePipeline{};
-		GraphicsPipeline   WireframesPipeline{};	   
-		VertexBuffer       QuadVB{};
-		VertexBuffer       CircleVB{};
-		VertexBuffer       LineVB{};
-		IndexBuffer        QuadIB{};
-		PushConstant       PushConst{};
-		glm::vec4          Color = glm::vec4(0, 1, 0, 1);
+		Ref<GraphicsPipeline>   PrimitivePipeline = nullptr;
+		Ref<GraphicsPipeline>   WireframesPipeline = nullptr;	   
+		VertexBuffer            QuadVB{};
+		VertexBuffer            CircleVB{};
+		VertexBuffer            LineVB{};
+		IndexBuffer             QuadIB{};
+		PushConstant            PushConst{};
+		glm::vec4               Color = glm::vec4(0, 1, 0, 1);
 	};					   
 
 	DebugRendererStorage* s_Data = nullptr;
 
 	void RendererDebug::BeginDebug()
 	{
-		s_Data->WireframesPipeline.BeginCommandBuffer(true);
-		s_Data->PrimitivePipeline.BeginCommandBuffer(true);
-		s_Data->WireframesPipeline.BeginRenderPass();
+		s_Data->WireframesPipeline->BeginCommandBuffer(true);
+		s_Data->PrimitivePipeline->BeginCommandBuffer(true);
+		s_Data->WireframesPipeline->BeginRenderPass();
 	}
 
 	void RendererDebug::EndDebug()
 	{
-		s_Data->WireframesPipeline.EndRenderPass();
+		s_Data->WireframesPipeline->EndRenderPass();
 	}
 
 	void RendererDebug::DrawSphereLines(const glm::vec3& center, const glm::vec3& up, const glm::vec3& axis, float radius, float minTh, float maxTh, float minPs, float maxPs, float stepDegrees, bool drawCenter)
@@ -300,30 +304,30 @@ namespace SmolEngine
 		Utils::ComposeTransform(pos1, { 0, 0, 0 }, { 1, 1, 1}, s_Data->PushConst.Model);
 		Utils::ComposeTransform(pos2, { 0, 0, 0 }, { 1, 1, 1 }, s_Data->PushConst.Model_2);
 
-		s_Data->PrimitivePipeline.SubmitPushConstant(ShaderType::Vertex, sizeof(PushConstant), &s_Data->PushConst);
-		s_Data->PrimitivePipeline.SetDrawMode(DrawMode::Line);
-		s_Data->PrimitivePipeline.Draw(&s_Data->LineVB, 2);
-		s_Data->PrimitivePipeline.ResetStates();
+		s_Data->PrimitivePipeline->SubmitPushConstant(ShaderType::Vertex, sizeof(PushConstant), &s_Data->PushConst);
+		s_Data->PrimitivePipeline->SetDrawMode(DrawMode::Line);
+		s_Data->PrimitivePipeline->Draw(&s_Data->LineVB, 2);
+		s_Data->PrimitivePipeline->Reset();
 	}
 
 	void RendererDebug::DrawQuad(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale)
 	{
 		s_Data->PushConst.State = 0;
 		Utils::ComposeTransform(pos, rotation, scale, s_Data->PushConst.Model);
-		s_Data->PrimitivePipeline.SubmitPushConstant(ShaderType::Vertex, sizeof(PushConstant), &s_Data->PushConst);
-		s_Data->PrimitivePipeline.SetDrawMode(DrawMode::Line);
-		s_Data->PrimitivePipeline.DrawIndexed(&s_Data->QuadVB, &s_Data->QuadIB);
-		s_Data->PrimitivePipeline.ResetStates();
+		s_Data->PrimitivePipeline->SubmitPushConstant(ShaderType::Vertex, sizeof(PushConstant), &s_Data->PushConst);
+		s_Data->PrimitivePipeline->SetDrawMode(DrawMode::Line);
+		s_Data->PrimitivePipeline->DrawIndexed(&s_Data->QuadVB, &s_Data->QuadIB);
+		s_Data->PrimitivePipeline->Reset();
 	}
 
 	void RendererDebug::DrawCirlce(const glm::vec3& pos, const glm::vec3& scale)
 	{
 		s_Data->PushConst.State = 0;
 		Utils::ComposeTransform(pos, { 0,0,0 }, scale, s_Data->PushConst.Model);
-		s_Data->PrimitivePipeline.SubmitPushConstant(ShaderType::Vertex, sizeof(PushConstant), &s_Data->PushConst);
-		s_Data->PrimitivePipeline.SetDrawMode(DrawMode::Fan);
-		s_Data->PrimitivePipeline.Draw(&s_Data->CircleVB, 3000);
-		s_Data->PrimitivePipeline.ResetStates();
+		s_Data->PrimitivePipeline->SubmitPushConstant(ShaderType::Vertex, sizeof(PushConstant), &s_Data->PushConst);
+		s_Data->PrimitivePipeline->SetDrawMode(DrawMode::Fan);
+		s_Data->PrimitivePipeline->Draw(&s_Data->CircleVB, 3000);
+		s_Data->PrimitivePipeline->Reset();
 	}
 
 	void RendererDebug::SetColor(const glm::vec4& color)
@@ -334,8 +338,8 @@ namespace SmolEngine
 	{
 		glm::mat4 model;
 		Utils::ComposeTransform(pos, rotation, scale, model);
-		s_Data->WireframesPipeline.SubmitPushConstant(ShaderType::Vertex, sizeof(glm::mat4), &model);
-		s_Data->WireframesPipeline.DrawMeshIndexed(mesh, 1);
+		s_Data->WireframesPipeline->SubmitPushConstant(ShaderType::Vertex, sizeof(glm::mat4), &model);
+		s_Data->WireframesPipeline->DrawMeshIndexed(mesh, 1);
 
 		for(auto& child: mesh->GetChilds())
 			DrawWireframes(pos, rotation, scale, &child);
@@ -414,7 +418,8 @@ namespace SmolEngine
 			pipelineCI.TargetFramebuffers = { GraphicsContext::GetSingleton()->GetFramebuffer() };
 			pipelineCI.ShaderCreateInfo = shaderCI;
 
-			assert(s_Data->PrimitivePipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
+			s_Data->PrimitivePipeline = GraphicsPipeline::Create();
+			s_Data->PrimitivePipeline->Build(&pipelineCI);
 		}
 
 		// Wireframes
@@ -435,7 +440,8 @@ namespace SmolEngine
 			pipelineCI.TargetFramebuffers = { GraphicsContext::GetSingleton()->GetFramebuffer() };
 			pipelineCI.ShaderCreateInfo = shaderCI;
 
-			assert(s_Data->WireframesPipeline.Create(&pipelineCI) == PipelineCreateResult::SUCCESS);
+			s_Data->WireframesPipeline = GraphicsPipeline::Create();
+			s_Data->WireframesPipeline->Build(&pipelineCI);
 		}
 
 	}

@@ -11,62 +11,65 @@
 
 namespace SmolEngine
 {
-    bool VulkanShader::Init(std::unordered_map<ShaderType, std::vector<uint32_t>>& binary, ReflectionData* reflectData,  ShaderCreateInfo* createInfo)
+    bool VulkanShader::Build(ShaderCreateInfo* info)
     {
-        m_ReflectionData = reflectData;
-        m_CreateInfo = createInfo;
-        Clean();
-
-        // Shader Modules
-        for (auto& [type, data] : binary)
+        if (BuildBase(info))
         {
-            VkShaderModule shaderModule = nullptr;
-            VkShaderModuleCreateInfo shaderModuleCI = {};
+            // Shader Modules
+            for (auto& [type, data] : m_Binary)
             {
-                shaderModuleCI.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-                shaderModuleCI.codeSize = data.size() * sizeof(uint32_t);
-                shaderModuleCI.pCode = data.data();
+                VkShaderModule shaderModule = nullptr;
+                VkShaderModuleCreateInfo shaderModuleCI = {};
+                {
+                    shaderModuleCI.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+                    shaderModuleCI.codeSize = data.size() * sizeof(uint32_t);
+                    shaderModuleCI.pCode = data.data();
 
-                VK_CHECK_RESULT(vkCreateShaderModule(VulkanContext::GetDevice().GetLogicalDevice(), &shaderModuleCI, nullptr, &shaderModule));
+                    VK_CHECK_RESULT(vkCreateShaderModule(VulkanContext::GetDevice().GetLogicalDevice(), &shaderModuleCI, nullptr, &shaderModule));
+                }
+
+                VkPipelineShaderStageCreateInfo pipelineShaderStageCI = {};
+                {
+                    pipelineShaderStageCI.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+                    pipelineShaderStageCI.stage = GetVkShaderStage(type);
+                    pipelineShaderStageCI.pName = "main";
+                    pipelineShaderStageCI.module = shaderModule;
+                    assert(pipelineShaderStageCI.module != VK_NULL_HANDLE);
+                }
+
+                m_PipelineShaderStages.emplace_back(pipelineShaderStageCI);
+                m_ShaderModules[type] = shaderModule;
             }
 
-            VkPipelineShaderStageCreateInfo pipelineShaderStageCI = {};
+            // Push Constant
+            if (m_ReflectData.PushConstant.Size > 0)
             {
-                pipelineShaderStageCI.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-                pipelineShaderStageCI.stage = GetVkShaderStage(type);
-                pipelineShaderStageCI.pName = "main";
-                pipelineShaderStageCI.module = shaderModule;
-                assert(pipelineShaderStageCI.module != VK_NULL_HANDLE);
+                VkPushConstantRange range = {};
+                {
+                    range.offset = m_ReflectData.PushConstant.Offset;
+                    range.size = m_ReflectData.PushConstant.Size;
+                    range.stageFlags = GetVkShaderStage(m_ReflectData.PushConstant.Stage);
+                }
+
+                m_VkPushConstantRanges.emplace_back(range);
             }
 
-            m_PipelineShaderStages.emplace_back(pipelineShaderStageCI);
-            m_ShaderModules[type] = shaderModule;
+            m_Binary.clear();
+            return true;
         }
 
-        // Push Constant
-        if (reflectData->PushConstant.Size > 0)
-        {
-            VkPushConstantRange range = {};
-            {
-                range.offset = reflectData->PushConstant.Offset;
-                range.size = reflectData->PushConstant.Size;
-                range.stageFlags = GetVkShaderStage(reflectData->PushConstant.Stage);
-            }
-
-            m_VkPushConstantRanges.emplace_back(range);
-        }
-
-        return true;
+        return false;
     }
 
-    void VulkanShader::Clean()
+    bool VulkanShader::Realod()
     {
-        if(m_ShaderModules.size() > 0)
-        {
-            DeleteShaderModules();
-            m_ShaderModules.clear();
-        }
+        Free();
+        return Build(&m_CreateInfo);
+    }
 
+    void VulkanShader::Free()
+    {
+        DeleteShaderModules();
         m_VkPushConstantRanges.clear();
         m_PipelineShaderStages.clear();
     }
@@ -78,6 +81,8 @@ namespace SmolEngine
         {
             vkDestroyShaderModule(device, module, nullptr);
         }
+
+        m_ShaderModules.clear();
     }
 
     VkShaderStageFlagBits VulkanShader::GetVkShaderStage(ShaderType type)

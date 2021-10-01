@@ -38,13 +38,14 @@ namespace SmolEngine
 		}
 	}
 
-	void VulkanDescriptor::GenDescriptorSet(VulkanShader* shader, VkDescriptorPool pool)
+	void VulkanDescriptor::GenDescriptorSet(Ref<Shader>& shader, VkDescriptorPool pool)
 	{
 		std::vector< VkDescriptorSetLayoutBinding> layouts;
-		ReflectionData* refData = shader->m_ReflectionData;
-		layouts.reserve(refData->Buffers.size() + refData->ImageSamplers.size() + refData->StorageImages.size());
+		const ReflectionData& refData = shader->GetReflection();
 
-		for (auto& [bindingPoint, buffer] : refData->Buffers)
+		layouts.reserve(refData.Buffers.size() + refData.ImageSamplers.size() + refData.StorageImages.size());
+
+		for (auto& [bindingPoint, buffer] : refData.Buffers)
 		{
 			VkDescriptorType type = buffer.Type == BufferType::Uniform ? VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 
@@ -59,7 +60,7 @@ namespace SmolEngine
 			layouts.push_back(layoutBinding);
 		}
 
-		for (auto& info : refData->ImageSamplers)
+		for (auto& info : refData.ImageSamplers)
 		{
 			auto& [bindingPoint, res] = info;
 			VkDescriptorSetLayoutBinding layoutBinding = {};
@@ -73,7 +74,7 @@ namespace SmolEngine
 			layouts.push_back(layoutBinding);
 		}
 
-		for (auto& info : refData->StorageImages)
+		for (auto& info : refData.StorageImages)
 		{
 			auto& [bindingPoint, res] = info;
 			VkDescriptorSetLayoutBinding layoutBinding = {};
@@ -108,10 +109,10 @@ namespace SmolEngine
 	}
 
 	// TODO: refactor
-	void VulkanDescriptor::GenBuffersDescriptors(VulkanShader* shader)
+	void VulkanDescriptor::GenBuffersDescriptors(Ref<Shader>& shader)
 	{
-		ReflectionData* refData = shader->m_ReflectionData;
-		for (auto& [key, buffer] : refData->Buffers)
+		const ReflectionData& refData = shader->GetReflection();
+		for (auto& [key, buffer] : refData.Buffers)
 		{
 			VkDescriptorBufferInfo descriptorBufferInfo = {};
 			ShaderBufferInfo bufferInfo = {};
@@ -121,8 +122,8 @@ namespace SmolEngine
 			size_t size = buffer.Size;
 
 			{
-				const auto& it = shader->m_CreateInfo->BufferInfos.find(buffer.BindingPoint);
-				if (it == shader->m_CreateInfo->BufferInfos.end())
+				const auto& it = shader->GetCreateInfo().BufferInfos.find(buffer.BindingPoint);
+				if (it == shader->GetCreateInfo().BufferInfos.end())
 				{
 					if (buffer.Type == BufferType::Storage)
 					{
@@ -206,13 +207,13 @@ namespace SmolEngine
 		}
 	}
 
-	void VulkanDescriptor::GenSamplersDescriptors(VulkanShader* shader)
+	void VulkanDescriptor::GenSamplersDescriptors(Ref<Shader>& shader)
 	{
-		ReflectionData* refData = shader->m_ReflectionData;
+		const ReflectionData& refData = shader->GetReflection();
 #ifndef OPENGL_IMPL
 		m_ImageInfo = GraphicsContext::s_Instance->m_DummyTexure->Cast<VulkanTexture>()->m_DescriptorImageInfo;
 #endif
-		for (auto& [bindingPoint, res] : refData->ImageSamplers)
+		for (auto& [bindingPoint, res] : refData.ImageSamplers)
 		{
 			if (res.Dimension == 3) // cubeMap
 			{
@@ -255,7 +256,7 @@ namespace SmolEngine
 		}
 
 		auto storageInfo = GraphicsContext::s_Instance->m_StorageTexure->Cast<VulkanTexture>()->m_DescriptorImageInfo;
-		for (auto& [bindingPoint, res] : refData->StorageImages)
+		for (auto& [bindingPoint, res] : refData.StorageImages)
 		{
 			std::vector<VkDescriptorImageInfo> infos;
 			if (res.ArraySize > 0)

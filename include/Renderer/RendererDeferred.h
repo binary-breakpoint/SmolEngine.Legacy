@@ -232,7 +232,7 @@ namespace SmolEngine
 		void                          Initilize() override;
 
 		void                          SetDynamicSkybox(DynamicSkyProperties& properties, const glm::mat4& proj, bool regeneratePBRmaps);
-		void                          SetStaticSkybox(CubeMap* cube);
+		void                          SetStaticSkybox(Ref<Texture>& skybox);
 		void                          SetRenderTarget(Framebuffer* target);
 		void                          SetDefaultState();
 
@@ -264,16 +264,16 @@ namespace SmolEngine
 		const uint32_t                m_DynamicSkyBinding = 36;
 		const uint32_t                m_BloomComputeWorkgroupSize = 4;
 		// Pipelines				
-		GraphicsPipeline              p_Gbuffer = {};
-		GraphicsPipeline              p_Lighting = {};
-		GraphicsPipeline              p_Combination = {};
-		GraphicsPipeline              p_Skybox = {};
-		GraphicsPipeline              p_DepthPass = {};
-		GraphicsPipeline              p_Grid = {};
-		GraphicsPipeline              p_Debug = {};
-		GraphicsPipeline              p_Mask = {};
-		GraphicsPipeline              p_DOF = {};
-		ComputePipeline               p_Bloom = {};
+		Ref<GraphicsPipeline>         p_Gbuffer = nullptr;
+		Ref<GraphicsPipeline>         p_Lighting = nullptr;
+		Ref<GraphicsPipeline>         p_Combination = nullptr;
+		Ref<GraphicsPipeline>         p_Skybox = nullptr;
+		Ref<GraphicsPipeline>         p_DepthPass = nullptr;
+		Ref<GraphicsPipeline>         p_Grid = nullptr;
+		Ref<GraphicsPipeline>         p_Debug = nullptr;
+		Ref<GraphicsPipeline>         p_Mask = nullptr;
+		Ref<GraphicsPipeline>         p_DOF = nullptr;
+		Ref<ComputePipeline>          p_Bloom = nullptr;
 		// Framebuffers				
 		Framebuffer*                  f_Main = nullptr;
 		Framebuffer                   f_GBuffer = {};
@@ -284,7 +284,7 @@ namespace SmolEngine
 		Mesh                          m_PlaneMesh = {};
 		MaterialLibrary               m_MaterialLibrary{};
 		RendererStateEX               m_State{};	
-		std::vector<Texture>          m_BloomTex{};
+		std::vector<Ref<Texture>>     m_BloomTex{};
 				
 		VulkanPBR*                    m_VulkanPBR = nullptr;
 		Ref<EnvironmentMap>           m_EnvironmentMap = nullptr;

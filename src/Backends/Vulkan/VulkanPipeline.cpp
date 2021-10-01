@@ -13,6 +13,7 @@ namespace SmolEngine
 {
 	bool VulkanPipeline::CreatePipeline(DrawMode mode)
 	{
+		VulkanShader* shader = m_Shader->Cast<VulkanShader>();
 		Framebuffer* fb = m_PiplineCreateInfo.TargetFramebuffers[0];
 		// Create the graphics pipeline
 		// Vulkan uses the concept of rendering pipelines to encapsulate fixed states, replacing OpenGL's complex state machine
@@ -215,8 +216,8 @@ namespace SmolEngine
 		}
 
 		// Set pipeline shader stage info
-		pipelineCreateInfo.stageCount = m_PiplineCreateInfo.StageCount == -1? static_cast<uint32_t>(m_Shader->GetVkPipelineShaderStages().size()): m_PiplineCreateInfo.StageCount;
-		pipelineCreateInfo.pStages = m_Shader->GetVkPipelineShaderStages().data();
+		pipelineCreateInfo.stageCount = m_PiplineCreateInfo.StageCount == -1? static_cast<uint32_t>(shader->GetVkPipelineShaderStages().size()): m_PiplineCreateInfo.StageCount;
+		pipelineCreateInfo.pStages = shader->GetVkPipelineShaderStages().data();
 
 		// Assign the pipeline states to the pipeline creation info structure
 		pipelineCreateInfo.pVertexInputState = &vertexInputState;
@@ -241,13 +242,14 @@ namespace SmolEngine
 		return true;
 	}
 
-	bool VulkanPipeline::Invalidate(GraphicsPipelineCreateInfo* pipelineInfo)
+	bool VulkanPipeline::Build(GraphicsPipelineCreateInfo* pipelineInfo)
 	{
-		if (InvalidateBase(pipelineInfo))
+		if (BuildBase(pipelineInfo))
 		{
 			m_Device = VulkanContext::GetDevice().GetLogicalDevice();
-			auto vkShader = m_Shader->Cast<VulkanShader>();
-			BuildDescriptors(vkShader, pipelineInfo->DescriptorSets, m_Descriptors, m_DescriptorPool);
+			BuildDescriptors(m_Shader, pipelineInfo->DescriptorSets, m_Descriptors, m_DescriptorPool);
+
+			VulkanShader* shader = m_Shader->Cast<VulkanShader>();
 
 #ifndef OPENGL_IMPL
 			Framebuffer* fb = pipelineInfo->TargetFramebuffers[0];
@@ -266,8 +268,8 @@ namespace SmolEngine
 				pipelineLayoutCI.pNext = nullptr;
 				pipelineLayoutCI.setLayoutCount = static_cast<uint32_t>(m_SetLayout.size());
 				pipelineLayoutCI.pSetLayouts = m_SetLayout.data();
-				pipelineLayoutCI.pushConstantRangeCount = static_cast<uint32_t>(vkShader->m_VkPushConstantRanges.size());
-				pipelineLayoutCI.pPushConstantRanges = vkShader->m_VkPushConstantRanges.data();
+				pipelineLayoutCI.pushConstantRangeCount = static_cast<uint32_t>(shader->m_VkPushConstantRanges.size());
+				pipelineLayoutCI.pPushConstantRanges = shader->m_VkPushConstantRanges.data();
 
 				VK_CHECK_RESULT(vkCreatePipelineLayout(m_Device, &pipelineLayoutCI, nullptr, &m_PipelineLayout));
 			}
@@ -631,24 +633,29 @@ namespace SmolEngine
 		return m_Descriptors[setIndex].GetDescriptorSets();
 	}
 
+	void VulkanPipeline::SetCommandBuffer(VkCommandBuffer cmd)
+	{
+		m_CommandBuffer = cmd;
+	}
+
 	bool VulkanPipeline::IsBlendEnableEnabled()
 	{
 		return m_PiplineCreateInfo.eSrcColorBlendFactor != BlendFactor::NONE || m_PiplineCreateInfo.eDstColorBlendFactor != BlendFactor::NONE ||
 			m_PiplineCreateInfo.eDstAlphaBlendFactor != BlendFactor::NONE || m_PiplineCreateInfo.eSrcAlphaBlendFactor != BlendFactor::NONE;
 	}
 
-	void VulkanPipeline::BuildDescriptors(VulkanShader* shader, uint32_t DescriptorSets, std::vector<VulkanDescriptor>& out_descriptors, VkDescriptorPool& pool)
+	void VulkanPipeline::BuildDescriptors(Ref<Shader>& shader, uint32_t DescriptorSets, std::vector<VulkanDescriptor>& out_descriptors, VkDescriptorPool& pool)
 	{
 		auto device = VulkanContext::GetDevice().GetLogicalDevice();
 
-		ReflectionData* refData = shader->m_ReflectionData;
+		const ReflectionData& refData = shader->GetReflection();
 		std::vector< VkDescriptorPoolSize> DescriptorPoolSizes;
-		if (refData->Buffers.size() > 0)
+		if (refData.Buffers.size() > 0)
 		{
 			uint32_t UBOcount = 0;
 			uint32_t SSBOcount = 0;
 
-			for (auto& [binding, buffer] : refData->Buffers)
+			for (auto& [binding, buffer] : refData.Buffers)
 			{
 				if (buffer.Type == BufferType::Uniform)
 					UBOcount++;
@@ -679,10 +686,10 @@ namespace SmolEngine
 			}
 		}
 
-		if(refData->ImageSamplers.size() > 0)
+		if(refData.ImageSamplers.size() > 0)
 		{
 			uint32_t samplerDescriptors = 0;
-			for (auto& info : refData->ImageSamplers)
+			for (auto& info : refData.ImageSamplers)
 			{
 				auto& [bindingPoint, res] = info;
 				samplerDescriptors += res.ArraySize > 0 ? res.ArraySize : 1;
@@ -697,10 +704,10 @@ namespace SmolEngine
 			DescriptorPoolSizes.push_back(poolSize);
 		}
 
-		if (refData->StorageImages.size() > 0)
+		if (refData.StorageImages.size() > 0)
 		{
 			uint32_t samplerDescriptors = 0;
-			for (auto& info : refData->StorageImages)
+			for (auto& info : refData.StorageImages)
 			{
 				auto& [bindingPoint, res] = info;
 				samplerDescriptors += res.ArraySize > 0 ? res.ArraySize : 1;
@@ -715,8 +722,8 @@ namespace SmolEngine
 			DescriptorPoolSizes.push_back(poolSize);
 		}
 
-		if (refData->ImageSamplers.size() == 0 && refData->Buffers.size() == 0
-			&& refData->StorageImages.size() == 0)
+		if (refData.ImageSamplers.size() == 0 && refData.Buffers.size() == 0
+			&& refData.StorageImages.size() == 0)
 		{
 			// dummy
 			VkDescriptorPoolSize poolSize = {};

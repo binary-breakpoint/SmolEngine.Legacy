@@ -109,16 +109,16 @@ namespace SmolEngine
 		int32_t                               GetMaterialID(size_t& hashed_path);
 		std::vector<PBRMaterial>&             GetMaterials();
 		void                                  GetMaterialsPtr(void*& data, uint32_t& size);
-		void                                  GetTextures(std::vector<Texture*>& out_textures) const;
+		const std::vector<Ref<Texture>>&      GetTextures() const;
 		// Helpers				              
-		uint32_t                              AddTexture(const TextureCreateInfo* info, uint32_t& useTetxure);
+		uint32_t                              AddTexture(TextureCreateInfo* info, uint32_t& useTetxure);
 
 	private:
 		uint32_t                              m_MaterialIndex = 0;
 		uint32_t                              m_TextureIndex = 0;
 		std::unordered_map<size_t, uint32_t>  m_MaterialMap;
 		std::vector<PBRMaterial>              m_Materials;
-		std::vector<Texture*>                 m_Textures;
+		std::vector<Ref<Texture>>             m_Textures;
 		std::hash<std::string_view>           m_Hash{};
 		std::mutex                            m_Mutex{};
 	};

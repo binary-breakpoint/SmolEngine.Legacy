@@ -66,15 +66,16 @@ namespace SmolEngine
 		m_FBattachmentIndex = index;
 	}
 
-	bool GraphicsPipeline::InvalidateBase(GraphicsPipelineCreateInfo* pipelineInfo)
+	bool GraphicsPipeline::BuildBase(GraphicsPipelineCreateInfo* pipelineInfo)
 	{
 		if (!IsPipelineCreateInfoValid(pipelineInfo))
 			return false;
 
 		m_GraphicsContext = GraphicsContext::s_Instance;
-		m_Shader = std::make_shared<Shader>();
 		m_PiplineCreateInfo = *pipelineInfo;
-		Shader::Create(&m_PiplineCreateInfo.ShaderCreateInfo, m_Shader.get());
+
+		m_Shader = Shader::Create();
+		m_Shader->Build(&m_PiplineCreateInfo.ShaderCreateInfo);
 		return true;
 	}
 

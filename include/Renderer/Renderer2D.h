@@ -104,8 +104,8 @@ namespace SmolEngine
 		const uint32_t            InstancesBP = 1;
 		const uint32_t            SamplersBP = 2;
 		const uint32_t            SceneDataBP = 27;
+		Ref<GraphicsPipeline>     MainPipeline = nullptr;
 		Framebuffer*              MainFB = nullptr;
-		GraphicsPipeline          MainPipeline = {};
 		Mesh                      PlaneMesh = {};
 
 		struct TextPC

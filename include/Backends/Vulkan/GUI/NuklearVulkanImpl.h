@@ -1,11 +1,11 @@
 #pragma once
 #ifndef OPENGL_IMPL
 
-#include "Primitives/GraphicsPipeline.h"
 #include "Primitives/VertexBuffer.h"
 #include "Primitives/IndexBuffer.h"
-#include "Primitives/Texture.h"
 
+#include "Backends/Vulkan/VulkanPipeline.h"
+#include "Backends/Vulkan/VulkanTexture.h"
 #include "GUI/Backends/ContextBaseGUI.h"
 
 namespace SmolEngine
@@ -37,9 +37,9 @@ namespace SmolEngine
 		nk_font*                         GetFont();
 		nk_font_atlas*                   GetFontAtlas();
 		
-		GraphicsPipeline                 m_Pipeline;
-		Ref<VertexBuffer>                m_VertexBuffer;
-		Ref<IndexBuffer>                 m_IndexBuffer;
+		Ref<GraphicsPipeline>            m_Pipeline = nullptr;
+		Ref<VertexBuffer>                m_VertexBuffer = nullptr;
+		Ref<IndexBuffer>                 m_IndexBuffer = nullptr;
 		NuklearStorage*                  m_Info = nullptr;
 		inline static NuklearVulkanImpl* s_Instance = nullptr;
 

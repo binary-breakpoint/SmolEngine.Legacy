@@ -103,7 +103,7 @@ namespace SmolEngine
 		GraphicsPipeline() = default;
 		~GraphicsPipeline();
 							              
-		virtual bool                      Invalidate(GraphicsPipelineCreateInfo* info) = 0;
+		virtual bool                      Build(GraphicsPipelineCreateInfo* info) = 0;
 		virtual void                      ClearColors(const glm::vec4& color = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f)) = 0;
 		virtual void                      BeginRenderPass(bool flip = false) = 0;
 		virtual void                      BeginCommandBuffer(bool batchCmd = false) = 0;
@@ -143,8 +143,11 @@ namespace SmolEngine
 		void                              SetVertexBuffers(const std::vector<Ref<VertexBuffer>>& vb);
 		void                              SetIndexBuffers(const std::vector<Ref<IndexBuffer>>& ib);
 
+		template<typename T>
+		T* Cast() { return dynamic_cast<T*>(this); }
+
 	private:
-		bool                              InvalidateBase(GraphicsPipelineCreateInfo* pipelineInfo);
+		bool                              BuildBase(GraphicsPipelineCreateInfo* pipelineInfo);
 		bool                              IsPipelineCreateInfoValid(const GraphicsPipelineCreateInfo* pipelineInfo);
 
 	private:
