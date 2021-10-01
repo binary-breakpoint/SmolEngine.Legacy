@@ -100,8 +100,7 @@ namespace SmolEngine
 	class GraphicsPipeline
 	{
 	public:
-		GraphicsPipeline() = default;
-		~GraphicsPipeline();
+		virtual ~GraphicsPipeline() = default;
 							              
 		virtual bool                      Build(GraphicsPipelineCreateInfo* info) = 0;
 		virtual void                      ClearColors(const glm::vec4& color = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f)) = 0;

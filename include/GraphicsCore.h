@@ -18,7 +18,6 @@
 #include "GUI/UITextField.h"
 #include "GUI/UICheckbox.h"
 
-#include "Environment/CubeMap.h"
 #include "Environment/EnvironmentMap.h"
 
 #include "Common/Common.h"

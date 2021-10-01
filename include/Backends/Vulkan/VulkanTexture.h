@@ -10,7 +10,6 @@ namespace SmolEngine
 	class VulkanTexture: public Texture
 	{
 	public:
-		VulkanTexture() = default;
 		~VulkanTexture();
 
 		void                                       LoadFromFile(TextureCreateInfo* info) override;

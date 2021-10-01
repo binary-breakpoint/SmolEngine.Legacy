@@ -10,11 +10,6 @@
 
 namespace SmolEngine
 {
-	GraphicsPipeline::~GraphicsPipeline()
-	{
-		Destroy();
-	}
-
 	Ref<GraphicsPipeline> GraphicsPipeline::Create()
 	{
 		Ref<GraphicsPipeline> pipeline = nullptr;

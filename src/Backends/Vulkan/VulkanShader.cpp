@@ -83,6 +83,7 @@ namespace SmolEngine
         }
 
         m_ShaderModules.clear();
+        m_ReflectData.Clean();
     }
 
     VkShaderStageFlagBits VulkanShader::GetVkShaderStage(ShaderType type)

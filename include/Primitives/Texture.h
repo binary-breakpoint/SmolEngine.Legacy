@@ -81,10 +81,8 @@ namespace SmolEngine
 	class Texture
 	{
 	public:
-		Texture();
-		~Texture() = default;
+		virtual ~Texture() = default;
 
-	public:
 		virtual void                          LoadFromFile(TextureCreateInfo* info) = 0;
 		virtual void                          LoadFromMemory(const void* data, uint32_t size, TextureCreateInfo* info) = 0;
 		virtual void                          LoadAsCubeFromKtx(TextureCreateInfo* info) = 0;
@@ -93,8 +91,8 @@ namespace SmolEngine
 		virtual void                          LoadAsWhite() = 0;
 		virtual void                          Free() = 0;
 
-		virtual uint32_t                      GetMips() const {};
-		virtual std::pair<uint32_t, uint32_t> GetMipSize(uint32_t mip) const {};
+		virtual uint32_t                      GetMips() const { return 0; };
+		virtual std::pair<uint32_t, uint32_t> GetMipSize(uint32_t mip) const { return { 0, 0 }; };
 		const TextureInfo&                    GetInfo() const { return m_Info; }
 		void*                                 GetImGuiTexture() const { return m_Info.ImHandle; }
 		bool                                  IsGood() const { return m_Info.Width > 0; }

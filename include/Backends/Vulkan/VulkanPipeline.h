@@ -11,6 +11,8 @@ namespace SmolEngine
 	class VulkanPipeline: public GraphicsPipeline
 	{
 	public:
+		~VulkanPipeline();
+
 		// Interface
 		bool                                            Build(GraphicsPipelineCreateInfo* pipelineInfo) override;
 		void                                            ClearColors(const glm::vec4& clearColors = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f)) override;

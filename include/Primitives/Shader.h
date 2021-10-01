@@ -83,6 +83,8 @@ namespace SmolEngine
 	class Shader
 	{
 	public:
+		virtual ~Shader() = default;
+
 		virtual bool           Build(ShaderCreateInfo* info) = 0;
 		virtual bool           Realod() = 0;
 		virtual void           Free() = 0;

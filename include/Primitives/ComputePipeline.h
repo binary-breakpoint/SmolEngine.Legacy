@@ -13,6 +13,8 @@ namespace SmolEngine
 	class ComputePipeline
 	{
 	public:
+		virtual ~ComputePipeline() = default;
+
 		virtual bool                Build(ComputePipelineCreateInfo* info) = 0;
 		virtual bool                Reload() = 0;
 		virtual void                BeginCompute(void* cmdStorage = nullptr) = 0;

@@ -42,7 +42,7 @@ namespace SmolEngine
 		storage->p_Debug->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
 		storage->p_Grid->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
 		storage->p_Combination->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
-		storage->p_DOF->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
+		//storage->p_DOF->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
 
 		SubmitInfo submitInfo{};
 		submitInfo.pClearInfo = clearInfo;

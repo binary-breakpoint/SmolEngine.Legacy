@@ -242,6 +242,11 @@ namespace SmolEngine
 		return true;
 	}
 
+	VulkanPipeline::~VulkanPipeline()
+	{
+		Destroy();
+	}
+
 	bool VulkanPipeline::Build(GraphicsPipelineCreateInfo* pipelineInfo)
 	{
 		if (BuildBase(pipelineInfo))
@@ -275,6 +280,13 @@ namespace SmolEngine
 			}
 
 			m_FilePath = "../resources/PipelineCache/" + pipelineInfo->PipelineName;
+
+			for (DrawMode mode : pipelineInfo->PipelineDrawModes)
+			{
+				if (!CreatePipeline(mode)) { return false; }
+			}
+
+			shader->DeleteShaderModules();
 			return true;
 		}
 
