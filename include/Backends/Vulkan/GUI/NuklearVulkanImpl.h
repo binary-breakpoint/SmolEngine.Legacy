@@ -1,8 +1,8 @@
 #pragma once
 #ifndef OPENGL_IMPL
 
-#include "Primitives/VertexBuffer.h"
-#include "Primitives/IndexBuffer.h"
+#include "Backends/Vulkan/VulkanVertexBuffer.h"
+#include "Backends/Vulkan/VulkanIndexBuffer.h"
 
 #include "Backends/Vulkan/VulkanPipeline.h"
 #include "Backends/Vulkan/VulkanTexture.h"
@@ -28,7 +28,7 @@ namespace SmolEngine
 		void                             Init() override;
 		void                             ShutDown() override;
 		void                             NewFrame() override;
-		void                             Draw(Framebuffer* target) override;
+		void                             Draw(Ref<Framebuffer>& target) override;
 		void                             OnEvent(Event& e)override;
 		void                             UpdateAtlas();
 		void                             ClearAtlas();

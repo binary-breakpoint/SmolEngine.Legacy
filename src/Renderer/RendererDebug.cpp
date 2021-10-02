@@ -19,7 +19,6 @@
 
 namespace SmolEngine
 {
-
 #define SIMD_PI float(3.1415926535897932384626433832795029)
 #define SIMD_HALF_PI (SIMD_PI * 0.5f)
 #define SIMD_2_PI (2.0f * SIMD_PI)
@@ -41,10 +40,10 @@ namespace SmolEngine
 	{
 		Ref<GraphicsPipeline>   PrimitivePipeline = nullptr;
 		Ref<GraphicsPipeline>   WireframesPipeline = nullptr;	   
-		VertexBuffer            QuadVB{};
-		VertexBuffer            CircleVB{};
-		VertexBuffer            LineVB{};
-		IndexBuffer             QuadIB{};
+		Ref<VertexBuffer>       QuadVB = nullptr;
+		Ref<VertexBuffer>       CircleVB = nullptr;
+		Ref<VertexBuffer>       LineVB = nullptr;
+		Ref<IndexBuffer>        QuadIB = nullptr;
 		PushConstant            PushConst{};
 		glm::vec4               Color = glm::vec4(0, 1, 0, 1);
 	};					   
@@ -306,7 +305,7 @@ namespace SmolEngine
 
 		s_Data->PrimitivePipeline->SubmitPushConstant(ShaderType::Vertex, sizeof(PushConstant), &s_Data->PushConst);
 		s_Data->PrimitivePipeline->SetDrawMode(DrawMode::Line);
-		s_Data->PrimitivePipeline->Draw(&s_Data->LineVB, 2);
+		s_Data->PrimitivePipeline->Draw(s_Data->LineVB, 2);
 		s_Data->PrimitivePipeline->Reset();
 	}
 
@@ -316,7 +315,7 @@ namespace SmolEngine
 		Utils::ComposeTransform(pos, rotation, scale, s_Data->PushConst.Model);
 		s_Data->PrimitivePipeline->SubmitPushConstant(ShaderType::Vertex, sizeof(PushConstant), &s_Data->PushConst);
 		s_Data->PrimitivePipeline->SetDrawMode(DrawMode::Line);
-		s_Data->PrimitivePipeline->DrawIndexed(&s_Data->QuadVB, &s_Data->QuadIB);
+		s_Data->PrimitivePipeline->DrawIndexed(s_Data->QuadVB, s_Data->QuadIB);
 		s_Data->PrimitivePipeline->Reset();
 	}
 
@@ -326,7 +325,7 @@ namespace SmolEngine
 		Utils::ComposeTransform(pos, { 0,0,0 }, scale, s_Data->PushConst.Model);
 		s_Data->PrimitivePipeline->SubmitPushConstant(ShaderType::Vertex, sizeof(PushConstant), &s_Data->PushConst);
 		s_Data->PrimitivePipeline->SetDrawMode(DrawMode::Fan);
-		s_Data->PrimitivePipeline->Draw(&s_Data->CircleVB, 3000);
+		s_Data->PrimitivePipeline->Draw(s_Data->CircleVB, 3000);
 		s_Data->PrimitivePipeline->Reset();
 	}
 
@@ -390,10 +389,18 @@ namespace SmolEngine
 				LineVertex[1].Position = { 0.0f, 0.0f, 0.0f };
 
 				bool isStatic = true;
-				VertexBuffer::Create(&s_Data->QuadVB, &QuadVertex, sizeof(DebugVertex) * 4, isStatic);
-				VertexBuffer::Create(&s_Data->CircleVB, CircleVertex, sizeof(DebugVertex) * nVertices, isStatic);
-				VertexBuffer::Create(&s_Data->LineVB, &LineVertex, sizeof(DebugVertex) * 2, isStatic);
-				IndexBuffer::Create(&s_Data->QuadIB, quadIndices, 6, isStatic);
+
+				s_Data->QuadVB = VertexBuffer::Create();
+				s_Data->QuadVB->BuildFromMemory(&QuadVertex, sizeof(DebugVertex) * 4, isStatic);
+
+				s_Data->CircleVB = VertexBuffer::Create();
+				s_Data->CircleVB->BuildFromMemory(CircleVertex, sizeof(DebugVertex) * nVertices, isStatic);
+
+				s_Data->LineVB = VertexBuffer::Create();
+				s_Data->LineVB->BuildFromMemory(&LineVertex, sizeof(DebugVertex) * 2, isStatic);
+
+				s_Data->QuadIB = IndexBuffer::Create();
+				s_Data->QuadIB->BuildFromMemory(quadIndices, 6, isStatic);
 
 				delete[] CircleVertex;
 			}
@@ -415,7 +422,7 @@ namespace SmolEngine
 			pipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(glm::vec3), layout) };
 			pipelineCI.PipelineDrawModes = { DrawMode::Line, DrawMode::Fan };
 			pipelineCI.bDepthTestEnabled = false;
-			pipelineCI.TargetFramebuffers = { GraphicsContext::GetSingleton()->GetFramebuffer() };
+			pipelineCI.TargetFramebuffers = { GraphicsContext::GetSingleton()->GetMainFramebuffer() };
 			pipelineCI.ShaderCreateInfo = shaderCI;
 
 			s_Data->PrimitivePipeline = GraphicsPipeline::Create();
@@ -437,7 +444,7 @@ namespace SmolEngine
 			pipelineCI.VertexInputInfos = { vertexInput };
 			pipelineCI.ePolygonMode = PolygonMode::Line;
 			pipelineCI.bDepthTestEnabled = false;
-			pipelineCI.TargetFramebuffers = { GraphicsContext::GetSingleton()->GetFramebuffer() };
+			pipelineCI.TargetFramebuffers = { GraphicsContext::GetSingleton()->GetMainFramebuffer() };
 			pipelineCI.ShaderCreateInfo = shaderCI;
 
 			s_Data->WireframesPipeline = GraphicsPipeline::Create();

@@ -1,6 +1,11 @@
 #include "stdafx.h"
 #ifndef OPENGL_IMPL
 #include "Backends/Vulkan/VulkanPBR.h"
+
+#include "GraphicsContext.h"
+
+#include "Backends/Vulkan/VulkanIndexBuffer.h"
+#include "Backends/Vulkan/VulkanVertexBuffer.h"
 #include "Backends/Vulkan/VulkanTexture.h"
 #include "Backends/Vulkan/VulkanContext.h"
 #include "Backends/Vulkan/VulkanDevice.h"
@@ -8,10 +13,6 @@
 #include "Backends/Vulkan/VulkanCommandBuffer.h"
 #include "Backends/Vulkan/VulkanShader.h"
 
-#include "GraphicsContext.h"
-#include "Primitives/BufferLayout.h"
-#include "Primitives/VertexBuffer.h"
-#include "Primitives/IndexBuffer.h"
 
 #include "Multithreading/JobsSystemInstance.h"
 
@@ -863,8 +864,8 @@ namespace SmolEngine
 				 1.0f, -1.0f,  1.0f
 			};
 
-			VertexBuffer skyBoxFB = {};
-			VertexBuffer::Create(&skyBoxFB, skyboxVertices, sizeof(skyboxVertices));
+			Ref<VertexBuffer> skyBoxFB = VertexBuffer::Create();
+			skyBoxFB->BuildFromMemory(skyboxVertices, sizeof(skyboxVertices));
 
 			CommandBufferStorage cmdStorage{};
 			VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
@@ -924,7 +925,7 @@ namespace SmolEngine
 
 						VkDeviceSize offsets[1] = { 0 };
 #ifndef OPENGL_IMPL
-						vkCmdBindVertexBuffers(cmdStorage.Buffer, 0, 1, &skyBoxFB.GetVulkanVertexBuffer().GetBuffer(), offsets);
+						vkCmdBindVertexBuffers(cmdStorage.Buffer, 0, 1, &skyBoxFB->Cast<VulkanVertexBuffer>()->GetBuffer(), offsets);
 #endif
 
 						vkCmdDraw(cmdStorage.Buffer, 36, 1, 0, 0);
@@ -1490,8 +1491,8 @@ namespace SmolEngine
 				 1.0f, -1.0f,  1.0f
 			};
 
-			VertexBuffer skyBoxFB = {};
-			VertexBuffer::Create(&skyBoxFB, skyboxVertices, sizeof(skyboxVertices));
+			Ref<VertexBuffer> skyBoxFB = VertexBuffer::Create();
+			skyBoxFB->BuildFromMemory(skyboxVertices, sizeof(skyboxVertices));
 
 			CommandBufferStorage cmdStorage{};
 			VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
@@ -1551,7 +1552,7 @@ namespace SmolEngine
 
 						VkDeviceSize offsets[1] = { 0 };
 #ifndef OPENGL_IMPL
-						vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &skyBoxFB.GetVulkanVertexBuffer().GetBuffer(), offsets);
+						vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &skyBoxFB->Cast<VulkanVertexBuffer>()->GetBuffer(), offsets);
 #endif
 
 						vkCmdDraw(cmdBuffer, 36, 1, 0, 0);

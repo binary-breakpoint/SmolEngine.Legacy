@@ -61,25 +61,23 @@ namespace SmolEngine
 		}
 
 		// Creates default framebuffer
-		m_Framebuffer = new Framebuffer();
+		m_Framebuffer = Framebuffer::Create();
 		FramebufferSpecification framebufferCI = {};
-		{
 #ifdef  OPENGL_IMPL
-			framebufferCI.Width = info->pWindowCI->Width;
-			framebufferCI.Height = info->pWindowCI->Height;
+		framebufferCI.Width = info->pWindowCI->Width;
+		framebufferCI.Height = info->pWindowCI->Height;
 #else
-			framebufferCI.Width = m_VulkanContext.GetSwapchain().GetWidth();
-			framebufferCI.Height = m_VulkanContext.GetSwapchain().GetHeight();
+		framebufferCI.Width = m_VulkanContext.GetSwapchain().GetWidth();
+		framebufferCI.Height = m_VulkanContext.GetSwapchain().GetHeight();
 #endif
-			framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
-			framebufferCI.bTargetsSwapchain = info->bTargetsSwapchain;
-			framebufferCI.bResizable = true;
-			framebufferCI.bAutoSync = false;
-			framebufferCI.bUsedByImGui = (m_CreateInfo.eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui && !info->bTargetsSwapchain ? true : false;
-			framebufferCI.Attachments = { FramebufferAttachment(AttachmentFormat::Color) };
+		framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
+		framebufferCI.bTargetsSwapchain = info->bTargetsSwapchain;
+		framebufferCI.bResizable = true;
+		framebufferCI.bAutoSync = false;
+		framebufferCI.bUsedByImGui = (m_CreateInfo.eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui && !info->bTargetsSwapchain ? true : false;
+		framebufferCI.Attachments = { FramebufferAttachment(AttachmentFormat::Color) };
 
-			Framebuffer::Create(framebufferCI, m_Framebuffer);
-		}
+		m_Framebuffer->Build(&framebufferCI);
 
 #ifdef  OPENGL_IMPL
 		GetOpenglRendererAPI()->Init();
@@ -173,11 +171,6 @@ namespace SmolEngine
 		float deltaTime = time - m_LastFrameTime;
 		m_LastFrameTime = time;
 		return deltaTime;
-	}
-
-	Framebuffer* GraphicsContext::GetFramebuffer() const
-	{
-		return m_Framebuffer;
 	}
 
 	GLFWwindow* GraphicsContext::GetNativeWindow()
@@ -295,6 +288,11 @@ namespace SmolEngine
 	GraphicsContext* GraphicsContext::GetSingleton()
 	{
 		return s_Instance;
+	}
+
+	Ref<Framebuffer> GraphicsContext::GetMainFramebuffer() const
+	{
+		return m_Framebuffer;
 	}
 
 #ifdef FROSTIUM_SMOLENGINE_IMPL

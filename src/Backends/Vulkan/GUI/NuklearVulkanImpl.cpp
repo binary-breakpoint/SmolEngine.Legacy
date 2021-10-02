@@ -136,7 +136,7 @@ namespace SmolEngine
 	NK_API void nk_glfw3_new_frame()
 	{
 		auto& info = NuklearVulkanImpl::s_Instance->m_Info;
-		auto& fb_spec = GraphicsContext::GetSingleton()->GetFramebuffer()->GetSpecification();
+		auto& fb_spec = GraphicsContext::GetSingleton()->GetMainFramebuffer()->GetSpecification();
 
 		int i;
 		double x, y;
@@ -274,8 +274,8 @@ namespace SmolEngine
 
 		NuklearVulkanImpl* inst = NuklearVulkanImpl::s_Instance;
 		Ref<GraphicsPipeline> pipeline = inst->m_Pipeline;
-		VulkanIndexBuffer* indexBuffer = &inst->m_IndexBuffer->GetVulkanIndexBuffer();
-		VulkanVertexBuffer* vertexBuffer = &inst->m_VertexBuffer->GetVulkanVertexBuffer();
+		VulkanIndexBuffer* indexBuffer = inst->m_IndexBuffer->Cast<VulkanIndexBuffer>();
+		VulkanVertexBuffer* vertexBuffer = inst->m_VertexBuffer->Cast<VulkanVertexBuffer>();
 
 		pipeline->SubmitBuffer(0, sizeof(ortho), &ortho);
 		pipeline->BeginCommandBuffer(true);
@@ -423,11 +423,11 @@ namespace SmolEngine
 		nk_glfw3_new_frame();
 	}
 
-	void NuklearVulkanImpl::Draw(Framebuffer* target)
+	void NuklearVulkanImpl::Draw(Ref<Framebuffer>& target)
 	{
 		auto& spec = target->GetSpecification();
-		auto& vkFB = target->GetVulkanFramebuffer();
-		nk_glfw3_render(NK_ANTI_ALIASING_ON, vkFB.GetRenderPass(), vkFB.GetCurrentVkFramebuffer(), spec.Width, spec.Height);
+		VulkanFramebuffer* vkFB = target->Cast<VulkanFramebuffer>();
+		nk_glfw3_render(NK_ANTI_ALIASING_ON, vkFB->GetRenderPass(), vkFB->GetCurrentVkFramebuffer(), spec.Width, spec.Height);
 	}
 
 	void NuklearVulkanImpl::OnEvent(Event& e)
@@ -513,7 +513,7 @@ namespace SmolEngine
 		pipelineCI.eDstColorBlendFactor = BlendFactor::ONE_MINUS_SRC_ALPHA;
 		pipelineCI.eSrcColorBlendFactor = BlendFactor::SRC_ALPHA;
 		pipelineCI.ShaderCreateInfo = shaderCI;
-		pipelineCI.TargetFramebuffers = { GraphicsContext::GetSingleton()->GetFramebuffer() };
+		pipelineCI.TargetFramebuffers = { GraphicsContext::GetSingleton()->GetMainFramebuffer() };
 
 		m_Pipeline = GraphicsPipeline::Create();
 		assert(m_Pipeline->Build(&pipelineCI) == true);
@@ -524,11 +524,11 @@ namespace SmolEngine
 
 	void NuklearVulkanImpl::SetupBuffers()
 	{
-		m_VertexBuffer = std::make_shared<VertexBuffer>();
-		m_IndexBuffer = std::make_shared<IndexBuffer>();
+		m_VertexBuffer = VertexBuffer::Create();
+		m_VertexBuffer->BuildFromSize(MAX_VERTEX_BUFFER);
 
-		IndexBuffer::Create(m_IndexBuffer.get(), MAX_INDEX_BUFFER);
-		VertexBuffer::Create(m_VertexBuffer.get(), MAX_VERTEX_BUFFER);
+		m_IndexBuffer = IndexBuffer::Create();
+		m_IndexBuffer->BuildFromSize(MAX_INDEX_BUFFER);
 	}
 
 }

@@ -1,6 +1,7 @@
 #pragma once
 #include "Common/Common.h"
 #include "Common/Flags.h"
+#include "Primitives/PrimitiveBase.h"
 
 #include <unordered_map>
 #include <string>
@@ -80,20 +81,16 @@ namespace SmolEngine
 		std::unordered_map<uint32_t, ShaderBufferInfo>   BufferInfos;
 	};
 
-	class Shader
+	class Shader: public PrimitiveBase
 	{
 	public:
 		virtual ~Shader() = default;
 
 		virtual bool           Build(ShaderCreateInfo* info) = 0;
 		virtual bool           Realod() = 0;
-		virtual void           Free() = 0;
 		const ReflectionData&  GetReflection() const;
 		ShaderCreateInfo&      GetCreateInfo();
 		static Ref<Shader>     Create();
-
-		template<typename T>
-		T* Cast() { return dynamic_cast<T*>(this); }
 
 	private:	
 		bool                   BuildBase(ShaderCreateInfo* info);

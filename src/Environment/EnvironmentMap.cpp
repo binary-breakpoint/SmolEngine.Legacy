@@ -27,7 +27,8 @@ namespace SmolEngine
 			framebufferCI.eSpecialisation = FramebufferSpecialisation::CopyBuffer;
 			framebufferCI.Attachments = { FramebufferAttachment(AttachmentFormat::Color, true) };
 
-			Framebuffer::Create(framebufferCI, &m_Framebuffer);
+			m_Framebuffer = Framebuffer::Create();
+			m_Framebuffer->Build(&framebufferCI);
 		}
 
 		// Pipeline
@@ -99,14 +100,14 @@ namespace SmolEngine
 				DynamicPipelineCI.VertexInputInfos = { VertexInputInfo(sizeof(SkyBoxData), layout) };
 				DynamicPipelineCI.PipelineName = "Skybox_Pipiline";
 				DynamicPipelineCI.ShaderCreateInfo = shaderCI;
-				DynamicPipelineCI.TargetFramebuffers = { &m_Framebuffer };
+				DynamicPipelineCI.TargetFramebuffers = { m_Framebuffer };
 			}
 
 			m_GraphicsPipeline = GraphicsPipeline::Create();
 			assert(m_GraphicsPipeline->Build(&DynamicPipelineCI) == true);
 
-			Ref<VertexBuffer> skyBoxFB = std::make_shared<VertexBuffer>();
-			VertexBuffer::Create(skyBoxFB.get(), skyboxVertices, sizeof(skyboxVertices));
+			Ref<VertexBuffer> skyBoxFB = VertexBuffer::Create();
+			skyBoxFB->BuildFromMemory(skyboxVertices, sizeof(skyboxVertices));
 			m_GraphicsPipeline->SetVertexBuffers({ skyBoxFB });
 		}
 		
@@ -183,7 +184,7 @@ namespace SmolEngine
 				{
 					auto vkTexture = m_CubeMap->Cast<VulkanTexture>();
 					auto cube_image = vkTexture->GetVkImage();
-					auto fb_image = m_Framebuffer.GetVulkanFramebuffer().GetAttachment()->AttachmentVkInfo.image;
+					auto fb_image = m_Framebuffer->Cast<VulkanFramebuffer>()->GetAttachment()->AttachmentVkInfo.image;
 
 					// Make sure color writes to the framebuffer are finished before using it as transfer source
 					VulkanTexture::SetImageLayout(

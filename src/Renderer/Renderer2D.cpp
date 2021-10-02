@@ -19,7 +19,7 @@ namespace SmolEngine
 		CreatePipelines();
 	}
 
-	void Renderer2DStorage::SetRenderTarget(Framebuffer* target)
+	void Renderer2DStorage::SetRenderTarget(Ref<Framebuffer>& target)
 	{
 		MainPipeline->SetFramebuffers({ target });
 		MainFB = target;
@@ -79,7 +79,7 @@ namespace SmolEngine
 
 	void Renderer2DStorage::CreateFramebuffers()
 	{
-		MainFB = GraphicsContext::GetSingleton()->GetFramebuffer();
+		MainFB = GraphicsContext::GetSingleton()->GetMainFramebuffer();
 	}
 
 	void Renderer2DStorage::UpdateUniforms(RendererDrawList2D* drawList)

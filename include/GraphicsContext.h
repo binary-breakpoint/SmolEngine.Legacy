@@ -93,7 +93,7 @@ namespace SmolEngine
 		void                              ShutDown();      
 		// Getters				          
 		static GraphicsContext*           GetSingleton();
-		Framebuffer*                      GetFramebuffer() const;
+		Ref<Framebuffer>                  GetMainFramebuffer() const;
 		GLFWwindow*                       GetNativeWindow();
 		Window*                           GetWindow() const;
 	    WindowData*                       GetWindowData();
@@ -127,8 +127,8 @@ namespace SmolEngine
 		Ref<Texture>                      m_DummyTexure = nullptr;
 		Ref<Texture>                      m_StorageTexure = nullptr;
 		Ref<Texture>                      m_DummyCubeMap = nullptr;
+		Ref<Framebuffer>                  m_Framebuffer = nullptr;
 		MaterialLibrary*                  m_MaterialLibrary = nullptr;
-		Framebuffer*                      m_Framebuffer = nullptr;
 		Window*                           m_Window = nullptr;
 		DefaultMeshes*                    m_DefaultMeshes = nullptr;
 		ContextBaseGUI*                   m_ImGuiContext = nullptr;

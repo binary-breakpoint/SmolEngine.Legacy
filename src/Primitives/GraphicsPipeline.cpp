@@ -22,11 +22,13 @@ namespace SmolEngine
 
 	void GraphicsPipeline::Reset()
 	{
+		m_FBIndex = 0;
 		m_DescriptorIndex = 0;
+		m_FBattachmentIndex = 0;
 		m_DrawMode = DrawMode::Triangle;
 	}
 
-	void GraphicsPipeline::SetFramebuffers(const std::vector<Framebuffer*>& fb)
+	void GraphicsPipeline::SetFramebuffers(const std::vector<Ref<Framebuffer>>& fb)
 	{
 		m_PiplineCreateInfo.TargetFramebuffers = fb;
 	}

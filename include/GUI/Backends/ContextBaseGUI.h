@@ -17,7 +17,7 @@ namespace SmolEngine
 		virtual void NewFrame() {}
 		virtual void EndFrame() {}
 
-		virtual void Draw(Framebuffer* target) {}
+		virtual void Draw(Ref<Framebuffer>& target) {}
 		virtual void Draw(VulkanSwapchain* target) {}
 
 		virtual void OnEvent(Event& e) {}

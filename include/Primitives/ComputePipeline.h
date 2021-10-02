@@ -1,5 +1,6 @@
 #pragma once
 #include "Primitives/Shader.h"
+#include "Primitives/PrimitiveBase.h"
 
 namespace SmolEngine
 {
@@ -10,7 +11,7 @@ namespace SmolEngine
 		std::unordered_map<uint32_t, ShaderBufferInfo>   ShaderBufferInfos;
 	};
 
-	class ComputePipeline
+	class ComputePipeline: public PrimitiveBase
 	{
 	public:
 		virtual ~ComputePipeline() = default;
@@ -23,9 +24,6 @@ namespace SmolEngine
 		virtual void                Dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ, uint32_t descriptorIndex = 0, void* descriptorSet = nullptr) = 0;
 		virtual void                SubmitPushConstant(size_t size, const void* data) {};
 		static Ref<ComputePipeline> Create();
-
-		template<typename T>
-		T* Cast() { return dynamic_cast<T*>(this); }
 
 	private:
 		bool                        BuildBase(ComputePipelineCreateInfo* info);

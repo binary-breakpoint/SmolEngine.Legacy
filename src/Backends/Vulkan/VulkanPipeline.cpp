@@ -5,6 +5,8 @@
 #include "Backends/Vulkan/VulkanShader.h"
 #include "Backends/Vulkan/VulkanContext.h"
 #include "Backends/Vulkan/VulkanTexture.h"
+#include "Backends/Vulkan/VulkanVertexBuffer.h"
+#include "Backends/Vulkan/VulkanIndexBuffer.h"
 
 #include "Primitives/GraphicsPipeline.h"
 #include "Primitives/Framebuffer.h"
@@ -14,7 +16,7 @@ namespace SmolEngine
 	bool VulkanPipeline::CreatePipeline(DrawMode mode)
 	{
 		VulkanShader* shader = m_Shader->Cast<VulkanShader>();
-		Framebuffer* fb = m_PiplineCreateInfo.TargetFramebuffers[0];
+		Ref<Framebuffer> fb = m_PiplineCreateInfo.TargetFramebuffers[0];
 		// Create the graphics pipeline
 		// Vulkan uses the concept of rendering pipelines to encapsulate fixed states, replacing OpenGL's complex state machine
 		// A pipeline is then stored and hashed on the GPU making pipeline changes very fast
@@ -132,7 +134,7 @@ namespace SmolEngine
 			if (fb->GetSpecification().eMSAASampels != MSAASamples::SAMPLE_COUNT_1)
 			{
 #ifndef SMOLEGNINE_OPENGL_IMPL
-				multisampleState.rasterizationSamples = fb->GetVulkanFramebuffer().GetMSAASamples();
+				multisampleState.rasterizationSamples = fb->Cast<VulkanFramebuffer>()->GetMSAASamples();
 #endif
 				multisampleState.sampleShadingEnable = VK_TRUE;
 				multisampleState.minSampleShading = 0.2f;
@@ -244,7 +246,7 @@ namespace SmolEngine
 
 	VulkanPipeline::~VulkanPipeline()
 	{
-		Destroy();
+		Free();
 	}
 
 	bool VulkanPipeline::Build(GraphicsPipelineCreateInfo* pipelineInfo)
@@ -254,12 +256,11 @@ namespace SmolEngine
 			m_Device = VulkanContext::GetDevice().GetLogicalDevice();
 			BuildDescriptors(m_Shader, pipelineInfo->DescriptorSets, m_Descriptors, m_DescriptorPool);
 
+			Ref<Framebuffer> fb = pipelineInfo->TargetFramebuffers[0];
 			VulkanShader* shader = m_Shader->Cast<VulkanShader>();
 
-#ifndef OPENGL_IMPL
-			Framebuffer* fb = pipelineInfo->TargetFramebuffers[0];
-			m_TargetRenderPass = fb->GetVulkanFramebuffer().GetRenderPass();
-#endif
+			m_TargetRenderPass = fb->Cast<VulkanFramebuffer>()->GetRenderPass();
+
 			m_SetLayout.clear();
 			m_SetLayout.reserve(m_Descriptors.size());
 			for (auto& descriptor : m_Descriptors)
@@ -293,43 +294,41 @@ namespace SmolEngine
 		return false;
 	}
 
-	void VulkanPipeline::ClearColors(const glm::vec4& clearColors)
+	void VulkanPipeline::ClearColors(const glm::vec4& color)
 	{
-		Framebuffer* target_fb = m_PiplineCreateInfo.TargetFramebuffers[m_FBIndex];
-		VkClearRect clearRect = {};
+		Ref<Framebuffer> fb = m_PiplineCreateInfo.TargetFramebuffers[m_FBIndex];
+		VulkanFramebuffer* vk_fb = fb->Cast<VulkanFramebuffer>();
+		fb->SetClearColor(color);
 
+		VkClearRect clearRect = {};
 		clearRect.layerCount = 1;
 		clearRect.baseArrayLayer = 0;
 		clearRect.rect.offset = { 0, 0 };
-		clearRect.rect.extent = { (uint32_t)target_fb->GetSpecification().Width, (uint32_t)target_fb->GetSpecification().Height };
-
-		auto& framebuffer = target_fb->GetVulkanFramebuffer();
-		framebuffer.SetClearColors(clearColors);
-
-		vkCmdClearAttachments(m_CommandBuffer, static_cast<uint32_t>(framebuffer.GetClearAttachments().size()),
-			framebuffer.GetClearAttachments().data(), 1, &clearRect);
+		clearRect.rect.extent = { (uint32_t)vk_fb->GetSpecification().Width, (uint32_t)vk_fb->GetSpecification().Height };
+		vkCmdClearAttachments(m_CommandBuffer, static_cast<uint32_t>(vk_fb->GetClearAttachments().size()), vk_fb->GetClearAttachments().data(), 1, &clearRect);
 	}
 
 	void VulkanPipeline::BeginRenderPass(bool flip)
 	{
-		Framebuffer* target_fb = m_PiplineCreateInfo.TargetFramebuffers[m_FBIndex];
-		auto& vulkanFB = target_fb->GetVulkanFramebuffer();
-		const VkFramebuffer vkFramebuffer = m_FBattachmentIndex == 0 ? vulkanFB.GetCurrentVkFramebuffer() : vulkanFB.GetVkFramebuffer(m_FBattachmentIndex);
-		const FramebufferSpecification& fb_specs = target_fb->GetSpecification();
+		Ref<Framebuffer> fb = m_PiplineCreateInfo.TargetFramebuffers[m_FBIndex];
+		VulkanFramebuffer* vk_fb = fb->Cast<VulkanFramebuffer>();
+
+		const VkFramebuffer vkFramebuffer = m_FBattachmentIndex == 0 ? vk_fb->GetCurrentVkFramebuffer() : vk_fb->GetVkFramebuffer(m_FBattachmentIndex);
+		const FramebufferSpecification& fb_specs = vk_fb->GetSpecification();
 		uint32_t width = fb_specs.Width;
 		uint32_t height = fb_specs.Height;
 
 		VkRenderPassBeginInfo renderPassBeginInfo = {};
 		{
 			renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-			renderPassBeginInfo.renderPass = vulkanFB.GetRenderPass();
+			renderPassBeginInfo.renderPass = vk_fb->GetRenderPass();
 			renderPassBeginInfo.framebuffer = vkFramebuffer;
 			renderPassBeginInfo.renderArea.offset.x = 0;
 			renderPassBeginInfo.renderArea.offset.y = 0;
 			renderPassBeginInfo.renderArea.extent.width = width;
 			renderPassBeginInfo.renderArea.extent.height = height;
-			renderPassBeginInfo.clearValueCount = static_cast<uint32_t>(vulkanFB.GetClearValues().size());
-			renderPassBeginInfo.pClearValues = vulkanFB.GetClearValues().data();
+			renderPassBeginInfo.clearValueCount = static_cast<uint32_t>(vk_fb->GetClearValues().size());
+			renderPassBeginInfo.pClearValues = vk_fb->GetClearValues().data();
 		}
 
 		vkCmdBeginRenderPass(m_CommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
@@ -388,7 +387,7 @@ namespace SmolEngine
 			VulkanCommandBuffer::ExecuteCommandBuffer(&m_CmdStorage);
 	}
 
-	void VulkanPipeline::Destroy()
+	void VulkanPipeline::Free()
 	{
 		for (auto& [key, cache] : m_PipelineCaches)
 		{
@@ -415,35 +414,35 @@ namespace SmolEngine
 		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GetVkPipeline(m_DrawMode));
 
 		VkDeviceSize offsets[1] = { 0 };
-		vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &m_VertexBuffers[vbIndex]->GetVulkanVertexBuffer().GetBuffer(), offsets);
+		vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &m_VertexBuffers[vbIndex]->Cast<VulkanVertexBuffer>()->GetBuffer(), offsets);
 
-		vkCmdBindIndexBuffer(m_CommandBuffer, m_IndexBuffers[ibIndex]->GetVulkanIndexBuffer().GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindIndexBuffer(m_CommandBuffer, m_IndexBuffers[ibIndex]->Cast<VulkanIndexBuffer>()->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
 		const auto& descriptorSets = GetVkDescriptorSets(m_DescriptorIndex);
 		vkCmdBindDescriptorSets(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, &descriptorSets, 0, nullptr);
-		vkCmdDrawIndexed(m_CommandBuffer, m_IndexBuffers[ibIndex]->GetVulkanIndexBuffer().GetElementsCount(), 1, 0, 0, 1);
+		vkCmdDrawIndexed(m_CommandBuffer, m_IndexBuffers[ibIndex]->GetCount(), 1, 0, 0, 1);
 	}
 
-	void VulkanPipeline::DrawIndexed(VertexBuffer* vb, IndexBuffer* ib)
+	void VulkanPipeline::DrawIndexed(Ref<VertexBuffer>& vb, Ref<IndexBuffer>& ib)
 	{
 		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GetVkPipeline(m_DrawMode));
 
 		VkDeviceSize offsets[1] = { 0 };
-		vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &vb->GetVulkanVertexBuffer().GetBuffer(), offsets);
+		vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &vb->Cast<VulkanVertexBuffer>()->GetBuffer(), offsets);
 
-		vkCmdBindIndexBuffer(m_CommandBuffer, ib->GetVulkanIndexBuffer().GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindIndexBuffer(m_CommandBuffer, ib->Cast<VulkanIndexBuffer>()->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
 		const auto& descriptorSets = GetVkDescriptorSets(m_DescriptorIndex);
 		vkCmdBindDescriptorSets(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, &descriptorSets, 0, nullptr);
-		vkCmdDrawIndexed(m_CommandBuffer, ib->GetVulkanIndexBuffer().GetElementsCount(), 1, 0, 0, 1);
+		vkCmdDrawIndexed(m_CommandBuffer, ib->Cast<VulkanIndexBuffer>()->GetCount(), 1, 0, 0, 1);
 	}
 
-	void VulkanPipeline::Draw(VertexBuffer* vb, uint32_t vertextCount)
+	void VulkanPipeline::Draw(Ref<VertexBuffer>& vb, uint32_t vertextCount)
 	{
 		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GetVkPipeline(m_DrawMode));
 
 		VkDeviceSize offsets[1] = { 0 };
-		vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &vb->GetVulkanVertexBuffer().GetBuffer(), offsets);
+		vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &vb->Cast<VulkanVertexBuffer>()->GetBuffer(), offsets);
 
 		const auto& descriptorSets = GetVkDescriptorSets(m_DescriptorIndex);
 		vkCmdBindDescriptorSets(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, &descriptorSets, 0, nullptr);
@@ -458,7 +457,7 @@ namespace SmolEngine
 		VkDeviceSize offsets[1] = { 0 };
 		if (m_VertexBuffers.size() > 0)
 		{
-			vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &m_VertexBuffers[vertexBufferIndex]->GetVulkanVertexBuffer().GetBuffer(), offsets);
+			vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &m_VertexBuffers[vertexBufferIndex]->Cast<VulkanVertexBuffer>()->GetBuffer(), offsets);
 		}
 
 		const auto& descriptorSets = GetVkDescriptorSets(m_DescriptorIndex);
@@ -471,8 +470,8 @@ namespace SmolEngine
 		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,GetVkPipeline(m_DrawMode));
 
 		VkDeviceSize offsets[1] = { 0 };
-		vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &mesh->GetVertexBuffer()->GetVulkanVertexBuffer().GetBuffer(), offsets);
-		vkCmdBindIndexBuffer(m_CommandBuffer, mesh->GetIndexBuffer()->GetVulkanIndexBuffer().GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &mesh->GetVertexBuffer()->Cast<VulkanVertexBuffer>()->GetBuffer(), offsets);
+		vkCmdBindIndexBuffer(m_CommandBuffer, mesh->GetIndexBuffer()->Cast<VulkanIndexBuffer>()->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
 		const auto& descriptorSets = GetVkDescriptorSets(m_DescriptorIndex);
 		vkCmdBindDescriptorSets(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, &descriptorSets, 0, nullptr);
@@ -484,8 +483,8 @@ namespace SmolEngine
 		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GetVkPipeline(m_DrawMode));
 
 		VkDeviceSize offsets[1] = { 0 };
-		vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &mesh->GetVertexBuffer()->GetVulkanVertexBuffer().GetBuffer(), offsets);
-		vkCmdBindIndexBuffer(m_CommandBuffer, mesh->GetIndexBuffer()->GetVulkanIndexBuffer().GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &mesh->GetVertexBuffer()->Cast<VulkanVertexBuffer>()->GetBuffer(), offsets);
+		vkCmdBindIndexBuffer(m_CommandBuffer, mesh->GetIndexBuffer()->Cast<VulkanIndexBuffer>()->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
 		const auto& descriptorSets =GetVkDescriptorSets(m_DescriptorIndex);
 		vkCmdBindDescriptorSets(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, &descriptorSets, 0, nullptr);
@@ -512,15 +511,15 @@ namespace SmolEngine
 		return m_Descriptors[m_DescriptorIndex].UpdateImageResource(bindingPoint, tetxure->Cast<VulkanTexture>()->GetVkDescriptorImageInfo());
 	}
 
-	bool VulkanPipeline::UpdateSampler(Framebuffer* framebuffer, uint32_t bindingPoint, uint32_t attachmentIndex)
+	bool VulkanPipeline::UpdateSampler(Ref<Framebuffer>& framebuffer, uint32_t bindingPoint, uint32_t attachmentIndex)
 	{
-		const auto& descriptor = framebuffer->GetVulkanFramebuffer().GetAttachment(attachmentIndex)->ImageInfo;
+		const auto& descriptor = framebuffer->Cast<VulkanFramebuffer>()->GetAttachment(attachmentIndex)->ImageInfo;
 		return m_Descriptors[m_DescriptorIndex].UpdateImageResource(bindingPoint, descriptor);
 	}
 
-	bool VulkanPipeline::UpdateSampler(Framebuffer* framebuffer, uint32_t bindingPoint, const std::string& attachmentName)
+	bool VulkanPipeline::UpdateSampler(Ref<Framebuffer>& framebuffer, uint32_t bindingPoint, const std::string& attachmentName)
 	{
-		const auto& descriptor = framebuffer->GetVulkanFramebuffer().GetAttachment(attachmentName)->ImageInfo;
+		const auto& descriptor = framebuffer->Cast<VulkanFramebuffer>()->GetAttachment(attachmentName)->ImageInfo;
 		return m_Descriptors[m_DescriptorIndex].UpdateImageResource(bindingPoint, descriptor);
 	}
 
@@ -547,13 +546,13 @@ namespace SmolEngine
 
 	void VulkanPipeline::BindIndexBuffer(uint32_t index)
 	{
-		vkCmdBindIndexBuffer(m_CommandBuffer, m_IndexBuffers[index]->GetVulkanIndexBuffer().GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindIndexBuffer(m_CommandBuffer, m_IndexBuffers[index]->Cast<VulkanIndexBuffer>()->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 	}
 
 	void VulkanPipeline::BindVertexBuffer(uint32_t index)
 	{
 		VkDeviceSize offsets[1] = { 0 };
-		vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &m_VertexBuffers[index]->GetVulkanVertexBuffer().GetBuffer(), offsets);
+		vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, &m_VertexBuffers[index]->Cast<VulkanVertexBuffer>()->GetBuffer(), offsets);
 	}
 
 	bool VulkanPipeline::SaveCache(const std::string& fileName, DrawMode mode)

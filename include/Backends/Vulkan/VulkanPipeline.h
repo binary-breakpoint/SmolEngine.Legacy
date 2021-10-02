@@ -20,12 +20,12 @@ namespace SmolEngine
 		void                                            EndRenderPass() override;
 		void                                            BeginCommandBuffer(bool isMainCmdBufferInUse = false) override;
 		void                                            EndCommandBuffer()  override;
-		void                                            Destroy() override;
+		void                                            Free() override;
 		void                                            Reload() override;
 
 		void                                            DrawIndexed(uint32_t vbIndex = 0, uint32_t ibIndex = 0) override;
-		void                                            DrawIndexed(VertexBuffer* vb, IndexBuffer* ib) override;
-		void                                            Draw(VertexBuffer* vb, uint32_t vertextCount) override;
+		void                                            DrawIndexed(Ref<VertexBuffer>& vb, Ref<IndexBuffer>& ib) override;
+		void                                            Draw(Ref<VertexBuffer>& vb, uint32_t vertextCount) override;
 		void                                            Draw(uint32_t vertextCount, uint32_t vertexBufferIndex = 0) override;
 		void                                            DrawMeshIndexed(Mesh* mesh, uint32_t instances = 1) override;
 		void                                            DrawMesh(Mesh* mesh, uint32_t instances = 1) override;
@@ -35,8 +35,8 @@ namespace SmolEngine
 								                        
 		bool                                            UpdateSamplers(const std::vector<Ref<Texture>>& textures, uint32_t bindingPoint, bool storageImage = false) override;
 		bool                                            UpdateSampler(Ref<Texture>& tetxure, uint32_t bindingPoint, bool storageImage = false) override;
-		bool                                            UpdateSampler(Framebuffer* framebuffer, uint32_t bindingPoint, uint32_t attachmentIndex = 0) override;
-		bool                                            UpdateSampler(Framebuffer* framebuffer, uint32_t bindingPoint, const std::string& attachmentName) override;
+		bool                                            UpdateSampler(Ref<Framebuffer>& framebuffer, uint32_t bindingPoint, uint32_t attachmentIndex = 0) override;
+		bool                                            UpdateSampler(Ref<Framebuffer>& framebuffer, uint32_t bindingPoint, const std::string& attachmentName) override;
 		bool                                            UpdateCubeMap(Ref<Texture>& cubeMap, uint32_t bindingPoint) override;
 								                        
 		void                                            BindPipeline() override;

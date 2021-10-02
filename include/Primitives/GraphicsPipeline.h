@@ -2,6 +2,7 @@
 #include "GraphicsContext.h"
 #include "Common/Common.h"
 
+#include "Primitives/PrimitiveBase.h"
 #include "Primitives/VertexArray.h"
 #include "Primitives/VertexBuffer.h"
 #include "Primitives/IndexBuffer.h"
@@ -69,7 +70,6 @@ namespace SmolEngine
 		Front
 	};
 
-	class Framebuffer;
 	struct GraphicsPipelineCreateInfo
 	{
 		BlendFactor                   eSrcColorBlendFactor = BlendFactor::NONE;
@@ -94,10 +94,10 @@ namespace SmolEngine
 		ShaderCreateInfo              ShaderCreateInfo = {};
 		std::vector<DrawMode>         PipelineDrawModes = { DrawMode::Triangle };
 		std::vector<VertexInputInfo>  VertexInputInfos;
-		std::vector<Framebuffer*>     TargetFramebuffers;
+		std::vector<Ref<Framebuffer>> TargetFramebuffers;
 	};
 
-	class GraphicsPipeline
+	class GraphicsPipeline: public PrimitiveBase
 	{
 	public:
 		virtual ~GraphicsPipeline() = default;
@@ -108,12 +108,11 @@ namespace SmolEngine
 		virtual void                      BeginCommandBuffer(bool batchCmd = false) = 0;
 		virtual void                      EndCommandBuffer() = 0;
 		virtual void                      EndRenderPass() = 0;
-		virtual void                      Destroy() = 0;
 		virtual void                      Reload() {};
 					                      
 		virtual void                      DrawIndexed(uint32_t vbIndex = 0, uint32_t ibIndex = 0) = 0;
-		virtual void                      DrawIndexed(VertexBuffer* vb, IndexBuffer* ib) = 0;
-		virtual void                      Draw(VertexBuffer* vb, uint32_t vertextCount) = 0;
+		virtual void                      DrawIndexed(Ref<VertexBuffer>& vb, Ref<IndexBuffer>& ib) = 0;
+		virtual void                      Draw(Ref<VertexBuffer>& vb, uint32_t vertextCount) = 0;
 		virtual void                      Draw(uint32_t vertextCount, uint32_t vbIndex = 0) = 0;
 		virtual void                      DrawMeshIndexed(Mesh* mesh, uint32_t instances = 1) = 0;
 		virtual void                      DrawMesh(Mesh* mesh, uint32_t instances = 1) = 0;
@@ -123,8 +122,8 @@ namespace SmolEngine
 					                      
 		virtual bool                      UpdateSamplers(const std::vector<Ref<Texture>>& textures, uint32_t binding, bool storageImage = false) = 0;
 		virtual bool                      UpdateSampler(Ref<Texture>& tetxure, uint32_t binding, bool storageImage = false) = 0;
-		virtual bool                      UpdateSampler(Framebuffer* framebuffer, uint32_t binding, uint32_t attachmentIndex = 0) = 0;
-		virtual bool                      UpdateSampler(Framebuffer* framebuffer, uint32_t binding, const std::string& attachmentName) = 0;
+		virtual bool                      UpdateSampler(Ref<Framebuffer>& framebuffer, uint32_t binding, uint32_t attachmentIndex = 0) = 0;
+		virtual bool                      UpdateSampler(Ref<Framebuffer>& framebuffer, uint32_t binding, const std::string& attachmentName) = 0;
 		virtual bool                      UpdateCubeMap(Ref<Texture>& cubeMap, uint32_t binding) = 0;
 					                      
 		virtual void                      BindPipeline() {};
@@ -138,12 +137,9 @@ namespace SmolEngine
 		void                              SetDrawMode(DrawMode mode);
 		void                              SetFramebufferIndex(uint32_t index);
 		void                              SetFramebufferAttachmentIndex(uint32_t index);
-		void                              SetFramebuffers(const std::vector<Framebuffer*>& fb);
+		void                              SetFramebuffers(const std::vector<Ref<Framebuffer>>& fb);
 		void                              SetVertexBuffers(const std::vector<Ref<VertexBuffer>>& vb);
 		void                              SetIndexBuffers(const std::vector<Ref<IndexBuffer>>& ib);
-
-		template<typename T>
-		T* Cast() { return dynamic_cast<T*>(this); }
 
 	private:
 		bool                              BuildBase(GraphicsPipelineCreateInfo* pipelineInfo);

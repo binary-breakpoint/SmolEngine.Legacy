@@ -1,6 +1,6 @@
 #pragma once
 #include "Common/Common.h"
-
+#include "Primitives/PrimitiveBase.h"
 
 #include <glm/glm.hpp>
 #include <string>
@@ -78,7 +78,7 @@ namespace SmolEngine
 		}
 	};
 
-	class Texture
+	class Texture: public PrimitiveBase
 	{
 	public:
 		virtual ~Texture() = default;
@@ -89,18 +89,14 @@ namespace SmolEngine
 		virtual void                          LoadAsWhiteCube(TextureCreateInfo* info) = 0;
 		virtual void                          LoadAsStorage(TextureCreateInfo* info) = 0;
 		virtual void                          LoadAsWhite() = 0;
-		virtual void                          Free() = 0;
 
 		virtual uint32_t                      GetMips() const { return 0; };
 		virtual std::pair<uint32_t, uint32_t> GetMipSize(uint32_t mip) const { return { 0, 0 }; };
 		const TextureInfo&                    GetInfo() const { return m_Info; }
 		void*                                 GetImGuiTexture() const { return m_Info.ImHandle; }
-		bool                                  IsGood() const { return m_Info.Width > 0; }
+		bool                                  IsGood() const override { return m_Info.Width > 0; }
 		// Factory
 		static Ref<Texture>                   Create();
-
-		template<typename T>
-		T* Cast() { return dynamic_cast<T*>(this); }
 
 	private:
 		TextureInfo                           m_Info{};

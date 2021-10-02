@@ -93,7 +93,7 @@ namespace SmolEngine
 	struct Renderer2DStorage: RendererStorageBase
 	{
 		void                      Initilize() override;
-		void                      SetRenderTarget(Framebuffer* target);
+		void                      SetRenderTarget(Ref<Framebuffer>& target);
 
 	private:
 		void                      CreatePipelines();
@@ -105,7 +105,7 @@ namespace SmolEngine
 		const uint32_t            SamplersBP = 2;
 		const uint32_t            SceneDataBP = 27;
 		Ref<GraphicsPipeline>     MainPipeline = nullptr;
-		Framebuffer*              MainFB = nullptr;
+		Ref<Framebuffer>          MainFB = nullptr;
 		Mesh                      PlaneMesh = {};
 
 		struct TextPC

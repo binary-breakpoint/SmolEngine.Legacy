@@ -72,7 +72,7 @@ namespace SmolEngine
 		OnUpdateMaterials();
 	}
 
-	void RendererStorage::SetRenderTarget(Framebuffer* target)
+	void RendererStorage::SetRenderTarget(Ref<Framebuffer>& target)
 	{
 		f_Main = target;
 		p_Combination->SetFramebuffers({ f_Main });
@@ -181,7 +181,7 @@ namespace SmolEngine
 				DynamicPipelineCI.VertexInputInfos = { vertexMain };
 				DynamicPipelineCI.PipelineName = "G_Pipeline";
 				DynamicPipelineCI.ShaderCreateInfo = shaderCI;
-				DynamicPipelineCI.TargetFramebuffers = { &f_GBuffer };
+				DynamicPipelineCI.TargetFramebuffers = { f_GBuffer };
 			}
 
 			p_Gbuffer = GraphicsPipeline::Create();
@@ -214,23 +214,23 @@ namespace SmolEngine
 				DynamicPipelineCI.PipelineName = "Lighting_Pipeline";
 				DynamicPipelineCI.ShaderCreateInfo = shaderCI;
 				DynamicPipelineCI.bDepthTestEnabled = false;
-				DynamicPipelineCI.TargetFramebuffers = { &f_Lighting };
+				DynamicPipelineCI.TargetFramebuffers = { f_Lighting };
 			}
 
 			p_Lighting = GraphicsPipeline::Create();
 			auto result = p_Lighting->Build(&DynamicPipelineCI);
 			assert(result == true);
 
-			p_Lighting->UpdateSampler(&f_Depth, 1, "Depth_Attachment");
+			p_Lighting->UpdateSampler(f_Depth, 1, "Depth_Attachment");
 #ifndef OPENGL_IMPL
 			p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(2, m_VulkanPBR->GetIrradianceImageInfo());
 			p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(3, m_VulkanPBR->GetBRDFLUTImageInfo());
 			p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(4, m_VulkanPBR->GetPrefilteredCubeImageInfo());
 #endif
-			p_Lighting->UpdateSampler(&f_GBuffer, 5, "albedro");
-			p_Lighting->UpdateSampler(&f_GBuffer, 6, "position");
-			p_Lighting->UpdateSampler(&f_GBuffer, 7, "normals");
-			p_Lighting->UpdateSampler(&f_GBuffer, 8, "materials");
+			p_Lighting->UpdateSampler(f_GBuffer, 5, "albedro");
+			p_Lighting->UpdateSampler(f_GBuffer, 6, "position");
+			p_Lighting->UpdateSampler(f_GBuffer, 7, "normals");
+			p_Lighting->UpdateSampler(f_GBuffer, 8, "materials");
 		}
 
 		JobsSystemInstance::BeginSubmition();
@@ -253,7 +253,7 @@ namespace SmolEngine
 					pipelineCI.VertexInputInfos = { vertexMain };
 					pipelineCI.bDepthTestEnabled = false;
 					pipelineCI.bDepthWriteEnabled = false;
-					pipelineCI.TargetFramebuffers = { &f_GBuffer };
+					pipelineCI.TargetFramebuffers = { f_GBuffer };
 					pipelineCI.ShaderCreateInfo = shaderCI;
 
 					p_Grid = GraphicsPipeline::Create();
@@ -287,7 +287,7 @@ namespace SmolEngine
 						DynamicPipelineCI.ShaderCreateInfo = shaderCI;
 						DynamicPipelineCI.bDepthTestEnabled = false;
 						DynamicPipelineCI.bDepthWriteEnabled = false;
-						DynamicPipelineCI.TargetFramebuffers = { &f_GBuffer };
+						DynamicPipelineCI.TargetFramebuffers = { f_GBuffer };
 					}
 
 					p_Skybox = GraphicsPipeline::Create();
@@ -297,8 +297,8 @@ namespace SmolEngine
 					auto map = m_EnvironmentMap->GetCubeMap();
 					p_Skybox->UpdateSampler(map, 1);
 
-					Ref<VertexBuffer> skyBoxFB = std::make_shared<VertexBuffer>();
-					VertexBuffer::Create(skyBoxFB.get(), skyboxVertices, sizeof(skyboxVertices));
+					Ref<VertexBuffer> skyBoxFB = VertexBuffer::Create();
+					skyBoxFB->BuildFromMemory(skyboxVertices, sizeof(skyboxVertices));
 					p_Skybox->SetVertexBuffers({ skyBoxFB });
 				});
 
@@ -317,7 +317,7 @@ namespace SmolEngine
 						DynamicPipelineCI.VertexInputInfos = { vertexMain };
 						DynamicPipelineCI.PipelineName = "DepthPass_Pipeline";
 						DynamicPipelineCI.ShaderCreateInfo = shaderCI;
-						DynamicPipelineCI.TargetFramebuffers = { &f_Depth };
+						DynamicPipelineCI.TargetFramebuffers = { f_Depth };
 						DynamicPipelineCI.bDepthBiasEnabled = true;
 						DynamicPipelineCI.StageCount = 1;
 
@@ -364,7 +364,7 @@ namespace SmolEngine
 					auto result = p_Combination->Build(&DynamicPipelineCI);
 					assert(result == true);
 
-					p_Combination->UpdateSampler(&f_Lighting, 0);
+					p_Combination->UpdateSampler(f_Lighting, 0);
 				});
 
 			// Debug
@@ -384,11 +384,11 @@ namespace SmolEngine
 					auto result = p_Debug->Build(&DynamicPipelineCI);
 					assert(result == true);
 
-					p_Debug->UpdateSampler(&f_Depth, 1, "Depth_Attachment");
-					p_Debug->UpdateSampler(&f_GBuffer, 5, "albedro");
-					p_Debug->UpdateSampler(&f_GBuffer, 6, "position");
-					p_Debug->UpdateSampler(&f_GBuffer, 7, "normals");
-					p_Debug->UpdateSampler(&f_GBuffer, 8, "materials");
+					p_Debug->UpdateSampler(f_Depth, 1, "Depth_Attachment");
+					p_Debug->UpdateSampler(f_GBuffer, 5, "albedro");
+					p_Debug->UpdateSampler(f_GBuffer, 6, "position");
+					p_Debug->UpdateSampler(f_GBuffer, 7, "normals");
+					p_Debug->UpdateSampler(f_GBuffer, 8, "materials");
 				});
 
 			//Bloom
@@ -434,7 +434,7 @@ namespace SmolEngine
 	void RendererStorage::CreateFramebuffers()
 	{
 		// Main
-		f_Main = GraphicsContext::GetSingleton()->GetFramebuffer();
+		f_Main = GraphicsContext::GetSingleton()->GetMainFramebuffer();
 
 		JobsSystemInstance::BeginSubmition();
 		{
@@ -453,7 +453,8 @@ namespace SmolEngine
 					framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
 					framebufferCI.Attachments = { albedro, position, normals, materials };
 
-					Framebuffer::Create(framebufferCI, &f_GBuffer);
+					f_GBuffer = Framebuffer::Create();
+					f_GBuffer->Build(&framebufferCI);
 
 				});
 
@@ -469,7 +470,8 @@ namespace SmolEngine
 					framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
 					framebufferCI.Attachments = { color };
 
-					Framebuffer::Create(framebufferCI, &f_Lighting);
+					f_Lighting = Framebuffer::Create();
+					f_Lighting->Build(&framebufferCI);
 
 				});
 
@@ -505,7 +507,8 @@ namespace SmolEngine
 					framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
 					framebufferCI.eSpecialisation = FramebufferSpecialisation::ShadowMap;
 
-					Framebuffer::Create(framebufferCI, &f_Depth);
+					f_Depth = Framebuffer::Create();
+					f_Depth->Build(&framebufferCI);
 
 				});
 		}
@@ -609,7 +612,7 @@ namespace SmolEngine
 		return m_Frustum;
 	}
 
-	void RendererStorage::UpdateUniforms(RendererDrawList* drawList, Framebuffer* target)
+	void RendererStorage::UpdateUniforms(RendererDrawList* drawList, Ref<Framebuffer>& target)
 	{
 		JobsSystemInstance::BeginSubmition();
 		{
@@ -737,24 +740,24 @@ namespace SmolEngine
 
 	void RendererStorage::OnResize(uint32_t width, uint32_t height)
 	{
-		f_GBuffer.OnResize(width, height);
-		f_Lighting.OnResize(width, height);
+		f_GBuffer->OnResize(width, height);
+		f_Lighting->OnResize(width, height);
 
 		{
 			// Lighting pipeline
-			p_Lighting->UpdateSampler(&f_GBuffer, 5, "albedro");
-			p_Lighting->UpdateSampler(&f_GBuffer, 6, "position");
-			p_Lighting->UpdateSampler(&f_GBuffer, 7, "normals");
-			p_Lighting->UpdateSampler(&f_GBuffer, 8, "materials");
+			p_Lighting->UpdateSampler(f_GBuffer, 5, "albedro");
+			p_Lighting->UpdateSampler(f_GBuffer, 6, "position");
+			p_Lighting->UpdateSampler(f_GBuffer, 7, "normals");
+			p_Lighting->UpdateSampler(f_GBuffer, 8, "materials");
 			// Debug view pipeline
-			p_Debug->UpdateSampler(&f_Depth, 1, "Depth_Attachment");
-			p_Debug->UpdateSampler(&f_GBuffer, 5, "albedro");
-			p_Debug->UpdateSampler(&f_GBuffer, 6, "position");
-			p_Debug->UpdateSampler(&f_GBuffer, 7, "normals");
-			p_Debug->UpdateSampler(&f_GBuffer, 8, "materials");
+			p_Debug->UpdateSampler(f_Depth, 1, "Depth_Attachment");
+			p_Debug->UpdateSampler(f_GBuffer, 5, "albedro");
+			p_Debug->UpdateSampler(f_GBuffer, 6, "position");
+			p_Debug->UpdateSampler(f_GBuffer, 7, "normals");
+			p_Debug->UpdateSampler(f_GBuffer, 8, "materials");
 
 			// Combination
-			p_Combination->UpdateSampler(&f_Lighting, 0);
+			p_Combination->UpdateSampler(f_Lighting, 0);
 
 			//// FOV
 			// f_DOF.OnResize(width, height);
@@ -1011,7 +1014,7 @@ namespace SmolEngine
 
 		const auto TEXTURE_BLOOM_SET_FROM_SECENE = [&](uint32_t binding = 2)
 		{
-			const auto& descriptor = storage->f_Lighting.GetVulkanFramebuffer().GetAttachment(0)->ImageInfo;
+			const auto& descriptor = storage->f_Lighting->Cast<VulkanFramebuffer>()->GetAttachment(0)->ImageInfo;
 			storage->p_Bloom->Cast<VulkanComputePipeline>()->GeDescriptor(descriptorIndex).UpdateImageResource(binding, descriptor);
 		};
 

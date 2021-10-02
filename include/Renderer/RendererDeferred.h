@@ -233,7 +233,7 @@ namespace SmolEngine
 
 		void                          SetDynamicSkybox(DynamicSkyProperties& properties, const glm::mat4& proj, bool regeneratePBRmaps);
 		void                          SetStaticSkybox(Ref<Texture>& skybox);
-		void                          SetRenderTarget(Framebuffer* target);
+		void                          SetRenderTarget(Ref<Framebuffer>& target);
 		void                          SetDefaultState();
 
 		RendererStateEX&              GetState();
@@ -246,7 +246,7 @@ namespace SmolEngine
 		void                          CreatePipelines();
 		void                          CreateFramebuffers();
 		void                          CreatePBRMaps();
-		void                          UpdateUniforms(RendererDrawList* drawList, Framebuffer* target);
+		void                          UpdateUniforms(RendererDrawList* drawList, Ref<Framebuffer>& target);
 
 	private:
 		// Bindings					
@@ -275,11 +275,11 @@ namespace SmolEngine
 		Ref<GraphicsPipeline>         p_DOF = nullptr;
 		Ref<ComputePipeline>          p_Bloom = nullptr;
 		// Framebuffers				
-		Framebuffer*                  f_Main = nullptr;
-		Framebuffer                   f_GBuffer = {};
-		Framebuffer                   f_Lighting = {};
-		Framebuffer                   f_Depth = {};
-		Framebuffer                   f_DOF = {};
+		Ref<Framebuffer>              f_Main = nullptr;
+		Ref<Framebuffer>              f_GBuffer = nullptr;
+		Ref<Framebuffer>              f_Lighting = nullptr;
+		Ref<Framebuffer>              f_Depth = nullptr;
+		Ref<Framebuffer>              f_DOF = nullptr;
 				            
 		Mesh                          m_PlaneMesh = {};
 		MaterialLibrary               m_MaterialLibrary{};

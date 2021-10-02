@@ -134,13 +134,16 @@ namespace SmolEngine
 
     bool Mesh::Init(Mesh* mesh, Mesh* parent, Primitive* primitive)
     {
-        mesh->m_VertexBuffer = std::make_shared<VertexBuffer>();
-        mesh->m_IndexBuffer =  std::make_shared<IndexBuffer>();
         mesh->m_VertexCount =  static_cast<uint32_t>(primitive->VertexBuffer.size());
         mesh->m_Root = parent;
 
-        VertexBuffer::Create(mesh->m_VertexBuffer.get(), primitive->VertexBuffer.data(), static_cast<uint32_t>(primitive->VertexBuffer.size() * sizeof(PBRVertex)), true);
-        IndexBuffer::Create(mesh->m_IndexBuffer.get(), primitive->IndexBuffer.data(), static_cast<uint32_t>(primitive->IndexBuffer.size()), true);
+        const bool is_static = true;
+        mesh->m_VertexBuffer = VertexBuffer::Create();
+        mesh->m_VertexBuffer->BuildFromMemory(primitive->VertexBuffer.data(), primitive->VertexBuffer.size() * sizeof(PBRVertex), is_static);
+
+        mesh->m_IndexBuffer = IndexBuffer::Create();
+        mesh->m_IndexBuffer->BuildFromMemory(primitive->IndexBuffer.data(), primitive->IndexBuffer.size(), is_static);
+
         return true;
     }
 }

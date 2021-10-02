@@ -2,45 +2,31 @@
 #include "Common/DebugLog.h"
 #include "Primitives/Framebuffer.h"
 
+#ifdef OPENGL_IMPL
+#else
+#include "Backends/Vulkan/VulkanFramebuffer.h"
+#endif
+
 namespace SmolEngine
 {
-	void Framebuffer::Create(const FramebufferSpecification& data, Framebuffer* out_fb)
+	Ref<Framebuffer> Framebuffer::Create()
 	{
-		out_fb->m_Info = data;
-		out_fb->Init(&out_fb->m_Info);
-	}
-
-	void Framebuffer::Bind()
-	{
-
-	}
-
-	void Framebuffer::UnBind()
-	{
-
-	}
-
-	void Framebuffer::OnResize(const uint32_t width, const uint32_t height)
-	{
+		Ref<Framebuffer> fb = nullptr;
 #ifdef OPENGL_IMPL
-
 #else
-		SetSize(width, height);
+		fb = std::make_shared<VulkanFramebuffer>();
 #endif
+		return fb;
+	}
+
+	bool Framebuffer::BuildBase(FramebufferSpecification* info)
+	{
+		m_Info = *info;
+		return true;
 	}
 
 	const FramebufferSpecification& Framebuffer::GetSpecification() const
 	{
 		return m_Info;
-	}
-
-	void* Framebuffer::GetImGuiTextureID(uint32_t index)
-	{
-#ifdef OPENGL_IMPL
-
-		return reinterpret_cast<void*>(GetColorAttachmentID());
-#else
-		return GetAttachment(index)->ImGuiID;
-#endif
 	}
 }

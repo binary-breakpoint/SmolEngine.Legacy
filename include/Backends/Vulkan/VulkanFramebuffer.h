@@ -1,6 +1,7 @@
 #pragma once
 #ifndef OPENGL_IMPL
 #include "Backends/Vulkan/Vulkan.h"
+#include "Primitives/Framebuffer.h"
 
 #include <glm/glm.hpp>
 #include <vector>
@@ -8,11 +9,6 @@
 
 namespace SmolEngine
 {
-	struct FramebufferSpecification;
-	enum class MSAASamples : uint16_t;
-	enum class FramebufferSpecialisation : uint16_t;
-	enum class AttachmentFormat : uint16_t;
-
 	struct VulkanFramebufferAttachment
 	{
 		VkImage         image;
@@ -27,16 +23,17 @@ namespace SmolEngine
 		void*                         ImGuiID = nullptr;
 	};
 
-	class VulkanFramebuffer
+	class VulkanFramebuffer: public Framebuffer
 	{
 	public:
-		VulkanFramebuffer();
 		~VulkanFramebuffer();
 
-		bool                                             Init(FramebufferSpecification* data);
-		// Setters
-		void                                             SetSize(uint32_t width, uint32_t height);
-		void                                             SetClearColors(const glm::vec4& clearColors);
+		bool                                             Build(FramebufferSpecification* info) override;
+		void                                             Free() override;
+		void                                             OnResize(uint32_t width, uint32_t height) override;
+		void*                                            GetImGuiTextureID(uint32_t index = 0) override;
+		void                                             SetClearColor(const glm::vec4& color) override;
+
 		// Getters
 		const std::vector<VkClearAttachment>&            GetClearAttachments() const;
 		const std::vector<VkClearValue>&                 GetClearValues() const;
@@ -55,7 +52,6 @@ namespace SmolEngine
 		bool                                             CreateShadow(uint32_t width, uint32_t height);
 		bool                                             CreateCopyFramebuffer(uint32_t width, uint32_t height);
 		void                                             CreateSampler(VkFilter filer = VK_FILTER_NEAREST);
-		void                                             FreeResources();
 		void                                             FreeAttachment(Attachment& framebuffer);
 		bool                                             IsUseMSAA();
 		VkBool32                                         IsFormatIsFilterable(VkPhysicalDevice physicalDevice, VkFormat format, VkImageTiling tiling);
@@ -65,7 +61,6 @@ namespace SmolEngine
 			                                             VkImageAspectFlags imageAspect = VK_IMAGE_ASPECT_COLOR_BIT);
 
 	private:
-		FramebufferSpecification*                        m_Spec = nullptr;
 		VkDevice                                         m_Device = nullptr;
 		VkSampler                                        m_Sampler = nullptr;
 		VkRenderPass                                     m_RenderPass = nullptr;

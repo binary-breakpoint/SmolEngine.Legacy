@@ -1,31 +1,17 @@
 #pragma once
 #include "Primitives/BufferLayout.h"
-
-#ifdef OPENGL_IMPL
-#include "Backends/OpenGL/OpenglBuffer.h"
-#else
-#include "Backends/Vulkan/VulkanVertexBuffer.h"
-#endif
+#include "Primitives/PrimitiveBase.h"
 
 namespace SmolEngine
 {
-#ifdef  OPENGL_IMPL
-	class VertexBuffer: OpenglVertexBuffer
-#else
-	class VertexBuffer: VulkanVertexBuffer
-#endif
+	class VertexBuffer: public PrimitiveBase
 	{
 	public:
-		void                  Bind() const;
-		void                  UnBind() const;
-		void                  Clear();
-		bool                  IsReady() const;
-		void                  UploadData(const void* data, const uint32_t size, const uint32_t offset = 0);
-#ifndef OPENGL_IMPL
-		VulkanVertexBuffer&   GetVulkanVertexBuffer() { return *dynamic_cast<VulkanVertexBuffer*>(this); }
-#endif
-		// Factory
-		static void           Create(VertexBuffer* ot_vb, uint32_t size);
-		static void           Create (VertexBuffer* ot_vb, void* vertices, uint32_t size, bool is_static = false);
+		virtual ~VertexBuffer() = default;
+
+		virtual bool                  BuildFromMemory(void* vertices, size_t size, bool is_static = false) = 0;
+		virtual bool                  BuildFromSize(size_t size, bool is_static = false) = 0;
+		virtual void                  Update(const void* data, size_t size, const uint32_t offset = 0) = 0;
+		static Ref<VertexBuffer>      Create();
 	};
 }

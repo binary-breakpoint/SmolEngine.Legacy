@@ -1,11 +1,6 @@
 #pragma once
 #include "Common/Common.h"
-
-#ifdef OPENGL_IMPL
-#include "Backends/OpenGL/OpenglFramebuffer.h"
-#else
-#include "Backends/Vulkan/VulkanFramebuffer.h"
-#endif
+#include "Primitives/PrimitiveBase.h"
 
 namespace SmolEngine
 {
@@ -96,24 +91,24 @@ namespace SmolEngine
 		std::vector<FramebufferAttachment>   Attachments;
 	};
 
-#ifdef  OPENGL_IMPL
-	class Framebuffer : OpenglFramebuffer
-#else
-	class Framebuffer : VulkanFramebuffer
-#endif
+	class Framebuffer: public PrimitiveBase
 	{
 	public:
-		void                             Bind();
-		void                             UnBind();
-		void                             OnResize(const uint32_t width, const uint32_t height);
-		const FramebufferSpecification&  GetSpecification() const;
-		void*                            GetImGuiTextureID(uint32_t index = 0);
-#ifndef OPENGL_IMPL
-		VulkanFramebuffer&               GetVulkanFramebuffer() { return *dynamic_cast<VulkanFramebuffer*>(this); }
-#endif
-		static void                      Create(const FramebufferSpecification& data, Framebuffer* out_fb);
+		virtual ~Framebuffer() = default;
+
+		virtual bool                      Build(FramebufferSpecification* info) = 0;
+		virtual void                      OnResize(uint32_t width, uint32_t height) = 0;
+		virtual void*                     GetImGuiTextureID(uint32_t index = 0) = 0;
+		virtual void                      SetClearColor(const glm::vec4& color) {};
+		const FramebufferSpecification&   GetSpecification() const;
+		static Ref<Framebuffer>           Create();
+
+	private:
+		bool                              BuildBase(FramebufferSpecification* info);
 
 	private: 
-		FramebufferSpecification         m_Info = {};
+		FramebufferSpecification          m_Info = {};
+
+		friend class VulkanFramebuffer;
 	};
 }

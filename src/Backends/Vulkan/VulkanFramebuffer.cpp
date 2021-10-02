@@ -6,34 +6,103 @@
 #include "Backends/Vulkan/VulkanMemoryAllocator.h"
 #include "Backends/Vulkan/VulkanTexture.h"
 #include "Backends/Vulkan/VulkanSemaphore.h"
-#include "Primitives/Framebuffer.h"
 
 #include <imgui/examples/imgui_impl_vulkan.h>
 
 namespace SmolEngine
 {
-	VulkanFramebuffer::VulkanFramebuffer()
-	{
-	}
-
 	VulkanFramebuffer::~VulkanFramebuffer()
 	{
-		FreeResources();
+		Free();
+	}
+
+	bool VulkanFramebuffer::Build(FramebufferSpecification* info)
+	{
+		if (BuildBase(info))
+		{
+			m_Device = VulkanContext::GetDevice().GetLogicalDevice();
+			m_MSAASamples = GetVkMSAASamples(info->eMSAASampels);
+			m_ColorFormat = VulkanContext::GetSwapchain().GetColorFormat();
+			m_DepthFormat = VulkanContext::GetSwapchain().GetDepthFormat();
+
+			switch (info->eSpecialisation)
+			{
+			case FramebufferSpecialisation::None:
+			{
+				return Create(info->Width, info->Height);
+			}
+			case FramebufferSpecialisation::CopyBuffer:
+			{
+				return CreateCopyFramebuffer(info->Width, info->Height);
+			}
+			case FramebufferSpecialisation::ShadowMap:
+			{
+				return CreateShadow(info->Width, info->Height);
+			}
+			}
+		}
+
+		return false;
+	}
+
+	void VulkanFramebuffer::Free()
+	{
+		FreeAttachment(m_DepthAttachment);
+		for (auto& color : m_Attachments)
+			FreeAttachment(color);
+
+		for (auto& resolve : m_ResolveAttachments)
+			FreeAttachment(resolve);
+
+		if (m_Sampler != VK_NULL_HANDLE)
+			vkDestroySampler(m_Device, m_Sampler, nullptr);
 
 		if (m_RenderPass != VK_NULL_HANDLE)
 			vkDestroyRenderPass(m_Device, m_RenderPass, nullptr);
+
+		for (auto& fb : m_VkFrameBuffers)
+		{
+			if (fb != VK_NULL_HANDLE)
+				vkDestroyFramebuffer(m_Device, fb, nullptr);
+		}
+
+		m_Attachments.clear();
+		m_ResolveAttachments.clear();
+		m_VkFrameBuffers.clear();
+	}
+
+	void VulkanFramebuffer::OnResize(uint32_t width, uint32_t height)
+	{
+		if (m_Info.bResizable)
+		{
+			Free();
+			Create(width, height);
+		}
+	}
+
+	void* VulkanFramebuffer::GetImGuiTextureID(uint32_t index)
+	{
+		return GetAttachment(index)->ImGuiID;
+	}
+
+	void VulkanFramebuffer::SetClearColor(const glm::vec4& color)
+	{
+		for (auto& clearAttachment : m_ClearAttachments)
+		{
+			clearAttachment.clearValue = { { color.r,  color.g,  color.b,  color.a } };
+		}
 	}
 
 	bool VulkanFramebuffer::Create(uint32_t width, uint32_t height)
 	{
-		if (m_Spec->Attachments.size() > 1 && m_Spec->bTargetsSwapchain || m_Spec->Attachments.size() == 0)
+		if (m_Info.Attachments.size() > 1 && m_Info.bTargetsSwapchain || m_Info.Attachments.size() == 0)
 			return false;
 
-		m_Spec->Width = width;
-		m_Spec->Height = height;
+		m_Info.Width = width;
+		m_Info.Height = height;
 
 		uint32_t lastImageViewIndex = 0;
-		uint32_t bufferSize = static_cast<uint32_t>(m_Spec->Attachments.size());
+		uint32_t bufferSize = static_cast<uint32_t>(m_Info.Attachments.size());
 		uint32_t attachmentsCount = IsUseMSAA() ? (bufferSize * 2) + 1 : bufferSize + 1;
 
 		m_Attachments.resize(bufferSize);
@@ -45,12 +114,12 @@ namespace SmolEngine
 		VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
 
 		// Sampler
-		CreateSampler(m_Spec->eFiltering == ImageFilter::LINEAR ? VK_FILTER_LINEAR: VK_FILTER_NEAREST);
+		CreateSampler(m_Info.eFiltering == ImageFilter::LINEAR ? VK_FILTER_LINEAR: VK_FILTER_NEAREST);
 
 		// Color Attachments
 		for (uint32_t i = 0; i < bufferSize; ++i)
 		{
-			auto& info = m_Spec->Attachments[i];
+			auto& info = m_Info.Attachments[i];
 			auto& vkInfo = m_Attachments[i];
 
 			VkImageUsageFlags usage = IsUseMSAA() ? VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT :
@@ -65,7 +134,7 @@ namespace SmolEngine
 				vkInfo.ImageInfo.imageView = vkInfo.AttachmentVkInfo.view;
 				vkInfo.ImageInfo.sampler = m_Sampler;
 
-				if (m_Spec->bUsedByImGui)
+				if (m_Info.bUsedByImGui)
 				{
 					vkInfo.ImGuiID = ImGui_ImplVulkan_AddTexture(vkInfo.ImageInfo);
 				}
@@ -88,17 +157,17 @@ namespace SmolEngine
 		}
 
 		// Use swapchain image as resolve attachment - no need to create attachment 
-		if (IsUseMSAA() && m_Spec->bTargetsSwapchain)
+		if (IsUseMSAA() && m_Info.bTargetsSwapchain)
 			lastImageViewIndex++;
 
 		// Create resolve attachment if MSAA enabled and swapchain is not target
-		if (IsUseMSAA() && !m_Spec->bTargetsSwapchain)
+		if (IsUseMSAA() && !m_Info.bTargetsSwapchain)
 		{
 			m_ResolveAttachments.resize(bufferSize);
 			for (uint32_t i = 0; i < bufferSize; ++i)
 			{
 				auto& resolve = m_ResolveAttachments[i];
-				auto& info = m_Spec->Attachments[i];
+				auto& info = m_Info.Attachments[i];
 				VkImageUsageFlags usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 
 				AddAttachment(width, height, VK_SAMPLE_COUNT_1_BIT, usage, GetAttachmentFormat(info.Format),
@@ -112,7 +181,7 @@ namespace SmolEngine
 				VulkanTexture::SetImageLayout(cmdStorage.Buffer, resolve.AttachmentVkInfo.image,
 					VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-				if (m_Spec->bUsedByImGui)
+				if (m_Info.bUsedByImGui)
 					resolve.ImGuiID = ImGui_ImplVulkan_AddTexture(resolve.ImageInfo);
 
 				attachments[lastImageViewIndex] = resolve.AttachmentVkInfo.view;
@@ -128,7 +197,7 @@ namespace SmolEngine
 			}
 		}
 
-		if (m_Spec->bTargetsSwapchain)
+		if (m_Info.bTargetsSwapchain)
 		{
 			m_ClearValues[lastImageViewIndex].color = { { 0.1f, 0.1f, 0.1f, 1.0f} };
 			m_ClearAttachments[lastImageViewIndex].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -160,11 +229,11 @@ namespace SmolEngine
 				renderPassGenInfo.DepthFormat = m_DepthFormat;
 				renderPassGenInfo.MSAASamples = m_MSAASamples;
 				renderPassGenInfo.NumColorAttachments = static_cast<uint32_t>(m_Attachments.size());
-				renderPassGenInfo.NumResolveAttachments = m_Spec->bTargetsSwapchain && IsUseMSAA() ? 1 : static_cast<uint32_t>(m_ResolveAttachments.size());
+				renderPassGenInfo.NumResolveAttachments = m_Info.bTargetsSwapchain && IsUseMSAA() ? 1 : static_cast<uint32_t>(m_ResolveAttachments.size());
 				renderPassGenInfo.NumDepthAttachments = 1;
 			}
 
-			VulkanRenderPass::Create(m_Spec, &renderPassGenInfo, m_RenderPass);
+			VulkanRenderPass::Create(&m_Info, &renderPassGenInfo, m_RenderPass);
 		}
 
 		VkFramebufferCreateInfo fbufCreateInfo = {};
@@ -174,12 +243,12 @@ namespace SmolEngine
 			fbufCreateInfo.renderPass = m_RenderPass;
 			fbufCreateInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
 			fbufCreateInfo.pAttachments = attachments.data();
-			fbufCreateInfo.width = m_Spec->Width;
-			fbufCreateInfo.height = m_Spec->Height;
+			fbufCreateInfo.width = m_Info.Width;
+			fbufCreateInfo.height = m_Info.Height;
 			fbufCreateInfo.layers = 1;
 		}
 
-		if (m_Spec->bTargetsSwapchain)
+		if (m_Info.bTargetsSwapchain)
 		{
 			uint32_t count = VulkanContext::GetSwapchain().m_ImageCount;
 			m_VkFrameBuffers.resize(count);
@@ -502,66 +571,6 @@ namespace SmolEngine
 		}
 	}
 
-	bool VulkanFramebuffer::Init(FramebufferSpecification* data)
-	{
-		m_Spec = data;
-		m_MSAASamples = GetVkMSAASamples(data->eMSAASampels);
-
-		m_Device = VulkanContext::GetDevice().GetLogicalDevice();
-		m_ColorFormat = VulkanContext::GetSwapchain().GetColorFormat();
-		m_DepthFormat = VulkanContext::GetSwapchain().GetDepthFormat();
-
-		switch (data->eSpecialisation)
-		{
-		case FramebufferSpecialisation::None:
-		{
-			return Create(data->Width, data->Height);
-		}
-		case FramebufferSpecialisation::CopyBuffer:
-		{
-			return CreateCopyFramebuffer(data->Width, data->Height);
-		}
-		case FramebufferSpecialisation::ShadowMap:
-		{
-			return CreateShadow(data->Width, data->Height);
-		}
-		default:
-			return false;
-		}
-	}
-
-	void VulkanFramebuffer::SetSize(uint32_t width, uint32_t height)
-	{
-		if (m_Spec->bResizable)
-		{
-			FreeResources();
-			Create(width, height);
-		}
-	}
-
-	void VulkanFramebuffer::FreeResources()
-	{
-		FreeAttachment(m_DepthAttachment);
-		for (auto& color : m_Attachments)
-			FreeAttachment(color);
-
-		for(auto& resolve: m_ResolveAttachments)
-			FreeAttachment(resolve);
-
-		if (m_Sampler != VK_NULL_HANDLE)
-		{
-			vkDestroySampler(m_Device, m_Sampler, nullptr);
-		}
-
-		for (auto& fb : m_VkFrameBuffers)
-		{
-			if (fb != VK_NULL_HANDLE)
-			{
-				vkDestroyFramebuffer(m_Device, fb, nullptr);
-			}
-		}
-	}
-
 	void VulkanFramebuffer::AddAttachment(uint32_t width, uint32_t height,
 		VkSampleCountFlagBits samples, VkImageUsageFlags imageUsage, VkFormat format,
 		VkImage& image, VkImageView& imageView, VkDeviceMemory& mem, VkImageAspectFlags imageAspect)
@@ -608,7 +617,7 @@ namespace SmolEngine
 
 	bool VulkanFramebuffer::IsUseMSAA()
 	{
-		return m_Spec->eMSAASampels != MSAASamples::SAMPLE_COUNT_1;
+		return m_Info.eMSAASampels != MSAASamples::SAMPLE_COUNT_1;
 	}
 
 	VkBool32 VulkanFramebuffer::IsFormatIsFilterable(VkPhysicalDevice physicalDevice, VkFormat format, VkImageTiling tiling)
@@ -737,14 +746,6 @@ namespace SmolEngine
 		return &m_DepthAttachment;
 	}
 
-	void VulkanFramebuffer::SetClearColors(const glm::vec4& clearColors)
-	{
-		for (auto& clearAttachment : m_ClearAttachments)
-		{
-			clearAttachment.clearValue = { { clearColors.r,  clearColors.g,  clearColors.b,  clearColors.a } };
-		}
-	}
-
 	const std::vector<VkClearAttachment>& VulkanFramebuffer::GetClearAttachments() const
 	{
 		return m_ClearAttachments;
@@ -758,7 +759,7 @@ namespace SmolEngine
 	const VkFramebuffer VulkanFramebuffer::GetCurrentVkFramebuffer() const
 	{
 		uint32_t index;
-		m_Spec->bTargetsSwapchain ? index = VulkanContext::GetSwapchain().GetCurrentBufferIndex() :
+		m_Info.bTargetsSwapchain ? index = VulkanContext::GetSwapchain().GetCurrentBufferIndex() :
 			index = 0;
 		return m_VkFrameBuffers[index];
 	}
