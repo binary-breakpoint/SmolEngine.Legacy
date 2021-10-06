@@ -239,7 +239,9 @@ namespace SmolEngine
 			JobsSystemInstance::Schedule([&]()
 				{
 					Utils::ComposeTransform(glm::vec3(0), glm::vec3(0), { 100, 1, 100 }, m_GridModel);
-					Mesh::Create(path + "Models/plane_v2.gltf", &m_PlaneMesh);
+
+					m_GridMesh = Mesh::Create();
+					m_GridMesh->LoadFromFile("Models/plane_v2.gltf");
 
 					GraphicsPipelineCreateInfo pipelineCI = {};
 					ShaderCreateInfo shaderCI = {};
@@ -540,7 +542,7 @@ namespace SmolEngine
 			for (uint32_t i = 0; i < cmdCount; ++i)
 			{
 				// Getting values
-				Mesh* mesh = m_UsedMeshes[i];
+				Ref<Mesh>& mesh = m_UsedMeshes[i];
 				InstancePackage& instance = m_Packages[mesh];
 				CommandBuffer& cmd = m_DrawList[i];
 
@@ -796,7 +798,8 @@ namespace SmolEngine
 		m_AnimationJoints.resize(max_anim_joints);
 	}
 
-	void RendererDrawList::SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Mesh* mesh, const uint32_t& material_id, bool submit_childs, AnimationController* anim_controller)
+	void RendererDrawList::SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Ref<Mesh>& mesh,
+		const uint32_t& material_id, bool submit_childs, AnimationController* anim_controller)
 	{
 		if (!m_Frustum.CheckSphere(pos) || m_Objects >= max_objects)
 			return;
@@ -825,7 +828,7 @@ namespace SmolEngine
 		if (submit_childs)
 		{
 			for (auto& sub : mesh->m_Childs)
-				SubmitMesh(pos, rotation, scale, &sub, material_id, submit_childs, anim_controller);
+				SubmitMesh(pos, rotation, scale, sub, material_id, submit_childs, anim_controller);
 		}
 	}
 
@@ -911,7 +914,7 @@ namespace SmolEngine
 			if (storage->m_State.bDrawGrid)
 			{
 				storage->p_Grid->SubmitPushConstant(ShaderType::Vertex, sizeof(glm::mat4), &storage->m_GridModel);
-				storage->p_Grid->DrawMeshIndexed(&storage->m_PlaneMesh);
+				storage->p_Grid->DrawMeshIndexed(storage->m_GridMesh);
 			}
 
 			uint32_t cmdCount = static_cast<uint32_t>(drawList->m_UsedMeshes.size());

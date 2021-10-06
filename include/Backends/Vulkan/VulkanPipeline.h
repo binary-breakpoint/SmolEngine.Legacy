@@ -27,8 +27,8 @@ namespace SmolEngine
 		void                                            DrawIndexed(Ref<VertexBuffer>& vb, Ref<IndexBuffer>& ib) override;
 		void                                            Draw(Ref<VertexBuffer>& vb, uint32_t vertextCount) override;
 		void                                            Draw(uint32_t vertextCount, uint32_t vertexBufferIndex = 0) override;
-		void                                            DrawMeshIndexed(Mesh* mesh, uint32_t instances = 1) override;
-		void                                            DrawMesh(Mesh* mesh, uint32_t instances = 1) override;
+		void                                            DrawMeshIndexed(Ref<Mesh>& mesh, uint32_t instances = 1) override;
+		void                                            DrawMesh(Ref<Mesh>& mesh, uint32_t instances = 1) override;
 								                        
 		bool                                            SubmitBuffer(uint32_t bindingPoint, size_t size, const void* data, uint32_t offset = 0) override;
 		void                                            SubmitPushConstant(ShaderType shaderStage, size_t size, const void* data) override;

@@ -14,7 +14,7 @@
 #include "Camera/EditorCamera.h"
 #include "Camera/Camera.h"
 #include "Primitives/Framebuffer.h"
-#include "Tools/DefaultMeshes.h"
+#include "Tools/MeshLibrary.h"
 #include "GUI/Backends/ImGuiContext.h"
 #include "GUI/Backends/NuklearContext.h"
 
@@ -97,7 +97,6 @@ namespace SmolEngine
 		GLFWwindow*                       GetNativeWindow();
 		Window*                           GetWindow() const;
 	    WindowData*                       GetWindowData();
-		DefaultMeshes*                    GetDefaultMeshes() const;
 		Ref<Texture>                      GetWhiteTexture() const;
 		float                             GetGltfTime() const;
 		float                             GetDeltaTime() const;
@@ -124,13 +123,13 @@ namespace SmolEngine
 
 	private:	
 		static GraphicsContext*           s_Instance;
+		Window*                           m_Window = nullptr;
 		Ref<Texture>                      m_DummyTexure = nullptr;
 		Ref<Texture>                      m_StorageTexure = nullptr;
 		Ref<Texture>                      m_DummyCubeMap = nullptr;
 		Ref<Framebuffer>                  m_Framebuffer = nullptr;
-		MaterialLibrary*                  m_MaterialLibrary = nullptr;
-		Window*                           m_Window = nullptr;
-		DefaultMeshes*                    m_DefaultMeshes = nullptr;
+		Ref<MaterialLibrary>              m_MaterialLibrary = nullptr;
+		Ref<MeshLibrary>                  m_MeshLibrary = nullptr;
 		ContextBaseGUI*                   m_ImGuiContext = nullptr;
 		ContextBaseGUI*                   m_NuklearContext = nullptr;
 		JobsSystemInstance*               m_JobsSystem = nullptr;

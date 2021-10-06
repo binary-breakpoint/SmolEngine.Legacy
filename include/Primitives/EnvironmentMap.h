@@ -36,7 +36,7 @@ namespace SmolEngine
 		float pad3 = 1.0f;
 	};
 
-	class EnvironmentMap
+	class EnvironmentMap: public PrimitiveBase
 	{
 	public:
 		void                    Initialize();
@@ -44,12 +44,12 @@ namespace SmolEngine
 		void                    GenerateDynamic(const glm::mat4& cameraProj = glm::mat4(0));
 		void                    UpdateDescriptors();
 		void                    SetDimension(uint32_t dim);
-		bool                    IsGood() const;
 		bool                    IsDynamic() const;
 		Ref<Texture>            GetCubeMap() const;
 		DynamicSkyProperties&   GetDynamicSkyProperties();
-	private:
-		void                    Free();
+		void                    Free() override;
+		bool                    IsGood() const override;
+
 	private:
 		bool                    m_IsDynamic = false;
 		Ref<Texture>            m_CubeMap = nullptr;

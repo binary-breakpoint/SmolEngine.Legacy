@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "Environment/EnvironmentMap.h"
+#include "Primitives/EnvironmentMap.h"
 
 #ifdef OPENGL_IMPL
 #else

@@ -9,52 +9,65 @@
 
 namespace SmolEngine
 {
-    Mesh::~Mesh()
+    void Mesh::Free()
     {
+        for (auto& mesh : m_Scene)
+        {
+            mesh->m_VertexBuffer->Free();
+            mesh->m_IndexBuffer->Free();
+        }
 
+        m_Scene.clear();
+        m_Childs.clear();
     }
 
-    void Mesh::Create(const std::string& filePath, Mesh* obj)
+    bool Mesh::IsGood() const
+    {
+        return m_VertexBuffer->GetVertexCount() > 0;
+    }
+
+    bool Mesh::LoadFromFile(const std::string& path, bool pooling)
     {
         ImportedDataGlTF* data = new ImportedDataGlTF();
-        if (glTFImporter::Import(filePath, data))
+        const bool is_succeed = glTFImporter::Import(path, data);
+        if (is_succeed)
         {
             // Root
             {
                 std::hash<std::string_view> hasher{};
                 Primitive* primitve = &data->Primitives[0];
-                obj->m_AABB = primitve->AABB;
-                obj->m_Name = primitve->MeshName;
-                obj->m_ID = static_cast<uint32_t>(hasher(filePath));
-                Init(obj, nullptr, primitve);
+                m_AABB = primitve->AABB;
+                m_Name = primitve->MeshName;
+                Build(m_Root, nullptr, primitve);
 
-                obj->m_Scene.emplace_back(obj);
+                m_Scene.emplace_back(m_Root);
             }
 
             // Children
             uint32_t childCount = static_cast<uint32_t>(data->Primitives.size() - 1);
-            obj->m_Childs.resize(childCount);
+            m_Childs.resize(childCount);
             for (uint32_t i = 0; i < childCount; ++i)
             {
-                Mesh* mesh = &obj->m_Childs[i];
+                Ref<Mesh>& mesh = m_Childs[i];
                 Primitive* primitve = &data->Primitives[i + 1];
                 mesh->m_AABB = primitve->AABB;
                 mesh->m_Name = primitve->MeshName;
 
-                Init(mesh, obj, primitve);
-                obj->m_Scene.emplace_back(mesh);
+                Build(mesh, m_Root, primitve);
+                m_Scene.emplace_back(mesh);
             }
         }
 
         delete data;
+        return is_succeed;
     }
 
-    std::vector<Mesh*>& Mesh::GetScene()
+    std::vector<Ref<Mesh>>& Mesh::GetScene()
     {
         return m_Scene;
     }
 
-    std::vector<Mesh>& Mesh::GetChilds()
+    std::vector<Ref<Mesh>>& Mesh::GetChilds()
     {
         return m_Childs;
     }
@@ -64,22 +77,9 @@ namespace SmolEngine
         return m_AABB;
     }
 
-    uint32_t Mesh::GetVertexCount() const
-    {
-        return m_VertexCount;
-    }
-
     uint32_t Mesh::GetChildCount() const
     {
         return static_cast<uint32_t>(m_Childs.size());
-    }
-
-    uint32_t Mesh::GetMeshID() const
-    {
-        if (m_Root != nullptr)
-            return m_Root->GetMeshID();
-
-        return m_ID;
     }
 
     std::string Mesh::GetName() const
@@ -87,37 +87,34 @@ namespace SmolEngine
         return m_Name;
     }
 
-    VertexBuffer* Mesh::GetVertexBuffer()
+    Ref<VertexBuffer> Mesh::GetVertexBuffer()
     {
-        return m_VertexBuffer.get();
+        return m_VertexBuffer;
     }
 
-    IndexBuffer* Mesh::GetIndexBuffer()
+    Ref<IndexBuffer> Mesh::GetIndexBuffer()
     {
-        return m_IndexBuffer.get();
+        return m_IndexBuffer;
     }
 
-    Mesh* Mesh::GetMeshByName(const std::string& name)
+    Ref<Mesh> Mesh::GetMeshByName(const std::string& name)
     {
-        if (m_Name == name)
-            return this;
-
         if (m_Root != nullptr)
             m_Root->GetMeshByName(name);
 
         for (auto& child : m_Childs)
         {
-            if (child.GetName() == name)
-                return &child;
+            if (child->GetName() == name)
+                return child;
         }
 
         return nullptr;
     }
 
-    Mesh* Mesh::GetMeshByIndex(uint32_t index)
+    Ref<Mesh> Mesh::GetMeshByIndex(uint32_t index)
     {
         if (index < m_Childs.size())
-            return &m_Childs[index];
+            return m_Childs[index];
 
         return nullptr;
     }
@@ -127,17 +124,18 @@ namespace SmolEngine
         return m_Root == nullptr;
     }
 
-    bool Mesh::IsReady() const
+    Ref<Mesh> Mesh::Create()
     {
-        return m_VertexCount > 0;
+        Ref<Mesh> mesh = std::make_shared<Mesh>();
+        mesh->m_Root = mesh;
+        return mesh;
     }
 
-    bool Mesh::Init(Mesh* mesh, Mesh* parent, Primitive* primitive)
+    bool Mesh::Build(Ref<Mesh>& mesh, Ref<Mesh> parent, Primitive* primitive)
     {
-        mesh->m_VertexCount =  static_cast<uint32_t>(primitive->VertexBuffer.size());
-        mesh->m_Root = parent;
-
         const bool is_static = true;
+
+        mesh->m_Root = parent;
         mesh->m_VertexBuffer = VertexBuffer::Create();
         mesh->m_VertexBuffer->BuildFromMemory(primitive->VertexBuffer.data(), primitive->VertexBuffer.size() * sizeof(PBRVertex), is_static);
 

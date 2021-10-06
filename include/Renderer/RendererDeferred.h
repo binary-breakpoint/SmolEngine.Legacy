@@ -163,7 +163,7 @@ namespace SmolEngine
 	{
 		uint32_t               InstancesCount = 0;
 		uint32_t               Offset = 0;
-		Mesh* Mesh = nullptr;
+		Ref<Mesh>              Mesh = nullptr;
 	};
 
 	struct InstancePackage
@@ -188,7 +188,7 @@ namespace SmolEngine
 		void                                        BeginSubmit(SceneViewProjection* sceneViewProj);
 		void                                        EndSubmit();
 
-		void                                        SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Mesh* mesh, const uint32_t& material_id = 0, bool submit_childs = true, AnimationController* anim_controller = nullptr);
+		void                                        SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Ref<Mesh>& mesh, const uint32_t& material_id = 0, bool submit_childs = true, AnimationController* anim_controller = nullptr);
 		void                                        SubmitDirLight(DirectionalLight* light);
 		void                                        SubmitPointLight(PointLight* light);
 		void                                        SubmitSpotLight(SpotLight* light);
@@ -211,17 +211,17 @@ namespace SmolEngine
 		uint32_t                                    m_SpotLightIndex = 0;
 		uint32_t                                    m_LastAnimationOffset = 0;
 
-		Frustum                                     m_Frustum{};
-		DirectionalLight                            m_DirLight{};
-		glm::mat4                                   m_DepthMVP{};
-		std::vector<Mesh*>                          m_UsedMeshes;
-		std::vector<CommandBuffer>                  m_DrawList;
-		std::array<InstanceData, max_objects>       m_InstancesData;
-		std::array<PointLight, max_lights>          m_PointLights;
-		std::array<SpotLight, max_lights>           m_SpotLights;
-		std::vector<glm::mat4>                      m_AnimationJoints;
-		std::unordered_map<Mesh*, InstancePackage>  m_Packages;
-		std::unordered_map<Mesh*, uint32_t>         m_RootOffsets;
+		Frustum                                         m_Frustum{};
+		DirectionalLight                                m_DirLight{};
+		glm::mat4                                       m_DepthMVP{};
+		std::vector<Ref<Mesh>>                          m_UsedMeshes;
+		std::vector<CommandBuffer>                      m_DrawList;
+		std::array<InstanceData, max_objects>           m_InstancesData;
+		std::array<PointLight, max_lights>              m_PointLights;
+		std::array<SpotLight, max_lights>               m_SpotLights;
+		std::vector<glm::mat4>                          m_AnimationJoints;
+		std::unordered_map<Ref<Mesh>, InstancePackage>  m_Packages;
+		std::unordered_map<Ref<Mesh>, uint32_t>         m_RootOffsets;
 
 		friend struct RendererStorage;
 		friend class RendererDeferred;
@@ -281,7 +281,7 @@ namespace SmolEngine
 		Ref<Framebuffer>              f_Depth = nullptr;
 		Ref<Framebuffer>              f_DOF = nullptr;
 				            
-		Mesh                          m_PlaneMesh = {};
+		Ref<Mesh>                     m_GridMesh = {};
 		MaterialLibrary               m_MaterialLibrary{};
 		RendererStateEX               m_State{};	
 		std::vector<Ref<Texture>>     m_BloomTex{};

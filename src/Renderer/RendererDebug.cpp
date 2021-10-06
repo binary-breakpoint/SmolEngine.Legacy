@@ -333,7 +333,7 @@ namespace SmolEngine
 	{
 	}
 
-	void RendererDebug::DrawWireframes(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Mesh* mesh)
+	void RendererDebug::DrawWireframes(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Ref<Mesh>& mesh)
 	{
 		glm::mat4 model;
 		Utils::ComposeTransform(pos, rotation, scale, model);
@@ -341,7 +341,7 @@ namespace SmolEngine
 		s_Data->WireframesPipeline->DrawMeshIndexed(mesh, 1);
 
 		for(auto& child: mesh->GetChilds())
-			DrawWireframes(pos, rotation, scale, &child);
+			DrawWireframes(pos, rotation, scale, child);
 	}
 
 	void RendererDebug::Init()

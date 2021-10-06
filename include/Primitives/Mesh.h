@@ -3,58 +3,45 @@
 
 #include "Primitives/VertexBuffer.h"
 #include "Primitives/IndexBuffer.h"
+#include "Primitives/PrimitiveBase.h"
 
 #include <memory>
 
 namespace SmolEngine
 {
-	struct ImportedDataGlTF;
 	struct Primitive;
-	class VertexBuffer;
-	class IndexBuffer;
-	class BufferLayout;
-	class Texture;
-	class Material;
 
-	class Mesh
+	class Mesh: public PrimitiveBase
 	{
-	public:
-		Mesh() = default;
-		~Mesh();
+	public:	
+		void                    Free() override;
+		bool                    IsGood() const override;
+		bool                    LoadFromFile(const std::string& path, bool pooling = true);
 
-		// Getters		
-		std::vector<Mesh*>&   GetScene();
-		std::vector<Mesh>&    GetChilds();
-		BoundingBox&          GetAABB();
-		uint32_t              GetVertexCount() const;
-		uint32_t              GetChildCount() const;
-		uint32_t              GetMeshID() const;
-		std::string           GetName() const;
-		VertexBuffer*         GetVertexBuffer();
-		IndexBuffer*          GetIndexBuffer();
-		Mesh*                 GetMeshByName(const std::string& name);
-		Mesh*                 GetMeshByIndex(uint32_t index);
-		// Helpers			  
-		bool                  IsRootNode() const;
-		bool                  IsReady() const;
-		// Factory			  
-		static void           Create(const std::string& filePath, Mesh* mesh);
+		std::vector<Ref<Mesh>>& GetScene();
+		std::vector<Ref<Mesh>>& GetChilds();
+		BoundingBox&            GetAABB();
+		uint32_t                GetChildCount() const;
+		std::string             GetName() const;
+		Ref<VertexBuffer>       GetVertexBuffer();
+		Ref<IndexBuffer>        GetIndexBuffer();
+		Ref<Mesh>               GetMeshByName(const std::string& name);
+		Ref<Mesh>               GetMeshByIndex(uint32_t index);  
+		bool                    IsRootNode() const;		    
+		static Ref<Mesh>        Create();
+							    
+	private:				    
+		bool                    Build(Ref<Mesh>& mesh, Ref<Mesh> parent, Primitive* primitive);
 
 	private:
-		static bool           Init(Mesh* mesh, Mesh* parent, Primitive* primitive);
+		std::string             m_Name = "";
+		Ref<Mesh>               m_Root = nullptr;
+		Ref<VertexBuffer>       m_VertexBuffer = nullptr;
+		Ref<IndexBuffer>        m_IndexBuffer = nullptr;
+		BoundingBox             m_AABB = {};
+		std::vector<Ref<Mesh>>  m_Childs;
+		std::vector<Ref<Mesh>>  m_Scene;
 
-	private:
-		Mesh*                 m_Root = nullptr;
-		Ref<VertexBuffer>     m_VertexBuffer = nullptr;
-		Ref<IndexBuffer>      m_IndexBuffer = nullptr;
-		uint32_t              m_VertexCount = 0;
-		uint32_t              m_ID = 0;
-		std::string           m_Name = "";
-		BoundingBox           m_AABB = {};
-		std::vector<Mesh>     m_Childs;
-		std::vector<Mesh*>    m_Scene;
-
-	private:
 		friend struct RendererStorage;
 		friend struct RendererDrawList;
 		friend class Animator;

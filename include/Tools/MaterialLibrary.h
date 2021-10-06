@@ -95,10 +95,7 @@ namespace SmolEngine
 
 	class MaterialLibrary
 	{
-	public:
-		MaterialLibrary();
-		~MaterialLibrary() = default;
-								              
+	public:				              
 		uint32_t                              Add(MaterialCreateInfo* infoCI, const std::string& name);
 		bool                                  Delete(const std::string& name);
 		void                                  ClearData();              

@@ -465,7 +465,7 @@ namespace SmolEngine
 		vkCmdDraw(m_CommandBuffer, vertextCount, 1, 0, 0);
 	}
 
-	void VulkanPipeline::DrawMeshIndexed(Mesh* mesh, uint32_t instances)
+	void VulkanPipeline::DrawMeshIndexed(Ref<Mesh>& mesh, uint32_t instances)
 	{
 		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,GetVkPipeline(m_DrawMode));
 
@@ -478,7 +478,7 @@ namespace SmolEngine
 		vkCmdDrawIndexed(m_CommandBuffer, mesh->GetIndexBuffer()->GetCount(), instances, 0, 0, 0);
 	}
 
-	void VulkanPipeline::DrawMesh(Mesh* mesh, uint32_t instances)
+	void VulkanPipeline::DrawMesh(Ref<Mesh>& mesh, uint32_t instances)
 	{
 		vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GetVkPipeline(m_DrawMode));
 
@@ -488,7 +488,7 @@ namespace SmolEngine
 
 		const auto& descriptorSets =GetVkDescriptorSets(m_DescriptorIndex);
 		vkCmdBindDescriptorSets(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, &descriptorSets, 0, nullptr);
-		vkCmdDraw(m_CommandBuffer, mesh->GetVertexCount(), instances, 0, 0);
+		vkCmdDraw(m_CommandBuffer, mesh->GetVertexBuffer()->GetVertexCount(), instances, 0, 0);
 	}
 
 	bool VulkanPipeline::SubmitBuffer(uint32_t bindingPoint, size_t size, const void* data, uint32_t offset)

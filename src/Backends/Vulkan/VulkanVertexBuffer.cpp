@@ -11,6 +11,7 @@ namespace SmolEngine
 
 	bool VulkanVertexBuffer::BuildFromMemory(void* vertices, size_t size, bool is_static)
 	{
+		m_VertexCount = static_cast<uint32_t>(size);
 		if (is_static)
 		{
 			CreateStaticBuffer(vertices, size,

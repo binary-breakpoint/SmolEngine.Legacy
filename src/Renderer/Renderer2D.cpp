@@ -74,7 +74,8 @@ namespace SmolEngine
 
 		}
 
-		Mesh::Create(path + "Models/plane.gltf", &PlaneMesh);
+		PlaneMesh = Mesh::Create();
+		PlaneMesh->LoadFromFile("Models/plane.gltf");
 	}
 
 	void Renderer2DStorage::CreateFramebuffers()
@@ -113,7 +114,7 @@ namespace SmolEngine
 					if (cmd.Instances > 0)
 					{
 						storage->MainPipeline->SubmitPushConstant(ShaderType::Vertex, sizeof(uint32_t), &cmd.DataOffset);
-						storage->MainPipeline->DrawMeshIndexed(&storage->PlaneMesh, cmd.Instances);
+						storage->MainPipeline->DrawMeshIndexed(storage->PlaneMesh, cmd.Instances);
 
 						cmd.Reset();
 					}

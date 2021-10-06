@@ -114,8 +114,8 @@ namespace SmolEngine
 		virtual void                      DrawIndexed(Ref<VertexBuffer>& vb, Ref<IndexBuffer>& ib) = 0;
 		virtual void                      Draw(Ref<VertexBuffer>& vb, uint32_t vertextCount) = 0;
 		virtual void                      Draw(uint32_t vertextCount, uint32_t vbIndex = 0) = 0;
-		virtual void                      DrawMeshIndexed(Mesh* mesh, uint32_t instances = 1) = 0;
-		virtual void                      DrawMesh(Mesh* mesh, uint32_t instances = 1) = 0;
+		virtual void                      DrawMeshIndexed(Ref<Mesh>& mesh, uint32_t instances = 1) = 0;
+		virtual void                      DrawMesh(Ref<Mesh>& mesh, uint32_t instances = 1) = 0;
 					                      
 		virtual bool                      SubmitBuffer(uint32_t binding, size_t size, const void* data, uint32_t offset = 0) = 0;
 		virtual void                      SubmitPushConstant(ShaderType stage, size_t size, const void* data) {};
