@@ -52,7 +52,7 @@ void CustomRenderer::Init()
 #endif
 	});
 
-	m_MaterialLibrary = new MaterialLibrary();
+	m_MaterialLibrary = new MaterialPool();
 
 	BuildFramebuffers();
 	BuildMaterials();
@@ -283,7 +283,7 @@ void CustomRenderer::BuildObjects()
 
 void CustomRenderer::BuildMaterials()
 {
-	MaterialLibrary* lib = m_MaterialLibrary;
+	MaterialPool* lib = m_MaterialLibrary;
 	MaterialCreateInfo materialCI = {};
 
 	std::string path = "Assets/materials/";

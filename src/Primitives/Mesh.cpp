@@ -5,6 +5,7 @@
 #include "Primitives/IndexBuffer.h"
 
 #include "Tools/Utils.h"
+#include "Pools/MeshPool.h"
 #include "Import/glTFImporter.h"
 
 namespace SmolEngine
@@ -26,7 +27,7 @@ namespace SmolEngine
         return m_VertexBuffer->GetVertexCount() > 0;
     }
 
-    bool Mesh::LoadFromFile(const std::string& path, bool pooling)
+    bool Mesh::LoadFromFile(const std::string& path)
     {
         ImportedDataGlTF* data = new ImportedDataGlTF();
         const bool is_succeed = glTFImporter::Import(path, data);
@@ -38,6 +39,7 @@ namespace SmolEngine
                 Primitive* primitve = &data->Primitives[0];
                 m_AABB = primitve->AABB;
                 m_Name = primitve->MeshName;
+                m_ID = hasher(path);
                 Build(m_Root, nullptr, primitve);
 
                 m_Scene.emplace_back(m_Root);
@@ -48,12 +50,14 @@ namespace SmolEngine
             m_Childs.resize(childCount);
             for (uint32_t i = 0; i < childCount; ++i)
             {
-                Ref<Mesh>& mesh = m_Childs[i];
+                Ref<Mesh> mesh = Mesh::Create();
                 Primitive* primitve = &data->Primitives[i + 1];
                 mesh->m_AABB = primitve->AABB;
                 mesh->m_Name = primitve->MeshName;
 
                 Build(mesh, m_Root, primitve);
+
+                m_Childs[i] = mesh;
                 m_Scene.emplace_back(mesh);
             }
         }
@@ -80,6 +84,11 @@ namespace SmolEngine
     uint32_t Mesh::GetChildCount() const
     {
         return static_cast<uint32_t>(m_Childs.size());
+    }
+
+    size_t Mesh::GetID() const
+    {
+        return m_ID;
     }
 
     std::string Mesh::GetName() const
@@ -135,7 +144,9 @@ namespace SmolEngine
     {
         const bool is_static = true;
 
-        mesh->m_Root = parent;
+        if(parent != nullptr)
+            mesh->m_Root = parent;
+
         mesh->m_VertexBuffer = VertexBuffer::Create();
         mesh->m_VertexBuffer->BuildFromMemory(primitive->VertexBuffer.data(), primitive->VertexBuffer.size() * sizeof(PBRVertex), is_static);
 

@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "Tools/MaterialLibrary.h"
+#include "Pools/MaterialPool.h"
 #include "Common/DebugLog.h"
 
 #include <filesystem>
@@ -14,8 +14,9 @@ namespace SmolEngine
 {
 	const uint32_t maxTextures = 4096;
 
-	MaterialLibrary::MaterialLibrary()
+	MaterialPool::MaterialPool()
 	{
+		s_Instance = this;
 		m_Textures.resize(maxTextures);
 
 		MaterialCreateInfo materialInfo = {};
@@ -24,61 +25,66 @@ namespace SmolEngine
 		Add(&materialInfo, "default material");
 	}
 
-	uint32_t MaterialLibrary::Add(MaterialCreateInfo* infoCI, const std::string& name)
+	MaterialPool::~MaterialPool()
+	{
+		s_Instance = nullptr;
+	}
+
+	uint32_t MaterialPool::Add(MaterialCreateInfo* infoCI, const std::string& name)
 	{
 		uint32_t materialID = 0;
-		size_t hashID = m_Hash(name);
-		if (m_MaterialMap.size() > 0)
+		size_t hashID = s_Instance->m_Hash(name);
+		if (s_Instance->m_MaterialMap.size() > 0)
 		{
-			auto& it = m_MaterialMap.find(hashID);
-			if (it != m_MaterialMap.end())
+			auto& it = s_Instance->m_MaterialMap.find(hashID);
+			if (it != s_Instance->m_MaterialMap.end())
 			{
 				return it->second;
 			}
 		}
 
 		PBRMaterial newMaterial = {};
-		newMaterial.AlbedroTexIndex = AddTexture(&infoCI->AlbedroTex, newMaterial.UseAlbedroTex);
-		newMaterial.NormalTexIndex = AddTexture(&infoCI->NormalTex, newMaterial.UseNormalTex);
-		newMaterial.MetallicTexIndex = AddTexture(&infoCI->MetallnessTex, newMaterial.UseMetallicTex);
-		newMaterial.RoughnessTexIndex = AddTexture(&infoCI->RoughnessTex, newMaterial.UseRoughnessTex);
-		newMaterial.AOTexIndex = AddTexture(&infoCI->AOTex, newMaterial.UseAOTex);
-		newMaterial.EmissiveTexIndex = AddTexture(&infoCI->EmissiveTex, newMaterial.UseEmissiveTex);
+		newMaterial.AlbedroTexIndex = s_Instance->AddTexture(&infoCI->AlbedroTex, newMaterial.UseAlbedroTex);
+		newMaterial.NormalTexIndex = s_Instance->AddTexture(&infoCI->NormalTex, newMaterial.UseNormalTex);
+		newMaterial.MetallicTexIndex = s_Instance->AddTexture(&infoCI->MetallnessTex, newMaterial.UseMetallicTex);
+		newMaterial.RoughnessTexIndex = s_Instance->AddTexture(&infoCI->RoughnessTex, newMaterial.UseRoughnessTex);
+		newMaterial.AOTexIndex = s_Instance->AddTexture(&infoCI->AOTex, newMaterial.UseAOTex);
+		newMaterial.EmissiveTexIndex = s_Instance->AddTexture(&infoCI->EmissiveTex, newMaterial.UseEmissiveTex);
 		newMaterial.Metalness = infoCI->Metallness;
 		newMaterial.Roughness = infoCI->Roughness;
 		newMaterial.EmissionStrength = infoCI->EmissionStrength;
 		newMaterial.Albedro = glm::vec4(infoCI->AlbedroColor, 1.0f);
 
 		{
-			std::lock_guard<std::mutex> lock(m_Mutex);
+			std::lock_guard<std::mutex> lock(s_Instance->m_Mutex);
 
-			materialID = m_MaterialIndex;
-			m_Materials.emplace_back(newMaterial);
-			m_MaterialMap.insert({ hashID, materialID });
-			m_MaterialIndex++;
+			materialID = s_Instance->m_MaterialIndex;
+			s_Instance->m_Materials.emplace_back(newMaterial);
+			s_Instance->m_MaterialMap.insert({ hashID, materialID });
+			s_Instance->m_MaterialIndex++;
 		}
 
 		return materialID;
 	}
 
-	bool MaterialLibrary::Delete(const std::string& name)
+	bool MaterialPool::Remove(const std::string& name)
 	{
 		return false; // temp
 	}
 
-	void MaterialLibrary::ClearData()
+	void MaterialPool::Clear()
 	{
-		m_MaterialIndex = 0;
-		m_TextureIndex = 0;
+		s_Instance->m_MaterialIndex = 0;
+		s_Instance->m_TextureIndex = 0;
 
-		m_Textures.clear();
-		m_Textures.resize(maxTextures);
+		s_Instance->m_Textures.clear();
+		s_Instance->m_Textures.resize(maxTextures);
 
-		m_Materials.clear();
-		m_MaterialMap.clear();
+		s_Instance->m_Materials.clear();
+		s_Instance->m_MaterialMap.clear();
 	}
 
-	uint32_t MaterialLibrary::AddTexture(TextureCreateInfo* info, uint32_t& useTetxure)
+	uint32_t MaterialPool::AddTexture(TextureCreateInfo* info, uint32_t& useTetxure)
 	{
 		uint32_t index = 0;
 		if (info->FilePath.empty() == false)
@@ -101,59 +107,59 @@ namespace SmolEngine
 		return index;
 	}
 
-	PBRMaterial* MaterialLibrary::GetMaterial(uint32_t ID)
+	PBRMaterial* MaterialPool::GetMaterial(uint32_t ID)
 	{
-		if (ID > m_MaterialIndex)
+		if (ID > s_Instance->m_MaterialIndex)
 			return nullptr;
 
-		return &m_Materials[ID];
+		return &s_Instance->m_Materials[ID];
 	}
 
-	PBRMaterial* MaterialLibrary::GetMaterial(std::string& path)
+	PBRMaterial* MaterialPool::GetMaterial(std::string& path)
 	{
-		size_t hashID = m_Hash(path);
-		const auto& it = m_MaterialMap.find(hashID);
-		if (it == m_MaterialMap.end())
+		size_t hashID = s_Instance->m_Hash(path);
+		const auto& it = s_Instance->m_MaterialMap.find(hashID);
+		if (it == s_Instance->m_MaterialMap.end())
 			return nullptr;
 
-		return &m_Materials[it->second];
+		return &s_Instance->m_Materials[it->second];
 	}
 
-	int32_t MaterialLibrary::GetMaterialID(std::string& path)
+	int32_t MaterialPool::GetMaterialID(std::string& path)
 	{
-		size_t hashID = m_Hash(path);
-		const auto& it = m_MaterialMap.find(hashID);
-		if (it == m_MaterialMap.end())
+		size_t hashID = s_Instance->m_Hash(path);
+		const auto& it = s_Instance->m_MaterialMap.find(hashID);
+		if (it == s_Instance->m_MaterialMap.end())
 			return 0;
 
 		return it->second;
 	}
 
-	int32_t MaterialLibrary::GetMaterialID(size_t& hashed_path)
+	int32_t MaterialPool::GetMaterialID(size_t& hashed_path)
 	{
-		const auto& it = m_MaterialMap.find(hashed_path);
-		if (it == m_MaterialMap.end())
+		const auto& it = s_Instance->m_MaterialMap.find(hashed_path);
+		if (it == s_Instance->m_MaterialMap.end())
 			return 0;
 
 		return it->second;
 	}
 
-	std::vector<PBRMaterial>& MaterialLibrary::GetMaterials()
+	std::vector<PBRMaterial>& MaterialPool::GetMaterials()
 	{
-		return m_Materials;
+		return s_Instance->m_Materials;
 	}
-	void MaterialLibrary::GetMaterialsPtr(void*& data, uint32_t& size)
+	void MaterialPool::GetMaterialsPtr(void*& data, uint32_t& size)
 	{
-		if (m_Materials.size() > 0)
+		if (s_Instance->m_Materials.size() > 0)
 		{
-			data = m_Materials.data();
-			size = static_cast<uint32_t>(sizeof(PBRMaterial) * m_Materials.size());
+			data = s_Instance->m_Materials.data();
+			size = static_cast<uint32_t>(sizeof(PBRMaterial) * s_Instance->m_Materials.size());
 		}
 	}
 
-	const std::vector<Ref<Texture>>& MaterialLibrary::GetTextures() const
+	const std::vector<Ref<Texture>>& MaterialPool::GetTextures()
 	{
-		return m_Textures;
+		return s_Instance->m_Textures;
 	}
 
 	void MaterialCreateInfo::SetMetalness(float value)

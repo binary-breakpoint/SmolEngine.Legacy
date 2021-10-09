@@ -10,6 +10,12 @@
 #include "Primitives/VertexBuffer.h"
 #include "Primitives/IndexBuffer.h"
 #include "Primitives/GraphicsPipeline.h"
+#include "Primitives/EnvironmentMap.h"
+
+#include "Pools/MaterialPool.h"
+#include "Pools/MeshPool.h"
+#include "Pools/TexturePool.h"
+#include "Pools/PipelinePool.h"
 
 #include "GUI/UICanvas.h"
 #include "GUI/UIButton.h"
@@ -17,8 +23,6 @@
 #include "GUI/UISlider.h"
 #include "GUI/UITextField.h"
 #include "GUI/UICheckbox.h"
-
-#include "Environment/EnvironmentMap.h"
 
 #include "Common/Common.h"
 #include "Common/Flags.h"

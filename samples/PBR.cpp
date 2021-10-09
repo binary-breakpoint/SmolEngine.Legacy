@@ -35,7 +35,7 @@ void GenerateMap(std::vector<Chunk>& map, std::vector<uint32_t>& materialIDs)
 	}
 }
 
-void CreateDrawList(SceneViewProjection* viewProj, std::vector<Chunk>& chunks, Mesh* cube)
+void CreateDrawList(SceneViewProjection* viewProj, std::vector<Chunk>& chunks, Ref<Mesh>& cube)
 {
 	drawList->GetFrustum().SetRadius(1000.0f);
 
@@ -88,7 +88,7 @@ int main(int argc, char** argv)
 
 	drawList = new RendererDrawList();
 
-	auto cube = context->GetDefaultMeshes()->Cube;
+	auto cube = MeshPool::GetCube();
 
 	std::vector<uint32_t> materialIDs;
 	std::vector<Chunk> chunks;
@@ -110,7 +110,7 @@ int main(int argc, char** argv)
 	drawList->SubmitDirLight(&dirLight);
 
 	SceneViewProjection viewProj = SceneViewProjection(camera);
-	CreateDrawList(&viewProj, chunks, cube.get());
+	CreateDrawList(&viewProj, chunks, cube);
 
 	UICanvas canvas;
 	canvas.Rect.x = 0;
@@ -172,8 +172,6 @@ int main(int argc, char** argv)
 
 void LoadMaterials(std::vector<uint32_t>& materialsIDs)
 {
-	MaterialLibrary* lib = &storage->GetMaterialLibrary();
-
 	std::string albedroPath = "";
 	std::string normalPath = "";
 	std::string roughnessPath = "";
@@ -198,7 +196,7 @@ void LoadMaterials(std::vector<uint32_t>& materialsIDs)
 		materialCI.SetTexture(MaterialTexture::AO, &textureCI);
 
 		materialCI.SetMetalness(0.2f);
-		uint32_t id = lib->Add(&materialCI, "wood");
+		uint32_t id = MaterialPool::Add(&materialCI, "wood");
 		materialsIDs.push_back(id);
 	}
 
@@ -219,7 +217,7 @@ void LoadMaterials(std::vector<uint32_t>& materialsIDs)
 		materialCI.SetTexture(MaterialTexture::AO, &textureCI);
 
 		materialCI.SetMetalness(1.0f);
-		uint32_t id = lib->Add(&materialCI, "stone");
+		uint32_t id = MaterialPool::Add(&materialCI, "stone");
 		materialsIDs.push_back(id);
 	}
 
@@ -239,7 +237,7 @@ void LoadMaterials(std::vector<uint32_t>& materialsIDs)
 		textureCI.FilePath = "Assets/materials/metal_1/Metal033_1K_Metalness.png";
 		materialCI.SetTexture(MaterialTexture::Metallic, &textureCI);
 
-		uint32_t id = lib->Add(&materialCI, "metal1");
+		uint32_t id = MaterialPool::Add(&materialCI, "metal1");
 		materialsIDs.push_back(id);
 	}
 
@@ -259,7 +257,7 @@ void LoadMaterials(std::vector<uint32_t>& materialsIDs)
 		textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Metalness.png";
 		materialCI.SetTexture(MaterialTexture::Metallic, &textureCI);
 
-		uint32_t id = lib->Add(&materialCI, "metal2");
+		uint32_t id = MaterialPool::Add(&materialCI, "metal2");
 		materialsIDs.push_back(id);
 	}
 

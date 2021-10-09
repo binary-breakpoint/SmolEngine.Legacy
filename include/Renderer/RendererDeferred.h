@@ -4,10 +4,8 @@
 #include "Primitives/Framebuffer.h"
 #include "Primitives/Texture.h"
 #include "Primitives/Mesh.h"
-
-#include "Environment/EnvironmentMap.h"
+#include "Primitives/EnvironmentMap.h"
 #include "Animation/AnimationController.h"
-#include "Tools/MaterialLibrary.h"
 #include "Camera/Frustum.h"
 #include "Tools/GLM.h"
 
@@ -237,7 +235,6 @@ namespace SmolEngine
 		void                          SetDefaultState();
 
 		RendererStateEX&              GetState();
-		MaterialLibrary&              GetMaterialLibrary();
 
 		void                          OnResize(uint32_t width, uint32_t height) override;
 		void                          OnUpdateMaterials();
@@ -282,7 +279,6 @@ namespace SmolEngine
 		Ref<Framebuffer>              f_DOF = nullptr;
 				            
 		Ref<Mesh>                     m_GridMesh = {};
-		MaterialLibrary               m_MaterialLibrary{};
 		RendererStateEX               m_State{};	
 		std::vector<Ref<Texture>>     m_BloomTex{};
 				
@@ -292,7 +288,6 @@ namespace SmolEngine
 		glm::mat4                     m_GridModel{};
 												    
 		friend class RendererDeferred;
-		friend class MaterialLibrary;
 	};
 
 	class RendererDeferred

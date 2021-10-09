@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "Renderer/RendererDeferred.h"
-#include "Tools/MaterialLibrary.h"
+#include "Pools/MaterialPool.h"
 
 #include "Common/Common.h"
 #include "Tools/Utils.h"
@@ -81,12 +81,12 @@ namespace SmolEngine
 
 	void RendererStorage::OnUpdateMaterials()
 	{
-		auto& textures = m_MaterialLibrary.GetTextures();
+		const auto& textures = MaterialPool::GetTextures();
 		p_Gbuffer->UpdateSamplers(textures, m_TexturesBinding);
 
 		void* data = nullptr;
 		uint32_t size = 0;
-		m_MaterialLibrary.GetMaterialsPtr(data, size);
+		MaterialPool::GetMaterialsPtr(data, size);
 		p_Gbuffer->SubmitBuffer(m_MaterialsBinding, size, data);
 	}
 
@@ -733,11 +733,6 @@ namespace SmolEngine
 	RendererStateEX& RendererStorage::GetState()
 	{
 		return m_State;
-	}
-
-	MaterialLibrary& RendererStorage::GetMaterialLibrary()
-	{
-		return m_MaterialLibrary;
 	}
 
 	void RendererStorage::OnResize(uint32_t width, uint32_t height)

@@ -2,7 +2,6 @@
 #include "GraphicsContext.h"
 
 #include "Renderer/RendererDebug.h"
-#include "Tools/MaterialLibrary.h"
 #include "Common/DebugLog.h"
 #include "Common/Common.h"
 #include "Window/Input.h"
@@ -50,8 +49,10 @@ namespace SmolEngine
 			m_DummyCubeMap->LoadAsWhiteCube(&texCI);
 		}
 
-		m_DefaultMeshes = new DefaultMeshes(info->ResourcesFolderPath);
-		m_JobsSystem = new JobsSystemInstance();
+		m_JobsSystem = std::make_shared< JobsSystemInstance>();
+		m_MeshPool = std::make_shared<MeshPool>();
+		m_MeshPool->LoadDefaultMeshes(info->ResourcesFolderPath);
+		m_MaterialPool = std::make_shared<MaterialPool>();
 
 		// Initialize ImGUI
 		if ((info->eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
@@ -138,8 +139,7 @@ namespace SmolEngine
 #else
 		m_VulkanContext.~VulkanContext();
 #endif
-		delete m_MaterialLibrary, m_Framebuffer, m_Window, 
-			m_ImGuiContext, m_NuklearContext, m_DefaultMeshes, m_JobsSystem;
+		delete  m_Window, m_ImGuiContext, m_NuklearContext;
 }
 
 	void GraphicsContext::Resize(uint32_t* width, uint32_t* height)
@@ -181,11 +181,6 @@ namespace SmolEngine
 	WindowData* GraphicsContext::GetWindowData()
 	{
 		return m_Window->GetWindowData();
-	}
-
-	DefaultMeshes* GraphicsContext::GetDefaultMeshes() const
-	{
-		return m_DefaultMeshes;
 	}
 
 	Ref<Texture> GraphicsContext::GetWhiteTexture() const

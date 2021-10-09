@@ -14,7 +14,10 @@
 #include "Camera/EditorCamera.h"
 #include "Camera/Camera.h"
 #include "Primitives/Framebuffer.h"
-#include "Tools/MeshLibrary.h"
+
+#include "Pools/MaterialPool.h"
+#include "Pools/MeshPool.h"
+
 #include "GUI/Backends/ImGuiContext.h"
 #include "GUI/Backends/NuklearContext.h"
 
@@ -30,7 +33,7 @@ namespace SmolEngine
 
 	class CubeMap;
 	class Texture;
-	class MaterialLibrary;
+	class MaterialPool;
 	class JobsSystemInstance;
 
 	struct GraphicsContextInitInfo
@@ -128,11 +131,11 @@ namespace SmolEngine
 		Ref<Texture>                      m_StorageTexure = nullptr;
 		Ref<Texture>                      m_DummyCubeMap = nullptr;
 		Ref<Framebuffer>                  m_Framebuffer = nullptr;
-		Ref<MaterialLibrary>              m_MaterialLibrary = nullptr;
-		Ref<MeshLibrary>                  m_MeshLibrary = nullptr;
+		Ref<MaterialPool>                 m_MaterialPool = nullptr;
+		Ref<MeshPool>                     m_MeshPool = nullptr;
+		Ref<JobsSystemInstance>           m_JobsSystem = nullptr;
 		ContextBaseGUI*                   m_ImGuiContext = nullptr;
 		ContextBaseGUI*                   m_NuklearContext = nullptr;
-		JobsSystemInstance*               m_JobsSystem = nullptr;
 		bool                              m_bWindowMinimized = false;
 		bool                              m_bIs2DStoragePreAlloc = false;
 		bool                              m_bIsStoragePreAlloc = false;

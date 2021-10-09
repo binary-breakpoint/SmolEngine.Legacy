@@ -16,12 +16,13 @@ namespace SmolEngine
 	public:	
 		void                    Free() override;
 		bool                    IsGood() const override;
-		bool                    LoadFromFile(const std::string& path, bool pooling = true);
+		bool                    LoadFromFile(const std::string& path);
 
 		std::vector<Ref<Mesh>>& GetScene();
 		std::vector<Ref<Mesh>>& GetChilds();
 		BoundingBox&            GetAABB();
 		uint32_t                GetChildCount() const;
+		size_t                  GetID() const;
 		std::string             GetName() const;
 		Ref<VertexBuffer>       GetVertexBuffer();
 		Ref<IndexBuffer>        GetIndexBuffer();
@@ -35,6 +36,7 @@ namespace SmolEngine
 
 	private:
 		std::string             m_Name = "";
+		size_t                  m_ID = 0;
 		Ref<Mesh>               m_Root = nullptr;
 		Ref<VertexBuffer>       m_VertexBuffer = nullptr;
 		Ref<IndexBuffer>        m_IndexBuffer = nullptr;
@@ -44,7 +46,8 @@ namespace SmolEngine
 
 		friend struct RendererStorage;
 		friend struct RendererDrawList;
-		friend class Animator;
 		friend class GraphicsPipeline;
+		friend class MeshPool;
+		friend class Animator;
 	};
 }

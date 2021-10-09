@@ -82,7 +82,7 @@ namespace SmolEngine
 		glm::vec3          AlbedroColor = glm::vec3(1.0f);
 
 	private:
-		friend class MaterialLibrary;
+		friend class MaterialPool;
 		friend class cereal::access;
 
 		template<typename Archive>
@@ -93,24 +93,30 @@ namespace SmolEngine
 		}
 	};
 
-	class MaterialLibrary
+	class MaterialPool
 	{
-	public:				              
-		uint32_t                              Add(MaterialCreateInfo* infoCI, const std::string& name);
-		bool                                  Delete(const std::string& name);
-		void                                  ClearData();              
+	public:		
+		MaterialPool();
+		~MaterialPool();
+
+		static uint32_t                              Add(MaterialCreateInfo* infoCI, const std::string& name);
+		static bool                                  Remove(const std::string& name);
+		static void                                  Clear();              
 		// Getters				              
-		PBRMaterial*                          GetMaterial(uint32_t ID);
-		PBRMaterial*                          GetMaterial(std::string& path);
-		int32_t                               GetMaterialID(std::string& path);
-		int32_t                               GetMaterialID(size_t& hashed_path);
-		std::vector<PBRMaterial>&             GetMaterials();
-		void                                  GetMaterialsPtr(void*& data, uint32_t& size);
-		const std::vector<Ref<Texture>>&      GetTextures() const;
+		static PBRMaterial*                          GetMaterial(uint32_t ID);
+		static PBRMaterial*                          GetMaterial(std::string& path);
+		static int32_t                               GetMaterialID(std::string& path);
+		static int32_t                               GetMaterialID(size_t& hashed_path);
+		static std::vector<PBRMaterial>&             GetMaterials();
+		static void                                  GetMaterialsPtr(void*& data, uint32_t& size);
+		static const std::vector<Ref<Texture>>&      GetTextures();
+
+	private:
 		// Helpers				              
 		uint32_t                              AddTexture(TextureCreateInfo* info, uint32_t& useTetxure);
 
 	private:
+		inline static MaterialPool*           s_Instance = nullptr;
 		uint32_t                              m_MaterialIndex = 0;
 		uint32_t                              m_TextureIndex = 0;
 		std::unordered_map<size_t, uint32_t>  m_MaterialMap;

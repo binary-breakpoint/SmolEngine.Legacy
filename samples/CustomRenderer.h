@@ -57,7 +57,7 @@ private:
 							     
 	GraphicsContext*             m_Context = nullptr;
 	EditorCamera*                m_Camera = nullptr;
-	MaterialLibrary*             m_MaterialLibrary = nullptr;
+	MaterialPool*             m_MaterialLibrary = nullptr;
 	bool                         m_Process = true;
 	RendererData                 m_Storage = {};
 	CameraUBO                    m_CameraUBO = {};

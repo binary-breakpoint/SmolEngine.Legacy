@@ -102,7 +102,7 @@ int main(int argc, char** argv)
 	materialCI.SetTexture(MaterialTexture::Roughness, "Assets/materials/stone/Tiles087_1K_Roughness.png");
 	materialCI.SetTexture(MaterialTexture::AO, "Assets/materials/stone/Tiles087_1K_AmbientOcclusion.png");
 	materialCI.SetMetalness(0.1f);
-	uint32_t stoneMat = MaterialLibrary::GetSinglenton()->Add(&materialCI, "stone");
+	uint32_t stoneMat = MaterialPool::GetSinglenton()->Add(&materialCI, "stone");
 	DeferredRenderer::UpdateMaterials();
 
 	while (process)
