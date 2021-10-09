@@ -3,8 +3,6 @@
 #include "Backends/Vulkan/VulkanContext.h"
 #include "Backends/Vulkan/VulkanRenderPass.h"
 
-#include "Common/Common.h"
-
 #include "GUI/Backends/ImGuiContext.h"
 #include "GUI/Backends/NuklearContext.h"
 

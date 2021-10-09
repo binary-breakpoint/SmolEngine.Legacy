@@ -104,7 +104,7 @@ namespace SmolEngine
 		std::string fontPath = GraphicsContext::GetSingleton()->GetResourcesPath() + "Fonts/Font1.ttf";
 		io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 17.0f, &config);
 
-		GLFWwindow* window = GraphicsContext::GetSingleton()->GetNativeWindow();
+		GLFWwindow* window = GraphicsContext::GetSingleton()->GetWindow()->GetNativeWindow();
 
 		OnSetup();
 		ImGui_ImplGlfw_InitForVulkan(window, true);
@@ -153,8 +153,9 @@ namespace SmolEngine
 
 	void ImGuiVulkanImpl::EndFrame()
 	{
-		float width = static_cast<float>(GraphicsContext::GetSingleton()->GetWindowData()->Width);
-		float height = static_cast<float>(GraphicsContext::GetSingleton()->GetWindowData()->Height);
+		WindowData* winData = GraphicsContext::GetSingleton()->GetWindow()->GetWindowData();
+		float width = static_cast<float>(winData->Width);
+		float height = static_cast<float>(winData->Height);
 
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2(width, height);

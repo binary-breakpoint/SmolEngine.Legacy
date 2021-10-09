@@ -1,6 +1,7 @@
 #pragma once
 #include "GraphicsContext.h"
-#include "Common/Common.h"
+#include "Common/Memory.h"
+#include "Common/Vertex.h"
 
 #include "Primitives/PrimitiveBase.h"
 #include "Primitives/VertexArray.h"

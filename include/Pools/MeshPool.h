@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common/Common.h"
+#include "Common/Memory.h"
 #include "Primitives/Mesh.h"
 
 #include <unordered_map>

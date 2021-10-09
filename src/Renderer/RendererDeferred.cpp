@@ -1,18 +1,13 @@
 #include "stdafx.h"
 #include "Renderer/RendererDeferred.h"
 #include "Pools/MaterialPool.h"
-
-#include "Common/Common.h"
 #include "Tools/Utils.h"
-
 #include "Primitives/VertexArray.h"
 #include "Primitives/VertexBuffer.h"
 #include "Primitives/IndexBuffer.h"
 #include "Primitives/Shader.h"
-
 #include "Import/glTFImporter.h"
 #include "Animation/AnimationController.h"
-
 #include "Multithreading/JobsSystemInstance.h"
 
 #ifdef OPENGL_IMPL
@@ -448,10 +443,11 @@ namespace SmolEngine
 					FramebufferAttachment position = FramebufferAttachment(AttachmentFormat::SFloat4_32, ClearOp, "position");
 					FramebufferAttachment normals = FramebufferAttachment(AttachmentFormat::SFloat4_16, ClearOp, "normals");
 					FramebufferAttachment materials = FramebufferAttachment(AttachmentFormat::SFloat4_32, ClearOp, "materials");
+					WindowData* winData = GraphicsContext::GetSingleton()->GetWindow()->GetWindowData();
 
 					FramebufferSpecification framebufferCI = {};
-					framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
-					framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
+					framebufferCI.Width = winData->Width;
+					framebufferCI.Height = winData->Height;
 					framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
 					framebufferCI.Attachments = { albedro, position, normals, materials };
 
@@ -463,12 +459,12 @@ namespace SmolEngine
 			// Lighting
 			JobsSystemInstance::Schedule([&]()
 				{
+					WindowData* winData = GraphicsContext::GetSingleton()->GetWindow()->GetWindowData();
 					FramebufferAttachment color = FramebufferAttachment(AttachmentFormat::SFloat4_16, true, "color_1");
-
 					FramebufferSpecification framebufferCI = {};
 					framebufferCI.eFiltering = ImageFilter::LINEAR;
-					framebufferCI.Width = GraphicsContext::GetSingleton()->GetWindowData()->Width;
-					framebufferCI.Height = GraphicsContext::GetSingleton()->GetWindowData()->Height;
+					framebufferCI.Width = winData->Width;
+					framebufferCI.Height = winData->Height;
 					framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
 					framebufferCI.Attachments = { color };
 

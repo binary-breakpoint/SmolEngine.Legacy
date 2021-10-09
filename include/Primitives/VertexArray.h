@@ -1,7 +1,7 @@
 #pragma once
-#include "Common/Common.h"
+#include "Common/Memory.h"
+#include "Common/BufferLayout.h"
 
-#include "Primitives/BufferLayout.h"
 #include "Primitives/VertexBuffer.h"
 #include "Primitives/IndexBuffer.h"
 

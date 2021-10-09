@@ -3,7 +3,6 @@
 #include "Backends/Vulkan/Vulkan.h"
 #include "Primitives/Framebuffer.h"
 
-#include <glm/glm.hpp>
 #include <vector>
 #include <unordered_map>
 

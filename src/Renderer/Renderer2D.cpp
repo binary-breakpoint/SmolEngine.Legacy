@@ -15,6 +15,8 @@ namespace SmolEngine
 {
 	void Renderer2DStorage::Initilize()
 	{
+		GraphicsContext::GetSingleton()->m_StorageList.push_back(this);
+
 		CreateFramebuffers();
 		CreatePipelines();
 	}

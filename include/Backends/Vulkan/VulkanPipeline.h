@@ -3,7 +3,6 @@
 
 #include "Backends/Vulkan/Vulkan.h"
 #include "Backends/Vulkan/VulkanDescriptor.h"
-#include "Primitives/BufferElement.h"
 #include "Primitives/GraphicsPipeline.h"
 
 namespace SmolEngine

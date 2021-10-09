@@ -83,8 +83,7 @@ int main(int argc, char** argv)
 	context->SetEventCallback([&](Event& e) { if (e.IsType(EventType::WINDOW_CLOSE)) { process = false; }  camera->OnEvent(e); });
 
 	storage = new RendererStorage();
-	storage->Initilize();
-	context->PushStorage(storage);
+	storage->Build();
 
 	drawList = new RendererDrawList();
 

@@ -1,7 +1,5 @@
 #pragma once
 #ifndef OPENGL_IMPL
-#include "Common/Common.h"
-
 #include "Backends/Vulkan/Vulkan.h"
 
 namespace SmolEngine

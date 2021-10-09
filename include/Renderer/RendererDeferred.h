@@ -1,4 +1,6 @@
 #pragma once
+#include "Renderer/RendererShared.h"
+
 #include "Primitives/GraphicsPipeline.h"
 #include "Primitives/ComputePipeline.h"
 #include "Primitives/Framebuffer.h"
@@ -183,31 +185,29 @@ namespace SmolEngine
 	{
 		RendererDrawList();
 
-		void                                        BeginSubmit(SceneViewProjection* sceneViewProj);
-		void                                        EndSubmit();
-
-		void                                        SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Ref<Mesh>& mesh, const uint32_t& material_id = 0, bool submit_childs = true, AnimationController* anim_controller = nullptr);
-		void                                        SubmitDirLight(DirectionalLight* light);
-		void                                        SubmitPointLight(PointLight* light);
-		void                                        SubmitSpotLight(SpotLight* light);
-
-		void                                        CalculateFrustum(SceneViewProjection* viewProj);
-		void                                        SetDefaultState();
-		Frustum&                                    GetFrustum();
-
-	private:
-		void                                        CalculateDepthMVP();
-		void                                        BuildDrawList();
-		void                                        ResetDrawList();
+		void                                            BeginSubmit(SceneViewProjection* sceneViewProj);
+		void                                            EndSubmit();				    
+		void                                            SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Ref<Mesh>& mesh, const uint32_t& material_id = 0, bool submit_childs = true, AnimationController* anim_controller = nullptr);
+		void                                            SubmitDirLight(DirectionalLight* light);
+		void                                            SubmitPointLight(PointLight* light);
+		void                                            SubmitSpotLight(SpotLight* light);    
+		void                                            CalculateFrustum(SceneViewProjection* viewProj);
+		void                                            SetDefaultState();
+		Frustum&                                        GetFrustum();
+													    
+	private:										    
+		void                                            CalculateDepthMVP();
+		void                                            BuildDrawList();
+		void                                            ResetDrawList();
 
 	private:
-		SceneViewProjection*                        m_SceneInfo = nullptr;
-
-		uint32_t                                    m_Objects = 0;
-		uint32_t                                    m_InstanceDataIndex = 0;
-		uint32_t                                    m_PointLightIndex = 0;
-		uint32_t                                    m_SpotLightIndex = 0;
-		uint32_t                                    m_LastAnimationOffset = 0;
+		SceneViewProjection*                            m_SceneInfo = nullptr;
+													    
+		uint32_t                                        m_Objects = 0;
+		uint32_t                                        m_InstanceDataIndex = 0;
+		uint32_t                                        m_PointLightIndex = 0;
+		uint32_t                                        m_SpotLightIndex = 0;
+		uint32_t                                        m_LastAnimationOffset = 0;
 
 		Frustum                                         m_Frustum{};
 		DirectionalLight                                m_DirLight{};
@@ -227,19 +227,16 @@ namespace SmolEngine
 
 	struct RendererStorage: RendererStorageBase
 	{
-		void                          Initilize() override;
-
 		void                          SetDynamicSkybox(DynamicSkyProperties& properties, const glm::mat4& proj, bool regeneratePBRmaps);
 		void                          SetStaticSkybox(Ref<Texture>& skybox);
 		void                          SetRenderTarget(Ref<Framebuffer>& target);
 		void                          SetDefaultState();
-
 		RendererStateEX&              GetState();
-
 		void                          OnResize(uint32_t width, uint32_t height) override;
 		void                          OnUpdateMaterials();
 
 	private:
+		void                          Initilize() override;
 		void                          CreatePipelines();
 		void                          CreateFramebuffers();
 		void                          CreatePBRMaps();

@@ -1,5 +1,5 @@
 #pragma once
-#include "Primitives/BufferElement.h"
+#include "Common/BufferElement.h"
 
 #include <vector>
 

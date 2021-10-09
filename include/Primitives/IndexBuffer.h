@@ -1,5 +1,5 @@
 #pragma once
-#include "Primitives/BufferLayout.h"
+#include "Common/BufferLayout.h"
 #include "Primitives/PrimitiveBase.h"
 
 namespace SmolEngine

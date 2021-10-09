@@ -1,6 +1,8 @@
 #pragma once
 #ifndef OPENGL_IMPL
+#include "Common/Memory.h"
 #include "Common/DebugLog.h"
+
 #include <vulkan/include/vulkan/vulkan.h>
 
 #define VK_CHECK_RESULT(f)															\

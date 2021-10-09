@@ -1,5 +1,6 @@
 #pragma once
-#include "Common/Common.h"
+#include "Common/Memory.h"
+#include "Common/BoundingBox.h"
 #include "Tools/GLM.h"
 
 namespace SmolEngine

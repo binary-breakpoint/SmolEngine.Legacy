@@ -1,5 +1,5 @@
 #pragma once
-#include "Common/Common.h"
+#include "Common/Memory.h"
 #include "Common/Flags.h"
 #include "Primitives/PrimitiveBase.h"
 

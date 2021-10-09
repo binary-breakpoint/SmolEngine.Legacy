@@ -190,7 +190,7 @@ namespace SmolEngine
 
 	glm::vec3 Utils::CastRay(const glm::vec3& startPos, float distance, const glm::mat4& viewProj)
 	{
-		auto data = GraphicsContext::GetSingleton()->GetWindowData();
+		auto data = GraphicsContext::GetSingleton()->GetWindow()->GetWindowData();
 		float w = static_cast<float>(data->Width);
 		float h = static_cast<float>(data->Height);
 		glm::vec2 mousePos = { Input::GetMouseX(), Input::GetMouseY() };

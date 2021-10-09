@@ -2,8 +2,9 @@
 #include "GraphicsContext.h"
 
 #include "Renderer/RendererDebug.h"
+#include "Renderer/RendererShared.h"
+
 #include "Common/DebugLog.h"
-#include "Common/Common.h"
 #include "Window/Input.h"
 
 #include "Multithreading/JobsSystemInstance.h"
@@ -160,8 +161,7 @@ namespace SmolEngine
 	void GraphicsContext::SetFramebufferSize(uint32_t width, uint32_t height)
 	{
 		m_Framebuffer->OnResize(width, height);
-
-		for (auto& storage : m_Storages)
+		for (auto storage : m_StorageList)
 			storage->OnResize(width, height);
 	}
 
@@ -173,16 +173,6 @@ namespace SmolEngine
 		return deltaTime;
 	}
 
-	GLFWwindow* GraphicsContext::GetNativeWindow()
-	{
-		return m_Window->GetNativeWindow();
-    }
-
-	WindowData* GraphicsContext::GetWindowData()
-	{
-		return m_Window->GetWindowData();
-	}
-
 	Ref<Texture> GraphicsContext::GetWhiteTexture() const
 	{
 		return m_DummyTexure;
@@ -191,30 +181,6 @@ namespace SmolEngine
 	bool GraphicsContext::IsWindowMinimized() const
 	{
 		return m_bWindowMinimized;
-	}
-
-	bool GraphicsContext::PushStorage(RendererStorageBase* storage)
-	{
-		bool found = std::find(m_Storages.begin(), m_Storages.end(), storage) != m_Storages.end();
-		if (!found)
-		{
-			m_Storages.emplace_back(storage);
-			return true;
-		}
-
-		return false;
-	}
-
-	bool GraphicsContext::PopStorage(RendererStorageBase* storage)
-	{
-		auto it = std::find(m_Storages.begin(), m_Storages.end(), storage);
-		if (it != m_Storages.end())
-		{
-			m_Storages.erase(it);
-			return true;
-		}
-
-		return false;
 	}
 
 	Window* GraphicsContext::GetWindow() const
@@ -268,18 +234,6 @@ namespace SmolEngine
 			m_EventCallback(std::forward<Event>(e));
 	}
 
-#ifdef OPENGL_IMPL
-	OpenglRendererAPI* GraphicsContext::GetOpenglRendererAPI()
-	{
-		return nullptr;
-	}
-#else
-	VulkanContext& GraphicsContext::GetVulkanContext()
-	{
-		return s_Instance->m_VulkanContext;
-	}
-#endif
-
 	GraphicsContext* GraphicsContext::GetSingleton()
 	{
 		return s_Instance;
@@ -289,11 +243,4 @@ namespace SmolEngine
 	{
 		return m_Framebuffer;
 	}
-
-#ifdef FROSTIUM_SMOLENGINE_IMPL
-	JobsSystemInstance* GraphicsContext::GetJobsSystemInstance()
-	{
-		return m_JobsSystem;
-	}
-#endif
 }

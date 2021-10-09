@@ -24,7 +24,6 @@
 #include "GUI/UITextField.h"
 #include "GUI/UICheckbox.h"
 
-#include "Common/Common.h"
 #include "Common/Flags.h"
 #include "Window/Events.h"
 #include "Window/Input.h"

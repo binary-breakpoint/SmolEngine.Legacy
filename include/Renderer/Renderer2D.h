@@ -1,4 +1,5 @@
 #pragma once
+#include "Renderer/RendererShared.h"
 
 #include "Primitives/GraphicsPipeline.h"
 #include "Primitives/Framebuffer.h"
@@ -51,11 +52,9 @@ namespace SmolEngine
 
 		void                      BeginSubmit(SceneViewProjection* viewProj);
 		void                      EndSubmit();
-
 		void                      SubmitSprite(const glm::vec3& worldPos, const glm::vec3& scale, const glm::vec3& rotation, uint32_t layerIndex, Ref<Texture>& texture,  bool frustumCulling = true, const glm::vec4& color = glm::vec4(1.0f));
 		void                      SubmitQuad(const glm::vec3& worldPos, const glm::vec3& scale, const glm::vec3& rotation, uint32_t layerIndex, bool frustumCulling = true, const glm::vec4& color = glm::vec4(1.0f));
 		void                      SubmitLight2D(const glm::vec3& worldPos, const glm::vec4& color, float radius, float lightIntensity, bool frustumCulling = true);
-
 		void                      CalculateFrustum(SceneViewProjection* viewProj);
 		Frustum&                  GetFrustum();
 
@@ -92,10 +91,10 @@ namespace SmolEngine
 
 	struct Renderer2DStorage: RendererStorageBase
 	{
-		void                      Initilize() override;
 		void                      SetRenderTarget(Ref<Framebuffer>& target);
 
 	private:
+		void                      Initilize() override;
 		void                      CreatePipelines();
 		void                      CreateFramebuffers();
 		void                      UpdateUniforms(RendererDrawList2D* drawList);

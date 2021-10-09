@@ -1,5 +1,5 @@
 #pragma once
-#include "Common/Common.h"
+#include "Common/Memory.h"
 #include "Primitives/PrimitiveBase.h"
 
 #include <glm/glm.hpp>
@@ -12,6 +12,12 @@ namespace cereal
 
 namespace SmolEngine
 {
+	enum class ImageFilter : int
+	{
+		NEAREST,
+		LINEAR,
+	};
+
 	enum class TextureFormat : int
 	{
 		R8_UNORM,

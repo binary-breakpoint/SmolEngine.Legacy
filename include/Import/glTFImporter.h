@@ -1,5 +1,6 @@
 #pragma once
-#include "Common/Common.h"
+#include "Common/Memory.h"
+#include "Common/Vertex.h"
 #include "Tools/GLM.h"
 
 #include <vector>

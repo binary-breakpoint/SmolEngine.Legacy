@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common/Common.h"
+#include "Common/Memory.h"
 #include "Tools/GLM.h"
 
 #include <string>

@@ -1,20 +1,8 @@
 #pragma once
-#include "Primitives/BufferLayout.h"
-
-#include <glm/glm/glm.hpp>
-#include <memory>
+#include "Common/BufferLayout.h"
 
 namespace SmolEngine
 {
-	extern "C++"
-	{
-		template<typename T>
-		using Scope = std::unique_ptr<T>;
-
-		template<typename T>
-		using Ref = std::shared_ptr<T>;
-	}
-
 	struct VertexInputInfo
 	{
 		VertexInputInfo() = default;
@@ -43,32 +31,5 @@ namespace SmolEngine
 	{
 		glm::vec3 Pos;
 		glm::vec2 UV;
-	};
-
-	struct BoundingBox
-	{
-		glm::vec3 min = glm::vec3(0);
-		glm::vec3 max = glm::vec3(0);
-
-		void SetBoundingBox(const glm::vec3& min, const glm::vec3& max);
-		void CalculateAABB(const glm::mat4& m);
-	};
-
-	struct SceneViewProjection;
-	struct RendererStorageBase
-	{
-		virtual void  Initilize() = 0;
-		virtual void  OnResize(uint32_t width, uint32_t height) {};
-	};
-
-	enum class ImageFilter: int
-	{
-		NEAREST,
-		LINEAR,
-	};
-
-	struct GLSL_BOOLPAD
-	{
-		bool data[3];
 	};
 }

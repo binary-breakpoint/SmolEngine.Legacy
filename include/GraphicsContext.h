@@ -7,7 +7,7 @@
 #include "Backends/Vulkan/VulkanContext.h"
 #endif
 
-#include "Common/Common.h"
+#include "Common/Memory.h"
 #include "Common/Flags.h"
 #include "Window/Window.h"
 #include "Window/Events.h"
@@ -30,6 +30,7 @@ namespace SmolEngine
 	struct GraphicsContextState;
 	struct RendererStorage;
 	struct Renderer2DStorage;
+	struct RendererStorageBase;
 
 	class CubeMap;
 	class Texture;
@@ -38,13 +39,13 @@ namespace SmolEngine
 
 	struct GraphicsContextInitInfo
 	{
-		bool                          bTargetsSwapchain = true;
-		bool                          bAutoResize = true;
-		bool                          bVsync = true;
-		FeaturesFlags                 eFeaturesFlags = FeaturesFlags::Imgui | FeaturesFlags::RendererDebug;
-		MSAASamples                   eMSAASamples = MSAASamples::SAMPLE_COUNT_1;
-		WindowCreateInfo*             pWindowCI = nullptr;
-		std::string                   ResourcesFolderPath = "../resources/";
+		bool              bTargetsSwapchain = true;
+		bool              bAutoResize = true;
+		bool              bVsync = true;
+		FeaturesFlags     eFeaturesFlags = FeaturesFlags::Imgui | FeaturesFlags::RendererDebug;
+		MSAASamples       eMSAASamples = MSAASamples::SAMPLE_COUNT_1;
+		WindowCreateInfo* pWindowCI = nullptr;
+		std::string       ResourcesFolderPath = "../resources/";
 	};
 
 	struct SceneViewProjection
@@ -65,13 +66,13 @@ namespace SmolEngine
 			SkyBoxMatrix = glm::mat4(glm::mat3(View));
 		}
 
-		glm::mat4              Projection = glm::mat4(1.0f);
-		glm::mat4              View = glm::mat4(1.0f);
-		glm::vec4              CamPos = glm::vec4(1.0f);
-		float                  NearClip = 0.0f;
-		float                  FarClip = 0.0f;
-		glm::vec2              Pad1;
-		glm::mat4              SkyBoxMatrix = glm::mat4(1.0f);
+		glm::mat4 Projection = glm::mat4(1.0f);
+		glm::mat4 View = glm::mat4(1.0f);
+		glm::vec4 CamPos = glm::vec4(1.0f);
+		float     NearClip = 0.0f;
+		float     FarClip = 0.0f;
+		glm::vec2 Pad1;
+		glm::mat4 SkyBoxMatrix = glm::mat4(1.0f);
 
 		friend struct RendererStorage;
 		friend struct RendererDrawList;
@@ -79,8 +80,8 @@ namespace SmolEngine
 
 	struct ClearInfo
 	{
-		bool                  bClear = true;
-		glm::vec4             color = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f);
+		bool      bClear = true;
+		glm::vec4 color = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f);
 	};
 
 	class GraphicsContext
@@ -93,32 +94,19 @@ namespace SmolEngine
 		void                              ProcessEvents();
 		void                              BeginFrame(float time);
 		void                              SwapBuffers();
-		void                              ShutDown();      
-		// Getters				          
+		void                              ShutDown();      		          
 		static GraphicsContext*           GetSingleton();
 		Ref<Framebuffer>                  GetMainFramebuffer() const;
-		GLFWwindow*                       GetNativeWindow();
-		Window*                           GetWindow() const;
-	    WindowData*                       GetWindowData();
 		Ref<Texture>                      GetWhiteTexture() const;
+		Window* GetWindow() const;
 		float                             GetGltfTime() const;
 		float                             GetDeltaTime() const;
 		float                             GetLastFrameTime() const;
-		const std::string&                GetResourcesPath() const;
-#ifdef  OPENGL_IMPL	          
-		static OpenglRendererAPI*         GetOpenglRendererAPI();
-#else							          
-		static VulkanContext&             GetVulkanContext();
-#endif								      
-		JobsSystemInstance*               GetJobsSystemInstance();
-		// Setters				          
+		const std::string&                GetResourcesPath() const;							      	          
 		void                              SetEventCallback(std::function<void(Event&)> callback);
 		void                              SetFramebufferSize(uint32_t width, uint32_t height);
-									      
 		float                             CalculateDeltaTime();
 		bool                              IsWindowMinimized() const;
-		bool                              PushStorage(RendererStorageBase* storage);
-		bool                              PopStorage(RendererStorageBase* storage);
 		void                              Resize(uint32_t* width, uint32_t* height);
 									      
 	private:					          
@@ -141,7 +129,7 @@ namespace SmolEngine
 		bool                              m_bIsStoragePreAlloc = false;
 		float                             m_LastFrameTime = 1.0f;
 		float                             m_DeltaTime = 0.0f;
-#ifdef  OPENGL_IMPL		      
+#ifdef  OPENGL_IMPL		      			  
 		OpenglContext                     m_OpenglContext = {};
 		OpenglRendererAPI*                m_RendererAPI = nullptr;
 #else								      
@@ -151,12 +139,11 @@ namespace SmolEngine
 		EventSender                       m_EventHandler = {};
 		std::string                       m_ResourcesFolderPath = "";
 		std::function<void(Event&)>       m_EventCallback;
-		std::vector<RendererStorageBase*> m_Storages;
-
-	private:
+		std::vector<RendererStorageBase*> m_StorageList;
 
 		friend struct RendererStorage;
 		friend struct Renderer2DStorage;
+		friend struct RendererStorageBase;
 		friend class GraphicsPipeline;
 		friend class DebugRenderer;
 		friend class ImGuiContext;

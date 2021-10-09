@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #ifndef OPENGL_IMPL
-#include "Common/Common.h"
 #include "Backends/Vulkan/VulkanShader.h"
 #include "Backends/Vulkan/VulkanContext.h"
 

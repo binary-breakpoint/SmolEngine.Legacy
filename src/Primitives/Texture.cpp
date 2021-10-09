@@ -1,8 +1,6 @@
 #include "stdafx.h"
 #include "Primitives/Texture.h"
 #include "Primitives/Shader.h"
-
-#include "Common/Common.h"
 #include "Common/DebugLog.h"
 
 #include "Tools/Utils.h"

@@ -1,6 +1,8 @@
 #pragma once
-#include "Common/Common.h"
+#include "Common/Memory.h"
 #include "Primitives/PrimitiveBase.h"
+#include "Primitives/Texture.h"
+#include <glm/glm.hpp>
 
 namespace SmolEngine
 {
