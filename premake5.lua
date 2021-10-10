@@ -61,7 +61,7 @@ project "SmolEngine.Graphics"
 		"vendor/stb_image/**.cpp",
 		"vendor/implot/**.cpp",
 		"vendor/vulkan_memory_allocator/vk_mem_alloc.cpp",
-		"vendor/vulkan_memory_allocator/vk_mem_alloc.h",
+		"include/External/vulkan_memory_allocator/vk_mem_alloc.h",
 	}
 
 	includedirs

@@ -1,4 +1,4 @@
-#include "hzpch.h"
+#include "stdafx.h"
 
 #define VMA_IMPLEMENTATION
-#include "vk_mem_alloc.h"
+#include <vulkan_memory_allocator/vk_mem_alloc.h>

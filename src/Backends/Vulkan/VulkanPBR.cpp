@@ -351,6 +351,8 @@ namespace SmolEngine
 			}
 
 			outImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			outImageInfo.imageView = m_BRDFLUT.ImageView;
+			outImageInfo.sampler = m_BRDFLUT.Sampler;
 
 			vkDestroyPipeline(device, pipeline, nullptr);
 			vkDestroyPipelineLayout(device, pipelinelayout, nullptr);
@@ -488,21 +490,21 @@ namespace SmolEngine
 			// Offfscreen framebuffer
 			{
 				// Color attachment
-				VkImageCreateInfo imageCreateInfo = {};
+				imageCI = {};
 				{
-					imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-					imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-					imageCreateInfo.format = format;
-					imageCreateInfo.extent.width = dim;
-					imageCreateInfo.extent.height = dim;
-					imageCreateInfo.extent.depth = 1;
-					imageCreateInfo.mipLevels = 1;
-					imageCreateInfo.arrayLayers = 1;
-					imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-					imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-					imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-					imageCreateInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-					imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+					imageCI.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+					imageCI.imageType = VK_IMAGE_TYPE_2D;
+					imageCI.format = format;
+					imageCI.extent.width = dim;
+					imageCI.extent.height = dim;
+					imageCI.extent.depth = 1;
+					imageCI.mipLevels = 1;
+					imageCI.arrayLayers = 1;
+					imageCI.samples = VK_SAMPLE_COUNT_1_BIT;
+					imageCI.tiling = VK_IMAGE_TILING_OPTIMAL;
+					imageCI.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+					imageCI.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+					imageCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
 					offscreen.alloc = VulkanAllocator::AllocImage(imageCI, VMA_MEMORY_USAGE_GPU_ONLY, offscreen.image);
 				}
@@ -964,6 +966,8 @@ namespace SmolEngine
 			VulkanCommandBuffer::ExecuteCommandBuffer(&cmdStorage);
 
 			outImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			outImageInfo.imageView = m_Irradiance.ImageView;
+			outImageInfo.sampler = m_Irradiance.Sampler;
 
 			VulkanAllocator::FreeImage(offscreen.image, offscreen.alloc);
 
@@ -1103,21 +1107,21 @@ namespace SmolEngine
 			// Offfscreen framebuffer
 			{
 				// Color attachment
-				VkImageCreateInfo imageCreateInfo = {};
+				imageCI = {};
 				{
-					imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-					imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-					imageCreateInfo.format = format;
-					imageCreateInfo.extent.width = dim;
-					imageCreateInfo.extent.height = dim;
-					imageCreateInfo.extent.depth = 1;
-					imageCreateInfo.mipLevels = 1;
-					imageCreateInfo.arrayLayers = 1;
-					imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-					imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-					imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-					imageCreateInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-					imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+					imageCI.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+					imageCI.imageType = VK_IMAGE_TYPE_2D;
+					imageCI.format = format;
+					imageCI.extent.width = dim;
+					imageCI.extent.height = dim;
+					imageCI.extent.depth = 1;
+					imageCI.mipLevels = 1;
+					imageCI.arrayLayers = 1;
+					imageCI.samples = VK_SAMPLE_COUNT_1_BIT;
+					imageCI.tiling = VK_IMAGE_TILING_OPTIMAL;
+					imageCI.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+					imageCI.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+					imageCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
 					offscreen.alloc = VulkanAllocator::AllocImage(imageCI, VMA_MEMORY_USAGE_GPU_ONLY, offscreen.image);
 				}
@@ -1585,6 +1589,9 @@ namespace SmolEngine
 			vkDestroyPipelineLayout(device, pipelinelayout, nullptr);
 		}
 
+		outImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		outImageInfo.imageView = m_PrefilteredCube.ImageView;
+		outImageInfo.sampler = m_PrefilteredCube.Sampler;
 
 		auto end = std::chrono::high_resolution_clock::now();
 		double diff = std::chrono::duration<double, std::milli>(end - start).count();

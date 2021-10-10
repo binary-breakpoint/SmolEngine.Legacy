@@ -47,17 +47,28 @@ namespace SmolEngine
 	void VulkanFramebuffer::Free()
 	{
 		FreeAttachment(m_DepthAttachment);
+
 		for (auto& color : m_Attachments)
+		{
 			FreeAttachment(color);
+		}
 
 		for (auto& resolve : m_ResolveAttachments)
+		{
 			FreeAttachment(resolve);
+		}
 
-		if (m_Sampler != VK_NULL_HANDLE)
+		if (m_Sampler != nullptr)
+		{
 			vkDestroySampler(m_Device, m_Sampler, nullptr);
+			m_Sampler = nullptr;
+		}
 
-		if (m_RenderPass != VK_NULL_HANDLE)
+		if (m_RenderPass != nullptr)
+		{
 			vkDestroyRenderPass(m_Device, m_RenderPass, nullptr);
+			m_RenderPass = nullptr;
+		}
 
 		for (auto& fb : m_VkFrameBuffers)
 		{
@@ -220,7 +231,7 @@ namespace SmolEngine
 		}
 
 		// Render pass
-		if (m_RenderPass == VK_NULL_HANDLE)
+		if (m_RenderPass == nullptr)
 		{
 			RenderPassGenInfo renderPassGenInfo = {};
 			{
