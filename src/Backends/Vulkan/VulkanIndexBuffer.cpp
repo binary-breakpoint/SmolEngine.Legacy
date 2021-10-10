@@ -19,9 +19,7 @@ namespace SmolEngine
 		}
 		else
 		{
-			CreateBuffer(indices, sizeof(uint32_t) * count,
-				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-				VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
+			CreateBuffer(indices, sizeof(uint32_t) * count, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 		}
 
 		m_Elements = static_cast<uint32_t>(count);
@@ -30,9 +28,7 @@ namespace SmolEngine
 
 	bool VulkanIndexBuffer::BuildFromSize(size_t size, bool is_static)
 	{
-		CreateBuffer(size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
-
+		CreateBuffer(size, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 		return true;
 	}
 

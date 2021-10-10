@@ -11,7 +11,6 @@ workspace "SmolEngine.Graphics"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
--- Include directories relative to root folder (solution directory)
 IncludeDir = {}
 IncludeDir["glm"] = "include/External/glm"
 IncludeDir["ImGui"] = "include/External/imgui"
@@ -61,6 +60,8 @@ project "SmolEngine.Graphics"
 		"include/External/stb_image/**.h",
 		"vendor/stb_image/**.cpp",
 		"vendor/implot/**.cpp",
+		"vendor/vulkan_memory_allocator/vk_mem_alloc.cpp",
+		"vendor/vulkan_memory_allocator/vk_mem_alloc.h",
 	}
 
 	includedirs

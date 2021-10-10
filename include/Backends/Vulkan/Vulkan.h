@@ -2,6 +2,7 @@
 #ifndef OPENGL_IMPL
 #include "Common/Memory.h"
 #include "Common/DebugLog.h"
+#include "Backends/Vulkan/VulkanAllocator.h"
 
 #include <vulkan/include/vulkan/vulkan.h>
 

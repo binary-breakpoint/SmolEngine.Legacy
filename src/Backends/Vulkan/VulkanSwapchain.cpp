@@ -5,7 +5,6 @@
 #include "Backends/Vulkan/VulkanInstance.h"
 #include "Backends/Vulkan/VulkanDevice.h"
 #include "Backends/Vulkan/VulkanCommandBuffer.h"
-#include "Backends/Vulkan/VulkanMemoryAllocator.h"
 #include "Backends/Vulkan/VulkanTexture.h"
 
 #include <GLFW/glfw3.h>
@@ -438,7 +437,7 @@ namespace SmolEngine
 			VK_SAMPLE_COUNT_1_BIT,
 			m_DepthBufferFormat,
 			VK_IMAGE_TILING_OPTIMAL,
-			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, m_DepthStencil->DeviceMemory);
+			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, m_DepthStencil->Alloc);
 
 		VkImageViewCreateInfo depthStencilViewCI = {};
 		{
@@ -625,14 +624,19 @@ namespace SmolEngine
 
 	void VulkanSwapchain::FreeResources()
 	{
-		if (m_DepthStencil->Image != VK_NULL_HANDLE)
-			vkDestroyImage(m_Device->GetLogicalDevice(), m_DepthStencil->Image, nullptr);
+		if (m_DepthStencil->Image != nullptr)
+		{
+			VulkanAllocator::FreeImage(m_DepthStencil->Image, m_DepthStencil->Alloc);
 
-		if (m_DepthStencil->ImageView != VK_NULL_HANDLE)
+			m_DepthStencil->Alloc = nullptr;
+			m_DepthStencil->Image = nullptr;
+		}
+
+		if (m_DepthStencil->ImageView != nullptr)
+		{
 			vkDestroyImageView(m_Device->GetLogicalDevice(), m_DepthStencil->ImageView, nullptr);
-
-		if (m_DepthStencil->DeviceMemory != VK_NULL_HANDLE)
-			vkFreeMemory(m_Device->GetLogicalDevice(), m_DepthStencil->DeviceMemory, nullptr);
+			m_DepthStencil->ImageView = nullptr;
+		}
 
 		for (auto& framebuffer : m_Framebuffers)
 		{
@@ -641,6 +645,8 @@ namespace SmolEngine
 				vkDestroyFramebuffer(m_Device->GetLogicalDevice(), framebuffer, nullptr);
 			}
 		}
+
+		m_Framebuffers.clear();
 	}
 
 	uint32_t VulkanSwapchain::GetWidth() const

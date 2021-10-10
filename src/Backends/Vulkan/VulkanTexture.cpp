@@ -3,7 +3,6 @@
 #include "Primitives/Texture.h"
 #include "Backends/Vulkan/VulkanContext.h"
 #include "Backends/Vulkan/VulkanStagingBuffer.h"
-#include "Backends/Vulkan/VulkanMemoryAllocator.h"
 
 #include <imgui/examples/imgui_impl_vulkan.h>
 
@@ -61,13 +60,11 @@ namespace SmolEngine
 	{
 		FindTextureParams(info);
 
-		VulkanBuffer stagingBuffer;
-		stagingBuffer.CreateBuffer(size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-		stagingBuffer.SetData(data, size);
+		m_Image = CreateVkImage(info->Width, info->Height, 1, VK_SAMPLE_COUNT_1_BIT, m_Format, VK_IMAGE_TILING_OPTIMAL,
+			VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, m_Alloc);
 
-		m_Image = CreateVkImage(info->Width, info->Height, 1, VK_SAMPLE_COUNT_1_BIT, m_Format,
-			VK_IMAGE_TILING_OPTIMAL,
-			VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, m_DeviceMemory);
+		VulkanStagingBuffer stagingBuffer;
+		stagingBuffer.Create(data, size);
 
 		VkImageSubresourceRange subresourceRange = {};
 		subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -141,9 +138,8 @@ namespace SmolEngine
 			FindTextureParams(info);
 		}
 
-		VulkanBuffer stagingBuffer;
-		stagingBuffer.CreateBuffer(ktxTextureSize, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-		stagingBuffer.SetData(ktxTextureData, ktxTextureSize);
+		VulkanStagingBuffer stagingBuffer;
+		stagingBuffer.Create(ktxTextureData, ktxTextureSize);
 
 		// Create optimal tiled target image
 		VkImageCreateInfo imageCreateInfo = {};
@@ -163,14 +159,8 @@ namespace SmolEngine
 			// This flag is required for cube map images
 			imageCreateInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 
-			VK_CHECK_RESULT(vkCreateImage(m_Device, &imageCreateInfo, nullptr, &m_Image));
+			m_Alloc = VulkanAllocator::AllocImage(imageCreateInfo, VMA_MEMORY_USAGE_GPU_ONLY, m_Image);
 		}
-
-		VkMemoryRequirements memReqs;
-		vkGetImageMemoryRequirements(m_Device, m_Image, &memReqs);
-		uint32_t typeIndex = VulkanContext::GetDevice().GetMemoryTypeIndex(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-		VulkanMemoryAllocator::Allocate(m_Device, memReqs, &m_DeviceMemory, typeIndex);
-		VK_CHECK_RESULT(vkBindImageMemory(m_Device, m_Image, m_DeviceMemory, 0));
 
 		// Setup buffer copy regions for each face including all of its miplevels
 		std::vector<VkBufferImageCopy> bufferCopyRegions;
@@ -310,14 +300,9 @@ namespace SmolEngine
 			// This flag is required for cube map images
 			imageCreateInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 
-			VK_CHECK_RESULT(vkCreateImage(m_Device, &imageCreateInfo, nullptr, &m_Image));
+			m_Alloc = VulkanAllocator::AllocImage(imageCreateInfo, VMA_MEMORY_USAGE_GPU_ONLY, m_Image);
 		}
 
-		VkMemoryRequirements memReqs;
-		vkGetImageMemoryRequirements(m_Device, m_Image, &memReqs);
-		uint32_t typeIndex = VulkanContext::GetDevice().GetMemoryTypeIndex(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-		VulkanMemoryAllocator::Allocate(m_Device, memReqs, &m_DeviceMemory, typeIndex);
-		VK_CHECK_RESULT(vkBindImageMemory(m_Device, m_Image, m_DeviceMemory, 0));
 		// View
 		{
 			VkImageViewCreateInfo view = {};
@@ -445,14 +430,14 @@ namespace SmolEngine
 		if (info->eFormat == TextureFormat::R32G32B32A32_SFLOAT)
 			size = info->Width * info->Height * 4 * sizeof(float);
 
-		VulkanBuffer stagingBuffer;
-		stagingBuffer.CreateBuffer(size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+		VulkanStagingBuffer stagingBuffer;
+		stagingBuffer.Create(size);
 
 		VkImageUsageFlags usage = VK_IMAGE_USAGE_SAMPLED_BIT;
 		if (is_storage) { usage |= VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT; }
 		else { usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT; }
 
-		m_Image = CreateVkImage(info->Width, info->Height, m_Mips, VK_SAMPLE_COUNT_1_BIT, m_Format, VK_IMAGE_TILING_OPTIMAL, usage, m_DeviceMemory);
+		m_Image = CreateVkImage(info->Width, info->Height, m_Mips, VK_SAMPLE_COUNT_1_BIT, m_Format, VK_IMAGE_TILING_OPTIMAL, usage, m_Alloc);
 
 		CommandBufferStorage cmdStorage{};
 		VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
@@ -465,6 +450,7 @@ namespace SmolEngine
 			subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 			subresourceRange.levelCount = 1;
 			subresourceRange.layerCount = 1;
+
 			stagingBuffer.SetData(data, size);
 
 			// Optimal image will be used as destination for the copy, so we must transfer from our initial undefined image layout to the transfer destination layout
@@ -529,57 +515,50 @@ namespace SmolEngine
 
 	void VulkanTexture::Free()
 	{
-		if (m_Device)
-		{
-			if (m_Image != nullptr)
-				vkDestroyImage(m_Device, m_Image, nullptr);
+		if (!m_Device)
+			return;
 
-			if (m_ImageView != nullptr)
-				vkDestroyImageView(m_Device, m_ImageView, nullptr);
+		if (m_ImageView != nullptr)
+			vkDestroyImageView(m_Device, m_ImageView, nullptr);
 
-			for(auto&[key, view]: m_ImageViewMap)
-				vkDestroyImageView(m_Device, view, nullptr);
+		for (auto& [key, view] : m_ImageViewMap)
+			vkDestroyImageView(m_Device, view, nullptr);
 
-			if (m_Samper != nullptr)
-				vkDestroySampler(m_Device, m_Samper, nullptr);
+		if (m_Samper != nullptr)
+			vkDestroySampler(m_Device, m_Samper, nullptr);
 
-			if (m_DeviceMemory != nullptr)
-				vkFreeMemory(m_Device, m_DeviceMemory, nullptr);
-		}
+		if (m_Image != nullptr)
+			VulkanAllocator::FreeImage(m_Image, m_Alloc);
+
+		m_ImageViewMap.clear();
+
+		m_Image = nullptr;
+		m_Samper = nullptr;
+		m_Alloc = nullptr;
 	}
 
 
-	VkImage VulkanTexture::CreateVkImage(uint32_t width, uint32_t height, int32_t mipLevels,
-		VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling,
-		VkImageUsageFlags usage, VkDeviceMemory& imageMemory, uint32_t arrayLayers)
+	VkImage VulkanTexture::CreateVkImage(uint32_t width, uint32_t height, int32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling,
+		VkImageUsageFlags usage, VmaAllocation& alloc, uint32_t arrayLayers)
 	{
 		auto device = VulkanContext::GetDevice().GetLogicalDevice();
 		VkImage image = VK_NULL_HANDLE;
 
 		VkImageCreateInfo imageCI = {};
-		{
-			imageCI.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-			imageCI.imageType = VK_IMAGE_TYPE_2D;
-			imageCI.format = format;
-			imageCI.mipLevels = mipLevels;
-			imageCI.extent.depth = 1;
-			imageCI.arrayLayers = arrayLayers;
-			imageCI.samples = numSamples;
-			imageCI.tiling = tiling;
-			//imageCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-			imageCI.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-			imageCI.extent = { (uint32_t)width, (uint32_t)height, 1 };
-			imageCI.usage = usage;
+		imageCI.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		imageCI.imageType = VK_IMAGE_TYPE_2D;
+		imageCI.format = format;
+		imageCI.mipLevels = mipLevels;
+		imageCI.extent.depth = 1;
+		imageCI.arrayLayers = arrayLayers;
+		imageCI.samples = numSamples;
+		imageCI.tiling = tiling;
+		//imageCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		imageCI.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imageCI.extent = { (uint32_t)width, (uint32_t)height, 1 };
+		imageCI.usage = usage;
 
-			VK_CHECK_RESULT(vkCreateImage(device, &imageCI, nullptr, &image));
-		}
-
-		VkMemoryRequirements memReqs;
-		vkGetImageMemoryRequirements(device,image, &memReqs);
-		uint32_t typeIndex = VulkanContext::GetDevice().GetMemoryTypeIndex(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-		VulkanMemoryAllocator::Allocate(device, memReqs, &imageMemory, typeIndex);
-		VK_CHECK_RESULT(vkBindImageMemory(device, image, imageMemory, 0));
-
+		alloc = VulkanAllocator::AllocImage(imageCI, VMA_MEMORY_USAGE_GPU_ONLY, image);
 		return image;
 	}
 

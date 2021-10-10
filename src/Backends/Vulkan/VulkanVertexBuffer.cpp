@@ -11,26 +11,18 @@ namespace SmolEngine
 
 	bool VulkanVertexBuffer::BuildFromMemory(void* vertices, size_t size, bool is_static)
 	{
-		m_VertexCount = static_cast<uint32_t>(size);
 		if (is_static)
-		{
-			CreateStaticBuffer(vertices, size,
-				VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
-		}
+			CreateStaticBuffer(vertices, size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 		else
-		{
-			CreateBuffer(vertices, size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-				VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
-		}
+			CreateBuffer(vertices, size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 
+		m_VertexCount = static_cast<uint32_t>(size);
 		return true;
 	}
 
 	bool VulkanVertexBuffer::BuildFromSize(size_t size, bool is_static)
 	{
-		CreateBuffer(size, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
-
+		CreateBuffer(size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 		return true;
 	}
 

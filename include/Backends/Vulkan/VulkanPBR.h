@@ -6,10 +6,10 @@ namespace SmolEngine
 {
 	struct PBRAttachment
 	{
-		VkImage Image = nullptr;
-		VkImageView ImageView = nullptr;
-		VkSampler Sampler = nullptr;
-		VkDeviceMemory DeviceMemory = nullptr;
+		VkImage       Image = nullptr;
+		VkImageView   ImageView = nullptr;
+		VkSampler     Sampler = nullptr;
+		VmaAllocation Alloc = nullptr;
 	};
 
 	class VulkanTexture;
@@ -29,10 +29,10 @@ namespace SmolEngine
 		const VkDescriptorImageInfo&    GetPrefilteredCubeImageInfo();
 
 	private:
-		void                            GenerateBRDFLUT(VkImage outImage, VkImageView outImageView, VkSampler outSampler, VkDeviceMemory outImageMem, VkDescriptorImageInfo& outImageInfo);
-		void                            GenerateIrradianceCube(VkImage outImage, VkImageView outImageView, VkSampler outSampler, VkDeviceMemory outImageMem, VulkanTexture* skyBox, VkDescriptorImageInfo& outImageInfo);
-		void                            GeneratePrefilteredCube(VkImage outImage, VkImageView outImageView, VkSampler outSampler, VkDeviceMemory outImageMem, VulkanTexture* skyBox, VkDescriptorImageInfo& outImageInfo);
-		void                            DestroyAttachment(const  PBRAttachment& obj);
+		void                            GenerateBRDFLUT(VkDescriptorImageInfo& outImageInfo);
+		void                            GenerateIrradianceCube(VulkanTexture* skyBox, VkDescriptorImageInfo& outImageInfo);
+		void                            GeneratePrefilteredCube(VulkanTexture* skyBox, VkDescriptorImageInfo& outImageInfo);
+		void                            DestroyAttachment(PBRAttachment& obj);
 
 	private:
 		inline static VulkanPBR*        s_Instance = nullptr;

@@ -13,7 +13,7 @@ namespace SmolEngine
 {
 	VulkanContext::~VulkanContext()
 	{
-
+		Shutdown();
 	}
 
 	void VulkanContext::OnResize(uint32_t* width, uint32_t* height)
@@ -28,6 +28,8 @@ namespace SmolEngine
 		{
 			m_Instance.Init();
 			m_Device.Init(&m_Instance);
+			m_Allocator.Init(&m_Device, &m_Instance);
+
 			swapchain_initialized = m_Swapchain.Init(&m_Instance, &m_Device, window, context->m_CreateInfo.bTargetsSwapchain ? false: true);
 			if (swapchain_initialized)
 			{
@@ -48,6 +50,11 @@ namespace SmolEngine
 
 		DebugLog::LogError("Couldn't create Vulkan context!");
 		abort();
+	}
+
+	void VulkanContext::Shutdown()
+	{
+
 	}
 
 	void VulkanContext::BeginFrame()

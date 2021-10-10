@@ -11,7 +11,6 @@ namespace SmolEngine
 		const auto& it = m_Buffers.find(binding);
 		if (it == m_Buffers.end())
 		{
-			VkMemoryPropertyFlags mem = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 			Ref<BufferObject> object = std::make_shared<BufferObject>();
 
 			if (isStatic)
@@ -21,22 +20,18 @@ namespace SmolEngine
 			}
 			else
 			{
-				object->VkBuffer.CreateBuffer(size, mem, usage);
+				object->VkBuffer.CreateBuffer(size, usage);
 			}
 
 			object->DesriptorBufferInfo.buffer = object->VkBuffer.GetBuffer();
 			object->DesriptorBufferInfo.offset = 0;
 			object->DesriptorBufferInfo.range = size;
 
-#ifdef FROSTIUM_SMOLENGINE_IMPL
 			{
 				m_Mutex.lock();
 				m_Buffers[binding] = object;
 				m_Mutex.unlock();
 			}
-#else
-			m_Buffers[binding] = object;
-#endif
 
 			outDescriptorBufferInfo = object->DesriptorBufferInfo;
 			return;

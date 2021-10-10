@@ -3,7 +3,6 @@
 #include "Backends/Vulkan/VulkanFramebuffer.h"
 #include "Backends/Vulkan/VulkanContext.h"
 #include "Backends/Vulkan/VulkanRenderPass.h"
-#include "Backends/Vulkan/VulkanMemoryAllocator.h"
 #include "Backends/Vulkan/VulkanTexture.h"
 #include "Backends/Vulkan/VulkanSemaphore.h"
 
@@ -126,7 +125,7 @@ namespace SmolEngine
 				VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 
 			AddAttachment(width, height, m_MSAASamples, usage, GetAttachmentFormat(info.Format),
-				vkInfo.AttachmentVkInfo.image, vkInfo.AttachmentVkInfo.view, vkInfo.AttachmentVkInfo.mem);
+				vkInfo.AttachmentVkInfo.image, vkInfo.AttachmentVkInfo.view, vkInfo.AttachmentVkInfo.alloc);
 
 			if (!IsUseMSAA())
 			{
@@ -172,7 +171,7 @@ namespace SmolEngine
 
 				AddAttachment(width, height, VK_SAMPLE_COUNT_1_BIT, usage, GetAttachmentFormat(info.Format),
 					resolve.AttachmentVkInfo.image, resolve.AttachmentVkInfo.view,
-					resolve.AttachmentVkInfo.mem);
+					resolve.AttachmentVkInfo.alloc);
 
 				resolve.ImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 				resolve.ImageInfo.imageView = resolve.AttachmentVkInfo.view;
@@ -211,7 +210,7 @@ namespace SmolEngine
 
 			VkImageAspectFlags imageAspect = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
 			AddAttachment(width, height, m_MSAASamples, usage, m_DepthFormat,
-				m_DepthAttachment.AttachmentVkInfo.image, m_DepthAttachment.AttachmentVkInfo.view, m_DepthAttachment.AttachmentVkInfo.mem, imageAspect);
+				m_DepthAttachment.AttachmentVkInfo.image, m_DepthAttachment.AttachmentVkInfo.view, m_DepthAttachment.AttachmentVkInfo.alloc, imageAspect);
 
 			attachments[lastImageViewIndex] = m_DepthAttachment.AttachmentVkInfo.view;
 
@@ -277,7 +276,7 @@ namespace SmolEngine
 			VkImageAspectFlags imageAspect = VK_IMAGE_ASPECT_DEPTH_BIT;
 
 			AddAttachment(width, height, VK_SAMPLE_COUNT_1_BIT, usage, m_DepthFormat,
-				m_DepthAttachment.AttachmentVkInfo.image, m_DepthAttachment.AttachmentVkInfo.view, m_DepthAttachment.AttachmentVkInfo.mem, imageAspect);
+				m_DepthAttachment.AttachmentVkInfo.image, m_DepthAttachment.AttachmentVkInfo.view, m_DepthAttachment.AttachmentVkInfo.alloc, imageAspect);
 		}
 
 		CommandBufferStorage cmdStorage{};
@@ -398,13 +397,7 @@ namespace SmolEngine
 			imageCreateInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 			imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-			VK_CHECK_RESULT(vkCreateImage(m_Device, &imageCreateInfo, nullptr, &attachment.AttachmentVkInfo.image));
-
-			VkMemoryRequirements memReqs;
-			vkGetImageMemoryRequirements(m_Device, attachment.AttachmentVkInfo.image, &memReqs);
-			uint32_t typeIndex = VulkanContext::GetDevice().GetMemoryTypeIndex(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-			VulkanMemoryAllocator::Allocate(m_Device, memReqs, &attachment.AttachmentVkInfo.mem, typeIndex);
-			VK_CHECK_RESULT(vkBindImageMemory(m_Device, attachment.AttachmentVkInfo.image, attachment.AttachmentVkInfo.mem, 0));
+			attachment.AttachmentVkInfo.alloc = VulkanAllocator::AllocImage(imageCreateInfo, VMA_MEMORY_USAGE_GPU_ONLY, attachment.AttachmentVkInfo.image);
 
 			VkImageViewCreateInfo colorImageView = {};
 			colorImageView.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -432,12 +425,7 @@ namespace SmolEngine
 			imageCreateInfo.format = m_DepthFormat;
 			imageCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 
-			VK_CHECK_RESULT(vkCreateImage(m_Device, &imageCreateInfo, nullptr, &m_DepthAttachment.AttachmentVkInfo.image));
-			VkMemoryRequirements memReqs;
-			vkGetImageMemoryRequirements(m_Device, m_DepthAttachment.AttachmentVkInfo.image, &memReqs);
-			uint32_t typeIndex = VulkanContext::GetDevice().GetMemoryTypeIndex(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-			VulkanMemoryAllocator::Allocate(m_Device, memReqs, &m_DepthAttachment.AttachmentVkInfo.mem, typeIndex);
-			VK_CHECK_RESULT(vkBindImageMemory(m_Device, m_DepthAttachment.AttachmentVkInfo.image, m_DepthAttachment.AttachmentVkInfo.mem, 0));
+			m_DepthAttachment.AttachmentVkInfo.alloc = VulkanAllocator::AllocImage(imageCreateInfo, VMA_MEMORY_USAGE_GPU_ONLY, m_DepthAttachment.AttachmentVkInfo.image);
 
 			VkImageViewCreateInfo depthStencilView = {};
 			depthStencilView.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -573,7 +561,7 @@ namespace SmolEngine
 
 	void VulkanFramebuffer::AddAttachment(uint32_t width, uint32_t height,
 		VkSampleCountFlagBits samples, VkImageUsageFlags imageUsage, VkFormat format,
-		VkImage& image, VkImageView& imageView, VkDeviceMemory& mem, VkImageAspectFlags imageAspect)
+		VkImage& image, VkImageView& imageView, VmaAllocation& mem, VkImageAspectFlags imageAspect)
 	{
 		image = VulkanTexture::CreateVkImage(width, height,
 			1,
@@ -605,14 +593,19 @@ namespace SmolEngine
 
 	void VulkanFramebuffer::FreeAttachment(Attachment& framebuffer)
 	{
-		if (framebuffer.AttachmentVkInfo.view != VK_NULL_HANDLE)
+		if (framebuffer.AttachmentVkInfo.view != nullptr)
+		{
 			vkDestroyImageView(m_Device, framebuffer.AttachmentVkInfo.view, nullptr);
+			framebuffer.AttachmentVkInfo.view = nullptr;
+		}
 
-		if (framebuffer.AttachmentVkInfo.image != VK_NULL_HANDLE)
-			vkDestroyImage(m_Device, framebuffer.AttachmentVkInfo.image, nullptr);
+		if (framebuffer.AttachmentVkInfo.image != nullptr)
+		{
+			VulkanAllocator::FreeImage(framebuffer.AttachmentVkInfo.image, framebuffer.AttachmentVkInfo.alloc);
 
-		if (framebuffer.AttachmentVkInfo.mem != VK_NULL_HANDLE)
-			vkFreeMemory(m_Device, framebuffer.AttachmentVkInfo.mem, nullptr);
+			framebuffer.AttachmentVkInfo.image = nullptr;
+			framebuffer.AttachmentVkInfo.alloc = nullptr;
+		}
 	}
 
 	bool VulkanFramebuffer::IsUseMSAA()

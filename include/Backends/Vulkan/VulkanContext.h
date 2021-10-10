@@ -1,5 +1,6 @@
 #pragma once
 #ifndef OPENGL_IMPL
+#include "Backends/Vulkan/VulkanAllocator.h"
 #include "Backends/Vulkan/VulkanInstance.h"
 #include "Backends/Vulkan/VulkanDevice.h"
 #include "Backends/Vulkan/VulkanSwapchain.h"
@@ -18,10 +19,11 @@ namespace SmolEngine
 		VulkanContext() = default;
 		~VulkanContext();
 
-		void                                OnResize(uint32_t* width, uint32_t* height);
 		void                                Setup(GLFWwindow* window, GraphicsContext* context, uint32_t* width, uint32_t* height);
+		void                                Shutdown();
 		void                                BeginFrame();
 		void                                SwapBuffers(bool skip = false);
+		void                                OnResize(uint32_t* width, uint32_t* height);
 		// Getters
 		inline static VulkanContext*        GetSingleton() { return s_ContextInstance; }
 		inline GLFWwindow*                  GetWindow() { return m_Window; }
@@ -35,7 +37,7 @@ namespace SmolEngine
 	private:
 		GLFWwindow*                         m_Window = nullptr;
 		GraphicsContext*                    m_Context = nullptr;
-
+		VulkanAllocator                     m_Allocator = {};
 		inline static VulkanContext*        s_ContextInstance = nullptr;
 		inline static VkCommandBuffer       m_CurrentVkCmdBuffer = nullptr;
 		inline static VulkanCommandBuffer   m_CommandBuffer = {};

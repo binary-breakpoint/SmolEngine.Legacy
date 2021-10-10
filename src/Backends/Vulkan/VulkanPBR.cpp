@@ -9,7 +9,6 @@
 #include "Backends/Vulkan/VulkanTexture.h"
 #include "Backends/Vulkan/VulkanContext.h"
 #include "Backends/Vulkan/VulkanDevice.h"
-#include "Backends/Vulkan/VulkanMemoryAllocator.h"
 #include "Backends/Vulkan/VulkanCommandBuffer.h"
 #include "Backends/Vulkan/VulkanShader.h"
 
@@ -25,8 +24,7 @@ namespace SmolEngine
 {
 #define M_PI       3.14159265358979323846   // pi
 
-	void VulkanPBR::GenerateBRDFLUT(VkImage outImage, VkImageView outImageView, VkSampler outSampler,
-		VkDeviceMemory outImageMem, VkDescriptorImageInfo& outImageInfo)
+	void VulkanPBR::GenerateBRDFLUT(VkDescriptorImageInfo& outImageInfo)
 	{
 		auto start = std::chrono::high_resolution_clock::now();
 		VkDevice device = VulkanContext::GetDevice().GetLogicalDevice();
@@ -49,13 +47,8 @@ namespace SmolEngine
 			imageCI.samples = VK_SAMPLE_COUNT_1_BIT;
 			imageCI.tiling = VK_IMAGE_TILING_OPTIMAL;
 			imageCI.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-			VK_CHECK_RESULT(vkCreateImage(device, &imageCI, nullptr, &outImage));
 
-			VkMemoryRequirements memReqs;
-			vkGetImageMemoryRequirements(device, outImage, &memReqs);
-			uint32_t typeIndex = VulkanContext::GetDevice().GetMemoryTypeIndex(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-			VulkanMemoryAllocator::Allocate(device, memReqs, &outImageMem, typeIndex);
-			VK_CHECK_RESULT(vkBindImageMemory(device, outImage, outImageMem, 0));
+			m_BRDFLUT.Alloc = VulkanAllocator::AllocImage(imageCI, VMA_MEMORY_USAGE_GPU_ONLY, m_BRDFLUT.Image);
 		}
 
 		// View
@@ -68,8 +61,8 @@ namespace SmolEngine
 			viewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 			viewCI.subresourceRange.levelCount = 1;
 			viewCI.subresourceRange.layerCount = 1;
-			viewCI.image = outImage;
-			VK_CHECK_RESULT(vkCreateImageView(device, &viewCI, nullptr, &outImageView));
+			viewCI.image = m_BRDFLUT.Image;
+			VK_CHECK_RESULT(vkCreateImageView(device, &viewCI, nullptr, &m_BRDFLUT.ImageView));
 		}
 
 		//Sampler
@@ -86,7 +79,7 @@ namespace SmolEngine
 			samplerCI.minLod = 0.0f;
 			samplerCI.maxLod = 1.0f;
 			samplerCI.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-			VK_CHECK_RESULT(vkCreateSampler(device, &samplerCI, nullptr, &outSampler));
+			VK_CHECK_RESULT(vkCreateSampler(device, &samplerCI, nullptr, &m_BRDFLUT.Sampler));
 		}
 
 		// FB, Att, RP, Pipe
@@ -153,7 +146,7 @@ namespace SmolEngine
 				framebufferCI.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 				framebufferCI.renderPass = renderpass;
 				framebufferCI.attachmentCount = 1;
-				framebufferCI.pAttachments = &outImageView;
+				framebufferCI.pAttachments = &m_BRDFLUT.ImageView;
 				framebufferCI.width = dim;
 				framebufferCI.height = dim;
 				framebufferCI.layers = 1;
@@ -358,8 +351,6 @@ namespace SmolEngine
 			}
 
 			outImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			outImageInfo.imageView = outImageView;
-			outImageInfo.sampler = outSampler;
 
 			vkDestroyPipeline(device, pipeline, nullptr);
 			vkDestroyPipelineLayout(device, pipelinelayout, nullptr);
@@ -375,8 +366,7 @@ namespace SmolEngine
 		DebugLog::LogInfo("Generating BRDF LUT took {} ms", diff);
 	}
 
-	void VulkanPBR::GenerateIrradianceCube(VkImage outImage, VkImageView outImageView, VkSampler outSampler,
-		VkDeviceMemory outImageMem, VulkanTexture* skyBox, VkDescriptorImageInfo& outImageInfo)
+	void VulkanPBR::GenerateIrradianceCube(VulkanTexture* skyBox, VkDescriptorImageInfo& outImageInfo)
 	{
 		auto start = std::chrono::high_resolution_clock::now();
 		VkDevice device = VulkanContext::GetDevice().GetLogicalDevice();
@@ -400,13 +390,8 @@ namespace SmolEngine
 			imageCI.tiling = VK_IMAGE_TILING_OPTIMAL;
 			imageCI.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 			imageCI.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
-			VK_CHECK_RESULT(vkCreateImage(device, &imageCI, nullptr, &outImage));
 
-			VkMemoryRequirements memReqs;
-			vkGetImageMemoryRequirements(device, outImage, &memReqs);
-			uint32_t typeIndex = VulkanContext::GetDevice().GetMemoryTypeIndex(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-			VulkanMemoryAllocator::Allocate(device, memReqs, &outImageMem, typeIndex);
-			VK_CHECK_RESULT(vkBindImageMemory(device, outImage, outImageMem, 0));
+			m_Irradiance.Alloc = VulkanAllocator::AllocImage(imageCI, VMA_MEMORY_USAGE_GPU_ONLY, m_Irradiance.Image);
 		}
 
 		// View
@@ -419,8 +404,8 @@ namespace SmolEngine
 			viewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 			viewCI.subresourceRange.levelCount = numMips;
 			viewCI.subresourceRange.layerCount = 6;
-			viewCI.image = outImage;
-			VK_CHECK_RESULT(vkCreateImageView(device, &viewCI, nullptr, &outImageView));
+			viewCI.image = m_Irradiance.Image;
+			VK_CHECK_RESULT(vkCreateImageView(device, &viewCI, nullptr, &m_Irradiance.ImageView));
 		}
 
 		//Sampler
@@ -437,7 +422,7 @@ namespace SmolEngine
 			samplerCI.minLod = 0.0f;
 			samplerCI.maxLod = static_cast<float>(numMips);
 			samplerCI.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-			VK_CHECK_RESULT(vkCreateSampler(device, &samplerCI, nullptr, &outSampler));
+			VK_CHECK_RESULT(vkCreateSampler(device, &samplerCI, nullptr, &m_Irradiance.Sampler));
 		}
 
 		// FB, Att, RP, Pipe
@@ -496,7 +481,7 @@ namespace SmolEngine
 			struct {
 				VkImage image;
 				VkImageView view;
-				VkDeviceMemory memory;
+				VmaAllocation alloc;
 				VkFramebuffer framebuffer;
 			} offscreen;
 
@@ -519,13 +504,7 @@ namespace SmolEngine
 					imageCreateInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 					imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-					VK_CHECK_RESULT(vkCreateImage(device, &imageCreateInfo, nullptr, &offscreen.image));
-
-					VkMemoryRequirements memReqs;
-					vkGetImageMemoryRequirements(device, offscreen.image, &memReqs);
-					uint32_t typeIndex = VulkanContext::GetDevice().GetMemoryTypeIndex(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-					VulkanMemoryAllocator::Allocate(device, memReqs, &offscreen.memory, typeIndex);
-					VK_CHECK_RESULT(vkBindImageMemory(device, offscreen.image, offscreen.memory, 0));
+					offscreen.alloc = VulkanAllocator::AllocImage(imageCI, VMA_MEMORY_USAGE_GPU_ONLY, offscreen.image);
 				}
 
 				VkImageViewCreateInfo colorImageView = {};
@@ -897,7 +876,7 @@ namespace SmolEngine
 
 
 				VulkanTexture::SetImageLayout(cmdStorage.Buffer,
-					outImage,
+					m_Irradiance.Image,
 					VK_IMAGE_LAYOUT_UNDEFINED,
 					VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 					subresourceRange);
@@ -961,7 +940,7 @@ namespace SmolEngine
 							cmdStorage.Buffer,
 							offscreen.image,
 							VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-							outImage,
+							m_Irradiance.Image,
 							VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 							1,
 							&copyRegion);
@@ -977,7 +956,7 @@ namespace SmolEngine
 
 
 				VulkanTexture::SetImageLayout(cmdStorage.Buffer,
-					outImage,
+					m_Irradiance.Image,
 					VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 					subresourceRange);
@@ -985,14 +964,12 @@ namespace SmolEngine
 			VulkanCommandBuffer::ExecuteCommandBuffer(&cmdStorage);
 
 			outImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			outImageInfo.imageView = outImageView;
-			outImageInfo.sampler = outSampler;
+
+			VulkanAllocator::FreeImage(offscreen.image, offscreen.alloc);
 
 			vkDestroyRenderPass(device, renderpass, nullptr);
 			vkDestroyFramebuffer(device, offscreen.framebuffer, nullptr);
-			vkFreeMemory(device, offscreen.memory, nullptr);
 			vkDestroyImageView(device, offscreen.view, nullptr);
-			vkDestroyImage(device, offscreen.image, nullptr);
 			vkDestroyDescriptorPool(device, descriptorpool, nullptr);
 			vkDestroyDescriptorSetLayout(device, descriptorsetlayout, nullptr);
 			vkDestroyPipeline(device, pipeline, nullptr);
@@ -1005,8 +982,7 @@ namespace SmolEngine
 		DebugLog::LogInfo("Generating irradiance cube with {} mip levels took {} ms", numMips, diff);
 	}
 
-	void VulkanPBR::GeneratePrefilteredCube(VkImage outImage, VkImageView outImageView, VkSampler outSampler,
-		VkDeviceMemory outImageMem, VulkanTexture* skyBox, VkDescriptorImageInfo& outImageInfo)
+	void VulkanPBR::GeneratePrefilteredCube(VulkanTexture* skyBox, VkDescriptorImageInfo& outImageInfo)
 	{
 		auto start = std::chrono::high_resolution_clock::now();
 		VkDevice device = VulkanContext::GetDevice().GetLogicalDevice();
@@ -1030,13 +1006,8 @@ namespace SmolEngine
 			imageCI.tiling = VK_IMAGE_TILING_OPTIMAL;
 			imageCI.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 			imageCI.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
-			VK_CHECK_RESULT(vkCreateImage(device, &imageCI, nullptr, &outImage));
 
-			VkMemoryRequirements memReqs;
-			vkGetImageMemoryRequirements(device, outImage, &memReqs);
-			uint32_t typeIndex = VulkanContext::GetDevice().GetMemoryTypeIndex(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-			VulkanMemoryAllocator::Allocate(device, memReqs, &outImageMem, typeIndex);
-			VK_CHECK_RESULT(vkBindImageMemory(device, outImage, outImageMem, 0));
+			m_PrefilteredCube.Alloc = VulkanAllocator::AllocImage(imageCI, VMA_MEMORY_USAGE_GPU_ONLY, m_PrefilteredCube.Image);
 		}
 
 		// View
@@ -1049,8 +1020,8 @@ namespace SmolEngine
 			viewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 			viewCI.subresourceRange.levelCount = numMips;
 			viewCI.subresourceRange.layerCount = 6;
-			viewCI.image = outImage;
-			VK_CHECK_RESULT(vkCreateImageView(device, &viewCI, nullptr, &outImageView));
+			viewCI.image = m_PrefilteredCube.Image;
+			VK_CHECK_RESULT(vkCreateImageView(device, &viewCI, nullptr, &m_PrefilteredCube.ImageView));
 		}
 
 		//Sampler
@@ -1067,7 +1038,7 @@ namespace SmolEngine
 			samplerCI.minLod = 0.0f;
 			samplerCI.maxLod = static_cast<float>(numMips);
 			samplerCI.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-			VK_CHECK_RESULT(vkCreateSampler(device, &samplerCI, nullptr, &outSampler));
+			VK_CHECK_RESULT(vkCreateSampler(device, &samplerCI, nullptr, &m_PrefilteredCube.Sampler));
 		}
 
 		// FB, Att, RP, Pipe
@@ -1125,7 +1096,7 @@ namespace SmolEngine
 			struct {
 				VkImage image;
 				VkImageView view;
-				VkDeviceMemory memory;
+				VmaAllocation alloc;
 				VkFramebuffer framebuffer;
 			} offscreen;
 
@@ -1148,13 +1119,7 @@ namespace SmolEngine
 					imageCreateInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 					imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-					VK_CHECK_RESULT(vkCreateImage(device, &imageCreateInfo, nullptr, &offscreen.image));
-
-					VkMemoryRequirements memReqs;
-					vkGetImageMemoryRequirements(device, offscreen.image, &memReqs);
-					uint32_t typeIndex = VulkanContext::GetDevice().GetMemoryTypeIndex(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-					VulkanMemoryAllocator::Allocate(device, memReqs, &offscreen.memory, typeIndex);
-					VK_CHECK_RESULT(vkBindImageMemory(device, offscreen.image, offscreen.memory, 0));
+					offscreen.alloc = VulkanAllocator::AllocImage(imageCI, VMA_MEMORY_USAGE_GPU_ONLY, offscreen.image);
 				}
 
 				VkImageViewCreateInfo colorImageView = {};
@@ -1525,7 +1490,7 @@ namespace SmolEngine
 				subresourceRange.layerCount = 6;
 
 				VulkanTexture::SetImageLayout(cmdBuffer,
-					outImage,
+					m_PrefilteredCube.Image,
 					VK_IMAGE_LAYOUT_UNDEFINED,
 					VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 					subresourceRange);
@@ -1588,7 +1553,7 @@ namespace SmolEngine
 							cmdBuffer,
 							offscreen.image,
 							VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-							outImage,
+							m_PrefilteredCube.Image,
 							VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 							1,
 							&copyRegion);
@@ -1602,22 +1567,18 @@ namespace SmolEngine
 				}
 
 				VulkanTexture::SetImageLayout(cmdBuffer,
-					outImage,
+					m_PrefilteredCube.Image,
 					VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 					VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 					subresourceRange);
 			}
 			VulkanCommandBuffer::ExecuteCommandBuffer(&cmdStorage);
 
-			outImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			outImageInfo.imageView = outImageView;
-			outImageInfo.sampler = outSampler;
+			VulkanAllocator::FreeImage(offscreen.image, offscreen.alloc);
 
 			vkDestroyRenderPass(device, renderpass, nullptr);
 			vkDestroyFramebuffer(device, offscreen.framebuffer, nullptr);
-			vkFreeMemory(device, offscreen.memory, nullptr);
 			vkDestroyImageView(device, offscreen.view, nullptr);
-			vkDestroyImage(device, offscreen.image, nullptr);
 			vkDestroyDescriptorPool(device, descriptorpool, nullptr);
 			vkDestroyDescriptorSetLayout(device, descriptorsetlayout, nullptr);
 			vkDestroyPipeline(device, pipeline, nullptr);
@@ -1631,21 +1592,29 @@ namespace SmolEngine
 		DebugLog::LogInfo("Generating pre-filtered enivornment cube with {} mip levels took {} ms", numMips, diff);
 	}
 
-	void VulkanPBR::DestroyAttachment(const PBRAttachment& obj)
+	void VulkanPBR::DestroyAttachment(PBRAttachment& obj)
 	{
 		auto device = VulkanContext::GetDevice().GetLogicalDevice();
 
 		if (obj.Image != VK_NULL_HANDLE)
-			vkDestroyImage(device, obj.Image, nullptr);
+		{
+			VulkanAllocator::FreeImage(obj.Image, obj.Alloc);
+			obj.Image = nullptr;
+			obj.Alloc = nullptr;
+		}
 
 		if (obj.ImageView != VK_NULL_HANDLE)
+		{
 			vkDestroyImageView(device, obj.ImageView, nullptr);
+			obj.ImageView = nullptr;
+		}
 
-		if (obj.Sampler != VK_NULL_HANDLE)
+		if (obj.Sampler != nullptr)
+		{
 			vkDestroySampler(device, obj.Sampler, nullptr);
+			obj.Sampler = nullptr;
+		}
 		
-		if (obj.DeviceMemory != VK_NULL_HANDLE)
-			vkFreeMemory(device, obj.DeviceMemory, nullptr);
 	}
 
 	VulkanPBR::VulkanPBR()
@@ -1660,25 +1629,9 @@ namespace SmolEngine
 
 		JobsSystemInstance::BeginSubmition();
 		{
-			if (m_BRDFLUT.Image == nullptr)
-			{
-				JobsSystemInstance::Schedule([this]()
-				{
-					GenerateBRDFLUT(m_BRDFLUT.Image, m_BRDFLUT.ImageView, m_BRDFLUT.Sampler, m_BRDFLUT.DeviceMemory, m_BRDFLUTImageInfo);
-				});
-			}
-
-			JobsSystemInstance::Schedule([&, this]()
-			{
-				GenerateIrradianceCube(m_Irradiance.Image, m_Irradiance.ImageView, m_Irradiance.Sampler,
-					m_Irradiance.DeviceMemory, vulkanTex, m_IrradianceImageInfo);
-			});
-
-			JobsSystemInstance::Schedule([&, this]()
-			{
-				GeneratePrefilteredCube(m_PrefilteredCube.Image, m_PrefilteredCube.ImageView,
-					m_PrefilteredCube.Sampler, m_PrefilteredCube.DeviceMemory, vulkanTex, m_PrefilteredCubeImageInfo);
-			});
+			JobsSystemInstance::Schedule([this]() { GenerateBRDFLUT(m_BRDFLUTImageInfo); });
+			JobsSystemInstance::Schedule([&, this]() { GenerateIrradianceCube(vulkanTex, m_IrradianceImageInfo); });
+			JobsSystemInstance::Schedule([&, this]() { GeneratePrefilteredCube(vulkanTex, m_PrefilteredCubeImageInfo); });
 		}
 		JobsSystemInstance::EndSubmition();
 	}

@@ -11,7 +11,7 @@ namespace SmolEngine
 	struct VulkanFramebufferAttachment
 	{
 		VkImage         image;
-		VkDeviceMemory  mem;
+		VmaAllocation   alloc;
 		VkImageView     view;
 	};
 
@@ -56,7 +56,7 @@ namespace SmolEngine
 		VkBool32                                         IsFormatIsFilterable(VkPhysicalDevice physicalDevice, VkFormat format, VkImageTiling tiling);
 		VkSampleCountFlagBits                            GetVkMSAASamples(MSAASamples samples);
 		void                                             AddAttachment(uint32_t width, uint32_t height, VkSampleCountFlagBits samples, VkImageUsageFlags imageUsage,
-			                                             VkFormat format, VkImage& image, VkImageView& imageView, VkDeviceMemory& mem,
+			                                             VkFormat format, VkImage& image, VkImageView& imageView, VmaAllocation& mem,
 			                                             VkImageAspectFlags imageAspect = VK_IMAGE_ASPECT_COLOR_BIT);
 
 	private:

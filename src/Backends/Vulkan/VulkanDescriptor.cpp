@@ -176,9 +176,7 @@ namespace SmolEngine
 						}
 						else
 						{
-							VkMemoryPropertyFlags mem = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-
-							object->VkBuffer.CreateBuffer(size, mem, usage);
+							object->VkBuffer.CreateBuffer(size, usage);
 						}
 
 						object->DesriptorBufferInfo.buffer = object->VkBuffer.GetBuffer();

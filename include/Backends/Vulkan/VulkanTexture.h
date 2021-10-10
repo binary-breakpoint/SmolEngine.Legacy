@@ -3,6 +3,7 @@
 #include "Backends/Vulkan/Vulkan.h"
 #include "Primitives/Texture.h"
 
+
 namespace SmolEngine
 {
 	class VulkanTexture: public Texture
@@ -34,7 +35,7 @@ namespace SmolEngine
 		static void                                SetImageLayout(VkCommandBuffer cmdbuffer, VkImage image, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout,
 			                                       VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
 		static VkImage                             CreateVkImage(uint32_t width, uint32_t height, int32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage,
-			                                       VkDeviceMemory& imageMemory, uint32_t arrayLayers = 1);
+			                                       VmaAllocation& alloc, uint32_t arrayLayers = 1);
 		static void                                InsertImageMemoryBarrier(VkCommandBuffer cmdbuffer, VkImage image, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout,
 			                                       VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask, VkImageSubresourceRange subresourceRange);
 	private:						               
@@ -54,7 +55,7 @@ namespace SmolEngine
 		VkDevice                                   m_Device = nullptr;
 		VkSampler                                  m_Samper = nullptr;
 		VkImage                                    m_Image = nullptr;
-		VkDeviceMemory                             m_DeviceMemory = nullptr;
+		VmaAllocation                              m_Alloc = nullptr;
 		uint32_t                                   m_Mips = 0;
 		VkImageView                                m_ImageView =  nullptr;
 		std::unordered_map<uint32_t,VkImageView>   m_ImageViewMap;

@@ -17,9 +17,9 @@ namespace SmolEngine
 
 	struct DepthStencil
 	{
-		VkImage Image =  VK_NULL_HANDLE;
-		VkImageView ImageView = VK_NULL_HANDLE;;
-		VkDeviceMemory DeviceMemory = VK_NULL_HANDLE;;
+		VkImage         Image =  VK_NULL_HANDLE;
+		VkImageView     ImageView = VK_NULL_HANDLE;;
+		VmaAllocation   Alloc = VK_NULL_HANDLE;;
 	};
 
 	struct SwapchainBuffer
