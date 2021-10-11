@@ -3,9 +3,21 @@
 
 namespace SmolEngine
 {
-	MeshPool::MeshPool()
+	MeshPool::MeshPool(const std::string& root)
 	{
 		s_Instance = this;
+
+		m_Cube = Mesh::Create();
+		m_Cube->LoadFromFile(root + "Models/cube.gltf");
+
+		m_Sphere = Mesh::Create();
+		m_Sphere->LoadFromFile(root + "Models/sphere.gltf");
+
+		m_Capsule = Mesh::Create();
+		m_Capsule->LoadFromFile(root + "Models/capsule.gltf");
+
+		m_Torus = Mesh::Create();
+		m_Torus->LoadFromFile(root + "Models/torus.gltf");
 	}
 
 	MeshPool::~MeshPool()
@@ -43,14 +55,15 @@ namespace SmolEngine
 			return it->second;
 		}
 
-		s_Instance->m_Mutex.lock();
 
 		Ref<Mesh> mesh = Mesh::Create();
 		bool is_loaded = mesh->LoadFromFile(path);
-		if(is_loaded)
+		if (is_loaded)
+		{
+			s_Instance->m_Mutex.lock();
 			s_Instance->m_IDMap[id] = mesh;
-
-		s_Instance->m_Mutex.unlock();
+			s_Instance->m_Mutex.unlock();
+		}
 
 		return is_loaded ? mesh : nullptr;
 	}
@@ -63,21 +76,6 @@ namespace SmolEngine
 	void MeshPool::Clear()
 	{
 		s_Instance->m_IDMap.clear();
-	}
-
-	void MeshPool::LoadDefaultMeshes(const std::string& root)
-	{
-		s_Instance->m_Cube = Mesh::Create();
-		s_Instance->m_Cube->LoadFromFile(root + "Models/cube.gltf");
-
-		s_Instance->m_Sphere = Mesh::Create();
-		s_Instance->m_Sphere->LoadFromFile(root + "Models/sphere.gltf");
-
-		s_Instance->m_Capsule = Mesh::Create();
-		s_Instance->m_Capsule->LoadFromFile(root + "Models/capsule.gltf");
-
-		s_Instance->m_Torus = Mesh::Create();
-		s_Instance->m_Torus->LoadFromFile(root + "Models/torus.gltf");
 	}
 
 	Ref<Mesh> MeshPool::GetCube()

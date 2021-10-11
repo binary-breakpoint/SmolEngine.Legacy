@@ -158,7 +158,7 @@ namespace SmolEngine
 		Textures.resize(MaxTextureSlot);
 		FontTextures.resize(MaxTextMessages);
 
-		Textures[0] = GraphicsContext::GetSingleton()->GetWhiteTexture();
+		Textures[0] = TexturePool::GetWhiteTexture();
 	}
 
 	void RendererDrawList2D::BeginSubmit(SceneViewProjection* viewProj)

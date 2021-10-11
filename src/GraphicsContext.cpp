@@ -34,26 +34,10 @@ namespace SmolEngine
 		m_VulkanContext.Setup(window, this,
 			&m_Window->GetWindowData()->Width, &m_Window->GetWindowData()->Height);
 #endif
-		// Creates 4x4 white textures
-		{
-			TextureCreateInfo texCI;
-			texCI.Width = 4;
-			texCI.Height = 4;
-
-			m_DummyTexure = Texture::Create();
-			m_DummyTexure->LoadAsWhite();
-
-			m_StorageTexure = Texture::Create();
-			m_StorageTexure->LoadAsStorage(&texCI);
-
-			m_DummyCubeMap = Texture::Create();
-			m_DummyCubeMap->LoadAsWhiteCube(&texCI);
-		}
-
 		m_JobsSystem = std::make_shared< JobsSystemInstance>();
-		m_MeshPool = std::make_shared<MeshPool>();
-		m_MeshPool->LoadDefaultMeshes(info->ResourcesFolderPath);
+		m_MeshPool = std::make_shared<MeshPool>(info->ResourcesFolderPath);
 		m_MaterialPool = std::make_shared<MaterialPool>();
+		m_TexturePool = std::make_shared<TexturePool>();
 
 		// Initialize ImGUI
 		if ((info->eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
@@ -171,11 +155,6 @@ namespace SmolEngine
 		float deltaTime = time - m_LastFrameTime;
 		m_LastFrameTime = time;
 		return deltaTime;
-	}
-
-	Ref<Texture> GraphicsContext::GetWhiteTexture() const
-	{
-		return m_DummyTexure;
 	}
 
 	bool GraphicsContext::IsWindowMinimized() const

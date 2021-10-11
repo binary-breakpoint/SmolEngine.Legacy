@@ -11,7 +11,7 @@ namespace SmolEngine
 	class MeshPool
 	{
 	public:
-		MeshPool();
+		MeshPool(const std::string& root);
 		~MeshPool();
 
 		static Ref<Mesh>                      GetCube();
@@ -25,9 +25,6 @@ namespace SmolEngine
 		static Ref<Mesh>                      ConstructFromFile(const std::string& path);
 		static bool                           Remove(size_t id);
 		static void                           Clear();
-
-	private:
-		static void                           LoadDefaultMeshes(const std::string& root);
 											  
 	private:								  
 		inline static MeshPool*               s_Instance = nullptr;

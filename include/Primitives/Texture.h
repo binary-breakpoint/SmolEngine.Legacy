@@ -98,6 +98,7 @@ namespace SmolEngine
 
 		virtual uint32_t                      GetMips() const { return 0; };
 		virtual std::pair<uint32_t, uint32_t> GetMipSize(uint32_t mip) const { return { 0, 0 }; };
+		size_t                                GetID() const { return m_ID; }
 		const TextureInfo&                    GetInfo() const { return m_Info; }
 		void*                                 GetImGuiTexture() const { return m_Info.ImHandle; }
 		bool                                  IsGood() const override { return m_Info.Width > 0; }
@@ -106,6 +107,7 @@ namespace SmolEngine
 
 	private:
 		TextureInfo                           m_Info{};
+		size_t                                m_ID = 0;
 
 		friend class VulkanTexture;
 	};

@@ -17,6 +17,7 @@
 
 #include "Pools/MaterialPool.h"
 #include "Pools/MeshPool.h"
+#include "Pools/TexturePool.h"
 
 #include "GUI/Backends/ImGuiContext.h"
 #include "GUI/Backends/NuklearContext.h"
@@ -97,7 +98,6 @@ namespace SmolEngine
 		void                              ShutDown();      		          
 		static GraphicsContext*           GetSingleton();
 		Ref<Framebuffer>                  GetMainFramebuffer() const;
-		Ref<Texture>                      GetWhiteTexture() const;
 		Window* GetWindow() const;
 		float                             GetGltfTime() const;
 		float                             GetDeltaTime() const;
@@ -114,14 +114,12 @@ namespace SmolEngine
 
 	private:	
 		static GraphicsContext*           s_Instance;
-		Window*                           m_Window = nullptr;
-		Ref<Texture>                      m_DummyTexure = nullptr;
-		Ref<Texture>                      m_StorageTexure = nullptr;
-		Ref<Texture>                      m_DummyCubeMap = nullptr;
 		Ref<Framebuffer>                  m_Framebuffer = nullptr;
 		Ref<MaterialPool>                 m_MaterialPool = nullptr;
 		Ref<MeshPool>                     m_MeshPool = nullptr;
+		Ref<TexturePool>                  m_TexturePool = nullptr;
 		Ref<JobsSystemInstance>           m_JobsSystem = nullptr;
+		Window*                           m_Window = nullptr;
 		ContextBaseGUI*                   m_ImGuiContext = nullptr;
 		ContextBaseGUI*                   m_NuklearContext = nullptr;
 		bool                              m_bWindowMinimized = false;

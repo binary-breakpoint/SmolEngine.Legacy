@@ -209,13 +209,13 @@ namespace SmolEngine
 	{
 		const ReflectionData& refData = shader->GetReflection();
 #ifndef OPENGL_IMPL
-		m_ImageInfo = GraphicsContext::s_Instance->m_DummyTexure->Cast<VulkanTexture>()->m_DescriptorImageInfo;
+		m_ImageInfo = TexturePool::GetWhiteTexture()->Cast<VulkanTexture>()->m_DescriptorImageInfo;
 #endif
 		for (auto& [bindingPoint, res] : refData.ImageSamplers)
 		{
 			if (res.Dimension == 3) // cubeMap
 			{
-				auto& cube = GraphicsContext::GetSingleton()->m_DummyCubeMap;
+				auto& cube = TexturePool::GetCubeMap();
 				VkWriteDescriptorSet writeSet = {};
 				{
 					writeSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -253,7 +253,7 @@ namespace SmolEngine
 			}
 		}
 
-		auto storageInfo = GraphicsContext::s_Instance->m_StorageTexure->Cast<VulkanTexture>()->m_DescriptorImageInfo;
+		auto storageInfo = TexturePool::GetStorageTexture()->Cast<VulkanTexture>()->m_DescriptorImageInfo;
 		for (auto& [bindingPoint, res] : refData.StorageImages)
 		{
 			std::vector<VkDescriptorImageInfo> infos;
