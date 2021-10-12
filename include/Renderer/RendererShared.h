@@ -8,6 +8,9 @@ namespace SmolEngine
 		virtual void  OnResize(uint32_t width, uint32_t height) {};
 		void          Build();
 
+		template<typename T>
+		T* Cast() { return dynamic_cast<T*>(this); }
+
 	private:          
 		virtual void  Initilize() = 0;
 		void          AddStorage();

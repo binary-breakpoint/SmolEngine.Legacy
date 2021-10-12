@@ -30,7 +30,7 @@ namespace SmolEngine
 		else
 			VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
 
-		storage->p_Gbuffer->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
+		storage->m_DefaultMaterial->GetPipeline()->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
 		storage->p_Lighting->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
 		storage->p_Skybox->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
 		storage->p_DepthPass->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
@@ -77,12 +77,12 @@ namespace SmolEngine
 	void RendererStorage::OnUpdateMaterials()
 	{
 		const auto& textures = MaterialPool::GetTextures();
-		p_Gbuffer->UpdateSamplers(textures, m_TexturesBinding);
+		m_DefaultMaterial->UpdateSamplers(textures, m_TexturesBinding);
 
 		void* data = nullptr;
 		uint32_t size = 0;
 		MaterialPool::GetMaterialsPtr(data, size);
-		p_Gbuffer->SubmitBuffer(m_MaterialsBinding, size, data);
+		m_DefaultMaterial->SubmitBuffer(m_MaterialsBinding, size, data);
 	}
 
 	void RendererStorage::SetDefaultState()
@@ -150,39 +150,9 @@ namespace SmolEngine
 		VertexInputInfo vertexMain(sizeof(PBRVertex), mainLayout);
 		const std::string& path = GraphicsContext::GetSingleton()->GetResourcesPath();
 
-		// Gbuffer
-		{
-			ShaderCreateInfo shaderCI = {};
-			{
-				shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/Gbuffer.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/Gbuffer.frag";
-
-				// SSBO's
-				ShaderBufferInfo bufferInfo = {};
-
-				// Vertex
-				bufferInfo.Size = sizeof(InstanceData) * max_objects;
-				shaderCI.BufferInfos[m_ShaderDataBinding] = bufferInfo;
-
-				bufferInfo.Size = sizeof(PBRMaterial) * max_materials;
-				shaderCI.BufferInfos[m_MaterialsBinding] = bufferInfo;
-
-				bufferInfo.Size = sizeof(glm::mat4) * max_anim_joints;
-				shaderCI.BufferInfos[m_AnimBinding] = bufferInfo;
-			};
-
-			GraphicsPipelineCreateInfo DynamicPipelineCI = {};
-			{
-				DynamicPipelineCI.VertexInputInfos = { vertexMain };
-				DynamicPipelineCI.PipelineName = "G_Pipeline";
-				DynamicPipelineCI.ShaderCreateInfo = shaderCI;
-				DynamicPipelineCI.TargetFramebuffers = { f_GBuffer };
-			}
-
-			p_Gbuffer = GraphicsPipeline::Create();
-			auto result = p_Gbuffer->Build(&DynamicPipelineCI);
-			assert(result == true);
-		}
+		// Default Material
+		m_DefaultMaterial = Material3D::Create();
+		m_DefaultMaterial->LoadAsDefault(this);
 
 		// Lighting
 		{
@@ -515,7 +485,7 @@ namespace SmolEngine
 
 	void RendererStorage::CreatePBRMaps()
 	{
-		m_VulkanPBR = new VulkanPBR();
+		m_VulkanPBR = std::make_shared<VulkanPBR>(); // TODO: abstract
 		m_EnvironmentMap = std::make_shared<EnvironmentMap>();
 		auto& config = m_EnvironmentMap->GetDynamicSkyProperties();
 		config.SunPosition = glm::vec4(1, -11, 0, 0);
@@ -552,6 +522,7 @@ namespace SmolEngine
 					InstancePackage::Package& package = instance.Packages[x];
 					InstanceData& instanceUBO = m_InstancesData[m_InstanceDataIndex];
 
+					cmd.Material = package.Material;
 					const bool is_animated = package.AnimController != nullptr;
 					uint32_t   anim_offset = m_LastAnimationOffset;
 
@@ -617,7 +588,7 @@ namespace SmolEngine
 			// Updates Scene Data
 			JobsSystemInstance::Schedule([&]()
 				{
-					p_Gbuffer->SubmitBuffer(m_SceneDataBinding, sizeof(SceneViewProjection), drawList->m_SceneInfo);
+					m_DefaultMaterial->SubmitBuffer(m_SceneDataBinding, sizeof(SceneViewProjection), drawList->m_SceneInfo);
 				});
 
 			// Updates Lighting State
@@ -672,7 +643,7 @@ namespace SmolEngine
 				{
 					if (drawList->m_LastAnimationOffset > 0)
 					{
-						p_Gbuffer->SubmitBuffer(m_AnimBinding,
+						m_DefaultMaterial->SubmitBuffer(m_AnimBinding,
 							sizeof(glm::mat4) * drawList->m_LastAnimationOffset, drawList->m_AnimationJoints.data());
 					}
 				});
@@ -682,7 +653,7 @@ namespace SmolEngine
 				{
 					if (drawList->m_InstanceDataIndex > 0)
 					{
-						p_Gbuffer->SubmitBuffer(m_ShaderDataBinding,
+						m_DefaultMaterial->SubmitBuffer(m_ShaderDataBinding,
 							sizeof(InstanceData) * drawList->m_InstanceDataIndex, drawList->m_InstancesData.data());
 					}
 				});
@@ -789,8 +760,8 @@ namespace SmolEngine
 		m_AnimationJoints.resize(max_anim_joints);
 	}
 
-	void RendererDrawList::SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Ref<Mesh>& mesh,
-		const uint32_t& material_id, bool submit_childs, AnimationController* anim_controller)
+	void RendererDrawList::SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, const Ref<Mesh>& mesh,
+		const uint32_t& material_id, bool submit_childs, AnimationController* anim_controller, const Ref<Material>& material)
 	{
 		if (!m_Frustum.CheckSphere(pos) || m_Objects >= max_objects)
 			return;
@@ -810,6 +781,7 @@ namespace SmolEngine
 		package->Rotation = const_cast<glm::vec3*>(&rotation);
 		package->Scale = const_cast<glm::vec3*>(&scale);
 		package->AnimController = anim_controller;
+		package->Material = material.get();
 
 		m_Objects++;
 		instance.CurrentIndex++;
@@ -819,7 +791,7 @@ namespace SmolEngine
 		if (submit_childs)
 		{
 			for (auto& sub : mesh->m_Childs)
-				SubmitMesh(pos, rotation, scale, sub, material_id, submit_childs, anim_controller);
+				SubmitMesh(pos, rotation, scale, sub, material_id, submit_childs, anim_controller, material);
 		}
 	}
 
@@ -891,7 +863,7 @@ namespace SmolEngine
 		auto drawList = info->pDrawList;
 		auto storage = info->pStorage;
 
-		storage->p_Gbuffer->BeginRenderPass();
+		storage->m_DefaultMaterial->GetPipeline()->BeginRenderPass();
 		{
 			// SkyBox
 			if (storage->m_State.bDrawSkyBox)
@@ -913,11 +885,12 @@ namespace SmolEngine
 			{
 				auto& cmd = drawList->m_DrawList[i];
 
-				storage->p_Gbuffer->SubmitPushConstant(ShaderType::Vertex, sizeof(uint32_t), &cmd.Offset);
-				storage->p_Gbuffer->DrawMeshIndexed(cmd.Mesh, cmd.InstancesCount);
+				Material* material = cmd.Material == nullptr ? storage->m_DefaultMaterial.get() : cmd.Material;
+				material->GetPipeline()->SubmitPushConstant(ShaderType::Vertex, sizeof(uint32_t), &cmd.Offset);
+				material->GetPipeline()->DrawMeshIndexed(cmd.Mesh, cmd.InstancesCount);
 			}
 		}
-		storage->p_Gbuffer->EndRenderPass();
+		storage->m_DefaultMaterial->GetPipeline()->EndRenderPass();
 	}
 
 	void RendererDeferred::LightingPass(SubmitInfo* info)

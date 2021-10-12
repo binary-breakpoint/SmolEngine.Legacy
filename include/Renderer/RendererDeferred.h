@@ -7,6 +7,7 @@
 #include "Primitives/Texture.h"
 #include "Primitives/Mesh.h"
 #include "Primitives/EnvironmentMap.h"
+#include "Material/Material3D.h"
 #include "Animation/AnimationController.h"
 #include "Camera/Frustum.h"
 #include "Tools/GLM.h"
@@ -164,6 +165,7 @@ namespace SmolEngine
 		uint32_t               InstancesCount = 0;
 		uint32_t               Offset = 0;
 		Ref<Mesh>              Mesh = nullptr;
+		Material*              Material = nullptr;
 	};
 
 	struct InstancePackage
@@ -175,6 +177,7 @@ namespace SmolEngine
 			glm::vec3*            Rotation = nullptr;
 			glm::vec3*            Scale = nullptr;
 			AnimationController*  AnimController = nullptr;
+			Material*             Material = nullptr;
 		};
 
 		uint32_t                  CurrentIndex = 0;
@@ -187,7 +190,8 @@ namespace SmolEngine
 
 		void                                            BeginSubmit(SceneViewProjection* sceneViewProj);
 		void                                            EndSubmit();				    
-		void                                            SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, Ref<Mesh>& mesh, const uint32_t& material_id = 0, bool submit_childs = true, AnimationController* anim_controller = nullptr);
+		void                                            SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, const Ref<Mesh>& mesh, const uint32_t& material_id = 0, 
+			                                            bool submit_childs = true, AnimationController* anim_controller = nullptr, const Ref<Material>& material = nullptr);
 		void                                            SubmitDirLight(DirectionalLight* light);
 		void                                            SubmitPointLight(PointLight* light);
 		void                                            SubmitSpotLight(SpotLight* light);    
@@ -244,21 +248,22 @@ namespace SmolEngine
 
 	private:
 		// Bindings					
-		const uint32_t                m_TexturesBinding = 24;
-		const uint32_t                m_ShaderDataBinding = 25;
-		const uint32_t                m_MaterialsBinding = 26;
-		const uint32_t                m_SceneDataBinding = 27;
-		const uint32_t                m_AnimBinding = 28;
-		const uint32_t                m_PointLightBinding = 30;
-		const uint32_t                m_SpotLightBinding = 31;
-		const uint32_t                m_DirLightBinding = 32;
-		const uint32_t                m_LightingStateBinding = 33;
-		const uint32_t                m_BloomStateBinding = 34;
-		const uint32_t                m_FXAAStateBinding = 35;
-		const uint32_t                m_DynamicSkyBinding = 36;
-		const uint32_t                m_BloomComputeWorkgroupSize = 4;
+		static const uint32_t         m_TexturesBinding = 24;
+		static const uint32_t         m_ShaderDataBinding = 25;
+		static const uint32_t         m_MaterialsBinding = 26;
+		static const uint32_t         m_SceneDataBinding = 27;
+		static const uint32_t         m_AnimBinding = 28;
+		static const uint32_t         m_PointLightBinding = 30;
+		static const uint32_t         m_SpotLightBinding = 31;
+		static const uint32_t         m_DirLightBinding = 32;
+		static const uint32_t         m_LightingStateBinding = 33;
+		static const uint32_t         m_BloomStateBinding = 34;
+		static const uint32_t         m_FXAAStateBinding = 35;
+		static const uint32_t         m_DynamicSkyBinding = 36;
+		static const uint32_t         m_BloomComputeWorkgroupSize = 4;
+		// Materials
+		Ref<Material3D>               m_DefaultMaterial = nullptr;
 		// Pipelines				
-		Ref<GraphicsPipeline>         p_Gbuffer = nullptr;
 		Ref<GraphicsPipeline>         p_Lighting = nullptr;
 		Ref<GraphicsPipeline>         p_Combination = nullptr;
 		Ref<GraphicsPipeline>         p_Skybox = nullptr;
@@ -274,17 +279,18 @@ namespace SmolEngine
 		Ref<Framebuffer>              f_Lighting = nullptr;
 		Ref<Framebuffer>              f_Depth = nullptr;
 		Ref<Framebuffer>              f_DOF = nullptr;
-				            
-		Ref<Mesh>                     m_GridMesh = {};
-		RendererStateEX               m_State{};	
-		std::vector<Ref<Texture>>     m_BloomTex{};
-				
-		VulkanPBR*                    m_VulkanPBR = nullptr;
+		Ref<Mesh>                     m_GridMesh = nullptr;
+		Ref<VulkanPBR>                m_VulkanPBR = nullptr;
 		Ref<EnvironmentMap>           m_EnvironmentMap = nullptr;
+
+		RendererStateEX               m_State{};
+		std::vector<Ref<Texture>>     m_BloomTex{};
 		ShadowMapSize                 m_MapSize = ShadowMapSize::SIZE_8;
 		glm::mat4                     m_GridModel{};
 												    
 		friend class RendererDeferred;
+		friend class Material;
+		friend class Material3D;
 	};
 
 	class RendererDeferred

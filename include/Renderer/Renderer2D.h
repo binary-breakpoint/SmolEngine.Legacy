@@ -119,6 +119,7 @@ namespace SmolEngine
 		const size_t              TextPCSize = sizeof(TextPC);
 
 		friend class Renderer2D;
+		friend class Material;
 	};
 
 	class Renderer2D

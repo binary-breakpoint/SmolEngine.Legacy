@@ -101,6 +101,7 @@ namespace SmolEngine
 	class GraphicsPipeline: public PrimitiveBase
 	{
 	public:
+		GraphicsPipeline() = default;
 		virtual ~GraphicsPipeline() = default;
 							              
 		virtual bool                      Build(GraphicsPipelineCreateInfo* info) = 0;
@@ -122,7 +123,7 @@ namespace SmolEngine
 		virtual void                      SubmitPushConstant(ShaderType stage, size_t size, const void* data) {};
 					                      
 		virtual bool                      UpdateSamplers(const std::vector<Ref<Texture>>& textures, uint32_t binding, bool storageImage = false) = 0;
-		virtual bool                      UpdateSampler(Ref<Texture>& tetxure, uint32_t binding, bool storageImage = false) = 0;
+		virtual bool                      UpdateSampler(Ref<Texture>& texture, uint32_t binding, bool storageImage = false) = 0;
 		virtual bool                      UpdateSampler(Ref<Framebuffer>& framebuffer, uint32_t binding, uint32_t attachmentIndex = 0) = 0;
 		virtual bool                      UpdateSampler(Ref<Framebuffer>& framebuffer, uint32_t binding, const std::string& attachmentName) = 0;
 		virtual bool                      UpdateCubeMap(Ref<Texture>& cubeMap, uint32_t binding) = 0;
