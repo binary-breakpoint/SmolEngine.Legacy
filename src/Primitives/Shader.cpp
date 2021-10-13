@@ -43,7 +43,7 @@ namespace SmolEngine
 		}
 	}
 
-	void CompileSPIRV(const std::string& path, std::vector<uint32_t>& binaries, ShaderType type)
+	void CompileSPIRV(const std::string& str, std::vector<uint32_t>& binaries, ShaderType type, bool isSource)
 	{
 		shaderc::Compiler compiler;
 		shaderc::CompileOptions options;
@@ -54,8 +54,10 @@ namespace SmolEngine
 #ifndef SMOLENGINE_DEBUG
 		options.SetOptimizationLevel(shaderc_optimization_level_performance);
 #endif
-		// Load source
-		std::string src = "";
+		std::string path = str;
+		std::string src = str;
+
+		if (!isSource)
 		{
 			std::ifstream file(path);
 			std::stringstream buffer;
@@ -120,22 +122,27 @@ namespace SmolEngine
 		m_ReflectData.Clean();
 		m_Binary.clear();
 
-		for (auto& [type, path] : info->FilePaths)
+		const auto loadFn = [this](ShaderType type, const std::string& str, bool isSource)
 		{
-			if (path.empty())
-				continue;
+			if (str.empty())
+				return;
 
-			std::string cachedPath = Utils::GetCachedPath(path, CachedPathType::Shader);
+			std::string cachedPath = Utils::GetCachedPath(str, CachedPathType::Shader);
 			auto& binaries = m_Binary[type];
 			if (Utils::IsPathValid(cachedPath))
 			{
 				LoadSPIRV(cachedPath, binaries);
 				Reflect(binaries, type); // TODO:: serialize
-				continue;
+				return;
 			}
 
-			CompileSPIRV(path, m_Binary[type], type);
+			CompileSPIRV(str, m_Binary[type], type, isSource);
 			Reflect(binaries, type);
+		};
+
+		for (auto& [type, str] : info->Stages)
+		{
+			loadFn(type, str, info->IsSource);
 		}
 
 		m_CreateInfo = *info;

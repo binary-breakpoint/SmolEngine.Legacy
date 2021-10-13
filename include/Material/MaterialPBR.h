@@ -25,22 +25,18 @@ namespace SmolEngine
 	struct PBRUniform
 	{
 		glm::vec4  Albedro;
-
 		float      Metalness = 0.2f;
 		float      Roughness = 1.0f;
 		float      EmissionStrength = 1.0f;
 		uint32_t   UseAlbedroTex = 0;
-
 		uint32_t   UseNormalTex = 0;
 		uint32_t   UseMetallicTex = 0;
 		uint32_t   UseRoughnessTex = 0;
 		uint32_t   UseAOTex = 0;
-
 		uint32_t   UseEmissiveTex = 0;
 		uint32_t   AlbedroTexIndex = 0;
 		uint32_t   NormalTexIndex = 0;
 		uint32_t   MetallicTexIndex = 0;
-
 		uint32_t   RoughnessTexIndex = 0;
 		uint32_t   AOTexIndex = 0;
 		uint32_t   EmissiveTexIndex = 0;
@@ -113,7 +109,7 @@ namespace SmolEngine
 		const std::vector<Ref<PBRHandle>>& GetMaterials() const;
 							    
 	private:				    
-		bool                               LoadAsDefault(RendererStorage* storage);
+		bool                               Initialize(RendererStorage* storage);
 		static Ref<MaterialPBR>            Create();
 
 	private:

@@ -12,6 +12,7 @@ namespace SmolEngine
 		std::string                Name = "";
 		RendererStorageBase*       pStorage = nullptr;
 		GraphicsPipelineCreateInfo PipelineCreateInfo{};
+
 	private:
 		bool                       bIs2D = false;
 
@@ -35,7 +36,7 @@ namespace SmolEngine
 		const MaterialCreateInfo& GetInfo() const;
 
 	private:
-		MaterialCreateInfo    m_Info{};
-		Ref<GraphicsPipeline> m_Pipeline = nullptr;
+		MaterialCreateInfo        m_Info{};
+		Ref<GraphicsPipeline>     m_Pipeline = nullptr;
 	};
 }

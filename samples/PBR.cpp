@@ -61,9 +61,9 @@ void LoadMaterials(std::vector<Ref<PBRHandle>>& materials)
 	std::string aoPath = "";
 	std::string metalPath = "";
 
-	Ref<MaterialPBR> defaultMaterial = storage->GetDefaultMaterial();
 	PBRCreateInfo materialCI = {};
 	TextureCreateInfo textureCI = {};
+	Ref<MaterialPBR> defaultMaterial = storage->GetDefaultMaterial();
 
 	// Wood
 	{

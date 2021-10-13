@@ -159,8 +159,8 @@ namespace SmolEngine
 			Ref<Shader> shader = Shader::Create();
 			{
 				ShaderCreateInfo shaderCI;
-				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/GenBRDflut.frag";
-				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/GenBRDflut.vert";
+				shaderCI.Stages[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/GenBRDflut.frag";
+				shaderCI.Stages[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/GenBRDflut.vert";
 				shader->Build(&shaderCI);
 			}
 
@@ -625,8 +625,8 @@ namespace SmolEngine
 			Ref<Shader> shader = Shader::Create();
 			{
 				ShaderCreateInfo shaderCI;
-				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/IrradianceCube.frag";
-				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/FilterCube.vert";
+				shaderCI.Stages[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/IrradianceCube.frag";
+				shaderCI.Stages[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/FilterCube.vert";
 				shader->Build(&shaderCI);
 			}
 
@@ -1241,8 +1241,8 @@ namespace SmolEngine
 			Ref<Shader> shader = Shader::Create();
 			{
 				ShaderCreateInfo shaderCI;
-				shaderCI.FilePaths[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/PreFilterenvMap.frag";
-				shaderCI.FilePaths[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/FilterCube.vert";
+				shaderCI.Stages[ShaderType::Fragment] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/PreFilterenvMap.frag";
+				shaderCI.Stages[ShaderType::Vertex] = GraphicsContext::s_Instance->m_ResourcesFolderPath + "Shaders/FilterCube.vert";
 				shader->Build(&shaderCI);
 			}
 

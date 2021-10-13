@@ -36,8 +36,8 @@ namespace SmolEngine
 			GraphicsPipelineCreateInfo pipelineCI = {};
 			ShaderCreateInfo shaderCI = {};
 			{
-				shaderCI.FilePaths[ShaderType::Vertex] = resPath + "Shaders/DynamicSky.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = resPath + "Shaders/DynamicSky.frag";
+				shaderCI.Stages[ShaderType::Vertex] = resPath + "Shaders/DynamicSky.vert";
+				shaderCI.Stages[ShaderType::Fragment] = resPath + "Shaders/DynamicSky.frag";
 			};
 
 			struct SkyBoxData

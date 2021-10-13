@@ -8,7 +8,7 @@
 
 namespace SmolEngine
 {
-	bool MaterialPBR::LoadAsDefault(RendererStorage* storage)
+	bool MaterialPBR::Initialize(RendererStorage* storage)
 	{
 		GraphicsPipelineCreateInfo pipelineCI = {};
 		MaterialCreateInfo materialCI{};
@@ -16,20 +16,21 @@ namespace SmolEngine
 
 		{
 			const auto& path = GraphicsContext::GetSingleton()->GetResourcesPath();
-			shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/Gbuffer.vert";
-			shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/Gbuffer.frag";
+
+			shaderCI.Stages[ShaderType::Vertex] = path + "Shaders/Gbuffer.vert";
+			shaderCI.Stages[ShaderType::Fragment] = path + "Shaders/Gbuffer.frag";
 			// SSBO's
 			ShaderBufferInfo bufferInfo = {};
 
 			// Vertex
 			bufferInfo.Size = sizeof(InstanceData) * max_objects;
-			shaderCI.BufferInfos[storage->m_ShaderDataBinding] = bufferInfo;
+			shaderCI.Buffers[storage->m_ShaderDataBinding] = bufferInfo;
 
 			bufferInfo.Size = sizeof(PBRUniform) * max_materials;
-			shaderCI.BufferInfos[storage->m_MaterialsBinding] = bufferInfo;
+			shaderCI.Buffers[storage->m_MaterialsBinding] = bufferInfo;
 
 			bufferInfo.Size = sizeof(glm::mat4) * max_anim_joints;
-			shaderCI.BufferInfos[storage->m_AnimBinding] = bufferInfo;
+			shaderCI.Buffers[storage->m_AnimBinding] = bufferInfo;
 		}
 
 		{

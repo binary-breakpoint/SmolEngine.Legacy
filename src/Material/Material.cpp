@@ -14,7 +14,7 @@ namespace SmolEngine
 	{
 		assert(!ci->Name.empty() || ci->pStorage != nullptr);
 
-		if (ci->PipelineCreateInfo.ShaderCreateInfo.FilePaths.size() > 0)
+		if (ci->PipelineCreateInfo.ShaderCreateInfo.Stages.size() > 0)
 		{
 			Ref<Framebuffer> target = ci->bIs2D ? ci->pStorage->Cast<Renderer2DStorage>()->MainFB 
 				: ci->pStorage->Cast<RendererStorage>()->f_GBuffer; // TODO: add main fb to base class

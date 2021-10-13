@@ -146,26 +146,26 @@ namespace SmolEngine
 
 		// Default Material
 		m_DefaultMaterial = MaterialPBR::Create();
-		m_DefaultMaterial->LoadAsDefault(this);
+		m_DefaultMaterial->Initialize(this);
 
 		// Lighting
 		{
 			ShaderCreateInfo shaderCI = {};
 			{
-				shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/GenTriangle.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/Lighting.frag";
+				shaderCI.Stages[ShaderType::Vertex] = path + "Shaders/GenTriangle.vert";
+				shaderCI.Stages[ShaderType::Fragment] = path + "Shaders/Lighting.frag";
 
 				ShaderBufferInfo bufferInfo = {};
 
 				// Fragment
 				bufferInfo.Size = sizeof(PointLight) * max_lights;
-				shaderCI.BufferInfos[m_PointLightBinding] = bufferInfo;
+				shaderCI.Buffers[m_PointLightBinding] = bufferInfo;
 
 				bufferInfo.Size = sizeof(SpotLight) * max_lights;
-				shaderCI.BufferInfos[m_SpotLightBinding] = bufferInfo;
+				shaderCI.Buffers[m_SpotLightBinding] = bufferInfo;
 
 				bufferInfo.Size = sizeof(DirectionalLight);
-				shaderCI.BufferInfos[m_DirLightBinding] = bufferInfo;
+				shaderCI.Buffers[m_DirLightBinding] = bufferInfo;
 			};
 
 			GraphicsPipelineCreateInfo DynamicPipelineCI = {};
@@ -205,8 +205,8 @@ namespace SmolEngine
 					GraphicsPipelineCreateInfo pipelineCI = {};
 					ShaderCreateInfo shaderCI = {};
 					{
-						shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/Grid.vert";
-						shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/Grid.frag";
+						shaderCI.Stages[ShaderType::Vertex] = path + "Shaders/Grid.vert";
+						shaderCI.Stages[ShaderType::Fragment] = path + "Shaders/Grid.frag";
 					};
 
 					pipelineCI.PipelineName = "Grid";
@@ -227,8 +227,8 @@ namespace SmolEngine
 				{
 					ShaderCreateInfo shaderCI = {};
 					{
-						shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/Skybox.vert";
-						shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/Skybox.frag";
+						shaderCI.Stages[ShaderType::Vertex] = path + "Shaders/Skybox.vert";
+						shaderCI.Stages[ShaderType::Fragment] = path + "Shaders/Skybox.frag";
 					};
 
 					struct SkyBoxData
@@ -269,8 +269,8 @@ namespace SmolEngine
 				{
 					ShaderCreateInfo shaderCI = {};
 					{
-						shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/DepthPass.vert";
-						shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/DepthPass.frag";
+						shaderCI.Stages[ShaderType::Vertex] = path + "Shaders/DepthPass.vert";
+						shaderCI.Stages[ShaderType::Fragment] = path + "Shaders/DepthPass.frag";
 					};
 
 					GraphicsPipelineCreateInfo DynamicPipelineCI = {};
@@ -316,8 +316,8 @@ namespace SmolEngine
 					DynamicPipelineCI.TargetFramebuffers = { f_Main };
 
 					ShaderCreateInfo shaderCI = {};
-					shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/GenTriangle.vert";
-					shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/Combination.frag";
+					shaderCI.Stages[ShaderType::Vertex] = path + "Shaders/GenTriangle.vert";
+					shaderCI.Stages[ShaderType::Fragment] = path + "Shaders/Combination.frag";
 					DynamicPipelineCI.ShaderCreateInfo = shaderCI;
 					DynamicPipelineCI.PipelineName = "Combination";
 
@@ -336,8 +336,8 @@ namespace SmolEngine
 					DynamicPipelineCI.TargetFramebuffers = { f_Main };
 
 					ShaderCreateInfo shaderCI = {};
-					shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/GenTriangle.vert";
-					shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/DebugView.frag";
+					shaderCI.Stages[ShaderType::Vertex] = path + "Shaders/GenTriangle.vert";
+					shaderCI.Stages[ShaderType::Fragment] = path + "Shaders/DebugView.frag";
 					DynamicPipelineCI.ShaderCreateInfo = shaderCI;
 					DynamicPipelineCI.PipelineName = "Debug";
 

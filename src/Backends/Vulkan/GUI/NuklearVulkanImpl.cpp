@@ -496,10 +496,10 @@ namespace SmolEngine
 		{
 			const std::string& path = GraphicsContext::GetSingleton()->GetResourcesPath();
 
-			shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/Nuklear.vert";
-			shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/Nuklear.frag";
+			shaderCI.Stages[ShaderType::Vertex] = path + "Shaders/Nuklear.vert";
+			shaderCI.Stages[ShaderType::Fragment] = path + "Shaders/Nuklear.frag";
 
-			shaderCI.BufferInfos[0].bGlobal = false;
+			shaderCI.Buffers[0].bGlobal = false;
 		};
 
 

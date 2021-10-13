@@ -122,8 +122,8 @@ namespace SmolEngine
 			size_t size = buffer.Size;
 
 			{
-				const auto& it = shader->GetCreateInfo().BufferInfos.find(buffer.BindingPoint);
-				if (it == shader->GetCreateInfo().BufferInfos.end())
+				const auto& it = shader->GetCreateInfo().Buffers.find(buffer.BindingPoint);
+				if (it == shader->GetCreateInfo().Buffers.end())
 				{
 					if (buffer.Type == BufferType::Storage)
 					{

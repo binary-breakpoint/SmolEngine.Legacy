@@ -24,8 +24,8 @@ namespace SmolEngine
 			return false;
 
 		ShaderCreateInfo shaderCI = {};
-		shaderCI.BufferInfos = info->ShaderBufferInfos;
-		shaderCI.FilePaths[ShaderType::Compute] = info->ShaderPath;
+		shaderCI.Buffers = info->ShaderBufferInfos;
+		shaderCI.Stages[ShaderType::Compute] = info->ShaderPath;
 
 		m_Info = *info;
 		m_Shader = Shader::Create();

@@ -46,14 +46,14 @@ namespace SmolEngine
 
 			ShaderCreateInfo shaderCI = {};
 			{
-				shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/2D.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/2D.frag";
+				shaderCI.Stages[ShaderType::Vertex] = path + "Shaders/2D.vert";
+				shaderCI.Stages[ShaderType::Fragment] = path + "Shaders/2D.frag";
 
 				ShaderBufferInfo bufferInfo = {};
 				bufferInfo.bGlobal = false;
 				bufferInfo.Size = sizeof(ShaderInstanceSize) * RendererDrawList2D::MaxQuads;
 
-				shaderCI.BufferInfos[1] = bufferInfo;
+				shaderCI.Buffers[1] = bufferInfo;
 			};
 
 			pipelineCI.bDepthWriteEnabled = false;

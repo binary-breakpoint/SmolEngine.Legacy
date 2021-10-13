@@ -413,8 +413,8 @@ namespace SmolEngine
 			GraphicsPipelineCreateInfo pipelineCI = {};
 			ShaderCreateInfo shaderCI = {};
 			{
-				shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/DebugPrimitive.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/DebugColor.frag";
+				shaderCI.Stages[ShaderType::Vertex] = path + "Shaders/DebugPrimitive.vert";
+				shaderCI.Stages[ShaderType::Fragment] = path + "Shaders/DebugColor.frag";
 			};
 
 			pipelineCI.PipelineName = "DebugPrimitive";
@@ -435,8 +435,8 @@ namespace SmolEngine
 			GraphicsPipelineCreateInfo pipelineCI = {};
 			ShaderCreateInfo shaderCI = {};
 			{
-				shaderCI.FilePaths[ShaderType::Vertex] = path + "Shaders/DebugMesh.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = path + "Shaders/DebugColor.frag";
+				shaderCI.Stages[ShaderType::Vertex] = path + "Shaders/DebugMesh.vert";
+				shaderCI.Stages[ShaderType::Fragment] = path + "Shaders/DebugColor.frag";
 			};
 
 			pipelineCI.PipelineName = "DebugMesh";

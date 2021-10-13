@@ -17,38 +17,37 @@ namespace SmolEngine
 
 	struct Uniform
 	{
-		//ElementType                      Type;
-		size_t                           Size = 0;
-		size_t                           Offset = 0;
-		std::string                      Name = "";
+		size_t               Size = 0;
+		size_t               Offset = 0;
+		std::string          Name = "";
 	};
 
 	struct PushContantData
 	{
-		uint32_t                         Offset = 0;
-		uint32_t                         Size = 0;
-		ShaderType                       Stage = ShaderType::Vertex;
+		uint32_t             Offset = 0;
+		uint32_t             Size = 0;
+		ShaderType           Stage = ShaderType::Vertex;
 	};
 
 	struct ShaderBuffer
 	{
-		ShaderType                       Stage = ShaderType::Vertex;
-		BufferType                       Type = BufferType::Uniform;
-		uint32_t                         BindingPoint = 0;
-		std::string                      Name = "";
-		std::string                      ObjectName = "";
-		size_t                           Size = 0;
-		std::vector<Uniform>             Uniforms;
+		ShaderType           Stage = ShaderType::Vertex;
+		BufferType           Type = BufferType::Uniform;
+		uint32_t             BindingPoint = 0;
+		std::string          Name = "";
+		std::string          ObjectName = "";
+		size_t               Size = 0;
+		std::vector<Uniform> Uniforms;
 
 	};
 
 	struct SamplerBuffer
 	{
-		ShaderType                       Stage;
-		uint32_t                         Location = 0;
-		uint32_t                         BindingPoint = 0;
-		uint32_t                         Dimension = 0;
-		uint32_t                         ArraySize = 0;
+		ShaderType           Stage;
+		uint32_t             Location = 0;
+		uint32_t             BindingPoint = 0;
+		uint32_t             Dimension = 0;
+		uint32_t             ArraySize = 0;
 	};
 
 	struct ReflectionData
@@ -71,14 +70,15 @@ namespace SmolEngine
 	{
 		bool   bStatic = false;
 		bool   bGlobal = true;
-		void* Data = nullptr;
+		void*  Data = nullptr;
 		size_t Size = 0;
     };
 
 	struct ShaderCreateInfo
 	{
-		std::unordered_map<ShaderType, std::string>      FilePaths;
-		std::unordered_map<uint32_t, ShaderBufferInfo>   BufferInfos;
+		std::unordered_map<ShaderType, std::string>      Stages;
+		std::unordered_map<uint32_t, ShaderBufferInfo>   Buffers;
+		bool                                             IsSource = false;
 	};
 
 	class Shader: public PrimitiveBase
