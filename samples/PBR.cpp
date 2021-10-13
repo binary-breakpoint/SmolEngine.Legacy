@@ -10,14 +10,14 @@ RendererStorage*   storage = nullptr;
 
 struct Chunk
 {
-	Ref<Material3D::Info>       Material = nullptr;
-	glm::vec3                   Pos = glm::vec3(1.0f);
-	glm::vec3                   Rot = glm::vec3(0.0f);
-	glm::vec3                   Scale = glm::vec3(1.0f);
+	Ref<PBRHandle>  Material = nullptr;
+	glm::vec3       Pos = glm::vec3(1.0f);
+	glm::vec3       Rot = glm::vec3(0.0f);
+	glm::vec3       Scale = glm::vec3(1.0f);
 
 } chunk;
 
-void GenerateMap(std::vector<Chunk>& map, std::vector<Ref<Material3D::Info>>& materials)
+void GenerateMap(std::vector<Chunk>& map, std::vector<Ref<PBRHandle>>& materials)
 {
 	for (uint32_t x = 0; x < 50; x += 2)
 	{
@@ -53,7 +53,7 @@ void CreateDrawList(SceneViewProjection* viewProj, std::vector<Chunk>& chunks, R
 	chunks.clear();
 }
 
-void LoadMaterials(std::vector<Ref<Material3D::Info>>& materials)
+void LoadMaterials(std::vector<Ref<PBRHandle>>& materials)
 {
 	std::string albedroPath = "";
 	std::string normalPath = "";
@@ -61,8 +61,8 @@ void LoadMaterials(std::vector<Ref<Material3D::Info>>& materials)
 	std::string aoPath = "";
 	std::string metalPath = "";
 
-	Ref<Material3D> defaultMaterial = storage->GetDefaultMaterial();
-	Material3D::CreateInfo materialCI = {};
+	Ref<MaterialPBR> defaultMaterial = storage->GetDefaultMaterial();
+	PBRCreateInfo materialCI = {};
 	TextureCreateInfo textureCI = {};
 
 	// Wood
@@ -70,16 +70,16 @@ void LoadMaterials(std::vector<Ref<Material3D::Info>>& materials)
 		materialCI.Metallness = 0.2f;
 
 		textureCI.FilePath = "Assets/materials/wood/WoodFloor041_1K_Color.png";
-		materialCI.SetTexture(Material3D::TextureType::Albedo, &textureCI);
+		materialCI.SetTexture(PBRTexture::Albedo, &textureCI);
 
 		textureCI.FilePath = "Assets/materials/wood/WoodFloor041_1K_Normal.png";
-		materialCI.SetTexture(Material3D::TextureType::Normal, &textureCI);
+		materialCI.SetTexture(PBRTexture::Normal, &textureCI);
 
 		textureCI.FilePath = "Assets/materials/wood/WoodFloor041_1K_Roughness.png";
-		materialCI.SetTexture(Material3D::TextureType::Roughness, &textureCI);
+		materialCI.SetTexture(PBRTexture::Roughness, &textureCI);
 
 		textureCI.FilePath = "Assets/materials/wood/WoodFloor041_1K_AmbientOcclusion.png";
-		materialCI.SetTexture(Material3D::TextureType::AO, &textureCI);
+		materialCI.SetTexture(PBRTexture::AO, &textureCI);
 
 		auto material = defaultMaterial->AddMaterial(&materialCI, "wood");
 		materials.push_back(material);
@@ -91,16 +91,16 @@ void LoadMaterials(std::vector<Ref<Material3D::Info>>& materials)
 		materialCI.Roughness = 1.0f;
 
 		textureCI.FilePath = "Assets/materials/stone/Tiles087_1K_Color.png";
-		materialCI.SetTexture(Material3D::TextureType::Albedo, &textureCI);
+		materialCI.SetTexture(PBRTexture::Albedo, &textureCI);
 
 		textureCI.FilePath = normalPath = "Assets/materials/stone/Tiles087_1K_Normal.png";
-		materialCI.SetTexture(Material3D::TextureType::Normal, &textureCI);
+		materialCI.SetTexture(PBRTexture::Normal, &textureCI);
 
 		textureCI.FilePath = "Assets/materials/stone/Tiles087_1K_Roughness.png";
-		materialCI.SetTexture(Material3D::TextureType::Roughness, &textureCI);
+		materialCI.SetTexture(PBRTexture::Roughness, &textureCI);
 
 		textureCI.FilePath = "Assets/materials/stone/Tiles087_1K_AmbientOcclusion.png";
-		materialCI.SetTexture(Material3D::TextureType::AO, &textureCI);
+		materialCI.SetTexture(PBRTexture::AO, &textureCI);
 
 		auto material = defaultMaterial->AddMaterial(&materialCI, "stone");
 		materials.push_back(material);
@@ -111,16 +111,16 @@ void LoadMaterials(std::vector<Ref<Material3D::Info>>& materials)
 		materialCI = {};
 
 		textureCI.FilePath = "Assets/materials/metal_1/Metal033_1K_Color.png";
-		materialCI.SetTexture(Material3D::TextureType::Albedo, &textureCI);
+		materialCI.SetTexture(PBRTexture::Albedo, &textureCI);
 
 		textureCI.FilePath = "Assets/materials/metal_1/Metal033_1K_Normal.png";
-		materialCI.SetTexture(Material3D::TextureType::Normal, &textureCI);
+		materialCI.SetTexture(PBRTexture::Normal, &textureCI);
 
 		textureCI.FilePath = "Assets/materials/metal_1/Metal033_1K_Roughness.png";
-		materialCI.SetTexture(Material3D::TextureType::Roughness, &textureCI);
+		materialCI.SetTexture(PBRTexture::Roughness, &textureCI);
 
 		textureCI.FilePath = "Assets/materials/metal_1/Metal033_1K_Metalness.png";
-		materialCI.SetTexture(Material3D::TextureType::Metallic, &textureCI);
+		materialCI.SetTexture(PBRTexture::Metallic, &textureCI);
 
 		auto material = defaultMaterial->AddMaterial(&materialCI, "metal1");
 		materials.push_back(material);
@@ -131,16 +131,16 @@ void LoadMaterials(std::vector<Ref<Material3D::Info>>& materials)
 		materialCI = {};
 
 		textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Color.png";
-		materialCI.SetTexture(Material3D::TextureType::Albedo, &textureCI);
+		materialCI.SetTexture(PBRTexture::Albedo, &textureCI);
 
 		textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Normal.png";
-		materialCI.SetTexture(Material3D::TextureType::Normal, &textureCI);
+		materialCI.SetTexture(PBRTexture::Normal, &textureCI);
 
 		textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Roughness.png";
-		materialCI.SetTexture(Material3D::TextureType::Roughness, &textureCI);
+		materialCI.SetTexture(PBRTexture::Roughness, &textureCI);
 
 		textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Metalness.png";
-		materialCI.SetTexture(Material3D::TextureType::Metallic, &textureCI);
+		materialCI.SetTexture(PBRTexture::Metallic, &textureCI);
 
 		auto material = defaultMaterial->AddMaterial(&materialCI, "metal2");
 		materials.push_back(material);
@@ -188,7 +188,7 @@ int main(int argc, char** argv)
 
 	auto cube = MeshPool::GetCube();
 
-	std::vector<Ref<Material3D::Info>> materials;
+	std::vector<Ref<PBRHandle>> materials;
 	std::vector<Chunk> chunks;
 
 	LoadMaterials(materials);

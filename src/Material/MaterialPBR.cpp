@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "Material/Material3D.h"
+#include "Material/MaterialPBR.h"
 #include "Renderer/RendererDeferred.h"
 
 #include <cereal/cereal.hpp>
@@ -8,7 +8,7 @@
 
 namespace SmolEngine
 {
-	bool Material3D::LoadAsDefault(RendererStorage* storage)
+	bool MaterialPBR::LoadAsDefault(RendererStorage* storage)
 	{
 		GraphicsPipelineCreateInfo pipelineCI = {};
 		MaterialCreateInfo materialCI{};
@@ -25,7 +25,7 @@ namespace SmolEngine
 			bufferInfo.Size = sizeof(InstanceData) * max_objects;
 			shaderCI.BufferInfos[storage->m_ShaderDataBinding] = bufferInfo;
 
-			bufferInfo.Size = sizeof(Uniform) * max_materials;
+			bufferInfo.Size = sizeof(PBRUniform) * max_materials;
 			shaderCI.BufferInfos[storage->m_MaterialsBinding] = bufferInfo;
 
 			bufferInfo.Size = sizeof(glm::mat4) * max_anim_joints;
@@ -58,27 +58,27 @@ namespace SmolEngine
 		return Build(&materialCI);
 	}
 
-	Ref<Material3D> Material3D::Create()
+	Ref<MaterialPBR> MaterialPBR::Create()
 	{
-		return std::make_shared<Material3D>();
+		return std::make_shared<MaterialPBR>();
 	}
 
-	Ref<Material3D::Info> Material3D::AddMaterial(CreateInfo* infoCI, const std::string& name)
+	Ref<PBRHandle> MaterialPBR::AddMaterial(PBRCreateInfo* infoCI, const std::string& name)
 	{
-		Ref<Info> material = GetMaterial(name);
+		Ref<PBRHandle> material = GetMaterial(name);
 		if (material != nullptr)
 			return material;
 
 		{
 			std::hash<std::string_view> hasher{};
 
-			material = std::make_shared<Info>();
-			material->Uniform.ID = static_cast<uint32_t>(hasher(name));
+			material = std::make_shared<PBRHandle>();
+			material->m_Uniform.ID = static_cast<uint32_t>(hasher(name));
 
-			material->Uniform.Metalness = infoCI->Metallness;
-			material->Uniform.Roughness = infoCI->Roughness;
-			material->Uniform.EmissionStrength = infoCI->EmissionStrength;
-			material->Uniform.Albedro = glm::vec4(infoCI->Albedo, 1);
+			material->m_Uniform.Metalness = infoCI->Metallness;
+			material->m_Uniform.Roughness = infoCI->Roughness;
+			material->m_Uniform.EmissionStrength = infoCI->EmissionStrength;
+			material->m_Uniform.Albedro = glm::vec4(infoCI->Albedo, 1);
 
 			constexpr auto loadFN = [](TextureCreateInfo& ci, Ref<Texture>& out_tetxure, uint32_t& out_state)
 			{
@@ -94,12 +94,12 @@ namespace SmolEngine
 				out_state = 1;
 			};
 
-			loadFN(infoCI->AlbedroTex, material->Albedo, material->Uniform.UseAlbedroTex);
-			loadFN(infoCI->NormalTex, material->Normal, material->Uniform.UseNormalTex);
-			loadFN(infoCI->RoughnessTex, material->Roughness, material->Uniform.UseRoughnessTex);
-			loadFN(infoCI->MetallnessTex, material->Metallness, material->Uniform.UseMetallicTex);
-			loadFN(infoCI->EmissiveTex, material->Emissive, material->Uniform.UseEmissiveTex);
-			loadFN(infoCI->AOTex, material->AO, material->Uniform.UseAOTex);
+			loadFN(infoCI->AlbedroTex, material->m_Albedo, material->m_Uniform.UseAlbedroTex);
+			loadFN(infoCI->NormalTex, material->m_Normal, material->m_Uniform.UseNormalTex);
+			loadFN(infoCI->RoughnessTex, material->m_Roughness, material->m_Uniform.UseRoughnessTex);
+			loadFN(infoCI->MetallnessTex, material->m_Metallness, material->m_Uniform.UseMetallicTex);
+			loadFN(infoCI->EmissiveTex, material->m_Emissive, material->m_Uniform.UseEmissiveTex);
+			loadFN(infoCI->AOTex, material->m_AO, material->m_Uniform.UseAOTex);
 		}
 
 		m_Mutex.lock();
@@ -111,7 +111,7 @@ namespace SmolEngine
 		return material;
 	}
 
-	bool Material3D::RemoveMaterial(const std::string& name)
+	bool MaterialPBR::RemoveMaterial(const std::string& name)
 	{
 		auto& it = m_IDs.find(name);
 		if (it != m_IDs.end())
@@ -130,17 +130,17 @@ namespace SmolEngine
 		return false;
 	}
 
-	bool Material3D::IsMaterialExist(const std::string& name)
+	bool MaterialPBR::IsMaterialExist(const std::string& name)
 	{
 		return m_IDs.find(name) != m_IDs.end();
 	}
 
-	uint32_t Material3D::GetMaterialCount() const
+	uint32_t MaterialPBR::GetMaterialCount() const
 	{
 		return static_cast<uint32_t>(m_Materials.size());
 	}
 
-	Ref<Material3D::Info> Material3D::GetMaterial(const std::string& name)
+	Ref<PBRHandle> MaterialPBR::GetMaterial(const std::string& name)
 	{
 		auto& it = m_IDs.find(name);
 		if (it != m_IDs.end())
@@ -149,15 +149,20 @@ namespace SmolEngine
 		return nullptr;
 	}
 
-	void Material3D::ClearMaterials()
+	const std::vector<Ref<PBRHandle>>& MaterialPBR::GetMaterials() const
+	{
+		return m_Materials;
+	}
+
+	void MaterialPBR::ClearMaterials()
 	{
 		m_Materials.clear();
 		m_IDs.clear();
 	}
 
-	void Material3D::UpdateMaterials()
+	void MaterialPBR::UpdateMaterials()
 	{
-		std::vector<Uniform> uniforms;
+		std::vector<PBRUniform> uniforms(m_Materials.size());
 		std::vector<Ref<Texture>> textures(m_MaxTextures);
 
 		constexpr auto addFn = [](const Ref<Texture>& texture, uint32_t& tex_index, uint32_t& global_index, std::vector<Ref<Texture>>& out_textures)
@@ -170,96 +175,104 @@ namespace SmolEngine
 			}
 		};
 
-		uint32_t index = 0;
-		for (auto& material : m_Materials)
 		{
-			addFn(material->Albedo, material->Uniform.AlbedroTexIndex, index, textures);
-			addFn(material->Normal, material->Uniform.NormalTexIndex, index, textures);
-			addFn(material->Roughness, material->Uniform.RoughnessTexIndex, index, textures);
-			addFn(material->Metallness, material->Uniform.MetallicTexIndex, index, textures);
-			addFn(material->Emissive, material->Uniform.EmissiveTexIndex, index, textures);
-			addFn(material->AO, material->Uniform.UseAOTex, index, textures);
+			uint32_t index = 0;
 
-			uniforms.emplace_back(material->Uniform);
+			for (uint32_t i = 0; i < static_cast<uint32_t>(m_Materials.size()); ++i)
+			{
+				const Ref<PBRHandle>& material = m_Materials[i];
+
+				addFn(material->m_Albedo, material->m_Uniform.AlbedroTexIndex, index, textures);
+				addFn(material->m_Normal, material->m_Uniform.NormalTexIndex, index, textures);
+				addFn(material->m_Roughness, material->m_Uniform.RoughnessTexIndex, index, textures);
+				addFn(material->m_Metallness, material->m_Uniform.MetallicTexIndex, index, textures);
+				addFn(material->m_Emissive, material->m_Uniform.EmissiveTexIndex, index, textures);
+				addFn(material->m_AO, material->m_Uniform.UseAOTex, index, textures);
+
+				uniforms[i] = material->m_Uniform;
+			}
 		}
 
-		RendererStorage* storage = dynamic_cast<RendererStorage*>(GetInfo().pStorage);
-		UpdateSamplers(textures, storage->m_TexturesBinding);
-		SubmitBuffer(storage->m_MaterialsBinding, sizeof(Uniform) * uniforms.size(), uniforms.data());
+		{
+			RendererStorage* storage = dynamic_cast<RendererStorage*>(GetInfo().pStorage);
+
+			UpdateSamplers(textures, storage->m_TexturesBinding);
+			SubmitBuffer(storage->m_MaterialsBinding, sizeof(PBRUniform) * uniforms.size(), uniforms.data());
+		}
 	}
 
-	bool Material3D::AddDefaultMaterial()
+	bool MaterialPBR::AddDefaultMaterial()
 	{
-		CreateInfo ci{};
+		PBRCreateInfo ci{};
 		ci.Roughness = 1.0f;
 		ci.Metallness = 0.2f;
 
 		auto material = AddMaterial(&ci, "default material");
-		material->Uniform.ID = 0;
+		material->m_Uniform.ID = 0;
 
 		return true;
 	}
 
-	void Material3D::CreateInfo::SetTexture(Material3D::TextureType type, const TextureCreateInfo* info)
+	void PBRCreateInfo::SetTexture(PBRTexture type, const TextureCreateInfo* info)
 	{
 		switch (type)
 		{
-		case Material3D::TextureType::Albedo:
+		case PBRTexture::Albedo:
 			AlbedroTex = *info;
 			break;
-		case Material3D::TextureType::Normal:
+		case PBRTexture::Normal:
 			NormalTex = *info;
 			break;
-		case Material3D::TextureType::Metallic:
+		case PBRTexture::Metallic:
 			MetallnessTex = *info;
 			break;
-		case Material3D::TextureType::Roughness:
+		case PBRTexture::Roughness:
 			RoughnessTex = *info;
 			break;
-		case Material3D::TextureType::AO:
+		case PBRTexture::AO:
 			AOTex = *info;
 			break;
-		case Material3D::TextureType::Emissive:
+		case PBRTexture::Emissive:
 			EmissiveTex = *info;
 			break;
 		default: break;
 		}
 	}
 
-	void Material3D::CreateInfo::GetTextures(std::unordered_map<Material3D::TextureType, TextureCreateInfo*>& out_hashmap)
+	void PBRCreateInfo::GetTextures(std::unordered_map<PBRTexture, TextureCreateInfo*>& out_hashmap)
 	{
 		if (AlbedroTex.FilePath.empty() == false)
 		{
-			out_hashmap[Material3D::TextureType::Albedo] = &AlbedroTex;
+			out_hashmap[PBRTexture::Albedo] = &AlbedroTex;
 		}
 
 		if (NormalTex.FilePath.empty() == false)
 		{
-			out_hashmap[Material3D::TextureType::Normal] = &NormalTex;
+			out_hashmap[PBRTexture::Normal] = &NormalTex;
 		}
 
 		if (MetallnessTex.FilePath.empty() == false)
 		{
-			out_hashmap[Material3D::TextureType::Metallic] = &MetallnessTex;
+			out_hashmap[PBRTexture::Metallic] = &MetallnessTex;
 		}
 
 		if (RoughnessTex.FilePath.empty() == false)
 		{
-			out_hashmap[Material3D::TextureType::Roughness] = &RoughnessTex;
+			out_hashmap[PBRTexture::Roughness] = &RoughnessTex;
 		}
 
 		if (AOTex.FilePath.empty() == false)
 		{
-			out_hashmap[Material3D::TextureType::AO] = &AOTex;
+			out_hashmap[PBRTexture::AO] = &AOTex;
 		}
 
 		if (EmissiveTex.FilePath.empty() == false)
 		{
-			out_hashmap[Material3D::TextureType::Emissive] = &EmissiveTex;
+			out_hashmap[PBRTexture::Emissive] = &EmissiveTex;
 		}
 	}
 
-	bool Material3D::CreateInfo::Load(const std::string& filePath)
+	bool PBRCreateInfo::Load(const std::string& filePath)
 	{
 		std::stringstream storage;
 		std::ifstream file(filePath);
@@ -280,7 +293,7 @@ namespace SmolEngine
 		return true;
 	}
 
-	bool Material3D::CreateInfo::Save(const std::string& filePath)
+	bool PBRCreateInfo::Save(const std::string& filePath)
 	{
 		std::stringstream storage;
 		{
@@ -299,77 +312,77 @@ namespace SmolEngine
 		return false;
 	}
 
-	void Material3D::Info::SetTexture(const Ref<Texture>& tex, TextureType type)
+	void PBRHandle::SetTexture(const Ref<Texture>&tex, PBRTexture type)
 	{
 		switch (type)
 		{
-		case Material3D::TextureType::Albedo:
+		case PBRTexture::Albedo:
 		{
-			Albedo = tex;
-			Uniform.UseAlbedroTex = Albedo != nullptr;
+			m_Albedo = tex;
+			m_Uniform.UseAlbedroTex = m_Albedo != nullptr;
 			break;
 		}
-		case Material3D::TextureType::Normal:
+		case PBRTexture::Normal:
 		{
-			Normal = tex;
-			Uniform.UseNormalTex = Normal != nullptr;
+			m_Normal = tex;
+			m_Uniform.UseNormalTex = m_Normal != nullptr;
 			break;
 		}
-		case Material3D::TextureType::Metallic:
+		case PBRTexture::Metallic:
 		{
-			Metallness = tex;
-			Uniform.UseMetallicTex = Metallness != nullptr;
+			m_Metallness = tex;
+			m_Uniform.UseMetallicTex = m_Metallness != nullptr;
 			break;
 		}
-		case Material3D::TextureType::Roughness:
+		case PBRTexture::Roughness:
 		{
-			Roughness = tex;
-			Uniform.UseRoughnessTex = Roughness != nullptr;
+			m_Roughness = tex;
+			m_Uniform.UseRoughnessTex = m_Roughness != nullptr;
 			break;
 		}
-		case Material3D::TextureType::AO:
+		case PBRTexture::AO:
 		{
-			AO = tex;
-			Uniform.UseAOTex = AO != nullptr;
+			m_AO = tex;
+			m_Uniform.UseAOTex = m_AO != nullptr;
 			break;
 		}
-		case Material3D::TextureType::Emissive:
+		case PBRTexture::Emissive:
 		{
-			Emissive = tex;
-			Uniform.UseEmissiveTex = Emissive != nullptr;
+			m_Emissive = tex;
+			m_Uniform.UseEmissiveTex = m_Emissive != nullptr;
 			break;
 		}
 		default: break;
 		}
 	}
 
-	void Material3D::Info::SetRoughness(float value)
+	void PBRHandle::SetRoughness(float value)
 	{
-		Uniform.Roughness = value;
+		m_Uniform.Roughness = value;
 	}
 
-	void Material3D::Info::SetMetallness(float value)
+	void PBRHandle::SetMetallness(float value)
 	{
-		Uniform.Metalness = value;
+		m_Uniform.Metalness = value;
 	}
 
-	void Material3D::Info::SetEmission(float value)
+	void PBRHandle::SetEmission(float value)
 	{
-		Uniform.EmissionStrength = value;
+		m_Uniform.EmissionStrength = value;
 	}
 
-	void Material3D::Info::SetAlbedo(const glm::vec3& value)
+	void PBRHandle::SetAlbedo(const glm::vec3& value)
 	{
-		Uniform.Albedro = glm::vec4(value, 1);
+		m_Uniform.Albedro = glm::vec4(value, 1);
 	}
 
-	const Material3D::Uniform& Material3D::Info::GetUniform() const
+	const PBRUniform& PBRHandle::GetUniform() const
 	{
-		return Uniform;
+		return m_Uniform;
 	}
 
-	uint32_t Material3D::Info::GetID() const
+	uint32_t PBRHandle::GetID() const
 	{
-		return Uniform.ID;
+		return m_Uniform.ID;
 	}
 }

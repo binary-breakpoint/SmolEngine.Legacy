@@ -8,7 +8,8 @@
 #include "Primitives/Mesh.h"
 #include "Primitives/EnvironmentMap.h"
 
-#include "Material/Material3D.h"
+#include "Material/MaterialPBR.h"
+
 #include "Animation/AnimationController.h"
 #include "Camera/Frustum.h"
 #include "Tools/GLM.h"
@@ -27,12 +28,12 @@ namespace SmolEngine
 	{
 		struct Package
 		{
-			glm::vec3*                WorldPos = nullptr;
-			glm::vec3*                Rotation = nullptr;
-			glm::vec3*                Scale = nullptr;
-			AnimationController*      AnimController = nullptr;
-			Material3D::Info*         MaterialInfo = nullptr;
-			Material*                 Material = nullptr;
+			glm::vec3*           WorldPos = nullptr;
+			glm::vec3*           Rotation = nullptr;
+			glm::vec3*           Scale = nullptr;
+			AnimationController* AnimController = nullptr;
+			PBRHandle*           PBRHandle = nullptr;
+			Material*            Material = nullptr;
 		};
 
 		uint32_t                  CurrentIndex = 0;
@@ -45,7 +46,7 @@ namespace SmolEngine
 
 		void                                            BeginSubmit(SceneViewProjection* sceneViewProj);
 		void                                            EndSubmit();				    
-		void                                            SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, const Ref<Mesh>& mesh, const Ref<Material3D::Info>& material = nullptr,
+		void                                            SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, const Ref<Mesh>& mesh, const Ref<PBRHandle>& pbr_handle = nullptr,
 			                                            bool submit_childs = true, AnimationController* anim_controller = nullptr);
 		void                                            SubmitDirLight(DirectionalLight* light);
 		void                                            SubmitPointLight(PointLight* light);
@@ -91,7 +92,7 @@ namespace SmolEngine
 		void                          SetRenderTarget(Ref<Framebuffer>& target);
 		void                          SetDefaultState();
 		RendererStateEX&              GetState();
-		Ref<Material3D>               GetDefaultMaterial() const;
+		Ref<MaterialPBR>              GetDefaultMaterial() const;
 		void                          OnResize(uint32_t width, uint32_t height) override;
 		void                          OnUpdateMaterials();
 
@@ -118,7 +119,7 @@ namespace SmolEngine
 		const uint32_t                m_DynamicSkyBinding = 36;
 		const uint32_t                m_BloomComputeWorkgroupSize = 4;
 		// Materials
-		Ref<Material3D>               m_DefaultMaterial = nullptr;
+		Ref<MaterialPBR>              m_DefaultMaterial = nullptr;
 		// Pipelines				
 		Ref<GraphicsPipeline>         p_Lighting = nullptr;
 		Ref<GraphicsPipeline>         p_Combination = nullptr;
@@ -146,7 +147,7 @@ namespace SmolEngine
 												    
 		friend class RendererDeferred;
 		friend class Material;
-		friend class Material3D;
+		friend class MaterialPBR;
 	};
 
 	class RendererDeferred

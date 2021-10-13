@@ -145,7 +145,7 @@ namespace SmolEngine
 		const std::string& path = GraphicsContext::GetSingleton()->GetResourcesPath();
 
 		// Default Material
-		m_DefaultMaterial = Material3D::Create();
+		m_DefaultMaterial = MaterialPBR::Create();
 		m_DefaultMaterial->LoadAsDefault(this);
 
 		// Lighting
@@ -543,7 +543,7 @@ namespace SmolEngine
 							{
 								Utils::ComposeTransform(*package.WorldPos, *package.Rotation, *package.Scale, instanceUBO.ModelView);
 
-								instanceUBO.MaterialID = package.MaterialInfo != nullptr ? package.MaterialInfo->GetID() : 0;
+								instanceUBO.MaterialID = package.PBRHandle != nullptr ? package.PBRHandle->GetID() : 0;
 								instanceUBO.IsAnimated = is_animated;
 								instanceUBO.AnimOffset = anim_offset;
 								instanceUBO.EntityID = 0; // temp
@@ -696,7 +696,7 @@ namespace SmolEngine
 		return m_State;
 	}
 
-	Ref<Material3D> RendererStorage::GetDefaultMaterial() const
+	Ref<MaterialPBR> RendererStorage::GetDefaultMaterial() const
 	{
 		return m_DefaultMaterial;
 	}
@@ -759,7 +759,7 @@ namespace SmolEngine
 		m_AnimationJoints.resize(max_anim_joints);
 	}
 	void RendererDrawList::SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, const Ref<Mesh>& mesh, 
-		const Ref<Material3D::Info>& material, bool submit_childs, AnimationController* anim_controller)
+		const Ref<PBRHandle>& material, bool submit_childs, AnimationController* anim_controller)
 	{
 		if (!m_Frustum.CheckSphere(pos) || m_Objects >= max_objects)
 			return;
@@ -774,7 +774,7 @@ namespace SmolEngine
 		}
 		else { package = &instance.Packages[instance.CurrentIndex]; }
 
-		package->MaterialInfo = material.get();
+		package->PBRHandle = material.get();
 		package->WorldPos = const_cast<glm::vec3*>(&pos);
 		package->Rotation = const_cast<glm::vec3*>(&rotation);
 		package->Scale = const_cast<glm::vec3*>(&scale);
