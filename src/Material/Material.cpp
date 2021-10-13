@@ -10,7 +10,7 @@ namespace SmolEngine
 		return m_Pipeline;
 	}
 
-	bool Material::Build(MaterialCreateInfoEx* ci)
+	bool Material::Build(MaterialCreateInfo* ci)
 	{
 		assert(!ci->Name.empty() || ci->pStorage != nullptr);
 
@@ -25,7 +25,7 @@ namespace SmolEngine
 			m_Pipeline->Build(&ci->PipelineCreateInfo);
 		}
 
-		m_Name = ci->Name;
+		m_Info = *ci;
 		return m_Pipeline != nullptr;
 	}
 
@@ -51,6 +51,11 @@ namespace SmolEngine
 
 	const std::string& Material::GetName() const
 	{
-		return m_Name;
+		return m_Info.Name;
+	}
+
+	const MaterialCreateInfo& Material::GetInfo() const
+	{
+		return m_Info;
 	}
 }

@@ -11,7 +11,7 @@ namespace SmolEngine
 	bool Material3D::LoadAsDefault(RendererStorage* storage)
 	{
 		GraphicsPipelineCreateInfo pipelineCI = {};
-		MaterialCreateInfoEx materialCI{};
+		MaterialCreateInfo materialCI{};
 		ShaderCreateInfo shaderCI = {};
 
 		{
@@ -23,13 +23,13 @@ namespace SmolEngine
 
 			// Vertex
 			bufferInfo.Size = sizeof(InstanceData) * max_objects;
-			shaderCI.BufferInfos[RendererStorage::m_ShaderDataBinding] = bufferInfo;
+			shaderCI.BufferInfos[storage->m_ShaderDataBinding] = bufferInfo;
 
-			bufferInfo.Size = sizeof(PBRMaterial) * max_materials;
-			shaderCI.BufferInfos[RendererStorage::m_MaterialsBinding] = bufferInfo;
+			bufferInfo.Size = sizeof(Uniform) * max_materials;
+			shaderCI.BufferInfos[storage->m_MaterialsBinding] = bufferInfo;
 
 			bufferInfo.Size = sizeof(glm::mat4) * max_anim_joints;
-			shaderCI.BufferInfos[RendererStorage::m_AnimBinding] = bufferInfo;
+			shaderCI.BufferInfos[storage->m_AnimBinding] = bufferInfo;
 		}
 
 		{
@@ -54,6 +54,7 @@ namespace SmolEngine
 		materialCI.PipelineCreateInfo = pipelineCI;
 		materialCI.pStorage = storage;
 
+		AddDefaultMaterial();
 		return Build(&materialCI);
 	}
 
@@ -62,21 +63,22 @@ namespace SmolEngine
 		return std::make_shared<Material3D>();
 	}
 
-	Ref<Material3D::MaterialInfo> Material3D::AddMaterial(MaterialCreateInfo* infoCI, const std::string& name)
+	Ref<Material3D::Info> Material3D::AddMaterial(CreateInfo* infoCI, const std::string& name)
 	{
-		Ref<MaterialInfo> material = GetMaterial(name);
+		Ref<Info> material = GetMaterial(name);
 		if (material != nullptr)
 			return material;
 
 		{
 			std::hash<std::string_view> hasher{};
 
-			material = std::make_shared<MaterialInfo>();
-			material->ID = static_cast<uint32_t>(hasher(name));
+			material = std::make_shared<Info>();
+			material->Uniform.ID = static_cast<uint32_t>(hasher(name));
 
 			material->Uniform.Metalness = infoCI->Metallness;
 			material->Uniform.Roughness = infoCI->Roughness;
 			material->Uniform.EmissionStrength = infoCI->EmissionStrength;
+			material->Uniform.Albedro = glm::vec4(infoCI->Albedo, 1);
 
 			constexpr auto loadFN = [](TextureCreateInfo& ci, Ref<Texture>& out_tetxure, uint32_t& out_state)
 			{
@@ -118,6 +120,10 @@ namespace SmolEngine
 
 			m_Materials.erase(pos);
 			m_IDs.erase(name);
+
+			std::vector<Ref<Texture>> textures(m_MaxTextures);
+			RendererStorage* storage = dynamic_cast<RendererStorage*>(GetInfo().pStorage);
+			UpdateSamplers(textures, storage->m_TexturesBinding);
 			return true;
 		}
 
@@ -134,7 +140,7 @@ namespace SmolEngine
 		return static_cast<uint32_t>(m_Materials.size());
 	}
 
-	Ref<Material3D::MaterialInfo> Material3D::GetMaterial(const std::string& name)
+	Ref<Material3D::Info> Material3D::GetMaterial(const std::string& name)
 	{
 		auto& it = m_IDs.find(name);
 		if (it != m_IDs.end())
@@ -147,6 +153,51 @@ namespace SmolEngine
 	{
 		m_Materials.clear();
 		m_IDs.clear();
+	}
+
+	void Material3D::UpdateMaterials()
+	{
+		std::vector<Uniform> uniforms;
+		std::vector<Ref<Texture>> textures(m_MaxTextures);
+
+		constexpr auto addFn = [](const Ref<Texture>& texture, uint32_t& tex_index, uint32_t& global_index, std::vector<Ref<Texture>>& out_textures)
+		{
+			if (texture != nullptr)
+			{
+				tex_index = global_index;
+				out_textures[global_index] = texture;
+				global_index++;
+			}
+		};
+
+		uint32_t index = 0;
+		for (auto& material : m_Materials)
+		{
+			addFn(material->Albedo, material->Uniform.AlbedroTexIndex, index, textures);
+			addFn(material->Normal, material->Uniform.NormalTexIndex, index, textures);
+			addFn(material->Roughness, material->Uniform.RoughnessTexIndex, index, textures);
+			addFn(material->Metallness, material->Uniform.MetallicTexIndex, index, textures);
+			addFn(material->Emissive, material->Uniform.EmissiveTexIndex, index, textures);
+			addFn(material->AO, material->Uniform.UseAOTex, index, textures);
+
+			uniforms.emplace_back(material->Uniform);
+		}
+
+		RendererStorage* storage = dynamic_cast<RendererStorage*>(GetInfo().pStorage);
+		UpdateSamplers(textures, storage->m_TexturesBinding);
+		SubmitBuffer(storage->m_MaterialsBinding, sizeof(Uniform) * uniforms.size(), uniforms.data());
+	}
+
+	bool Material3D::AddDefaultMaterial()
+	{
+		CreateInfo ci{};
+		ci.Roughness = 1.0f;
+		ci.Metallness = 0.2f;
+
+		auto material = AddMaterial(&ci, "default material");
+		material->Uniform.ID = 0;
+
+		return true;
 	}
 
 	void Material3D::CreateInfo::SetTexture(Material3D::TextureType type, const TextureCreateInfo* info)
@@ -177,7 +228,6 @@ namespace SmolEngine
 
 	void Material3D::CreateInfo::GetTextures(std::unordered_map<Material3D::TextureType, TextureCreateInfo*>& out_hashmap)
 	{
-
 		if (AlbedroTex.FilePath.empty() == false)
 		{
 			out_hashmap[Material3D::TextureType::Albedo] = &AlbedroTex;
@@ -224,7 +274,7 @@ namespace SmolEngine
 		{
 			cereal::JSONInputArchive input{ storage };
 			input(Metallness, Roughness, EmissionStrength, AlbedroTex, NormalTex, MetallnessTex, RoughnessTex,
-				AOTex, EmissiveTex, AlbedroColor.r, AlbedroColor.g, AlbedroColor.b);
+				AOTex, EmissiveTex, Albedo.r, Albedo.g, Albedo.b);
 		}
 
 		return true;
@@ -249,13 +299,77 @@ namespace SmolEngine
 		return false;
 	}
 
-	const Material3D::Uniform& Material3D::MaterialInfo::GetUniform() const
+	void Material3D::Info::SetTexture(const Ref<Texture>& tex, TextureType type)
+	{
+		switch (type)
+		{
+		case Material3D::TextureType::Albedo:
+		{
+			Albedo = tex;
+			Uniform.UseAlbedroTex = Albedo != nullptr;
+			break;
+		}
+		case Material3D::TextureType::Normal:
+		{
+			Normal = tex;
+			Uniform.UseNormalTex = Normal != nullptr;
+			break;
+		}
+		case Material3D::TextureType::Metallic:
+		{
+			Metallness = tex;
+			Uniform.UseMetallicTex = Metallness != nullptr;
+			break;
+		}
+		case Material3D::TextureType::Roughness:
+		{
+			Roughness = tex;
+			Uniform.UseRoughnessTex = Roughness != nullptr;
+			break;
+		}
+		case Material3D::TextureType::AO:
+		{
+			AO = tex;
+			Uniform.UseAOTex = AO != nullptr;
+			break;
+		}
+		case Material3D::TextureType::Emissive:
+		{
+			Emissive = tex;
+			Uniform.UseEmissiveTex = Emissive != nullptr;
+			break;
+		}
+		default: break;
+		}
+	}
+
+	void Material3D::Info::SetRoughness(float value)
+	{
+		Uniform.Roughness = value;
+	}
+
+	void Material3D::Info::SetMetallness(float value)
+	{
+		Uniform.Metalness = value;
+	}
+
+	void Material3D::Info::SetEmission(float value)
+	{
+		Uniform.EmissionStrength = value;
+	}
+
+	void Material3D::Info::SetAlbedo(const glm::vec3& value)
+	{
+		Uniform.Albedro = glm::vec4(value, 1);
+	}
+
+	const Material3D::Uniform& Material3D::Info::GetUniform() const
 	{
 		return Uniform;
 	}
 
-	uint32_t Material3D::MaterialInfo::GetID() const
+	uint32_t Material3D::Info::GetID() const
 	{
-		return ID;
+		return Uniform.ID;
 	}
 }

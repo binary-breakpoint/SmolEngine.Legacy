@@ -76,13 +76,7 @@ namespace SmolEngine
 
 	void RendererStorage::OnUpdateMaterials()
 	{
-		const auto& textures = MaterialPool::GetTextures();
-		m_DefaultMaterial->UpdateSamplers(textures, m_TexturesBinding);
-
-		void* data = nullptr;
-		uint32_t size = 0;
-		MaterialPool::GetMaterialsPtr(data, size);
-		m_DefaultMaterial->SubmitBuffer(m_MaterialsBinding, size, data);
+		m_DefaultMaterial->UpdateMaterials();
 	}
 
 	void RendererStorage::SetDefaultState()
@@ -549,7 +543,7 @@ namespace SmolEngine
 							{
 								Utils::ComposeTransform(*package.WorldPos, *package.Rotation, *package.Scale, instanceUBO.ModelView);
 
-								instanceUBO.MaterialID = package.MaterialID;
+								instanceUBO.MaterialID = package.MaterialInfo != nullptr ? package.MaterialInfo->GetID() : 0;
 								instanceUBO.IsAnimated = is_animated;
 								instanceUBO.AnimOffset = anim_offset;
 								instanceUBO.EntityID = 0; // temp
@@ -702,6 +696,11 @@ namespace SmolEngine
 		return m_State;
 	}
 
+	Ref<Material3D> RendererStorage::GetDefaultMaterial() const
+	{
+		return m_DefaultMaterial;
+	}
+
 	void RendererStorage::OnResize(uint32_t width, uint32_t height)
 	{
 		f_GBuffer->OnResize(width, height);
@@ -759,9 +758,8 @@ namespace SmolEngine
 	{
 		m_AnimationJoints.resize(max_anim_joints);
 	}
-
-	void RendererDrawList::SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, const Ref<Mesh>& mesh,
-		const uint32_t& material_id, bool submit_childs, AnimationController* anim_controller, const Ref<Material>& material)
+	void RendererDrawList::SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, const Ref<Mesh>& mesh, 
+		const Ref<Material3D::Info>& material, bool submit_childs, AnimationController* anim_controller)
 	{
 		if (!m_Frustum.CheckSphere(pos) || m_Objects >= max_objects)
 			return;
@@ -776,12 +774,12 @@ namespace SmolEngine
 		}
 		else { package = &instance.Packages[instance.CurrentIndex]; }
 
-		package->MaterialID = material_id;
+		package->MaterialInfo = material.get();
 		package->WorldPos = const_cast<glm::vec3*>(&pos);
 		package->Rotation = const_cast<glm::vec3*>(&rotation);
 		package->Scale = const_cast<glm::vec3*>(&scale);
 		package->AnimController = anim_controller;
-		package->Material = material.get();
+		package->Material =nullptr;
 
 		m_Objects++;
 		instance.CurrentIndex++;
@@ -791,7 +789,7 @@ namespace SmolEngine
 		if (submit_childs)
 		{
 			for (auto& sub : mesh->m_Childs)
-				SubmitMesh(pos, rotation, scale, sub, material_id, submit_childs, anim_controller, material);
+				SubmitMesh(pos, rotation, scale, sub, material, submit_childs, anim_controller);
 		}
 	}
 

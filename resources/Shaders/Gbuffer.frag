@@ -3,9 +3,9 @@
 // Buffers
 // -----------------------------------------------------------------------------------------------------------------------
 
-struct MaterialData
+struct Material
 {
-	vec4 AlbedroColor;
+	vec4  Albedo;
 
 	float Metalness;
 	float Roughness;
@@ -20,11 +20,12 @@ struct MaterialData
 	uint UseEmissiveTex;
 	uint AlbedroTexIndex;
 	uint NormalTexIndex;
-
 	uint MetallicTexIndex;
+
 	uint RoughnessTexIndex;
 	uint AOTexIndex;
 	uint EmissiveTexIndex;
+	uint ID;
 };
 
 // In
@@ -33,7 +34,7 @@ layout (location = 1)  in vec3 v_Normal;
 layout (location = 2)  in vec2 v_UV;
 layout (location = 3)  in float v_LinearDepth;
 layout (location = 4)  in mat3 v_TBN;
-layout (location = 7)  flat in MaterialData v_Material;
+layout (location = 7)  flat in Material v_Material;
 
 
 // Out
@@ -85,7 +86,7 @@ float fetchAOMap()
 void main()
 {
 	vec3 N = fetchNormalMap(); 		
-	vec4 albedro = v_Material.UseAlbedroTex == 1 ? vec4(fetchAlbedoMap(), 1) : v_Material.AlbedroColor;
+	vec4 albedo = v_Material.UseAlbedroTex == 1 ? vec4(fetchAlbedoMap(), 1) : v_Material.Albedo;
 	float emissive = v_Material.UseEmissiveTex == 1 ? fetchEmissiveMap() : float(v_Material.EmissionStrength);
 	float metallic = v_Material.UseMetallicTex == 1 ? fetchMetallicMap() : v_Material.Metalness;
 	
@@ -94,7 +95,7 @@ void main()
 
     float ao = v_Material.UseAOTex == 1 ? fetchAOMap() : 1.0;				
 
-    out_color = albedro;
+    out_color = albedo;
     out_positions = vec4(v_FragPos, v_LinearDepth);
     out_normals = vec4(N, 1.0);
     out_materials = vec4(metallic, roughness, ao, emissive);

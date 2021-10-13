@@ -47,8 +47,7 @@ namespace SmolEngine
 			uint32_t   RoughnessTexIndex = 0;
 			uint32_t   AOTexIndex = 0;
 			uint32_t   EmissiveTexIndex = 0;
-		private:
-			uint32_t   Pad1;
+			uint32_t   ID = 0;
 		};
 
 		struct CreateInfo
@@ -68,7 +67,7 @@ namespace SmolEngine
 			TextureCreateInfo  RoughnessTex = {};
 			TextureCreateInfo  AOTex = {};
 			TextureCreateInfo  EmissiveTex = {};
-			glm::vec3          AlbedroColor = glm::vec3(1.0f);
+			glm::vec3          Albedo = glm::vec3(1.0f);
 
 		private:
 			friend class cereal::access;
@@ -77,45 +76,51 @@ namespace SmolEngine
 			void serialize(Archive& archive)
 			{
 				archive(Metallness, Roughness, EmissionStrength, AlbedroTex, NormalTex, MetallnessTex, RoughnessTex, AOTex,
-					EmissiveTex, AlbedroColor.r, AlbedroColor.g, AlbedroColor.b);
+					EmissiveTex, Albedo.r, Albedo.g, Albedo.b);
 			}
 		};
 
-		struct MaterialInfo
+		struct Info
 		{
+			void           SetTexture(const Ref<Texture>& tex, TextureType type);
+			void           SetRoughness(float value);
+			void           SetMetallness(float value);
+			void           SetEmission(float value);
+			void           SetAlbedo(const glm::vec3& value);
+			const Uniform& GetUniform() const;
+			uint32_t       GetID() const;
+
+		private:
 			Ref<Texture>   Albedo = nullptr;
 			Ref<Texture>   Normal = nullptr;
 			Ref<Texture>   Metallness = nullptr;
 			Ref<Texture>   Roughness = nullptr;
 			Ref<Texture>   Emissive = nullptr;
 			Ref<Texture>   AO = nullptr;
-
-			const Uniform& GetUniform() const;
-			uint32_t       GetID() const;
-
-		private:
 			Uniform        Uniform{};
-			uint32_t       ID = 0;
 
 			friend class Material3D;
 		};
 
 		void                    ClearMaterials();
+		void                    UpdateMaterials();
+		bool                    AddDefaultMaterial();
 		bool                    RemoveMaterial(const std::string& name);
 		bool                    IsMaterialExist(const std::string& name);
 		uint32_t                GetMaterialCount() const;
-		Ref<MaterialInfo>       AddMaterial(MaterialCreateInfo* infoCI, const std::string& name);
-		Ref<MaterialInfo>       GetMaterial(const std::string& name);
+		Ref<Info>               AddMaterial(CreateInfo* infoCI, const std::string& name);
+		Ref<Info>               GetMaterial(const std::string& name);
 							    
 	private:				    
 		bool                    LoadAsDefault(RendererStorage* storage);
 		static Ref<Material3D>  Create();
 
 	private:
-		std::mutex                                         m_Mutex{};
-		std::vector<Ref<MaterialInfo>>                     m_Materials;
-		std::unordered_map<std::string, Ref<MaterialInfo>> m_IDs;
+		const uint32_t                             m_MaxTextures = 4096;
+		std::mutex                                 m_Mutex{};
+		std::vector<Ref<Info>>                     m_Materials;
+		std::unordered_map<std::string, Ref<Info>> m_IDs;
 
-		friend class DeferredRenderer;
+		friend struct RendererStorage;
 	};
 }
