@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "GUI/UIButton.h"
-
-#include "GUI/Backends/NuklearContext.h"
+#include "GUI/Nuklear.h"
 
 namespace SmolEngine
 {
@@ -25,12 +24,12 @@ namespace SmolEngine
 
     void UIButton::Draw()
     {
-        NuklearContext::GetColor(Style.BG_Hover, &pNkStyle->hover.data.color);
-        NuklearContext::GetColor(Style.BG_Active, &pNkStyle->active.data.color);
-        NuklearContext::GetColor(Style.BG_Normal, &pNkStyle->normal.data.color);
-        NuklearContext::GetColor(Style.Border_Normal, &pNkStyle->border_color);
-        NuklearContext::GetColor(Style.Text_Normal, &pNkStyle->text_normal);
-        NuklearContext::GetTextAlignment(eAlignment, pNkStyle->text_alignment);
+        Nuklear::GetColor(Style.BG_Hover, &pNkStyle->hover.data.color);
+        Nuklear::GetColor(Style.BG_Active, &pNkStyle->active.data.color);
+        Nuklear::GetColor(Style.BG_Normal, &pNkStyle->normal.data.color);
+        Nuklear::GetColor(Style.Border_Normal, &pNkStyle->border_color);
+        Nuklear::GetColor(Style.Text_Normal, &pNkStyle->text_normal);
+        Nuklear::GetTextAlignment(eAlignment, pNkStyle->text_alignment);
 
         pNkStyle->rounding = Style.Rounding;
 

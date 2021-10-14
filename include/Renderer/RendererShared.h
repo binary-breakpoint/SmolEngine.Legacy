@@ -21,10 +21,15 @@ namespace SmolEngine
 		bool data[3];
 	};
 
+	struct ClearInfo
+	{
+		bool      bClear = true;
+		glm::vec4 color = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f);
+	};
+
 	struct SceneData;
 	struct SceneViewProjection;
 	struct CommandBufferStorage;
-	struct ClearInfo;
 
 	static const uint32_t max_animations = 100;
 	static const uint32_t max_anim_joints = 1000;

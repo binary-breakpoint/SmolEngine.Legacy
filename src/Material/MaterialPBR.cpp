@@ -34,20 +34,8 @@ namespace SmolEngine
 		}
 
 		{
-			BufferLayout layout =
-			{
-				{ DataTypes::Float3, "aPos" },
-				{ DataTypes::Float3, "aNormal" },
-				{ DataTypes::Float3, "aTangent" },
-				{ DataTypes::Float2, "aUV" },
-				{ DataTypes::Int4,   "aBoneIDs"},
-				{ DataTypes::Float4, "aWeight"}
-			};
-
-			VertexInputInfo vertex(sizeof(PBRVertex), layout);
-
-			pipelineCI.VertexInputInfos = { vertex };
-			pipelineCI.PipelineName = "DefaultMaterial";
+			pipelineCI.VertexInputInfos = { GetVertexInputInfo() };
+			pipelineCI.PipelineName = "PBR";
 			pipelineCI.ShaderCreateInfo = shaderCI;
 		}
 
@@ -56,6 +44,12 @@ namespace SmolEngine
 		materialCI.pStorage = storage;
 
 		AddDefaultMaterial();
+		SetDrawCallback([this](CommandBuffer* cmd, Material3D* material)
+		{
+			material->SubmitPushConstant(ShaderType::Vertex, sizeof(uint32_t), &cmd->Offset);
+			material->DrawMeshIndexed(cmd->Mesh, cmd->InstancesCount);
+		});
+
 		return Build(&materialCI);
 	}
 

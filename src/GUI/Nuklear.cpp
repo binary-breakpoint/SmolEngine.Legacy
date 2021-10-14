@@ -1,29 +1,16 @@
 #include "stdafx.h"
-#include "GUI/Backends/NuklearContext.h"
-
-#ifdef OPENGL_IMPL
-#else
-#include "Backends/Vulkan/GUI/NuklearVulkanImpl.h"
-#endif
+#include "GUI/Nuklear.h"
 
 namespace SmolEngine
 {
 #include "nuklear/nuklear.h"
 
-	ContextBaseGUI* NuklearContext::CreateContext()
-	{
-#ifdef OPENGL_IMPL
-#else
-		return new NuklearVulkanImpl();
-#endif
-	}
-
-	void NuklearContext::GetColor(const glm::vec4& col, nk_color* out)
+	void Nuklear::GetColor(const glm::vec4& col, nk_color* out)
 	{
 		*out = nk_rgba(static_cast<int>(col.r), static_cast<int>(col.g), static_cast<int>(col.b), static_cast<int>(col.a));
 	}
 
-	void NuklearContext::GetTextAlignment(AlignmentFlags flag, uint32_t& out)
+	void Nuklear::GetTextAlignment(AlignmentFlags flag, uint32_t& out)
 	{
 		switch (flag)
 		{

@@ -2,6 +2,8 @@
 
 #include "GraphicsContext.h"
 
+#include "Common/DebugLog.h"
+
 #include "Primitives/Framebuffer.h"
 #include "Primitives/Mesh.h"
 #include "Primitives/Shader.h"

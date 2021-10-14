@@ -3,9 +3,6 @@
 #include "Backends/Vulkan/VulkanContext.h"
 #include "Backends/Vulkan/VulkanRenderPass.h"
 
-#include "GUI/Backends/ImGuiContext.h"
-#include "GUI/Backends/NuklearContext.h"
-
 #include <GLFW/glfw3.h>
 #include <imgui/examples/imgui_impl_vulkan.h>
 
@@ -13,73 +10,20 @@ namespace SmolEngine
 {
 	VulkanContext::~VulkanContext()
 	{
-		Shutdown();
+		ShutdownEX();
 	}
 
-	void VulkanContext::OnResize(uint32_t* width, uint32_t* height)
-	{
-		m_Swapchain.OnResize(width, height, m_Context->m_CreateInfo.bVsync, &m_CommandBuffer);
-	}
-
-	void VulkanContext::Setup(GLFWwindow* window, GraphicsContext* context, uint32_t* width, uint32_t* height)
-	{
-		assert(glfwVulkanSupported() == GLFW_TRUE);
-		bool swapchain_initialized = false;
-		{
-			m_Instance.Init();
-			m_Device.Init(&m_Instance);
-			m_Allocator.Init(&m_Device, &m_Instance);
-
-			swapchain_initialized = m_Swapchain.Init(&m_Instance, &m_Device, window, context->m_CreateInfo.bTargetsSwapchain ? false: true);
-			if (swapchain_initialized)
-			{
-				m_Swapchain.Create(width, height, context->m_CreateInfo.bVsync);
-				m_CommandBuffer.Init(&m_Device);
-				m_Semaphore.Init(&m_Device, &m_CommandBuffer);
-				m_Swapchain.Prepare(*width, *height);
-			}
-		}
-
-		if (swapchain_initialized)
-		{
-			s_ContextInstance = this;
-			m_Window = window;
-			m_Context = context;
-			return;
-		}
-
-		DebugLog::LogError("Couldn't create Vulkan context!");
-		abort();
-	}
-
-	void VulkanContext::Shutdown()
-	{
-
-	}
-
-	void VulkanContext::BeginFrame()
-	{
-		// Get next image in the swap chain (back/front buffer)
-		VK_CHECK_RESULT(m_Swapchain.AcquireNextImage(m_Semaphore.GetPresentCompleteSemaphore()));
-
-		m_CurrentVkCmdBuffer = VulkanContext::GetCommandBuffer().GetVkCommandBuffer();
-		VkCommandBufferBeginInfo cmdBufInfo = {};
-		{
-			cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-			cmdBufInfo.pNext = nullptr;
-		}
-
-		VK_CHECK_RESULT(vkBeginCommandBuffer(m_CurrentVkCmdBuffer, &cmdBufInfo));
-	}
-
-	void VulkanContext::SwapBuffers(bool skip)
+	void VulkanContext::SwapBuffersEX()
 	{
 		// ImGUI pass
-		if ((m_Context->m_CreateInfo.eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
-			m_Context->m_ImGuiContext->Draw(&m_Swapchain);
+		if ((m_CreateInfo.eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
+		{
+			m_ImGuiContext->EndFrame();
+			m_ImGuiContext->Draw(&m_Swapchain);
+		}
 
 		// Nuklear pass
-		m_Context->m_NuklearContext->Draw(m_Context->m_Framebuffer);
+		m_NuklearContext->Draw(m_Framebuffer);
 
 		const auto& present_ref = m_Semaphore.GetPresentCompleteSemaphore();
 		const auto& render_ref = m_Semaphore.GetRenderCompleteSemaphore();
@@ -131,6 +75,100 @@ namespace SmolEngine
 		}
 
 		VK_CHECK_RESULT(vkWaitForFences(m_Device.GetLogicalDevice(), 1, &m_Semaphore.GetVkFences()[m_Swapchain.GetCurrentBufferIndex()], VK_TRUE, DEFAULT_FENCE_TIME_OUT));
+	}
+
+	void VulkanContext::BeginFrameEX(float time)
+	{
+		{
+			if ((m_CreateInfo.eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
+			{
+				m_ImGuiContext->NewFrame();
+			}
+
+			m_NuklearContext->NewFrame();
+		}
+
+		{
+			// Get next image in the swap chain (back/front buffer)
+			VK_CHECK_RESULT(m_Swapchain.AcquireNextImage(m_Semaphore.GetPresentCompleteSemaphore()));
+
+			m_CurrentVkCmdBuffer = VulkanContext::GetCommandBuffer().GetVkCommandBuffer();
+			VkCommandBufferBeginInfo cmdBufInfo = {};
+			{
+				cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+				cmdBufInfo.pNext = nullptr;
+			}
+
+			VK_CHECK_RESULT(vkBeginCommandBuffer(m_CurrentVkCmdBuffer, &cmdBufInfo));
+		}
+	}
+
+	void VulkanContext::ShutdownEX()
+	{
+		if ((m_CreateInfo.eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
+		{
+			m_ImGuiContext->ShutDown();
+		}
+
+		m_NuklearContext->ShutDown();
+	}
+
+	void VulkanContext::ResizeEX(uint32_t* width, uint32_t* height)
+	{
+		m_Swapchain.OnResize(width, height, m_CreateInfo.bVsync, &m_CommandBuffer);
+	}
+
+	void VulkanContext::CreateAPIContextEX()
+	{
+		assert(glfwVulkanSupported() == GLFW_TRUE);
+		bool swapchain_initialized = false;
+		{
+			m_Instance.Init();
+			m_Device.Init(&m_Instance);
+
+			m_Allocator = new VulkanAllocator();
+			m_Allocator->Init(&m_Device, &m_Instance);
+
+			swapchain_initialized = m_Swapchain.Init(&m_Instance, &m_Device, GetWindow()->GetNativeWindow(), m_CreateInfo.bTargetsSwapchain ? false : true);
+			if (swapchain_initialized)
+			{
+				uint32_t* width = &m_CreateInfo.pWindowCI->Width;
+				uint32_t* height = &m_CreateInfo.pWindowCI->Height;
+
+				m_Swapchain.Create(width, height, m_CreateInfo.bVsync);
+				m_CommandBuffer.Init(&m_Device);
+				m_Semaphore.Init(&m_Device, &m_CommandBuffer);
+				m_Swapchain.Prepare(*width, *height);
+
+				// Initialize ImGUI
+				if ((m_CreateInfo.eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
+				{
+					m_ImGuiContext = std::make_shared<ImGuiVulkanImpl>();
+					m_ImGuiContext->Init();
+				}
+			}
+			else
+			{
+				DebugLog::LogError("Couldn't create Vulkan context!");
+				abort();
+			}
+		}
+	}
+
+	void VulkanContext::OnEventEX(Event& event)
+	{
+		if ((m_CreateInfo.eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
+		{
+			m_ImGuiContext->OnEvent(event);
+		}
+
+		m_NuklearContext->OnEvent(event);
+	}
+
+	void VulkanContext::OnContexReadyEX()
+	{
+		m_NuklearContext = std::make_shared<NuklearVulkanImpl>();
+		m_NuklearContext->Init();
 	}
 
 	inline uint64_t VulkanContext::GetBufferDeviceAddress(VkBuffer buffer)

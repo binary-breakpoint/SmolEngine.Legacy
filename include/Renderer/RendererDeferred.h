@@ -21,7 +21,7 @@ namespace SmolEngine
 		uint32_t               InstancesCount = 0;
 		uint32_t               Offset = 0;
 		Ref<Mesh>              Mesh = nullptr;
-		Material*              Material = nullptr;
+		Material3D*            Material = nullptr;
 	};
 
 	struct InstancePackage
@@ -33,7 +33,7 @@ namespace SmolEngine
 			glm::vec3*           Scale = nullptr;
 			AnimationController* AnimController = nullptr;
 			PBRHandle*           PBRHandle = nullptr;
-			Material*            Material = nullptr;
+			Material3D*          Material = nullptr;
 		};
 
 		uint32_t                  CurrentIndex = 0;

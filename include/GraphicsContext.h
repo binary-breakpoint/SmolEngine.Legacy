@@ -1,52 +1,34 @@
 #pragma once
 
-#ifdef  OPENGL_IMPL
-#include "Backends/OpenGL/OpenglContext.h"
-#include "Backends/OpenGL/OpenglRendererAPI.h"
-#else
-#include "Backends/Vulkan/VulkanContext.h"
-#endif
-
 #include "Common/Memory.h"
 #include "Common/Flags.h"
 #include "Window/Window.h"
 #include "Window/Events.h"
 #include "Camera/EditorCamera.h"
 #include "Camera/Camera.h"
-#include "Primitives/Framebuffer.h"
-
-#include "Pools/MaterialPool.h"
 #include "Pools/MeshPool.h"
 #include "Pools/TexturePool.h"
+#include "Pools/MaterialPool.h"
+#include "Primitives/Framebuffer.h"
 
-#include "GUI/Backends/ImGuiContext.h"
-#include "GUI/Backends/NuklearContext.h"
+#include "Multithreading/JobsSystemInstance.h"
 
 #include <functional>
 
 namespace SmolEngine
 {
 	struct WindowCreateInfo;
-	struct WindowData;
-	struct GraphicsContextState;
-	struct RendererStorage;
-	struct Renderer2DStorage;
 	struct RendererStorageBase;
 
-	class CubeMap;
-	class Texture;
-	class MaterialPool;
-	class JobsSystemInstance;
-
-	struct GraphicsContextInitInfo
+	struct GraphicsContextCreateInfo
 	{
 		bool              bTargetsSwapchain = true;
 		bool              bAutoResize = true;
 		bool              bVsync = true;
+		std::string       ResourcesFolder = "../resources/";
 		FeaturesFlags     eFeaturesFlags = FeaturesFlags::Imgui | FeaturesFlags::RendererDebug;
 		MSAASamples       eMSAASamples = MSAASamples::SAMPLE_COUNT_1;
 		WindowCreateInfo* pWindowCI = nullptr;
-		std::string       ResourcesFolderPath = "../resources/";
 	};
 
 	struct SceneViewProjection
@@ -79,29 +61,23 @@ namespace SmolEngine
 		friend struct RendererDrawList;
 	};
 
-	struct ClearInfo
-	{
-		bool      bClear = true;
-		glm::vec4 color = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f);
-	};
-
 	class GraphicsContext
 	{
 	public:
-		GraphicsContext() = default;
-		GraphicsContext(GraphicsContextInitInfo* info);
-		~GraphicsContext();
+		GraphicsContext();
+		virtual ~GraphicsContext();
+
+		static Ref<GraphicsContext>       Create(GraphicsContextCreateInfo* info);
 								      
 		void                              ProcessEvents();
 		void                              BeginFrame(float time);
 		void                              SwapBuffers();
-		void                              ShutDown();      		          
+		void                              Shutdown();      		          
 		static GraphicsContext*           GetSingleton();
 		Ref<Framebuffer>                  GetMainFramebuffer() const;
-		Window* GetWindow() const;
+		Window*                           GetWindow() const;
 		float                             GetGltfTime() const;
 		float                             GetDeltaTime() const;
-		float                             GetLastFrameTime() const;
 		const std::string&                GetResourcesPath() const;							      	          
 		void                              SetEventCallback(std::function<void(Event&)> callback);
 		void                              SetFramebufferSize(uint32_t width, uint32_t height);
@@ -109,33 +85,31 @@ namespace SmolEngine
 		bool                              IsWindowMinimized() const;
 		void                              Resize(uint32_t* width, uint32_t* height);
 									      
-	private:					          
+	private:		
+		virtual void                      SwapBuffersEX() = 0;
+		virtual void                      BeginFrameEX(float time) = 0;
+		virtual void                      ShutdownEX() = 0;
+		virtual void                      ResizeEX(uint32_t* width, uint32_t* height) = 0;
+		virtual void                      CreateAPIContextEX() = 0;
+		virtual void                      OnEventEX(Event& event) = 0;
+		virtual void                      OnContexReadyEX() = 0;
+		void                              Initialize(GraphicsContextCreateInfo* info);
 		void                              OnEvent(Event& event);
 
 	private:	
+		bool                              m_bWindowMinimized = false;
+		float                             m_LastFrameTime = 1.0f;
+		float                             m_DeltaTime = 0.0f;
 		static GraphicsContext*           s_Instance;
 		Ref<Framebuffer>                  m_Framebuffer = nullptr;
 		Ref<MaterialPool>                 m_MaterialPool = nullptr;
 		Ref<MeshPool>                     m_MeshPool = nullptr;
 		Ref<TexturePool>                  m_TexturePool = nullptr;
 		Ref<JobsSystemInstance>           m_JobsSystem = nullptr;
-		Window*                           m_Window = nullptr;
-		ContextBaseGUI*                   m_ImGuiContext = nullptr;
-		ContextBaseGUI*                   m_NuklearContext = nullptr;
-		bool                              m_bWindowMinimized = false;
-		bool                              m_bIs2DStoragePreAlloc = false;
-		bool                              m_bIsStoragePreAlloc = false;
-		float                             m_LastFrameTime = 1.0f;
-		float                             m_DeltaTime = 0.0f;
-#ifdef  OPENGL_IMPL		      			  
-		OpenglContext                     m_OpenglContext = {};
-		OpenglRendererAPI*                m_RendererAPI = nullptr;
-#else								      
-		VulkanContext                     m_VulkanContext = {};
-#endif								      
-		GraphicsContextInitInfo           m_CreateInfo = {};
+		Ref<Window>                       m_Window = nullptr;	
+		std::string                       m_Root = "";
 		EventSender                       m_EventHandler = {};
-		std::string                       m_ResourcesFolderPath = "";
+		GraphicsContextCreateInfo         m_CreateInfo = {};
 		std::function<void(Event&)>       m_EventCallback;
 		std::vector<RendererStorageBase*> m_StorageList;
 

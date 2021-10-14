@@ -1,10 +1,13 @@
 #include "stdafx.h"
+
+#ifndef OPENGL_IMPL
+
 #include "Backends/Vulkan/VulkanComputePipeline.h"
-#include "Primitives/ComputePipeline.h"
+#include "Backends/Vulkan/VulkanContext.h"
 #include "Backends/Vulkan/VulkanPipeline.h"
 #include "Backends/Vulkan/VulkanShader.h"
 
-#ifndef OPENGL_IMPL
+#include "Primitives/ComputePipeline.h"
 
 namespace SmolEngine
 {

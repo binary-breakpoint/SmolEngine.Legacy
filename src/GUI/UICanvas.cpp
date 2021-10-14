@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "GUI/UICanvas.h"
+#include "GUI/Nuklear.h"
 
-#include "GUI/Backends/NuklearContext.h"
 #include "Backends/Vulkan/GUI/NuklearVulkanImpl.h"
 
 namespace SmolEngine
@@ -43,14 +43,14 @@ namespace SmolEngine
         auto& nk_style = pContext->style.window;
 
         nk_color set_color;
-        NuklearContext::GetColor(Style.BG_Normal, &set_color);
+        Nuklear::GetColor(Style.BG_Normal, &set_color);
 
         nk_style_push_color(pContext, &nk_style.header.active.data.color, set_color);
         nk_style_push_color(pContext, &nk_style.header.hover.data.color, set_color);
         nk_style_push_color(pContext, &nk_style.header.normal.data.color, set_color);
         nk_style_push_color(pContext, &nk_style.fixed_background.data.color, set_color);
 
-        NuklearContext::GetColor(Style.Border_Normal, &set_color);
+        Nuklear::GetColor(Style.Border_Normal, &set_color);
         nk_style_push_color(pContext, &nk_style.border_color, set_color);
 
         if (nk_begin_titled(pContext, std::string(Title + "_##WindID").c_str(), Title.c_str(), nk_rect(Rect.x, Rect.y, Rect.z, Rect.w), GetFlagas(eFlags)))

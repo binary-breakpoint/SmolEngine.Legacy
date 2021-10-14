@@ -6,7 +6,6 @@
 
 #include "Backends/Vulkan/VulkanPipeline.h"
 #include "Backends/Vulkan/VulkanTexture.h"
-#include "GUI/Backends/ContextBaseGUI.h"
 
 namespace SmolEngine
 {
@@ -22,14 +21,15 @@ namespace SmolEngine
 	struct nk_font;
 	struct nk_font_atlas;
 
-	class NuklearVulkanImpl: public ContextBaseGUI
+	class NuklearVulkanImpl
 	{
 	public:
-		void                             Init() override;
-		void                             ShutDown() override;
-		void                             NewFrame() override;
-		void                             Draw(Ref<Framebuffer>& target) override;
-		void                             OnEvent(Event& e)override;
+
+		void                             Init();
+		void                             ShutDown();
+		void                             NewFrame();
+		void                             Draw(Ref<Framebuffer>& target);
+		void                             OnEvent(Event& e);
 		void                             UpdateAtlas();
 		void                             ClearAtlas();
 		// Getters

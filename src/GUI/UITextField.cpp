@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "GUI/UITextField.h"
-#include "GUI/Backends/NuklearContext.h"
+#include "GUI/Nuklear.h"
 
 namespace SmolEngine
 {
@@ -18,26 +18,26 @@ namespace SmolEngine
 		OnDraw();
 
 		nk_color set_color;
-		NuklearContext::GetColor(Style.BG_Active, &set_color);
+		Nuklear::GetColor(Style.BG_Active, &set_color);
 		nk_style_push_color(pContext, &pContext->style.edit.active.data.color, set_color);
 
-		NuklearContext::GetColor(Style.BG_Hover, &set_color);
+		Nuklear::GetColor(Style.BG_Hover, &set_color);
 		nk_style_push_color(pContext, &pContext->style.edit.hover.data.color, set_color);
 
-		NuklearContext::GetColor(Style.BG_Normal, &set_color);
+		Nuklear::GetColor(Style.BG_Normal, &set_color);
 		nk_style_push_color(pContext, &pContext->style.edit.normal.data.color, set_color);
 
-		NuklearContext::GetColor(Style.Border_Normal, &set_color);
+		Nuklear::GetColor(Style.Border_Normal, &set_color);
 		nk_style_push_color(pContext, &pContext->style.edit.border_color, set_color);
 
-		NuklearContext::GetColor(Style.Text_Normal, &set_color);
+		Nuklear::GetColor(Style.Text_Normal, &set_color);
 		nk_style_push_color(pContext, &pContext->style.edit.text_normal, set_color);
 
 		if (!Label.empty())
 		{
 			nk_flags alignment = 0;
-			NuklearContext::GetTextAlignment(eAlignment, alignment);
-			NuklearContext::GetColor(Style.Text_Label, &set_color);
+			Nuklear::GetTextAlignment(eAlignment, alignment);
+			Nuklear::GetColor(Style.Text_Label, &set_color);
 			nk_label_colored_wrap(pContext, Label.c_str(), set_color);
 		}
 

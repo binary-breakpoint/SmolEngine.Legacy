@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #ifndef OPENGL_IMPL
 #include "Backends/Vulkan/GUI/NuklearVulkanImpl.h"
+#include "Backends/Vulkan/VulkanFramebuffer.h"
 
 namespace SmolEngine
 {

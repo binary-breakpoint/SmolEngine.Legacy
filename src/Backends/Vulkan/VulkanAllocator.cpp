@@ -1,4 +1,7 @@
 #include "stdafx.h"
+#include "Backends/Vulkan/VulkanAllocator.h"
+#include "Backends/Vulkan/VulkanDevice.h"
+#include "Backends/Vulkan/VulkanInstance.h"
 #include "Common/DebugLog.h"
 
 namespace SmolEngine

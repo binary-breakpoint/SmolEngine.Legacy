@@ -1,5 +1,5 @@
 #pragma once
-#include "Material/Material.h"
+#include "Material/Material3D.h"
 
 #include <mutex>
 
@@ -95,7 +95,7 @@ namespace SmolEngine
 		friend class MaterialPBR;
 	};
 
-	class MaterialPBR : public Material
+	class MaterialPBR : public Material3D
 	{
 	public:
 		void                               ClearMaterials();

@@ -1,5 +1,6 @@
 #pragma once
 #include "GUI/UIStyle.h"
+#include "GUI/UILayout.h"
 
 #include <string>
 #include <functional>

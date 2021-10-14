@@ -4,9 +4,9 @@
 
 using namespace SmolEngine;
 
-GraphicsContext*   context = nullptr;
-RendererDrawList*  drawList = nullptr;
-RendererStorage*   storage = nullptr;
+Ref<GraphicsContext> context = nullptr;
+RendererDrawList*    drawList = nullptr;
+RendererStorage*     storage = nullptr;
 
 struct Chunk
 {
@@ -167,10 +167,10 @@ int main(int argc, char** argv)
 		camera = new EditorCamera(&cameraCI);
 	}
 
-	GraphicsContextInitInfo info = {};
+	GraphicsContextCreateInfo info = {};
 	{
 		info.eMSAASamples = MSAASamples::SAMPLE_COUNT_1;
-		info.ResourcesFolderPath = "../resources/";
+		info.ResourcesFolder = "../resources/";
 		info.pWindowCI = &windoInfo;
 	}
 
@@ -178,7 +178,8 @@ int main(int argc, char** argv)
 	ClearInfo clearInfo = {};
 
 	DebugLog* log = new DebugLog([&](const std::string&& msg, LogLevel level) { std::cout << msg << "\n"; });
-	context = new GraphicsContext(&info);
+
+	context = GraphicsContext::Create(&info);
 	context->SetEventCallback([&](Event& e) { if (e.IsType(EventType::WINDOW_CLOSE)) { process = false; }  camera->OnEvent(e); });
 
 	storage = new RendererStorage();

@@ -6,6 +6,7 @@
 #include "Backends/Vulkan/VulkanPBR.h"
 #include "Backends/Vulkan/VulkanTexture.h"
 #include "Backends/Vulkan/VulkanPipeline.h"
+#include "Backends/Vulkan/VulkanFramebuffer.h"
 #endif
 
 #include "GraphicsContext.h"

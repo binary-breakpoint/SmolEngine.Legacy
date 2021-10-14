@@ -14,10 +14,12 @@
 #include "Backends/OpenGL/OpenglShader.h"
 #include "Backends/OpenGL/OpenglRendererAPI.h"
 #else
+#include "Backends/Vulkan/VulkanContext.h"
 #include "Backends/Vulkan/VulkanPBR.h"
 #include "Backends/Vulkan/VulkanPipeline.h"
 #include "Backends/Vulkan/VulkanTexture.h"
 #include "Backends/Vulkan/VulkanComputePipeline.h"
+#include "Backends/Vulkan/VulkanFramebuffer.h"
 #endif
 
 namespace SmolEngine
@@ -200,7 +202,7 @@ namespace SmolEngine
 					Utils::ComposeTransform(glm::vec3(0), glm::vec3(0), { 100, 1, 100 }, m_GridModel);
 
 					m_GridMesh = Mesh::Create();
-					m_GridMesh->LoadFromFile("Models/plane_v2.gltf");
+					m_GridMesh->LoadFromFile(path + "Models/plane_v2.gltf");
 
 					GraphicsPipelineCreateInfo pipelineCI = {};
 					ShaderCreateInfo shaderCI = {};
@@ -758,6 +760,7 @@ namespace SmolEngine
 	{
 		m_AnimationJoints.resize(max_anim_joints);
 	}
+
 	void RendererDrawList::SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, const Ref<Mesh>& mesh, 
 		const Ref<PBRHandle>& material, bool submit_childs, AnimationController* anim_controller)
 	{
@@ -882,10 +885,8 @@ namespace SmolEngine
 			for (uint32_t i = 0; i < cmdCount; ++i)
 			{
 				auto& cmd = drawList->m_DrawList[i];
-
-				Material* material = cmd.Material == nullptr ? storage->m_DefaultMaterial.get() : cmd.Material;
-				material->GetPipeline()->SubmitPushConstant(ShaderType::Vertex, sizeof(uint32_t), &cmd.Offset);
-				material->GetPipeline()->DrawMeshIndexed(cmd.Mesh, cmd.InstancesCount);
+				Material3D* material = cmd.Material == nullptr ? storage->m_DefaultMaterial.get() : cmd.Material;
+				material->m_DrawCallback(&cmd, material);
 			}
 		}
 		storage->m_DefaultMaterial->GetPipeline()->EndRenderPass();

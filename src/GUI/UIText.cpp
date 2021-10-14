@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "GUI/UIText.h"
+#include "GUI/Nuklear.h"
 
-#include "GUI/Backends/NuklearContext.h"
 #include "Backends/Vulkan/GUI/NuklearVulkanImpl.h"
 
 namespace SmolEngine
@@ -21,8 +21,8 @@ namespace SmolEngine
         nk_color nk_color;
         nk_flags nk_alignment = 0;
 
-        NuklearContext::GetColor(Style.Text_Normal, &nk_color);
-        NuklearContext::GetTextAlignment(eAlignment, nk_alignment);
+        Nuklear::GetColor(Style.Text_Normal, &nk_color);
+        Nuklear::GetTextAlignment(eAlignment, nk_alignment);
 
         OnDraw();
 

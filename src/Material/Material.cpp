@@ -10,6 +10,11 @@ namespace SmolEngine
 		return m_Pipeline;
 	}
 
+	uint32_t Material::GetID() const
+	{
+		return m_ID;
+	}
+
 	bool Material::Build(MaterialCreateInfo* ci)
 	{
 		assert(!ci->Name.empty() || ci->pStorage != nullptr);
@@ -27,6 +32,16 @@ namespace SmolEngine
 
 		m_Info = *ci;
 		return m_Pipeline != nullptr;
+	}
+
+	void Material::DrawMeshIndexed(Ref<Mesh>& mesh, uint32_t instances)
+	{
+		m_Pipeline->DrawMeshIndexed(mesh, instances);
+	}
+
+	void Material::DrawMesh(Ref<Mesh>& mesh, uint32_t instances)
+	{
+		m_Pipeline->DrawMesh(mesh, instances);
 	}
 
 	bool Material::SubmitBuffer(uint32_t binding, size_t size, const void* data, uint32_t offset)

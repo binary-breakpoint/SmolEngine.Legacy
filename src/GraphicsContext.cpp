@@ -1,98 +1,88 @@
 #include "stdafx.h"
 #include "GraphicsContext.h"
-
 #include "Renderer/RendererDebug.h"
 #include "Renderer/RendererShared.h"
-
 #include "Common/DebugLog.h"
 #include "Window/Input.h"
 
-#include "Multithreading/JobsSystemInstance.h"
+#ifdef SMOLENGINE_OPENGL_IMPL
+#else
+#include "Backends/Vulkan/VulkanContext.h"
+#endif
 
 #include <GLFW/glfw3.h>
 
 namespace SmolEngine
 {
-	static int result = 0;
 	GraphicsContext* GraphicsContext::s_Instance = nullptr;
 
-	GraphicsContext::GraphicsContext(GraphicsContextInitInfo* info)
+	GraphicsContext::GraphicsContext()
 	{
 		s_Instance = this;
+	}
+
+	GraphicsContext::~GraphicsContext()
+	{
+		s_Instance = nullptr;
+
+		Shutdown();
+	}
+
+	void GraphicsContext::Initialize(GraphicsContextCreateInfo* info)
+	{
 		m_CreateInfo = *info;
-		m_ResourcesFolderPath = info->ResourcesFolderPath;
+		m_Root = info->ResourcesFolder;
 		m_EventHandler.OnEventFn = std::bind(&GraphicsContext::OnEvent, this, std::placeholders::_1);
 
 		// Creates GLFW window
-		m_Window = new Window();
+		m_Window = std::make_shared<Window>();
 		m_Window->Init(info->pWindowCI, &m_EventHandler);
 		GLFWwindow* window = m_Window->GetNativeWindow();
+
 		// Creates API context
-#ifdef  OPENGL_IMPL
-		m_OpenglContext.Setup(window);
-#else
-		m_VulkanContext.Setup(window, this,
-			&m_Window->GetWindowData()->Width, &m_Window->GetWindowData()->Height);
-#endif
+		CreateAPIContextEX();
+
 		m_JobsSystem = std::make_shared< JobsSystemInstance>();
-		m_MeshPool = std::make_shared<MeshPool>(info->ResourcesFolderPath);
+		m_MeshPool = std::make_shared<MeshPool>(info->ResourcesFolder);
 		m_MaterialPool = std::make_shared<MaterialPool>();
 		m_TexturePool = std::make_shared<TexturePool>();
-
-		// Initialize ImGUI
-		if ((info->eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
-		{
-			m_ImGuiContext = ImGuiContext::CreateContext();;
-			m_ImGuiContext->Init();
-		}
 
 		// Creates default framebuffer
 		m_Framebuffer = Framebuffer::Create();
 		FramebufferSpecification framebufferCI = {};
-#ifdef  OPENGL_IMPL
-		framebufferCI.Width = info->pWindowCI->Width;
-		framebufferCI.Height = info->pWindowCI->Height;
-#else
-		framebufferCI.Width = m_VulkanContext.GetSwapchain().GetWidth();
-		framebufferCI.Height = m_VulkanContext.GetSwapchain().GetHeight();
-#endif
+		framebufferCI.Width = m_CreateInfo.pWindowCI->Width;
+		framebufferCI.Height = m_CreateInfo.pWindowCI->Height;
 		framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
 		framebufferCI.bTargetsSwapchain = info->bTargetsSwapchain;
 		framebufferCI.bResizable = true;
 		framebufferCI.bAutoSync = false;
 		framebufferCI.bUsedByImGui = (m_CreateInfo.eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui && !info->bTargetsSwapchain ? true : false;
 		framebufferCI.Attachments = { FramebufferAttachment(AttachmentFormat::Color) };
-
 		m_Framebuffer->Build(&framebufferCI);
 
-#ifdef  OPENGL_IMPL
-		GetOpenglRendererAPI()->Init();
-#endif
 		// Initialize debug renderer
 		if ((info->eFeaturesFlags & FeaturesFlags::RendererDebug) == FeaturesFlags::RendererDebug)
 		{
 			RendererDebug::Init();
 		}
 
-		m_NuklearContext = NuklearContext::CreateContext();
-		m_NuklearContext->Init();
+		OnContexReadyEX();
 	}
 
-	GraphicsContext::~GraphicsContext()
+	Ref<GraphicsContext> GraphicsContext::Create(GraphicsContextCreateInfo* info)
 	{
-		s_Instance = nullptr;
+		Ref<GraphicsContext> context = nullptr;
+#ifdef SMOLENGINE_OPENGL_IMPL
+#else
+		context = std::make_shared<VulkanContext>();
+#endif
+		context->Initialize(info);
+		return context;
 	}
 
 	void GraphicsContext::SwapBuffers()
 	{
-		if ((m_CreateInfo.eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
-			m_ImGuiContext->EndFrame();
-
-#ifdef  OPENGL_IMPL
-		m_OpenglContext.SwapBuffers();
-#else
-		m_VulkanContext.SwapBuffers();
-#endif
+		SwapBuffersEX();
 	}
 
 	void GraphicsContext::ProcessEvents()
@@ -103,38 +93,22 @@ namespace SmolEngine
 	void GraphicsContext::BeginFrame(float time)
 	{
 		m_DeltaTime = time;
-#ifdef  OPENGL_IMPL
-#else
-		m_VulkanContext.BeginFrame();
-#endif
-		if ((m_CreateInfo.eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
-			m_ImGuiContext->NewFrame();
-
-		m_NuklearContext->NewFrame();
-
+		BeginFrameEX(time);
 	}
 
-	void GraphicsContext::ShutDown()
+	void GraphicsContext::Shutdown()
 	{
-		if ((m_CreateInfo.eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
-			m_ImGuiContext->ShutDown();
-
 		m_Window->ShutDown();
-#ifdef OPENGL_IMPL
-#else
-		m_VulkanContext.~VulkanContext();
-#endif
-		delete  m_Window, m_ImGuiContext, m_NuklearContext;
-}
+    }
 
 	void GraphicsContext::Resize(uint32_t* width, uint32_t* height)
 	{
-#ifdef  OPENGL_IMPL
-#else
-		m_VulkanContext.OnResize(width, height);
-#endif
+		ResizeEX(width, height);
+
 		if (m_CreateInfo.bAutoResize)
+		{
 			SetFramebufferSize(*width, *height);
+		}
 	}
 
 	void GraphicsContext::SetEventCallback(std::function<void(Event&)> callback)
@@ -164,7 +138,7 @@ namespace SmolEngine
 
 	Window* GraphicsContext::GetWindow() const
 	{
-		return m_Window;
+		return m_Window.get();
 	}
 
 	float GraphicsContext::GetGltfTime() const
@@ -177,22 +151,14 @@ namespace SmolEngine
 		return m_DeltaTime;
 	}
 
-	float GraphicsContext::GetLastFrameTime() const
-	{
-		return m_LastFrameTime;
-	}
-
 	const std::string& GraphicsContext::GetResourcesPath() const
 	{
-		return m_ResourcesFolderPath;
+		return m_Root;
 	}
 
 	void GraphicsContext::OnEvent(Event& e)
 	{
-		if ((m_CreateInfo.eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui)
-			m_ImGuiContext->OnEvent(e);
-
-		m_NuklearContext->OnEvent(e);
+		OnEventEX(e);
 
 		if (e.IsType(EventType::WINDOW_RESIZE))
 		{

@@ -22,6 +22,8 @@
 #include <string>
 
 #include "GraphicsContext.h"
+#include "Common/DebugLog.h"
+
 #ifndef OPENGL_IMPL
 #include "Vulkan/Vulkan.h"
 #endif

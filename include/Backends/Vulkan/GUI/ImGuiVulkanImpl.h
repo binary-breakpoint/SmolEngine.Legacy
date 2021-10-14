@@ -1,6 +1,5 @@
 #pragma once
 #ifndef OPENGL_IMPL
-#include "GUI/Backends/ContextBaseGUI.h"
 #include "Backends/Vulkan/VulkanTexture.h"
 
 #include <imgui/examples/imgui_impl_vulkan.h>
@@ -10,16 +9,17 @@ struct GLFWwindow;
 namespace SmolEngine
 {
 	class VulkanCommandBuffer;
+	class VulkanSwapchain;
 
-	class ImGuiVulkanImpl: public ContextBaseGUI
+	class ImGuiVulkanImpl
 	{
 	public:
-		void               Init() override;
-		void               ShutDown() override;
-		void               NewFrame() override;
-		void               EndFrame() override;
-		void               OnEvent(Event& e) override;
-		void               Draw(VulkanSwapchain* target) override;
+		void               Init();
+		void               ShutDown();
+		void               NewFrame();
+		void               EndFrame();
+		void               OnEvent(Event& e);
+		void               Draw(VulkanSwapchain* target);
 
 	private:
 		void               OnSetup();

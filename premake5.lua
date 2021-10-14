@@ -196,7 +196,7 @@ project "SmolEngine.Graphics"
 group "Samples"
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
-project "PBR"
+project "Physically Based Rendering"
 	kind "ConsoleApp"
 	location "samples"
 	language "C++"
@@ -249,7 +249,7 @@ project "PBR"
 
 ------------------------------------------------- 2D
 
-project "2D"
+project "2D Rendering"
 	kind "ConsoleApp"
 	location "samples"
 	language "C++"
@@ -301,7 +301,7 @@ project "2D"
 
 	------------------------------------------------- 3D Animations
 
-	project "Skinning"
+	project "Vertex Skinning"
 	kind "ConsoleApp"
 	location "samples"
 	language "C++"
@@ -350,5 +350,106 @@ project "2D"
 		buildoptions "/MD"
 		buildoptions "/bigobj"
 		optimize "on"
+
+	project "Hello Triangle"
+	kind "ConsoleApp"
+	location "samples"
+	language "C++"
+	cppdialect "C++17"
+	staticruntime "on"
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("vendor/libs/bin-int/" .. outputdir .. "/%{prj.name}")
+
+	files
+	{
+		"samples/HelloTriangle.h",
+		"samples/HelloTriangle.cpp",
+	}
+
+	includedirs
+	{
+		"include/",
+
+		"include/External",
+		"include/External/vulkan/include",
+		"include/External/spdlog/include",
+		"include/External/glm/"
+	}
+
+	links
+	{
+		"bin/" ..outputdir .. "/SmolEngine.Graphics/SmolEngine.Graphics.lib"
+	}
+
+	filter "system:windows"
+		systemversion "latest"
+
+		defines
+		{
+			"_CRT_SECURE_NO_WARNINGS",
+			"PLATFORM_WIN"
+		}
+
+		filter "configurations:Debug_Vulkan"
+		buildoptions "/MDd"
+		buildoptions "/bigobj"
+		symbols "on"
+	
+		filter "configurations:Release_Vulkan"
+		buildoptions "/MD"
+		buildoptions "/bigobj"
+		optimize "on"
+
+	project "Custom Materials"
+	kind "ConsoleApp"
+	location "samples"
+	language "C++"
+	cppdialect "C++17"
+	staticruntime "on"
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("vendor/libs/bin-int/" .. outputdir .. "/%{prj.name}")
+
+	files
+	{
+		"samples/CustomMaterials.h",
+		"samples/CustomMaterials.cpp",
+	}
+
+	includedirs
+	{
+		"include/",
+
+		"include/External",
+		"include/External/vulkan/include",
+		"include/External/spdlog/include",
+		"include/External/glm/"
+	}
+
+	links
+	{
+		"bin/" ..outputdir .. "/SmolEngine.Graphics/SmolEngine.Graphics.lib"
+	}
+
+	filter "system:windows"
+		systemversion "latest"
+
+		defines
+		{
+			"_CRT_SECURE_NO_WARNINGS",
+			"PLATFORM_WIN"
+		}
+
+		filter "configurations:Debug_Vulkan"
+		buildoptions "/MDd"
+		buildoptions "/bigobj"
+		symbols "on"
+	
+		filter "configurations:Release_Vulkan"
+		buildoptions "/MD"
+		buildoptions "/bigobj"
+		optimize "on"
+		
 
 	group ""
