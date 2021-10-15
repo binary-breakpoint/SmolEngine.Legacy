@@ -1,9 +1,11 @@
 #include "stdafx.h"
 #include "GraphicsContext.h"
-#include "Renderer/RendererDebug.h"
-#include "Renderer/RendererShared.h"
 #include "Common/DebugLog.h"
 #include "Window/Input.h"
+
+#include "Renderer/RendererDeferred.h"
+#include "Renderer/RendererDebug.h"
+#include "Renderer/Renderer2D.h"
 
 #ifdef SMOLENGINE_OPENGL_IMPL
 #else
@@ -37,7 +39,6 @@ namespace SmolEngine
 		// Creates GLFW window
 		m_Window = std::make_shared<Window>();
 		m_Window->Init(info->pWindowCI, &m_EventHandler);
-		GLFWwindow* window = m_Window->GetNativeWindow();
 
 		// Creates API context
 		CreateAPIContextEX();
@@ -48,22 +49,37 @@ namespace SmolEngine
 		m_TexturePool = std::make_shared<TexturePool>();
 
 		// Creates default framebuffer
-		m_Framebuffer = Framebuffer::Create();
-		FramebufferSpecification framebufferCI = {};
-		framebufferCI.Width = m_CreateInfo.pWindowCI->Width;
-		framebufferCI.Height = m_CreateInfo.pWindowCI->Height;
-		framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
-		framebufferCI.bTargetsSwapchain = info->bTargetsSwapchain;
-		framebufferCI.bResizable = true;
-		framebufferCI.bAutoSync = false;
-		framebufferCI.bUsedByImGui = (m_CreateInfo.eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui && !info->bTargetsSwapchain ? true : false;
-		framebufferCI.Attachments = { FramebufferAttachment(AttachmentFormat::Color) };
-		m_Framebuffer->Build(&framebufferCI);
-
-		// Initialize debug renderer
-		if ((info->eFeaturesFlags & FeaturesFlags::RendererDebug) == FeaturesFlags::RendererDebug)
 		{
-			RendererDebug::Init();
+			FramebufferSpecification framebufferCI = {};
+			framebufferCI.Width = m_CreateInfo.pWindowCI->Width;
+			framebufferCI.Height = m_CreateInfo.pWindowCI->Height;
+			framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
+			framebufferCI.bTargetsSwapchain = info->bTargetsSwapchain;
+			framebufferCI.bResizable = true;
+			framebufferCI.bAutoSync = false;
+			framebufferCI.bUsedByImGui = (m_CreateInfo.eFeaturesFlags & FeaturesFlags::Imgui) == FeaturesFlags::Imgui && !info->bTargetsSwapchain ? true : false;
+			framebufferCI.Attachments = { FramebufferAttachment(AttachmentFormat::Color) };
+
+			m_Framebuffer = Framebuffer::Create();
+			m_Framebuffer->Build(&framebufferCI);
+		}
+
+		if ((info->eFeaturesFlags & FeaturesFlags::RendererDebug) == FeaturesFlags::RendererDebug) { RendererDebug::Init(); }
+
+		if ((info->eFeaturesFlags & FeaturesFlags::RendererDeferred) == FeaturesFlags::RendererDeferred)
+		{
+			m_RendererDrawList = std::make_shared<RendererDrawList>();
+			m_RendererStorage = std::make_shared<RendererStorage>();
+
+			m_RendererStorage->Build();
+		}
+
+		if ((info->eFeaturesFlags & FeaturesFlags::Renderer2D) == FeaturesFlags::Renderer2D)
+		{
+			m_RendererDrawList2D = std::make_shared<RendererDrawList2D>();
+			m_Renderer2DStorage = std::make_shared<Renderer2DStorage>();
+
+			m_Renderer2DStorage->Build();
 		}
 
 		OnContexReadyEX();
@@ -119,8 +135,9 @@ namespace SmolEngine
 	void GraphicsContext::SetFramebufferSize(uint32_t width, uint32_t height)
 	{
 		m_Framebuffer->OnResize(width, height);
-		for (auto storage : m_StorageList)
-			storage->OnResize(width, height);
+
+		if (m_RendererStorage != nullptr) { m_RendererStorage->OnResize(width, height); }
+		if (m_Renderer2DStorage != nullptr) { m_Renderer2DStorage->OnResize(width, height); }
 	}
 
 	float GraphicsContext::CalculateDeltaTime()

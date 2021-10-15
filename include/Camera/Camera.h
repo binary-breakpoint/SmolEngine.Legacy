@@ -1,14 +1,35 @@
 #pragma once
 #include "Window/Events.h"
+#include "Renderer/RendererShared.h"
 
 #include <glm/glm.hpp>
 
 namespace SmolEngine
 {
+	class Camera;
+
+	struct SceneViewProjection
+	{
+		SceneViewProjection() = default;
+		SceneViewProjection(Camera* cam);
+
+		void Update(Camera* cam);
+
+		glm::mat4 Projection = glm::mat4(1.0f);
+		glm::mat4 View = glm::mat4(1.0f);
+		glm::vec4 CamPos = glm::vec4(1.0f);
+		float     NearClip = 0.0f;
+		float     FarClip = 0.0f;
+		glm::vec2 Pad1;
+		glm::mat4 SkyBoxMatrix = glm::mat4(1.0f);
+
+		friend struct RendererStorage;
+		friend struct RendererDrawList;
+	};
+
 	class Camera
 	{
 	public:
-
 		Camera() = default;
 		virtual ~Camera() = default;
 
@@ -23,5 +44,10 @@ namespace SmolEngine
 
 		virtual float GetNearClip() const = 0;
 		virtual float GetFarClip() const = 0;
+
+		SceneViewProjection* GetSceneViewProjection() { return &m_SceneViewProjection; }
+
+	private:
+		SceneViewProjection m_SceneViewProjection;
 	};
 }

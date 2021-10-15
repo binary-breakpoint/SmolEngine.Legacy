@@ -26,7 +26,7 @@ namespace SmolEngine
 			bufferInfo.Size = sizeof(InstanceData) * max_objects;
 			shaderCI.Buffers[storage->m_ShaderDataBinding] = bufferInfo;
 
-			bufferInfo.Size = sizeof(PBRUniform) * max_materials;
+			bufferInfo.Size = sizeof(PBRMaterialUniform) * max_materials;
 			shaderCI.Buffers[storage->m_MaterialsBinding] = bufferInfo;
 
 			bufferInfo.Size = sizeof(glm::mat4) * max_anim_joints;
@@ -58,16 +58,16 @@ namespace SmolEngine
 		return std::make_shared<MaterialPBR>();
 	}
 
-	Ref<PBRHandle> MaterialPBR::AddMaterial(PBRCreateInfo* infoCI, const std::string& name)
+	Ref<PBRMaterialHandle> MaterialPBR::AddMaterial(PBRMaterialCreateInfo* infoCI, const std::string& name)
 	{
-		Ref<PBRHandle> material = GetMaterial(name);
+		Ref<PBRMaterialHandle> material = GetMaterial(name);
 		if (material != nullptr)
 			return material;
 
 		{
 			std::hash<std::string_view> hasher{};
 
-			material = std::make_shared<PBRHandle>();
+			material = std::make_shared<PBRMaterialHandle>();
 			material->m_Uniform.ID = static_cast<uint32_t>(hasher(name));
 
 			material->m_Uniform.Metalness = infoCI->Metallness;
@@ -135,7 +135,7 @@ namespace SmolEngine
 		return static_cast<uint32_t>(m_Materials.size());
 	}
 
-	Ref<PBRHandle> MaterialPBR::GetMaterial(const std::string& name)
+	Ref<PBRMaterialHandle> MaterialPBR::GetMaterial(const std::string& name)
 	{
 		auto& it = m_IDs.find(name);
 		if (it != m_IDs.end())
@@ -144,7 +144,7 @@ namespace SmolEngine
 		return nullptr;
 	}
 
-	const std::vector<Ref<PBRHandle>>& MaterialPBR::GetMaterials() const
+	const std::vector<Ref<PBRMaterialHandle>>& MaterialPBR::GetMaterials() const
 	{
 		return m_Materials;
 	}
@@ -157,7 +157,7 @@ namespace SmolEngine
 
 	void MaterialPBR::UpdateMaterials()
 	{
-		std::vector<PBRUniform> uniforms(m_Materials.size());
+		std::vector<PBRMaterialUniform> uniforms(m_Materials.size());
 		std::vector<Ref<Texture>> textures(m_MaxTextures);
 
 		constexpr auto addFn = [](const Ref<Texture>& texture, uint32_t& tex_index, uint32_t& global_index, std::vector<Ref<Texture>>& out_textures)
@@ -175,7 +175,7 @@ namespace SmolEngine
 
 			for (uint32_t i = 0; i < static_cast<uint32_t>(m_Materials.size()); ++i)
 			{
-				const Ref<PBRHandle>& material = m_Materials[i];
+				const Ref<PBRMaterialHandle>& material = m_Materials[i];
 
 				addFn(material->m_Albedo, material->m_Uniform.AlbedroTexIndex, index, textures);
 				addFn(material->m_Normal, material->m_Uniform.NormalTexIndex, index, textures);
@@ -192,13 +192,13 @@ namespace SmolEngine
 			RendererStorage* storage = dynamic_cast<RendererStorage*>(GetInfo().pStorage);
 
 			UpdateSamplers(textures, storage->m_TexturesBinding);
-			SubmitBuffer(storage->m_MaterialsBinding, sizeof(PBRUniform) * uniforms.size(), uniforms.data());
+			SubmitBuffer(storage->m_MaterialsBinding, sizeof(PBRMaterialUniform) * uniforms.size(), uniforms.data());
 		}
 	}
 
 	bool MaterialPBR::AddDefaultMaterial()
 	{
-		PBRCreateInfo ci{};
+		PBRMaterialCreateInfo ci{};
 		ci.Roughness = 1.0f;
 		ci.Metallness = 0.2f;
 
@@ -208,7 +208,7 @@ namespace SmolEngine
 		return true;
 	}
 
-	void PBRCreateInfo::SetTexture(PBRTexture type, const TextureCreateInfo* info)
+	void PBRMaterialCreateInfo::SetTexture(PBRTexture type, const TextureCreateInfo* info)
 	{
 		switch (type)
 		{
@@ -234,7 +234,7 @@ namespace SmolEngine
 		}
 	}
 
-	void PBRCreateInfo::GetTextures(std::unordered_map<PBRTexture, TextureCreateInfo*>& out_hashmap)
+	void PBRMaterialCreateInfo::GetTextures(std::unordered_map<PBRTexture, TextureCreateInfo*>& out_hashmap)
 	{
 		if (AlbedroTex.FilePath.empty() == false)
 		{
@@ -267,7 +267,7 @@ namespace SmolEngine
 		}
 	}
 
-	bool PBRCreateInfo::Load(const std::string& filePath)
+	bool PBRMaterialCreateInfo::Load(const std::string& filePath)
 	{
 		std::stringstream storage;
 		std::ifstream file(filePath);
@@ -288,7 +288,7 @@ namespace SmolEngine
 		return true;
 	}
 
-	bool PBRCreateInfo::Save(const std::string& filePath)
+	bool PBRMaterialCreateInfo::Save(const std::string& filePath)
 	{
 		std::stringstream storage;
 		{
@@ -307,7 +307,7 @@ namespace SmolEngine
 		return false;
 	}
 
-	void PBRHandle::SetTexture(const Ref<Texture>&tex, PBRTexture type)
+	void PBRMaterialHandle::SetTexture(const Ref<Texture>&tex, PBRTexture type)
 	{
 		switch (type)
 		{
@@ -351,32 +351,32 @@ namespace SmolEngine
 		}
 	}
 
-	void PBRHandle::SetRoughness(float value)
+	void PBRMaterialHandle::SetRoughness(float value)
 	{
 		m_Uniform.Roughness = value;
 	}
 
-	void PBRHandle::SetMetallness(float value)
+	void PBRMaterialHandle::SetMetallness(float value)
 	{
 		m_Uniform.Metalness = value;
 	}
 
-	void PBRHandle::SetEmission(float value)
+	void PBRMaterialHandle::SetEmission(float value)
 	{
 		m_Uniform.EmissionStrength = value;
 	}
 
-	void PBRHandle::SetAlbedo(const glm::vec3& value)
+	void PBRMaterialHandle::SetAlbedo(const glm::vec3& value)
 	{
 		m_Uniform.Albedro = glm::vec4(value, 1);
 	}
 
-	const PBRUniform& PBRHandle::GetUniform() const
+	const PBRMaterialUniform& PBRMaterialHandle::GetUniform() const
 	{
 		return m_Uniform;
 	}
 
-	uint32_t PBRHandle::GetID() const
+	uint32_t PBRMaterialHandle::GetID() const
 	{
 		return m_Uniform.ID;
 	}

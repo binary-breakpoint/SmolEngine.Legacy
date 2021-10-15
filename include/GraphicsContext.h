@@ -4,8 +4,6 @@
 #include "Common/Flags.h"
 #include "Window/Window.h"
 #include "Window/Events.h"
-#include "Camera/EditorCamera.h"
-#include "Camera/Camera.h"
 #include "Pools/MeshPool.h"
 #include "Pools/TexturePool.h"
 #include "Pools/MaterialPool.h"
@@ -19,6 +17,10 @@ namespace SmolEngine
 {
 	struct WindowCreateInfo;
 	struct RendererStorageBase;
+	struct RendererStorage;
+	struct RendererDrawList;
+	struct RendererDrawList2D;
+	struct Renderer2DStorage;
 
 	struct GraphicsContextCreateInfo
 	{
@@ -26,39 +28,9 @@ namespace SmolEngine
 		bool              bAutoResize = true;
 		bool              bVsync = true;
 		std::string       ResourcesFolder = "../resources/";
-		FeaturesFlags     eFeaturesFlags = FeaturesFlags::Imgui | FeaturesFlags::RendererDebug;
+		FeaturesFlags     eFeaturesFlags = FeaturesFlags::Imgui | FeaturesFlags::RendererDebug | FeaturesFlags::RendererDeferred | FeaturesFlags::Renderer2D;
 		MSAASamples       eMSAASamples = MSAASamples::SAMPLE_COUNT_1;
 		WindowCreateInfo* pWindowCI = nullptr;
-	};
-
-	struct SceneViewProjection
-	{
-		SceneViewProjection() = default;
-		SceneViewProjection(Camera* cam)
-		{
-			Update(cam);
-		}
-
-		void Update(Camera* cam)
-		{
-			View = cam->GetViewMatrix();
-			Projection = cam->GetProjection();
-			CamPos = glm::vec4(cam->GetPosition(), 1.0f);
-			NearClip = cam->GetNearClip();
-			FarClip = cam->GetFarClip();
-			SkyBoxMatrix = glm::mat4(glm::mat3(View));
-		}
-
-		glm::mat4 Projection = glm::mat4(1.0f);
-		glm::mat4 View = glm::mat4(1.0f);
-		glm::vec4 CamPos = glm::vec4(1.0f);
-		float     NearClip = 0.0f;
-		float     FarClip = 0.0f;
-		glm::vec2 Pad1;
-		glm::mat4 SkyBoxMatrix = glm::mat4(1.0f);
-
-		friend struct RendererStorage;
-		friend struct RendererDrawList;
 	};
 
 	class GraphicsContext
@@ -106,12 +78,15 @@ namespace SmolEngine
 		Ref<MeshPool>                     m_MeshPool = nullptr;
 		Ref<TexturePool>                  m_TexturePool = nullptr;
 		Ref<JobsSystemInstance>           m_JobsSystem = nullptr;
+		Ref<RendererStorage>              m_RendererStorage = nullptr;
+		Ref<Renderer2DStorage>            m_Renderer2DStorage = nullptr;
+		Ref<RendererDrawList>             m_RendererDrawList = nullptr;
+		Ref<RendererDrawList2D>           m_RendererDrawList2D = nullptr;
 		Ref<Window>                       m_Window = nullptr;	
 		std::string                       m_Root = "";
 		EventSender                       m_EventHandler = {};
 		GraphicsContextCreateInfo         m_CreateInfo = {};
 		std::function<void(Event&)>       m_EventCallback;
-		std::vector<RendererStorageBase*> m_StorageList;
 
 		friend struct RendererStorage;
 		friend struct Renderer2DStorage;

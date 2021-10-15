@@ -5,8 +5,12 @@
 #include "Primitives/IndexBuffer.h"
 
 #include "Tools/Utils.h"
-#include "Pools/MeshPool.h"
 #include "Import/glTFImporter.h"
+#include "Material/MaterialPBR.h"
+
+#include <cereal/cereal.hpp>
+#include <cereal/types/vector.hpp>
+#include <cereal/archives/json.hpp>
 
 namespace SmolEngine
 {
@@ -33,20 +37,25 @@ namespace SmolEngine
         const bool is_succeed = glTFImporter::Import(path, data);
         if (is_succeed)
         {
+            uint32_t meshCount = static_cast<uint32_t>(data->Primitives.size());
+
             // Root
             {
                 std::hash<std::string_view> hasher{};
                 Primitive* primitve = &data->Primitives[0];
+
+                m_Index = 0;
                 m_AABB = primitve->AABB;
                 m_Name = primitve->MeshName;
                 m_ID = hasher(path);
+
                 Build(m_Root, nullptr, primitve);
 
                 m_Scene.emplace_back(m_Root);
             }
 
             // Children
-            uint32_t childCount = static_cast<uint32_t>(data->Primitives.size() - 1);
+            uint32_t childCount = static_cast<uint32_t>(meshCount - 1);
             m_Childs.resize(childCount);
             for (uint32_t i = 0; i < childCount; ++i)
             {
@@ -54,16 +63,31 @@ namespace SmolEngine
                 Primitive* primitve = &data->Primitives[i + 1];
                 mesh->m_AABB = primitve->AABB;
                 mesh->m_Name = primitve->MeshName;
+                mesh->m_Index = i + 1;
 
                 Build(mesh, m_Root, primitve);
 
                 m_Childs[i] = mesh;
                 m_Scene.emplace_back(mesh);
             }
+
+            m_DefaultView = std::make_shared<MeshView>();
+            m_DefaultView->m_Elements.resize(meshCount);
+            m_DefaultView->m_Path = path;
         }
 
         delete data;
         return is_succeed;
+    }
+
+    bool Mesh::LoadFromSave(Ref<MeshView>& out_view)
+    {
+        if (LoadFromFile(out_view->m_Path))
+        {
+
+        }
+
+        return false;
     }
 
     std::vector<Ref<Mesh>>& Mesh::GetScene()
@@ -88,12 +112,24 @@ namespace SmolEngine
 
     size_t Mesh::GetID() const
     {
-        return m_ID;
+        return m_Root->m_ID;
+    }
+
+    uint32_t Mesh::GetNodeIndex() const
+    {
+        return m_Index;
     }
 
     std::string Mesh::GetName() const
     {
         return m_Name;
+    }
+
+    Ref<MeshView> Mesh::CreateMeshView() const
+    {
+        Ref<MeshView> view = std::make_shared<MeshView>();
+        *view = *m_DefaultView;
+        return view;
     }
 
     Ref<VertexBuffer> Mesh::GetVertexBuffer()
@@ -154,5 +190,73 @@ namespace SmolEngine
         mesh->m_IndexBuffer->BuildFromMemory(primitive->IndexBuffer.data(), primitive->IndexBuffer.size(), is_static);
 
         return true;
+    }
+
+    bool MeshView::Serialize(const std::string& path)
+    {
+        std::stringstream storage;
+        {
+            cereal::JSONOutputArchive output{ storage };
+            serialize(output);
+        }
+
+        std::ofstream myfile(path);
+        if (myfile.is_open())
+        {
+            myfile << storage.str();
+            myfile.close();
+            return true;
+        }
+
+        return false;
+    }
+
+    bool MeshView::Deserialize(const std::string& path)
+    {
+        std::stringstream storage;
+        std::ifstream file(path);
+        if (!file)
+        {
+            DebugLog::LogError("Could not open the file: {}", path);
+            return false;
+        }
+
+        storage << file.rdbuf();
+        {
+            cereal::JSONInputArchive input{ storage };
+            input(m_Path, m_Elements);
+        }
+
+        return true;
+    }
+
+    void MeshView::SetAnimationController(const Ref<AnimationController>& contoller)
+    {
+        m_AnimationController = contoller;
+    }
+
+    void MeshView::SetDefaultMaterialHandle(const Ref<PBRMaterialHandle>& handle, uint32_t nodeIndex)
+    {
+        m_Elements[nodeIndex].m_PBRHandle = handle;
+    }
+
+    void MeshView::SetMaterial(const Ref<Material3D>& material, uint32_t nodeIndex)
+    {
+        m_Elements[nodeIndex].m_Material = material;
+    }
+
+    Ref<AnimationController> MeshView::GetAnimationController() const
+    {
+        return m_AnimationController;
+    }
+
+    Ref<PBRMaterialHandle> MeshView::GetDefaultMaterialHandle(uint32_t nodeIndex) const
+    {
+        return m_Elements[nodeIndex].m_PBRHandle;
+    }
+
+    Ref<Material3D> MeshView::GetMaterial(uint32_t nodeIndex) const
+    {
+        return m_Elements[nodeIndex].m_Material;
     }
 }

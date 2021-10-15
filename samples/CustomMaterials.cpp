@@ -20,7 +20,6 @@ int main(int argc, char** argv)
 	}
 
 	GraphicsContextCreateInfo info = {};
-	info.eMSAASamples = MSAASamples::SAMPLE_COUNT_1;
 	info.ResourcesFolder = "../resources/";
 	info.pWindowCI = &windoInfo;
 
@@ -30,15 +29,11 @@ int main(int argc, char** argv)
 	auto context = GraphicsContext::Create(&info);
 	context->SetEventCallback([&](Event& e) { if (e.IsType(EventType::WINDOW_CLOSE)) { process = false; }  camera->OnEvent(e); });
 
-	auto cube = MeshPool::GetCube();
-	auto drawList = new RendererDrawList();
-	auto storage = new RendererStorage();
-	storage->Build();
+	auto& [cube, cubeView] = MeshPool::GetCube();
 
-	Ref<PBRHandle> pbr_material = nullptr;
 	{
 		TextureCreateInfo textureCI = {};
-		PBRCreateInfo materialCI = {};
+		PBRMaterialCreateInfo materialCI = {};
 
 		textureCI.FilePath = "Assets/materials/metal_1/Metal033_1K_Color.png";
 		materialCI.SetTexture(PBRTexture::Albedo, &textureCI);
@@ -52,17 +47,16 @@ int main(int argc, char** argv)
 		textureCI.FilePath = "Assets/materials/metal_1/Metal033_1K_Metalness.png";
 		materialCI.SetTexture(PBRTexture::Metallic, &textureCI);
 
-		pbr_material = storage->GetDefaultMaterial()->AddMaterial(&materialCI, "wood");
+		auto materialID = RendererStorage::GetDefaultMaterial()->AddMaterial(&materialCI, "metal");
+		cubeView->SetDefaultMaterialHandle(materialID, cube->GetNodeIndex());
 
-		storage->OnUpdateMaterials();
+		RendererStorage::OnUpdateMaterials();
 	}
 
 	DirectionalLight dirLight = {};
 	dirLight.IsActive = true;
 	dirLight.Direction = glm::vec4(105.0f, 53.0f, 102.0f, 0);
-	drawList->SubmitDirLight(&dirLight);
-
-	SceneViewProjection viewProj = SceneViewProjection(camera);
+	RendererDrawList::SubmitDirLight(&dirLight);
 
 	while (process)
 	{
@@ -77,27 +71,26 @@ int main(int argc, char** argv)
 		*/
 
 		camera->OnUpdate(deltaTime);
-		viewProj.Update(camera);
 
-		drawList->BeginSubmit(&viewProj);
-		drawList->SubmitMesh({ 0, 0, 0 }, { 0, 0, 0 }, { 1, 1, 1 }, cube, pbr_material);
-		drawList->EndSubmit();
+		RendererDrawList::BeginSubmit(camera->GetSceneViewProjection());
+		RendererDrawList::SubmitMesh({ 0, 0, 0 }, { 0, 0, 0 }, { 1, 1, 1 }, cube, cubeView);
+		RendererDrawList::EndSubmit();
 
 		context->BeginFrame(deltaTime);
 		{
 			ImGui::Begin("Panel");
 			if (ImGui::Checkbox("Enable", &dirLight.IsActive))
 			{
-				drawList->SubmitDirLight(&dirLight);
+				RendererDrawList::SubmitDirLight(&dirLight);
 			}
 
 			if (ImGui::DragFloat4("Dir", glm::value_ptr(dirLight.Direction)))
 			{
-				drawList->SubmitDirLight(&dirLight);
+				RendererDrawList::SubmitDirLight(&dirLight);
 			}
 			ImGui::End();
 
-			RendererDeferred::DrawFrame(&clearInfo, storage, drawList);
+			RendererDeferred::DrawFrame(&clearInfo);
 		}
 		context->SwapBuffers();
 	}

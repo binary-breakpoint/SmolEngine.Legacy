@@ -1,6 +1,8 @@
 #pragma once
 #include "Common/BufferLayout.h"
 
+#include <glm/glm.hpp>
+
 namespace SmolEngine
 {
 	struct VertexInputInfo

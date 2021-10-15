@@ -26,6 +26,8 @@ namespace SmolEngine
 	{
 		Imgui             = 1,
 		RendererDebug     = 2,
+		RendererDeferred  = 4,
+		Renderer2D        = 8,
 	};
 
 	inline FeaturesFlags operator~ (FeaturesFlags a) { return (FeaturesFlags)~(int)a; }

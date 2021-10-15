@@ -22,7 +22,7 @@ namespace SmolEngine
 		Emissive,
 	};
 
-	struct PBRUniform
+	struct PBRMaterialUniform
 	{
 		glm::vec4  Albedro;
 		float      Metalness = 0.2f;
@@ -43,7 +43,7 @@ namespace SmolEngine
 		uint32_t   ID = 0;
 	};
 
-	struct PBRCreateInfo
+	struct PBRMaterialCreateInfo
 	{
 		void               SetTexture(PBRTexture type, const TextureCreateInfo* info);
 		void               GetTextures(std::unordered_map<PBRTexture, TextureCreateInfo*>& out_hashmap);
@@ -73,24 +73,24 @@ namespace SmolEngine
 		}
 	};
 
-	struct PBRHandle
+	struct PBRMaterialHandle
 	{
-		void              SetTexture(const Ref<Texture>& tex, PBRTexture type);
-		void              SetRoughness(float value);
-		void              SetMetallness(float value);
-		void              SetEmission(float value);
-		void              SetAlbedo(const glm::vec3& value);
-		const PBRUniform& GetUniform() const;
-		uint32_t          GetID() const;
+		void                      SetTexture(const Ref<Texture>& tex, PBRTexture type);
+		void                      SetRoughness(float value);
+		void                      SetMetallness(float value);
+		void                      SetEmission(float value);
+		void                      SetAlbedo(const glm::vec3& value);
+		const PBRMaterialUniform& GetUniform() const;
+		uint32_t                  GetID() const;
 
 	private:
-		Ref<Texture>      m_Albedo = nullptr;
-		Ref<Texture>      m_Normal = nullptr;
-		Ref<Texture>      m_Metallness = nullptr;
-		Ref<Texture>      m_Roughness = nullptr;
-		Ref<Texture>      m_Emissive = nullptr;
-		Ref<Texture>      m_AO = nullptr;
-		PBRUniform        m_Uniform{};
+		Ref<Texture>             m_Albedo = nullptr;
+		Ref<Texture>             m_Normal = nullptr;
+		Ref<Texture>             m_Metallness = nullptr;
+		Ref<Texture>             m_Roughness = nullptr;
+		Ref<Texture>             m_Emissive = nullptr;
+		Ref<Texture>             m_AO = nullptr;
+		PBRMaterialUniform       m_Uniform{};
 
 		friend class MaterialPBR;
 	};
@@ -98,23 +98,23 @@ namespace SmolEngine
 	class MaterialPBR : public Material3D
 	{
 	public:
-		void                               ClearMaterials();
-		void                               UpdateMaterials();
-		bool                               AddDefaultMaterial();
-		bool                               RemoveMaterial(const std::string& name);
-		bool                               IsMaterialExist(const std::string& name);
-		uint32_t                           GetMaterialCount() const;
-		Ref<PBRHandle>                     AddMaterial(PBRCreateInfo* infoCI, const std::string& name);
-		Ref<PBRHandle>                     GetMaterial(const std::string& name);
-		const std::vector<Ref<PBRHandle>>& GetMaterials() const;
+		void                                       ClearMaterials();
+		void                                       UpdateMaterials();
+		bool                                       AddDefaultMaterial();
+		bool                                       RemoveMaterial(const std::string& name);
+		bool                                       IsMaterialExist(const std::string& name);
+		uint32_t                                   GetMaterialCount() const;
+		Ref<PBRMaterialHandle>                     AddMaterial(PBRMaterialCreateInfo* infoCI, const std::string& name);
+		Ref<PBRMaterialHandle>                     GetMaterial(const std::string& name);
+		const std::vector<Ref<PBRMaterialHandle>>& GetMaterials() const;
 							    
 	private:				    
-		bool                               Initialize(RendererStorage* storage);
-		static Ref<MaterialPBR>            Create();
+		bool                                       Initialize(RendererStorage* storage);
+		static Ref<MaterialPBR>                    Create();
 
 	private:
-		std::unordered_map<std::string, Ref<PBRHandle>> m_IDs;
-		std::vector<Ref<PBRHandle>> m_Materials;
+		std::unordered_map<std::string, Ref<PBRMaterialHandle>> m_IDs;
+		std::vector<Ref<PBRMaterialHandle>> m_Materials;
 		const uint32_t m_MaxTextures = 4096;
 		std::mutex m_Mutex{};
 

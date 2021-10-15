@@ -15,6 +15,7 @@ namespace SmolEngine
 	class CubeMap;
 	class Mesh;
 	class Texture;
+	class GraphicsContext;
 
 	enum class BlendFactor : uint16_t
 	{

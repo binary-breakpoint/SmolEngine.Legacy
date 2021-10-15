@@ -25,7 +25,7 @@ namespace SmolEngine
 		s_Instance = nullptr;
 	}
 
-	Ref<Mesh> MeshPool::GetByPath(const std::string& path)
+	std::pair<Ref<Mesh>, Ref<MeshView>> MeshPool::GetByPath(const std::string& path)
 	{
 		std::hash<std::string_view> hasher{};
 		size_t id = hasher(path);
@@ -33,28 +33,27 @@ namespace SmolEngine
 		return GetByID(id);
 	}
 
-	Ref<Mesh> MeshPool::GetByID(size_t id)
+	std::pair<Ref<Mesh>, Ref<MeshView>> MeshPool::GetByID(size_t id)
 	{
 		auto& it = s_Instance->m_IDMap.find(id);
 		if (it != s_Instance->m_IDMap.end())
 		{
-			return it->second;
+			return { it->second, it->second->CreateMeshView() };
 		}
 
-		return nullptr;
+		return { nullptr, nullptr };
 	}
 
-	Ref<Mesh> MeshPool::ConstructFromFile(const std::string& path)
+	std::pair<Ref<Mesh>, Ref<MeshView>> MeshPool::ConstructFromFile(const std::string& path)
 	{
-		std::hash<std::string_view> hasher{};
-		size_t id = hasher(path);
-
-		auto& it = s_Instance->m_IDMap.find(id);
-		if (it != s_Instance->m_IDMap.end())
+		size_t id = 0;
 		{
-			return it->second;
-		}
+			std::hash<std::string_view> hasher{};
+			size_t id = hasher(path);
 
+			auto& [mesh, view] = GetByID(id);
+			if (view && mesh) { return { mesh, view }; }
+		}
 
 		Ref<Mesh> mesh = Mesh::Create();
 		bool is_loaded = mesh->LoadFromFile(path);
@@ -63,9 +62,11 @@ namespace SmolEngine
 			s_Instance->m_Mutex.lock();
 			s_Instance->m_IDMap[id] = mesh;
 			s_Instance->m_Mutex.unlock();
+
+			return { mesh, mesh->CreateMeshView() };
 		}
 
-		return is_loaded ? mesh : nullptr;
+		return { nullptr, nullptr };
 	}
 
 	bool MeshPool::Remove(size_t id)
@@ -78,23 +79,23 @@ namespace SmolEngine
 		s_Instance->m_IDMap.clear();
 	}
 
-	Ref<Mesh> MeshPool::GetCube()
+	std::pair<Ref<Mesh>, Ref<MeshView>> MeshPool::GetCube()
 	{
-		return s_Instance->m_Cube;
+		return { s_Instance->m_Cube, s_Instance->m_Cube->CreateMeshView() };
 	}
 
-	Ref<Mesh> MeshPool::GetSphere()
+	std::pair<Ref<Mesh>, Ref<MeshView>> MeshPool::GetSphere()
 	{
-		return s_Instance->m_Sphere;
+		return { s_Instance->m_Sphere, s_Instance->m_Sphere->CreateMeshView() };
 	}
 
-	Ref<Mesh> MeshPool::GetCapsule()
+	std::pair<Ref<Mesh>, Ref<MeshView>> MeshPool::GetCapsule()
 	{
-		return s_Instance->m_Capsule;
+		return { s_Instance->m_Capsule, s_Instance->m_Capsule->CreateMeshView() };
 	}
 
-	Ref<Mesh> MeshPool::GetTorus()
+	std::pair<Ref<Mesh>, Ref<MeshView>> MeshPool::GetTorus()
 	{
-		return s_Instance->m_Torus;
+		return { s_Instance->m_Torus, s_Instance->m_Torus->CreateMeshView() };
 	}
 }

@@ -1,10 +1,23 @@
 #pragma once
 #include "Common/Memory.h"
+#include "Animation/AnimationController.h"
+#include "Primitives/GraphicsPipeline.h"
+#include "Primitives/ComputePipeline.h"
+#include "Primitives/Framebuffer.h"
+#include "Primitives/Texture.h"
+#include "Primitives/Mesh.h"
+#include "Primitives/EnvironmentMap.h"
+#include "Material/MaterialPBR.h"
+#include "Camera/Frustum.h"
+#include "Camera/Camera.h"
 
 namespace SmolEngine
 {
 	struct RendererStorageBase
 	{
+		RendererStorageBase() = default;
+		virtual ~RendererStorageBase() = default;
+
 		virtual void  OnResize(uint32_t width, uint32_t height) {};
 		void          Build();
 
@@ -13,7 +26,6 @@ namespace SmolEngine
 
 	private:          
 		virtual void  Initilize() = 0;
-		void          AddStorage();
 	};
 
 	struct GLSL_BOOLPAD
@@ -170,5 +182,76 @@ namespace SmolEngine
 		IBLProperties          IBL = {};
 		BloomProperties        Bloom = {};
 		FXAAProperties         FXAA = {};
+	};
+
+	struct CommandBuffer
+	{
+		uint32_t               InstancesCount = 0;
+		uint32_t               Offset = 0;
+		Ref<Mesh>              Mesh = nullptr;
+		Material3D* Material = nullptr;
+	};
+
+	struct InstancePackage
+	{
+		struct Package
+		{
+			glm::vec3* WorldPos = nullptr;
+			glm::vec3* Rotation = nullptr;
+			glm::vec3* Scale = nullptr;
+			AnimationController* AnimController = nullptr;
+			PBRMaterialHandle* PBRHandle = nullptr;
+			Material3D* Material = nullptr;
+		};
+
+		uint32_t                  CurrentIndex = 0;
+		std::vector<Package>      Packages;
+	};
+
+	struct RendererDrawList
+	{
+		RendererDrawList();
+		~RendererDrawList();
+
+		static void              BeginSubmit(SceneViewProjection* sceneViewProj);
+		static void              EndSubmit();
+		static void              SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, const Ref<Mesh>& mesh, const Ref<MeshView>& view = nullptr);
+		static void              SubmitDirLight(DirectionalLight* light);
+		static void              SubmitPointLight(PointLight* light);
+		static void              SubmitSpotLight(SpotLight* light);
+		static void              CalculateFrustum(SceneViewProjection* viewProj);
+		static void              SetDefaultState();
+		static void              ClearDrawList();
+		static Frustum&          GetFrustum();
+		static RendererDrawList* GetSingleton() { return s_Instance; }
+
+	private:
+		static void              CalculateDepthMVP();
+		static void              BuildDrawList();
+
+	private:
+		inline static RendererDrawList*                 s_Instance = nullptr;
+		SceneViewProjection*                            m_SceneInfo = nullptr;
+													    
+		uint32_t                                        m_Objects = 0;
+		uint32_t                                        m_InstanceDataIndex = 0;
+		uint32_t                                        m_PointLightIndex = 0;
+		uint32_t                                        m_SpotLightIndex = 0;
+		uint32_t                                        m_LastAnimationOffset = 0;
+
+		Frustum                                         m_Frustum{};
+		DirectionalLight                                m_DirLight{};
+		glm::mat4                                       m_DepthMVP{};
+		std::vector<Ref<Mesh>>                          m_UsedMeshes;
+		std::vector<CommandBuffer>                      m_DrawList;
+		std::array<InstanceData, max_objects>           m_InstancesData;
+		std::array<PointLight, max_lights>              m_PointLights;
+		std::array<SpotLight, max_lights>               m_SpotLights;
+		std::vector<glm::mat4>                          m_AnimationJoints;
+		std::unordered_map<Ref<Mesh>, InstancePackage>  m_Packages;
+		std::unordered_map<Ref<Mesh>, uint32_t>         m_RootOffsets;
+
+		friend struct RendererStorage;
+		friend class RendererDeferred;
 	};
 }

@@ -24,28 +24,34 @@
 
 namespace SmolEngine
 {
-	void RendererDeferred::DrawFrame(ClearInfo* clearInfo, RendererStorage* storage, RendererDrawList* drawList, bool batch_cmd)
+	struct SubmitInfo
+	{
+		ClearInfo* pClearInfo = nullptr;
+		RendererStorage* pStorage = nullptr;
+		RendererDrawList* pDrawList = nullptr;
+		CommandBufferStorage* pCmdStorage = nullptr;
+	};
+
+	void RendererDeferred::DrawFrame(ClearInfo* clearInfo, bool batch_cmd)
 	{
 		CommandBufferStorage cmdStorage{};
-		if (batch_cmd)
-			cmdStorage.Buffer = VulkanContext::GetCurrentVkCmdBuffer();
-		else
-			VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
-
-		storage->m_DefaultMaterial->GetPipeline()->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
-		storage->p_Lighting->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
-		storage->p_Skybox->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
-		storage->p_DepthPass->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
-		storage->p_Debug->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
-		storage->p_Grid->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
-		storage->p_Combination->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
-		//storage->p_DOF->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
+		if (batch_cmd) { cmdStorage.Buffer = VulkanContext::GetCurrentVkCmdBuffer(); }
+		else { VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage); }
 
 		SubmitInfo submitInfo{};
 		submitInfo.pClearInfo = clearInfo;
-		submitInfo.pDrawList = drawList;
-		submitInfo.pStorage = storage;
+		submitInfo.pDrawList = RendererDrawList::GetSingleton();
+		submitInfo.pStorage = RendererStorage::GetSingleton();
 		submitInfo.pCmdStorage = &cmdStorage;
+
+		submitInfo.pStorage->m_DefaultMaterial->GetPipeline()->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
+		submitInfo.pStorage->p_Lighting->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
+		submitInfo.pStorage->p_Skybox->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
+		submitInfo.pStorage->p_DepthPass->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
+		submitInfo.pStorage->p_Debug->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
+		submitInfo.pStorage->p_Grid->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
+		submitInfo.pStorage->p_Combination->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
+		//submitInfo.pStorage->p_DOF->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
 
 		UpdateUniforms(&submitInfo);
 		DepthPass(&submitInfo);
@@ -71,19 +77,19 @@ namespace SmolEngine
 
 	void RendererStorage::SetRenderTarget(Ref<Framebuffer>& target)
 	{
-		f_Main = target;
-		p_Combination->SetFramebuffers({ f_Main });
-		p_Debug->SetFramebuffers({ f_Main });
+		s_Instance->f_Main = target;
+		s_Instance->p_Combination->SetFramebuffers({ s_Instance->f_Main });
+		s_Instance->p_Debug->SetFramebuffers({ s_Instance->f_Main });
 	}
 
 	void RendererStorage::OnUpdateMaterials()
 	{
-		m_DefaultMaterial->UpdateMaterials();
+		s_Instance->m_DefaultMaterial->UpdateMaterials();
 	}
 
 	void RendererStorage::SetDefaultState()
 	{
-		m_State = {};
+		s_Instance->m_State = {};
 	}
 
 	void RendererStorage::CreatePipelines()
@@ -498,29 +504,29 @@ namespace SmolEngine
 	{
 		JobsSystemInstance::BeginSubmition();
 		{
-			if (m_UsedMeshes.size() > m_DrawList.size()) { m_DrawList.resize(m_UsedMeshes.size()); }
+			if (s_Instance->m_UsedMeshes.size() > s_Instance->m_DrawList.size()) { s_Instance->m_DrawList.resize(s_Instance->m_UsedMeshes.size()); }
 
-			uint32_t cmdCount = static_cast<uint32_t>(m_UsedMeshes.size());
+			uint32_t cmdCount = static_cast<uint32_t>(s_Instance->m_UsedMeshes.size());
 			for (uint32_t i = 0; i < cmdCount; ++i)
 			{
 				// Getting values
-				Ref<Mesh>& mesh = m_UsedMeshes[i];
-				InstancePackage& instance = m_Packages[mesh];
-				CommandBuffer& cmd = m_DrawList[i];
+				Ref<Mesh>& mesh = s_Instance->m_UsedMeshes[i];
+				InstancePackage& instance = s_Instance->m_Packages[mesh];
+				CommandBuffer& cmd = s_Instance->m_DrawList[i];
 
 				// Setting draw list command
-				cmd.Offset = m_InstanceDataIndex;
+				cmd.Offset = s_Instance->m_InstanceDataIndex;
 				cmd.Mesh = mesh;
 				cmd.InstancesCount = instance.CurrentIndex;
 
 				for (uint32_t x = 0; x < instance.CurrentIndex; ++x)
 				{
 					InstancePackage::Package& package = instance.Packages[x];
-					InstanceData& instanceUBO = m_InstancesData[m_InstanceDataIndex];
+					InstanceData& instanceUBO = s_Instance->m_InstancesData[s_Instance->m_InstanceDataIndex];
 
 					cmd.Material = package.Material;
 					const bool is_animated = package.AnimController != nullptr;
-					uint32_t   anim_offset = m_LastAnimationOffset;
+					uint32_t   anim_offset = s_Instance->m_LastAnimationOffset;
 
 					// Animations
 					if (is_animated)
@@ -528,13 +534,13 @@ namespace SmolEngine
 						if (mesh->IsRootNode())
 						{
 							package.AnimController->Update();
-							package.AnimController->CopyJoints(m_AnimationJoints, m_LastAnimationOffset);
-							m_RootOffsets[mesh] = anim_offset;
+							package.AnimController->CopyJoints(s_Instance->m_AnimationJoints, s_Instance->m_LastAnimationOffset);
+							s_Instance->m_RootOffsets[mesh] = anim_offset;
 						}
 						else
 						{
-							auto& it = m_RootOffsets.find(mesh->m_Root);
-							if (it != m_RootOffsets.end())
+							auto& it = s_Instance->m_RootOffsets.find(mesh->m_Root);
+							if (it != s_Instance->m_RootOffsets.end())
 								anim_offset = it->second;
 						}
 					}
@@ -552,7 +558,7 @@ namespace SmolEngine
 							});
 					}
 
-					m_InstanceDataIndex++;
+					s_Instance->m_InstanceDataIndex++;
 				}
 
 				instance.CurrentIndex = 0;
@@ -561,20 +567,9 @@ namespace SmolEngine
 		JobsSystemInstance::EndSubmition();
 	}
 
-	void RendererDrawList::ResetDrawList()
-	{
-		m_Objects = 0;
-		m_InstanceDataIndex = 0;
-		m_PointLightIndex = 0;
-		m_SpotLightIndex = 0;
-		m_LastAnimationOffset = 0;
-		m_UsedMeshes.clear();
-		m_RootOffsets.clear();
-	}
-
 	Frustum& RendererDrawList::GetFrustum()
 	{
-		return m_Frustum;
+		return s_Instance->m_Frustum;
 	}
 
 	void RendererStorage::UpdateUniforms(RendererDrawList* drawList, Ref<Framebuffer>& target)
@@ -658,49 +653,61 @@ namespace SmolEngine
 		JobsSystemInstance::EndSubmition();
 	}
 
+	RendererStorage::RendererStorage()
+	{
+		s_Instance = this;
+	}
+
+	RendererStorage::~RendererStorage()
+	{
+		s_Instance = nullptr;
+	}
+
 	void RendererStorage::SetDynamicSkybox(DynamicSkyProperties& properties, const glm::mat4& proj, bool regeneratePBRmaps)
 	{
-		auto& ref = m_EnvironmentMap->GetDynamicSkyProperties();
+		auto& ref = s_Instance->m_EnvironmentMap->GetDynamicSkyProperties();
 		ref = properties;
 
 		if (regeneratePBRmaps)
 		{
-			m_EnvironmentMap->GenerateDynamic(proj);
+			s_Instance->m_EnvironmentMap->GenerateDynamic(proj);
 
-			auto cubeMap = m_EnvironmentMap->GetCubeMap();
-			m_VulkanPBR->GeneratePBRCubeMaps(cubeMap);
+			auto cubeMap = s_Instance->m_EnvironmentMap->GetCubeMap();
+			s_Instance->m_VulkanPBR->GeneratePBRCubeMaps(cubeMap);
 
 			// Update Descriptors
-			p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(2, m_VulkanPBR->GetIrradianceImageInfo());
-			p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(3, m_VulkanPBR->GetBRDFLUTImageInfo());
-			p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(4, m_VulkanPBR->GetPrefilteredCubeImageInfo());
-			p_Skybox->UpdateSampler(cubeMap, 1);
+			s_Instance->p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(2, s_Instance->m_VulkanPBR->GetIrradianceImageInfo());
+			s_Instance->p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(3, s_Instance->m_VulkanPBR->GetBRDFLUTImageInfo());
+			s_Instance->p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(4, s_Instance->m_VulkanPBR->GetPrefilteredCubeImageInfo());
+			s_Instance->p_Skybox->UpdateSampler(cubeMap, 1);
 		}
 		else
-			m_EnvironmentMap->UpdateDescriptors();
+		{
+			s_Instance->m_EnvironmentMap->UpdateDescriptors();
+		}
 	}
 
 	void RendererStorage::SetStaticSkybox(Ref<Texture>& skybox)
 	{
-		m_EnvironmentMap->GenerateStatic(skybox);
-		auto cubeMap = m_EnvironmentMap->GetCubeMap();
-		m_VulkanPBR->GeneratePBRCubeMaps(cubeMap);
+		s_Instance->m_EnvironmentMap->GenerateStatic(skybox);
+		auto cubeMap = s_Instance->m_EnvironmentMap->GetCubeMap();
+		s_Instance->m_VulkanPBR->GeneratePBRCubeMaps(cubeMap);
 
 		// Update Descriptors
-		p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(2, m_VulkanPBR->GetIrradianceImageInfo());
-		p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(3, m_VulkanPBR->GetBRDFLUTImageInfo());
-		p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(4, m_VulkanPBR->GetPrefilteredCubeImageInfo());
-		p_Skybox->UpdateSampler(cubeMap, 1);
+		s_Instance->p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(2, s_Instance->m_VulkanPBR->GetIrradianceImageInfo());
+		s_Instance->p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(3, s_Instance->m_VulkanPBR->GetBRDFLUTImageInfo());
+		s_Instance->p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(4, s_Instance->m_VulkanPBR->GetPrefilteredCubeImageInfo());
+		s_Instance->p_Skybox->UpdateSampler(cubeMap, 1);
 	}
 
 	RendererStateEX& RendererStorage::GetState()
 	{
-		return m_State;
+		return s_Instance->m_State;
 	}
 
-	Ref<MaterialPBR> RendererStorage::GetDefaultMaterial() const
+	Ref<MaterialPBR> RendererStorage::GetDefaultMaterial()
 	{
-		return m_DefaultMaterial;
+		return s_Instance->m_DefaultMaterial;
 	}
 
 	void RendererStorage::OnResize(uint32_t width, uint32_t height)
@@ -759,15 +766,20 @@ namespace SmolEngine
 	RendererDrawList::RendererDrawList()
 	{
 		m_AnimationJoints.resize(max_anim_joints);
+		s_Instance = this;
 	}
 
-	void RendererDrawList::SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, const Ref<Mesh>& mesh, 
-		const Ref<PBRHandle>& material, bool submit_childs, AnimationController* anim_controller)
+	RendererDrawList::~RendererDrawList()
 	{
-		if (!m_Frustum.CheckSphere(pos) || m_Objects >= max_objects)
+		s_Instance = nullptr;
+	}
+
+	void RendererDrawList::SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, const Ref<Mesh>& mesh, const Ref<MeshView>& view)
+	{
+		if (!s_Instance->m_Frustum.CheckSphere(pos) || s_Instance->m_Objects >= max_objects)
 			return;
 
-		auto& instance = m_Packages[mesh];
+		auto& instance = s_Instance->m_Packages[mesh];
 		InstancePackage::Package* package = nullptr;
 
 		if (instance.CurrentIndex == instance.Packages.size())
@@ -777,51 +789,47 @@ namespace SmolEngine
 		}
 		else { package = &instance.Packages[instance.CurrentIndex]; }
 
-		package->PBRHandle = material.get();
+		package->PBRHandle = view != nullptr ? view->GetDefaultMaterialHandle(mesh->GetNodeIndex()).get() : nullptr;
 		package->WorldPos = const_cast<glm::vec3*>(&pos);
 		package->Rotation = const_cast<glm::vec3*>(&rotation);
 		package->Scale = const_cast<glm::vec3*>(&scale);
-		package->AnimController = anim_controller;
-		package->Material =nullptr;
+		package->AnimController = view != nullptr ? view->GetAnimationController().get() : nullptr;
+		package->Material = view != nullptr ? view->GetMaterial(mesh->GetNodeIndex()).get() : nullptr;
 
-		m_Objects++;
+		s_Instance->m_Objects++;
 		instance.CurrentIndex++;
-		bool found = std::find(m_UsedMeshes.begin(), m_UsedMeshes.end(), mesh) != m_UsedMeshes.end();
-		if (found == false) { m_UsedMeshes.emplace_back(mesh); }
+		bool found = std::find(s_Instance->m_UsedMeshes.begin(), s_Instance->m_UsedMeshes.end(), mesh) != s_Instance->m_UsedMeshes.end();
+		if (found == false) { s_Instance->m_UsedMeshes.emplace_back(mesh); }
 
-		if (submit_childs)
-		{
-			for (auto& sub : mesh->m_Childs)
-				SubmitMesh(pos, rotation, scale, sub, material, submit_childs, anim_controller);
-		}
+		for (auto& sub : mesh->m_Childs) { SubmitMesh(pos, rotation, scale, sub, view); }
 	}
 
 	void RendererDrawList::SubmitDirLight(DirectionalLight* light)
 	{
-		m_DirLight = *light;
+		s_Instance->m_DirLight = *light;
 
-		if(m_DirLight.IsActive && m_DirLight.IsCastShadows)
+		if(s_Instance->m_DirLight.IsActive && s_Instance->m_DirLight.IsCastShadows)
 			CalculateDepthMVP();
 	}
 
 	void RendererDrawList::SubmitPointLight(PointLight* light)
 	{
-		uint32_t index = m_PointLightIndex;
+		uint32_t index = s_Instance->m_PointLightIndex;
 		if (index >= max_lights)
 			return;
 
-		m_PointLights[index] = *light;
-		m_PointLightIndex++;
+		s_Instance->m_PointLights[index] = *light;
+		s_Instance->m_PointLightIndex++;
 	}
 
 	void RendererDrawList::SubmitSpotLight(SpotLight* light)
 	{
-		uint32_t index = m_SpotLightIndex;
+		uint32_t index = s_Instance->m_SpotLightIndex;
 		if (index >= max_lights)
 			return;
 
-		m_SpotLights[index] = *light;
-		m_SpotLightIndex++;
+		s_Instance->m_SpotLights[index] = *light;
+		s_Instance->m_SpotLightIndex++;
 	}
 
 	void RendererDrawList::CalculateDepthMVP()
@@ -829,22 +837,34 @@ namespace SmolEngine
 		// Keep depth range as small as possible
 		// for better shadow map precision
 		// Matrix from light's point of view
-		glm::mat4 depthProjectionMatrix = glm::perspective(m_DirLight.lightFOV, 1.0f, m_DirLight.zNear, m_DirLight.zFar);
-		glm::mat4 depthViewMatrix = glm::lookAt(glm::vec3(m_DirLight.Direction), glm::vec3(0.0f), glm::vec3(0, 1, 0));
+		glm::mat4 depthProjectionMatrix = glm::perspective(s_Instance->m_DirLight.lightFOV, 1.0f, s_Instance->m_DirLight.zNear, s_Instance->m_DirLight.zFar);
+		glm::mat4 depthViewMatrix = glm::lookAt(glm::vec3(s_Instance->m_DirLight.Direction), glm::vec3(0.0f), glm::vec3(0, 1, 0));
 		glm::mat4 depthModelMatrix = glm::mat4(1.0f);
 
-		m_DepthMVP = depthProjectionMatrix * depthViewMatrix * depthModelMatrix;
+		s_Instance->m_DepthMVP = depthProjectionMatrix * depthViewMatrix * depthModelMatrix;
 	}
 
 	void RendererDrawList::SetDefaultState()
 	{
-		ResetDrawList();
-		m_DirLight = {};
+		ClearDrawList();
+
+		s_Instance->m_DirLight = {};
+	}
+
+	void RendererDrawList::ClearDrawList()
+	{
+		s_Instance->m_Objects = 0;
+		s_Instance->m_InstanceDataIndex = 0;
+		s_Instance->m_PointLightIndex = 0;
+		s_Instance->m_SpotLightIndex = 0;
+		s_Instance->m_LastAnimationOffset = 0;
+		s_Instance->m_UsedMeshes.clear();
+		s_Instance->m_RootOffsets.clear();
 	}
 
 	void RendererDrawList::BeginSubmit(SceneViewProjection* viewProj)
 	{
-		ResetDrawList();
+		ClearDrawList();
 		CalculateFrustum(viewProj);
 	}
 
@@ -855,8 +875,8 @@ namespace SmolEngine
 
 	void RendererDrawList::CalculateFrustum(SceneViewProjection* sceneViewProj)
 	{
-		m_SceneInfo = sceneViewProj;
-		m_Frustum.Update(m_SceneInfo->Projection * m_SceneInfo->View);
+		s_Instance->m_SceneInfo = sceneViewProj;
+		s_Instance->m_Frustum.Update(s_Instance->m_SceneInfo->Projection * s_Instance->m_SceneInfo->View);
 	}
 
 	void RendererDeferred::GBufferPass(SubmitInfo* info)
