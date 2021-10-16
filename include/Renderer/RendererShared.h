@@ -184,7 +184,7 @@ namespace SmolEngine
 		FXAAProperties         FXAA = {};
 	};
 
-	struct CommandBuffer
+	struct RendererDrawCommand
 	{
 		uint32_t               InstancesCount = 0;
 		uint32_t               Offset = 0;
@@ -192,16 +192,26 @@ namespace SmolEngine
 		Material3D* Material = nullptr;
 	};
 
-	struct InstancePackage
+	struct RendererDrawInstance
 	{
 		struct Package
 		{
-			glm::vec3* WorldPos = nullptr;
-			glm::vec3* Rotation = nullptr;
-			glm::vec3* Scale = nullptr;
+			glm::vec3*           WorldPos = nullptr;
+			glm::vec3*           Rotation = nullptr;
+			glm::vec3*           Scale = nullptr;
 			AnimationController* AnimController = nullptr;
-			PBRMaterialHandle* PBRHandle = nullptr;
-			Material3D* Material = nullptr;
+			PBRMaterialHandle*   PBRHandle = nullptr;
+			Material3D*          Material = nullptr;
+
+			void Reset()
+			{
+				WorldPos = nullptr;
+				Rotation = nullptr;
+				Scale = nullptr;
+				Material = nullptr;
+				PBRHandle = nullptr;
+				AnimController = nullptr;
+			}
 		};
 
 		uint32_t                  CurrentIndex = 0;
@@ -230,26 +240,27 @@ namespace SmolEngine
 		static void              BuildDrawList();
 
 	private:
-		inline static RendererDrawList*                 s_Instance = nullptr;
-		SceneViewProjection*                            m_SceneInfo = nullptr;
-													    
-		uint32_t                                        m_Objects = 0;
-		uint32_t                                        m_InstanceDataIndex = 0;
-		uint32_t                                        m_PointLightIndex = 0;
-		uint32_t                                        m_SpotLightIndex = 0;
-		uint32_t                                        m_LastAnimationOffset = 0;
-
-		Frustum                                         m_Frustum{};
-		DirectionalLight                                m_DirLight{};
-		glm::mat4                                       m_DepthMVP{};
-		std::vector<Ref<Mesh>>                          m_UsedMeshes;
-		std::vector<CommandBuffer>                      m_DrawList;
-		std::array<InstanceData, max_objects>           m_InstancesData;
-		std::array<PointLight, max_lights>              m_PointLights;
-		std::array<SpotLight, max_lights>               m_SpotLights;
-		std::vector<glm::mat4>                          m_AnimationJoints;
-		std::unordered_map<Ref<Mesh>, InstancePackage>  m_Packages;
-		std::unordered_map<Ref<Mesh>, uint32_t>         m_RootOffsets;
+		inline static RendererDrawList*         s_Instance = nullptr;
+		SceneViewProjection*                    m_SceneInfo = nullptr;
+											    
+		uint32_t                                m_Objects = 0;
+		uint32_t                                m_InstanceDataIndex = 0;
+		uint32_t                                m_PointLightIndex = 0;
+		uint32_t                                m_SpotLightIndex = 0;
+		uint32_t                                m_LastAnimationOffset = 0;
+											    
+		Frustum                                 m_Frustum{};
+		DirectionalLight                        m_DirLight{};
+		glm::mat4                               m_DepthMVP{};
+		std::vector<Ref<Mesh>>                  m_UsedMeshes;
+		std::vector<RendererDrawCommand>        m_DrawList;
+		std::array<InstanceData, max_objects>   m_InstancesData;
+		std::array<PointLight, max_lights>      m_PointLights;
+		std::array<SpotLight, max_lights>       m_SpotLights;
+		std::vector<glm::mat4>                  m_AnimationJoints;
+		std::unordered_map<Ref<Mesh>,		    
+			RendererDrawInstance>               m_Packages;
+		std::unordered_map<Ref<Mesh>, uint32_t> m_RootOffsets;
 
 		friend struct RendererStorage;
 		friend class RendererDeferred;

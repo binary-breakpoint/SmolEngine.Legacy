@@ -44,12 +44,6 @@ namespace SmolEngine
 		materialCI.pStorage = storage;
 
 		AddDefaultMaterial();
-		SetDrawCallback([this](CommandBuffer* cmd, Material3D* material)
-		{
-			material->SubmitPushConstant(ShaderType::Vertex, sizeof(uint32_t), &cmd->Offset);
-			material->DrawMeshIndexed(cmd->Mesh, cmd->InstancesCount);
-		});
-
 		return Build(&materialCI);
 	}
 
@@ -147,6 +141,16 @@ namespace SmolEngine
 	const std::vector<Ref<PBRMaterialHandle>>& MaterialPBR::GetMaterials() const
 	{
 		return m_Materials;
+	}
+
+	void MaterialPBR::OnPushConstant(const uint32_t& dataOffset)
+	{
+		SubmitPushConstant(ShaderType::Vertex, sizeof(uint32_t), &dataOffset);
+	}
+
+	void MaterialPBR::OnDrawCommand(RendererDrawCommand* command)
+	{
+		DrawMeshIndexed(command->Mesh, command->InstancesCount);
 	}
 
 	void MaterialPBR::ClearMaterials()

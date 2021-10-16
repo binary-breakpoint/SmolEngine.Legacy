@@ -103,14 +103,18 @@ namespace SmolEngine
 		bool                                       AddDefaultMaterial();
 		bool                                       RemoveMaterial(const std::string& name);
 		bool                                       IsMaterialExist(const std::string& name);
+
 		uint32_t                                   GetMaterialCount() const;
 		Ref<PBRMaterialHandle>                     AddMaterial(PBRMaterialCreateInfo* infoCI, const std::string& name);
 		Ref<PBRMaterialHandle>                     GetMaterial(const std::string& name);
 		const std::vector<Ref<PBRMaterialHandle>>& GetMaterials() const;
 							    
 	private:				    
-		bool                                       Initialize(RendererStorage* storage);
+		virtual void                               OnPushConstant(const uint32_t& dataOffset) override;
+		virtual void                               OnDrawCommand(RendererDrawCommand* command) override;
+
 		static Ref<MaterialPBR>                    Create();
+		bool                                       Initialize(RendererStorage* storage);
 
 	private:
 		std::unordered_map<std::string, Ref<PBRMaterialHandle>> m_IDs;

@@ -2,11 +2,9 @@
 #include "Material/Material.h"
 #include "Common/Vertex.h"
 
-#include <functional>
-
 namespace SmolEngine
 {
-	struct CommandBuffer;
+	struct RendererDrawCommand;
 
 	class Material3D : public Material
 	{
@@ -14,12 +12,9 @@ namespace SmolEngine
 		Material3D() = default;
 		virtual ~Material3D() = default;
 
-		void            SetDrawCallback(const std::function<void(CommandBuffer*, Material3D*)>& callback);
+		virtual void OnPushConstant(const uint32_t& dataOffset) = 0;
+		virtual void OnDrawCommand(RendererDrawCommand* command) = 0;
+
 		VertexInputInfo GetVertexInputInfo() const;
-
-	private:
-		std::function<void(CommandBuffer*, Material3D*)> m_DrawCallback = nullptr;
-
-		friend class RendererDeferred;
 	};
 }

@@ -3,11 +3,6 @@
 
 namespace SmolEngine
 {
-	void Material3D::SetDrawCallback(const std::function<void(CommandBuffer*, Material3D*)>& callback)
-	{
-		m_DrawCallback = callback;
-	}
-
 	VertexInputInfo Material3D::GetVertexInputInfo() const
 	{
 		BufferLayout layout =

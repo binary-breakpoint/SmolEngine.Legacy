@@ -511,8 +511,8 @@ namespace SmolEngine
 			{
 				// Getting values
 				Ref<Mesh>& mesh = s_Instance->m_UsedMeshes[i];
-				InstancePackage& instance = s_Instance->m_Packages[mesh];
-				CommandBuffer& cmd = s_Instance->m_DrawList[i];
+				RendererDrawInstance& instance = s_Instance->m_Packages[mesh];
+				RendererDrawCommand& cmd = s_Instance->m_DrawList[i];
 
 				// Setting draw list command
 				cmd.Offset = s_Instance->m_InstanceDataIndex;
@@ -521,12 +521,12 @@ namespace SmolEngine
 
 				for (uint32_t x = 0; x < instance.CurrentIndex; ++x)
 				{
-					InstancePackage::Package& package = instance.Packages[x];
+					RendererDrawInstance::Package& package = instance.Packages[x];
 					InstanceData& instanceUBO = s_Instance->m_InstancesData[s_Instance->m_InstanceDataIndex];
 
-					cmd.Material = package.Material;
+					uint32_t anim_offset = s_Instance->m_LastAnimationOffset;
 					const bool is_animated = package.AnimController != nullptr;
-					uint32_t   anim_offset = s_Instance->m_LastAnimationOffset;
+					cmd.Material = package.Material == nullptr ? RendererStorage::GetDefaultMaterial().get() : package.Material;
 
 					// Animations
 					if (is_animated)
@@ -555,6 +555,8 @@ namespace SmolEngine
 								instanceUBO.IsAnimated = is_animated;
 								instanceUBO.AnimOffset = anim_offset;
 								instanceUBO.EntityID = 0; // temp
+
+								package.Reset();
 							});
 					}
 
@@ -780,11 +782,11 @@ namespace SmolEngine
 			return;
 
 		auto& instance = s_Instance->m_Packages[mesh];
-		InstancePackage::Package* package = nullptr;
+		RendererDrawInstance::Package* package = nullptr;
 
 		if (instance.CurrentIndex == instance.Packages.size())
 		{
-			instance.Packages.emplace_back(InstancePackage::Package());
+			instance.Packages.emplace_back(RendererDrawInstance::Package());
 			package = &instance.Packages.back();
 		}
 		else { package = &instance.Packages[instance.CurrentIndex]; }
@@ -905,8 +907,9 @@ namespace SmolEngine
 			for (uint32_t i = 0; i < cmdCount; ++i)
 			{
 				auto& cmd = drawList->m_DrawList[i];
-				Material3D* material = cmd.Material == nullptr ? storage->m_DefaultMaterial.get() : cmd.Material;
-				material->m_DrawCallback(&cmd, material);
+
+				cmd.Material->OnPushConstant(cmd.Offset);
+				cmd.Material->OnDrawCommand(&cmd);
 			}
 		}
 		storage->m_DefaultMaterial->GetPipeline()->EndRenderPass();
