@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "Material/Material2D.h"
+#include "Materials/Material2D.h"
 
 namespace SmolEngine
 {

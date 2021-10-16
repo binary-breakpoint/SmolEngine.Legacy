@@ -1,5 +1,5 @@
 #pragma once
-#include "Material/Material.h"
+#include "Materials/Material.h"
 #include "Common/Vertex.h"
 
 namespace SmolEngine

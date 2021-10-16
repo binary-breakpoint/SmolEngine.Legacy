@@ -7,7 +7,7 @@
 #include "Primitives/Texture.h"
 #include "Primitives/Mesh.h"
 #include "Primitives/EnvironmentMap.h"
-#include "Material/MaterialPBR.h"
+#include "Materials/MaterialPBR.h"
 #include "Camera/Frustum.h"
 #include "Camera/Camera.h"
 

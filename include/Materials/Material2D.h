@@ -1,5 +1,5 @@
 #pragma once
-#include "Material/Material.h"
+#include "Materials/Material.h"
 
 namespace SmolEngine
 {

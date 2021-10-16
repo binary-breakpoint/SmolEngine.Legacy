@@ -6,7 +6,7 @@
 
 #include "Tools/Utils.h"
 #include "Import/glTFImporter.h"
-#include "Material/MaterialPBR.h"
+#include "Materials/MaterialPBR.h"
 
 #include <cereal/cereal.hpp>
 #include <cereal/types/vector.hpp>
