@@ -3,6 +3,8 @@
 #include "Renderer/RendererDeferred.h"
 #include "Renderer/Renderer2D.h"
 
+#include "Backends/Vulkan/VulkanPipeline.h"
+
 namespace SmolEngine
 {
 	Ref<GraphicsPipeline> Material::GetPipeline() const
@@ -15,17 +17,16 @@ namespace SmolEngine
 		return m_ID;
 	}
 
-	bool Material::Build(MaterialCreateInfo* ci)
+	bool Material::BuildEX(MaterialCreateInfo* ci, bool is2D)
 	{
-		assert(!ci->Name.empty() || ci->pStorage != nullptr);
+		assert(!ci->Name.empty());
 
 		if (ci->PipelineCreateInfo.ShaderCreateInfo.Stages.size() > 0)
 		{
-			Ref<Framebuffer> target = ci->bIs2D ? ci->pStorage->Cast<Renderer2DStorage>()->MainFB 
-				: ci->pStorage->Cast<RendererStorage>()->f_GBuffer; // TODO: add main fb to base class
+			Ref<Framebuffer> target = is2D ? Renderer2DStorage::GetSingleton()->MainFB : RendererStorage::GetSingleton()->f_GBuffer;
 
 			ci->PipelineCreateInfo.TargetFramebuffers = { target };
-
+			ci->PipelineCreateInfo.PipelineName = ci->Name;
 			m_Pipeline = GraphicsPipeline::Create();
 			m_Pipeline->Build(&ci->PipelineCreateInfo);
 		}
@@ -52,6 +53,16 @@ namespace SmolEngine
 	void Material::SubmitPushConstant(ShaderType stage, size_t size, const void* data)
 	{
 		m_Pipeline->SubmitPushConstant(stage, size, data);
+	}
+
+	void Material::SetCommandBuffer(void* cmd)
+	{
+		m_Pipeline->SetCommandBuffer(cmd);
+	}
+
+	void* Material::GetCommandBuffer()
+	{
+		return m_Pipeline->GetCommandBuffer();
 	}
 
 	bool Material::UpdateSamplers(const std::vector<Ref<Texture>>& textures, uint32_t binding)

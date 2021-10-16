@@ -107,6 +107,8 @@ namespace SmolEngine
 							              
 		virtual bool                      Build(GraphicsPipelineCreateInfo* info) = 0;
 		virtual void                      ClearColors(const glm::vec4& color = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f)) = 0;
+		virtual void*                     GetCommandBuffer() { return nullptr; };
+		virtual void                      SetCommandBuffer(void* cmd) {};
 		virtual void                      BeginRenderPass(bool flip = false) = 0;
 		virtual void                      BeginCommandBuffer(bool batchCmd = false) = 0;
 		virtual void                      EndCommandBuffer() = 0;

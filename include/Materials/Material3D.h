@@ -4,7 +4,7 @@
 
 namespace SmolEngine
 {
-	struct RendererDrawCommand;
+	struct DrawPackage;
 
 	class Material3D : public Material
 	{
@@ -12,8 +12,9 @@ namespace SmolEngine
 		Material3D() = default;
 		virtual ~Material3D() = default;
 
+		bool         Build(MaterialCreateInfo* ci);
 		virtual void OnPushConstant(const uint32_t& dataOffset) = 0;
-		virtual void OnDrawCommand(RendererDrawCommand* command) = 0;
+		virtual void OnDrawCommand(Ref<Mesh>& mesh, DrawPackage* command) = 0;
 
 		VertexInputInfo GetVertexInputInfo() const;
 	};

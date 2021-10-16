@@ -634,19 +634,19 @@ namespace SmolEngine
 		return m_PipelineLayout;
 	}
 
-	VkCommandBuffer VulkanPipeline::GetCommandBuffer()
+	void* VulkanPipeline::GetCommandBuffer()
 	{
 		return m_CommandBuffer;
+	}
+
+	void VulkanPipeline::SetCommandBuffer(void* cmd)
+	{
+		m_CommandBuffer = (VkCommandBuffer)cmd;
 	}
 
 	const VkDescriptorSet VulkanPipeline::GetVkDescriptorSets(uint32_t setIndex) const
 	{
 		return m_Descriptors[setIndex].GetDescriptorSets();
-	}
-
-	void VulkanPipeline::SetCommandBuffer(VkCommandBuffer cmd)
-	{
-		m_CommandBuffer = cmd;
 	}
 
 	bool VulkanPipeline::IsBlendEnableEnabled()

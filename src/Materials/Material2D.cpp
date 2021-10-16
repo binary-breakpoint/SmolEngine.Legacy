@@ -3,5 +3,8 @@
 
 namespace SmolEngine
 {
-
+	bool Material2D::Build(MaterialCreateInfo* ci)
+	{
+		return BuildEX(ci, true);
+	}
 }

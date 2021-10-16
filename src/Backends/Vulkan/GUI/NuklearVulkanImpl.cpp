@@ -321,7 +321,7 @@ namespace SmolEngine
 			vertexBuffer->UnMapMemory();
 			indexBuffer->UnMapMemory();
 
-			VkCommandBuffer cmdBuffer = pipeline->Cast<VulkanPipeline>()->GetCommandBuffer();
+			VkCommandBuffer cmdBuffer = (VkCommandBuffer)pipeline->GetCommandBuffer();
 
 			// Set clear values for all framebuffer attachments with loadOp set to clear
 			// We use two attachments (color and depth) that are cleared at the start of the subpass and as such we need to set clear values for both

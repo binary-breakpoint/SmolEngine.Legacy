@@ -10,14 +10,7 @@ namespace SmolEngine
 	struct MaterialCreateInfo
 	{
 		std::string                Name = "";
-		RendererStorageBase*       pStorage = nullptr;
 		GraphicsPipelineCreateInfo PipelineCreateInfo{};
-
-	private:
-		bool                       bIs2D = false;
-
-		friend class Material;
-		friend class Material2D;
 	};
 
 	class Material
@@ -26,7 +19,8 @@ namespace SmolEngine
 		Material() = default;
 		virtual ~Material() = default;
 
-		bool                      Build(MaterialCreateInfo* ci);
+		void                      SetCommandBuffer(void* cmd);
+		void*                     GetCommandBuffer();
 		void                      DrawMeshIndexed(Ref<Mesh>& mesh, uint32_t instances = 1);
 		void                      DrawMesh(Ref<Mesh>& mesh, uint32_t instances = 1);
 		bool                      SubmitBuffer(uint32_t binding, size_t size, const void* data, uint32_t offset = 0);
@@ -39,8 +33,14 @@ namespace SmolEngine
 		const MaterialCreateInfo& GetInfo() const;
 
 	private:
+		bool                      BuildEX(MaterialCreateInfo* ci, bool is2D);
+
+	private:
 		uint32_t                  m_ID = 0;
 		MaterialCreateInfo        m_Info{};
 		Ref<GraphicsPipeline>     m_Pipeline = nullptr;
+
+		friend class Material2D;
+		friend class Material3D;
 	};
 }

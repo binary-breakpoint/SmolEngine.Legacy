@@ -154,7 +154,6 @@ namespace SmolEngine
 
 		// Default Material
 		m_DefaultMaterial = MaterialPBR::Create();
-		m_DefaultMaterial->Initialize(this);
 
 		// Lighting
 		{
@@ -504,66 +503,62 @@ namespace SmolEngine
 	{
 		JobsSystemInstance::BeginSubmition();
 		{
-			if (s_Instance->m_UsedMeshes.size() > s_Instance->m_DrawList.size()) { s_Instance->m_DrawList.resize(s_Instance->m_UsedMeshes.size()); }
-
-			uint32_t cmdCount = static_cast<uint32_t>(s_Instance->m_UsedMeshes.size());
-			for (uint32_t i = 0; i < cmdCount; ++i)
+			for (auto& [material, package] : s_Instance->m_Packages)
 			{
-				// Getting values
-				Ref<Mesh>& mesh = s_Instance->m_UsedMeshes[i];
-				RendererDrawInstance& instance = s_Instance->m_Packages[mesh];
-				RendererDrawCommand& cmd = s_Instance->m_DrawList[i];
-
-				// Setting draw list command
-				cmd.Offset = s_Instance->m_InstanceDataIndex;
-				cmd.Mesh = mesh;
-				cmd.InstancesCount = instance.CurrentIndex;
-
-				for (uint32_t x = 0; x < instance.CurrentIndex; ++x)
+				for (auto& [mesh, instance] : package.Instances)
 				{
-					RendererDrawInstance::Package& package = instance.Packages[x];
-					InstanceData& instanceUBO = s_Instance->m_InstancesData[s_Instance->m_InstanceDataIndex];
+					auto& cmd = s_Instance->m_DrawList[s_Instance->m_InstanceIndex];
+					cmd.Mesh = mesh;
 
-					uint32_t anim_offset = s_Instance->m_LastAnimationOffset;
-					const bool is_animated = package.AnimController != nullptr;
-					cmd.Material = package.Material == nullptr ? RendererStorage::GetDefaultMaterial().get() : package.Material;
-
-					// Animations
-					if (is_animated)
+					for (auto& object : instance.Objects)
 					{
-						if (mesh->IsRootNode())
-						{
-							package.AnimController->Update();
-							package.AnimController->CopyJoints(s_Instance->m_AnimationJoints, s_Instance->m_LastAnimationOffset);
-							s_Instance->m_RootOffsets[mesh] = anim_offset;
-						}
-						else
-						{
-							auto& it = s_Instance->m_RootOffsets.find(mesh->m_Root);
-							if (it != s_Instance->m_RootOffsets.end())
-								anim_offset = it->second;
-						}
-					}
+						auto& cmdPackage = cmd.Packages[material];
+						bool is_animated = object.AnimController != nullptr;
+						uint32_t anim_offset = s_Instance->m_LastAnimationOffset;
+						InstanceData& instanceUBO = s_Instance->m_InstancesData[s_Instance->m_Objects];
 
-					// Transform
-					{
-						JobsSystemInstance::Schedule([is_animated, anim_offset, &package, &instanceUBO]()
+						// Setting draw list command
+						cmdPackage.Offset = s_Instance->m_InstanceIndex;
+						cmdPackage.Instances = instance.Index;
+
+						// Animations
+						if (is_animated)
+						{
+							if (mesh->IsRootNode())
 							{
-								Utils::ComposeTransform(*package.WorldPos, *package.Rotation, *package.Scale, instanceUBO.ModelView);
+								object.AnimController->Update();
+								object.AnimController->CopyJoints(s_Instance->m_AnimationJoints, s_Instance->m_LastAnimationOffset);
+								s_Instance->m_RootOffsets[mesh] = anim_offset;
+							}
+							else
+							{
+								auto& it = s_Instance->m_RootOffsets.find(mesh->m_Root);
+								if (it != s_Instance->m_RootOffsets.end())
+									anim_offset = it->second;
+							}
+						}
 
-								instanceUBO.MaterialID = package.PBRHandle != nullptr ? package.PBRHandle->GetID() : 0;
-								instanceUBO.IsAnimated = is_animated;
-								instanceUBO.AnimOffset = anim_offset;
-								instanceUBO.EntityID = 0; // temp
+						// Transform
+						{
+							JobsSystemInstance::Schedule([is_animated, anim_offset, &object, &instanceUBO]()
+								{
+									Utils::ComposeTransform(*object.WorldPos, *object.Rotation, *object.Scale, instanceUBO.ModelView);
 
-								package.Reset();
-							});
+									instanceUBO.MaterialID = object.PBRHandle != nullptr ? object.PBRHandle->GetID() : 0;
+									instanceUBO.IsAnimated = is_animated;
+									instanceUBO.AnimOffset = anim_offset;
+									instanceUBO.EntityID = 0; // temp
+
+									object.Reset();
+								});
+						}
+
+						s_Instance->m_Objects++;
 					}
 
-					s_Instance->m_InstanceDataIndex++;
+					instance.Index = 0;
+					s_Instance->m_InstanceIndex++;
 				}
-
-				instance.CurrentIndex = 0;
 			}
 		}
 		JobsSystemInstance::EndSubmition();
@@ -644,10 +639,10 @@ namespace SmolEngine
 			// Updates Batch Data
 			JobsSystemInstance::Schedule([&]()
 				{
-					if (drawList->m_InstanceDataIndex > 0)
+					if (drawList->m_Objects > 0)
 					{
 						m_DefaultMaterial->SubmitBuffer(m_ShaderDataBinding,
-							sizeof(InstanceData) * drawList->m_InstanceDataIndex, drawList->m_InstancesData.data());
+							sizeof(InstanceData) * drawList->m_Objects, drawList->m_InstancesData.data());
 					}
 				});
 
@@ -768,6 +763,7 @@ namespace SmolEngine
 	RendererDrawList::RendererDrawList()
 	{
 		m_AnimationJoints.resize(max_anim_joints);
+		m_DrawList.resize(max_objects);
 		s_Instance = this;
 	}
 
@@ -778,32 +774,34 @@ namespace SmolEngine
 
 	void RendererDrawList::SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, const Ref<Mesh>& mesh, const Ref<MeshView>& view)
 	{
-		if (!s_Instance->m_Frustum.CheckSphere(pos) || s_Instance->m_Objects >= max_objects)
-			return;
-
-		auto& instance = s_Instance->m_Packages[mesh];
-		RendererDrawInstance::Package* package = nullptr;
-
-		if (instance.CurrentIndex == instance.Packages.size())
+		if (!s_Instance->m_Frustum.CheckSphere(pos) ||
+			s_Instance->m_InstanceIndex >= max_objects)
 		{
-			instance.Packages.emplace_back(RendererDrawInstance::Package());
-			package = &instance.Packages.back();
+			return;
 		}
-		else { package = &instance.Packages[instance.CurrentIndex]; }
 
-		package->PBRHandle = view != nullptr ? view->GetDefaultMaterialHandle(mesh->GetNodeIndex()).get() : nullptr;
-		package->WorldPos = const_cast<glm::vec3*>(&pos);
-		package->Rotation = const_cast<glm::vec3*>(&rotation);
-		package->Scale = const_cast<glm::vec3*>(&scale);
-		package->AnimController = view != nullptr ? view->GetAnimationController().get() : nullptr;
-		package->Material = view != nullptr ? view->GetMaterial(mesh->GetNodeIndex()).get() : nullptr;
+		Material3D* material = view->GetMaterial(mesh->GetNodeIndex()).get();
+		material = material == nullptr ? RendererStorage::GetDefaultMaterial().get() : material;
 
-		s_Instance->m_Objects++;
-		instance.CurrentIndex++;
-		bool found = std::find(s_Instance->m_UsedMeshes.begin(), s_Instance->m_UsedMeshes.end(), mesh) != s_Instance->m_UsedMeshes.end();
-		if (found == false) { s_Instance->m_UsedMeshes.emplace_back(mesh); }
+		auto& sMaterial = s_Instance->m_Packages[material];
+		auto& instance = sMaterial.Instances[mesh];
 
-		for (auto& sub : mesh->m_Childs) { SubmitMesh(pos, rotation, scale, sub, view); }
+		ObjectData* data = nullptr;
+		if (instance.Index == instance.Objects.size()) { data = &instance.Objects.emplace_back(ObjectData()); }
+		else { data = &instance.Objects[instance.Index]; }
+
+		data->WorldPos = const_cast<glm::vec3*>(&pos);
+		data->Rotation = const_cast<glm::vec3*>(&rotation);
+		data->Scale = const_cast<glm::vec3*>(&scale);
+		data->PBRHandle = view->GetDefaultMaterialHandle(mesh->GetNodeIndex()).get();
+		data->AnimController = view->GetAnimationController().get();
+
+		instance.Index++;
+
+		for (auto& sub : mesh->m_Childs)
+		{
+			SubmitMesh(pos, rotation, scale, sub, view);
+		}
 	}
 
 	void RendererDrawList::SubmitDirLight(DirectionalLight* light)
@@ -856,11 +854,10 @@ namespace SmolEngine
 	void RendererDrawList::ClearDrawList()
 	{
 		s_Instance->m_Objects = 0;
-		s_Instance->m_InstanceDataIndex = 0;
+		s_Instance->m_InstanceIndex = 0;
 		s_Instance->m_PointLightIndex = 0;
 		s_Instance->m_SpotLightIndex = 0;
 		s_Instance->m_LastAnimationOffset = 0;
-		s_Instance->m_UsedMeshes.clear();
 		s_Instance->m_RootOffsets.clear();
 	}
 
@@ -903,13 +900,18 @@ namespace SmolEngine
 				storage->p_Grid->DrawMeshIndexed(storage->m_GridMesh);
 			}
 
-			uint32_t cmdCount = static_cast<uint32_t>(drawList->m_UsedMeshes.size());
-			for (uint32_t i = 0; i < cmdCount; ++i)
+			for (uint32_t i = 0; i < drawList->m_InstanceIndex; ++i)
 			{
 				auto& cmd = drawList->m_DrawList[i];
 
-				cmd.Material->OnPushConstant(cmd.Offset);
-				cmd.Material->OnDrawCommand(&cmd);
+				for (auto& [material, package] : cmd.Packages)
+				{
+					material->SetCommandBuffer(storage->m_DefaultMaterial->GetCommandBuffer());
+					material->OnPushConstant(package.Offset);
+					material->OnDrawCommand(cmd.Mesh, &package);
+
+					package.Reset();
+				}
 			}
 		}
 		storage->m_DefaultMaterial->GetPipeline()->EndRenderPass();
@@ -951,12 +953,11 @@ namespace SmolEngine
 		auto storage = info->pStorage;
 
 		PushConstant  pushConstant{};
-		uint32_t      cmdCount = static_cast<uint32_t>(drawList->m_UsedMeshes.size());
 
 		if (drawList->m_DirLight.IsActive && drawList->m_DirLight.IsCastShadows)
 		{
 #ifndef OPENGL_IMPL
-			VkCommandBuffer cmdBuffer = storage->p_DepthPass->Cast<VulkanPipeline>()->GetCommandBuffer();
+			VkCommandBuffer cmdBuffer = (VkCommandBuffer)storage->p_DepthPass->GetCommandBuffer();
 #endif
 			storage->p_DepthPass->BeginRenderPass();
 			{
@@ -966,13 +967,17 @@ namespace SmolEngine
 				vkCmdSetDepthBias(cmdBuffer, 1.25f, 0.0f, 1.75f);
 #endif
 				pushConstant.DepthMVP = drawList->m_DepthMVP;
-				for (uint32_t i = 0; i < cmdCount; ++i)
+
+				for (uint32_t i = 0; i < drawList->m_InstanceIndex; ++i)
 				{
 					auto& cmd = drawList->m_DrawList[i];
-					pushConstant.DataOffset = cmd.Offset;
+					for (auto& [material, package] : cmd.Packages)
+					{
+						pushConstant.DataOffset = package.Offset;
 
-					storage->p_DepthPass->SubmitPushConstant(ShaderType::Vertex, sizeof(PushConstant), &pushConstant);
-					storage->p_DepthPass->DrawMeshIndexed(cmd.Mesh, cmd.InstancesCount);
+						storage->p_DepthPass->SubmitPushConstant(ShaderType::Vertex, sizeof(PushConstant), &pushConstant);
+						storage->p_DepthPass->DrawMeshIndexed(cmd.Mesh, package.Instances);
+					}
 				}
 			}
 			storage->p_DepthPass->EndRenderPass();

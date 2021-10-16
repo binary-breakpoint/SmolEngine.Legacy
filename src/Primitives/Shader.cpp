@@ -74,7 +74,7 @@ namespace SmolEngine
 
 		// Compile
 		{
-			const shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(src, GetShaderType(type), path.c_str(), options);
+			const shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(src, GetShaderType(type), " ", options);
 			if (result.GetCompilationStatus() != shaderc_compilation_status_success)
 			{
 				DebugLog::LogError(result.GetErrorMessage().c_str());
@@ -85,6 +85,7 @@ namespace SmolEngine
 		}
 
 		// Save
+		if (!isSource)
 		{
 			std::string cachedPath = Utils::GetCachedPath(path, CachedPathType::Shader);
 			std::ofstream out(cachedPath, std::ios::out | std::ios::binary);
@@ -127,13 +128,17 @@ namespace SmolEngine
 			if (str.empty())
 				return;
 
-			std::string cachedPath = Utils::GetCachedPath(str, CachedPathType::Shader);
 			auto& binaries = m_Binary[type];
-			if (Utils::IsPathValid(cachedPath))
+
+			if (!isSource)
 			{
-				LoadSPIRV(cachedPath, binaries);
-				Reflect(binaries, type); // TODO:: serialize
-				return;
+				std::string cachedPath = Utils::GetCachedPath(str, CachedPathType::Shader);
+				if (Utils::IsPathValid(cachedPath))
+				{
+					LoadSPIRV(cachedPath, binaries);
+					Reflect(binaries, type); // TODO:: serialize
+					return;
+				}
 			}
 
 			CompileSPIRV(str, m_Binary[type], type, isSource);

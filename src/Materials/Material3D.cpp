@@ -3,6 +3,11 @@
 
 namespace SmolEngine
 {
+	bool Material3D::Build(MaterialCreateInfo* ci)
+	{
+		return BuildEX(ci, false);
+	}
+
 	VertexInputInfo Material3D::GetVertexInputInfo() const
 	{
 		BufferLayout layout =

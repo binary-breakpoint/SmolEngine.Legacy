@@ -5,19 +5,17 @@
 using namespace SmolEngine;
 
 Ref<GraphicsContext> context = nullptr;
-RendererDrawList*    drawList = nullptr;
-RendererStorage*     storage = nullptr;
 
 struct Chunk
 {
-	Ref<PBRHandle>  Material = nullptr;
-	glm::vec3       Pos = glm::vec3(1.0f);
-	glm::vec3       Rot = glm::vec3(0.0f);
-	glm::vec3       Scale = glm::vec3(1.0f);
+	Ref<MeshView> View = nullptr;
+	glm::vec3 Pos = glm::vec3(1.0f);
+	glm::vec3 Rot = glm::vec3(0.0f);
+	glm::vec3 Scale = glm::vec3(1.0f);
 
 } chunk;
 
-void GenerateMap(std::vector<Chunk>& map, std::vector<Ref<PBRHandle>>& materials)
+void GenerateMap(std::vector<Chunk>& map, std::vector<Ref<PBRMaterialHandle>>& materials, Ref<Mesh>& mesh)
 {
 	for (uint32_t x = 0; x < 50; x += 2)
 	{
@@ -28,32 +26,17 @@ void GenerateMap(std::vector<Chunk>& map, std::vector<Ref<PBRHandle>>& materials
 			chunk.Pos = { x, 0, z };
 			chunk.Rot = { 0, 0, 0 };
 			chunk.Scale = { 0.5, scale_y, 0.5 };
+			chunk.View = mesh->CreateMeshView();
 
 			uint32_t rIndex = rand() % materials.size();
-			chunk.Material = materials[rIndex];
+			chunk.View->SetDefaultMaterialHandle(materials[rIndex]);
 
 			map.emplace_back(chunk);
 		}
 	}
 }
 
-void CreateDrawList(SceneViewProjection* viewProj, std::vector<Chunk>& chunks, Ref<Mesh>& cube)
-{
-	drawList->GetFrustum().SetRadius(1000.0f);
-
-	drawList->BeginSubmit(viewProj);
-	{
-		for (const auto& c : chunks)
-		{
-			drawList->SubmitMesh(c.Pos, c.Rot, c.Scale, cube, c.Material);
-		}
-	}
-	drawList->EndSubmit();
-
-	chunks.clear();
-}
-
-void LoadMaterials(std::vector<Ref<PBRHandle>>& materials)
+void LoadMaterials(std::vector<Ref<PBRMaterialHandle>>& materials)
 {
 	std::string albedroPath = "";
 	std::string normalPath = "";
@@ -61,9 +44,9 @@ void LoadMaterials(std::vector<Ref<PBRHandle>>& materials)
 	std::string aoPath = "";
 	std::string metalPath = "";
 
-	PBRCreateInfo materialCI = {};
+	PBRMaterialCreateInfo materialCI = {};
 	TextureCreateInfo textureCI = {};
-	Ref<MaterialPBR> defaultMaterial = storage->GetDefaultMaterial();
+	Ref<MaterialPBR> defaultMaterial = RendererStorage::GetDefaultMaterial();
 
 	// Wood
 	{
@@ -147,7 +130,7 @@ void LoadMaterials(std::vector<Ref<PBRHandle>>& materials)
 	}
 
 	// Don't forget update materials
-	storage->OnUpdateMaterials();
+	RendererStorage::OnUpdateMaterials();
 }
 
 int main(int argc, char** argv)
@@ -182,35 +165,27 @@ int main(int argc, char** argv)
 	context = GraphicsContext::Create(&info);
 	context->SetEventCallback([&](Event& e) { if (e.IsType(EventType::WINDOW_CLOSE)) { process = false; }  camera->OnEvent(e); });
 
-	storage = new RendererStorage();
-	storage->Build();
+	auto& [cube, view] = MeshPool::GetCube();
 
-	drawList = new RendererDrawList();
-
-	auto cube = MeshPool::GetCube();
-
-	std::vector<Ref<PBRHandle>> materials;
+	std::vector<Ref<PBRMaterialHandle>> materials;
 	std::vector<Chunk> chunks;
 
 	LoadMaterials(materials);
-	GenerateMap(chunks, materials);
+	GenerateMap(chunks, materials, cube);
 
-	RendererStateEX& state = storage->GetState();
+	RendererStateEX& state = RendererStorage::GetState();
 	state.Bloom.Threshold = 0.7f;
 	state.Bloom.Enabled = true;
 	state.bDrawGrid = false;
 
 	DynamicSkyProperties sky;
-	storage->SetDynamicSkybox(sky, camera->GetProjection(), true);
+	RendererStorage::SetDynamicSkybox(sky, camera->GetProjection(), true);
 
 	DirectionalLight dirLight = {};
 	dirLight.IsActive = true;
 	dirLight.IsCastShadows = true;
 	dirLight.Direction = glm::vec4(105.0f, 53.0f, 102.0f, 0);
-	drawList->SubmitDirLight(&dirLight);
-
-	SceneViewProjection viewProj = SceneViewProjection(camera);
-	CreateDrawList(&viewProj, chunks, cube);
+	RendererDrawList::SubmitDirLight(&dirLight);
 
 	UICanvas canvas;
 	canvas.Rect.x = 0;
@@ -245,7 +220,16 @@ int main(int argc, char** argv)
 		*/
 
 		camera->OnUpdate(deltaTime);
-		viewProj.Update(camera);
+
+		RendererDrawList::GetFrustum().SetRadius(1000.0f);
+		RendererDrawList::BeginSubmit(camera->GetSceneViewProjection());
+		{
+			for (const auto& c : chunks)
+			{
+				RendererDrawList::SubmitMesh(c.Pos, c.Rot, c.Scale, cube, c.View);
+			}
+		}
+		RendererDrawList::EndSubmit();
 
 		context->BeginFrame(deltaTime);
 		{
@@ -253,7 +237,7 @@ int main(int argc, char** argv)
 			{
 				ImGui::Text("Some Text");
 
-				ImGui::DragFloat("Bloom", &storage->GetState().Bloom.Threshold);
+				ImGui::DragFloat("Bloom", &RendererStorage::GetState().Bloom.Threshold);
 			}
 			ImGui::End();
 
@@ -264,7 +248,7 @@ int main(int argc, char** argv)
 				textField.Draw();
 			});
 
-			RendererDeferred::DrawFrame(&clearInfo, storage, drawList);
+			RendererDeferred::DrawFrame(&clearInfo);
 		}
 		context->SwapBuffers();
 	}

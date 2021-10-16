@@ -8,7 +8,7 @@
 
 namespace SmolEngine
 {
-	bool MaterialPBR::Initialize(RendererStorage* storage)
+	bool MaterialPBR::Initialize()
 	{
 		GraphicsPipelineCreateInfo pipelineCI = {};
 		MaterialCreateInfo materialCI{};
@@ -19,8 +19,10 @@ namespace SmolEngine
 
 			shaderCI.Stages[ShaderType::Vertex] = path + "Shaders/Gbuffer.vert";
 			shaderCI.Stages[ShaderType::Fragment] = path + "Shaders/Gbuffer.frag";
+
 			// SSBO's
 			ShaderBufferInfo bufferInfo = {};
+			RendererStorage* storage = RendererStorage::GetSingleton();
 
 			// Vertex
 			bufferInfo.Size = sizeof(InstanceData) * max_objects;
@@ -41,7 +43,6 @@ namespace SmolEngine
 
 		materialCI.Name = pipelineCI.PipelineName;
 		materialCI.PipelineCreateInfo = pipelineCI;
-		materialCI.pStorage = storage;
 
 		AddDefaultMaterial();
 		return Build(&materialCI);
@@ -49,7 +50,9 @@ namespace SmolEngine
 
 	Ref<MaterialPBR> MaterialPBR::Create()
 	{
-		return std::make_shared<MaterialPBR>();
+		Ref<MaterialPBR> material = std::make_shared<MaterialPBR>();
+		material->Initialize();
+		return material;
 	}
 
 	Ref<PBRMaterialHandle> MaterialPBR::AddMaterial(PBRMaterialCreateInfo* infoCI, const std::string& name)
@@ -111,8 +114,7 @@ namespace SmolEngine
 			m_IDs.erase(name);
 
 			std::vector<Ref<Texture>> textures(m_MaxTextures);
-			RendererStorage* storage = dynamic_cast<RendererStorage*>(GetInfo().pStorage);
-			UpdateSamplers(textures, storage->m_TexturesBinding);
+			UpdateSamplers(textures, RendererStorage::GetSingleton()->m_TexturesBinding);
 			return true;
 		}
 
@@ -148,9 +150,9 @@ namespace SmolEngine
 		SubmitPushConstant(ShaderType::Vertex, sizeof(uint32_t), &dataOffset);
 	}
 
-	void MaterialPBR::OnDrawCommand(RendererDrawCommand* command)
+	void MaterialPBR::OnDrawCommand(Ref<Mesh>& mesh, DrawPackage* command)
 	{
-		DrawMeshIndexed(command->Mesh, command->InstancesCount);
+		DrawMeshIndexed(mesh, command->Instances);
 	}
 
 	void MaterialPBR::ClearMaterials()
@@ -193,10 +195,8 @@ namespace SmolEngine
 		}
 
 		{
-			RendererStorage* storage = dynamic_cast<RendererStorage*>(GetInfo().pStorage);
-
-			UpdateSamplers(textures, storage->m_TexturesBinding);
-			SubmitBuffer(storage->m_MaterialsBinding, sizeof(PBRMaterialUniform) * uniforms.size(), uniforms.data());
+			UpdateSamplers(textures, RendererStorage::GetSingleton()->m_TexturesBinding);
+			SubmitBuffer(RendererStorage::GetSingleton()->m_MaterialsBinding, sizeof(PBRMaterialUniform) * uniforms.size(), uniforms.data());
 		}
 	}
 

@@ -6,6 +6,6 @@ namespace SmolEngine
 	class Material2D: public Material
 	{
 	public:
-
+		bool Build(MaterialCreateInfo* ci);
 	};
 }

@@ -111,10 +111,10 @@ namespace SmolEngine
 							    
 	private:				    
 		virtual void                               OnPushConstant(const uint32_t& dataOffset) override;
-		virtual void                               OnDrawCommand(RendererDrawCommand* command) override;
+		virtual void                               OnDrawCommand(Ref<Mesh>& mesh, DrawPackage* command) override;
 
 		static Ref<MaterialPBR>                    Create();
-		bool                                       Initialize(RendererStorage* storage);
+		bool                                       Initialize();
 
 	private:
 		std::unordered_map<std::string, Ref<PBRMaterialHandle>> m_IDs;
