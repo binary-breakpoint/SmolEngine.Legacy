@@ -3,6 +3,9 @@
 
 namespace SmolEngine
 {
+	class MaterialPBR;
+	class PBRFactory;
+
 	struct SubmitInfo;
 
 	struct RendererStorage : RendererStorageBase
@@ -16,7 +19,6 @@ namespace SmolEngine
 		static void                    SetDefaultState();
 		static RendererStateEX&        GetState();
 		static Ref<MaterialPBR>        GetDefaultMaterial();
-		static void                    OnUpdateMaterials();
 		static RendererStorage*        GetSingleton() { return s_Instance; }
 									   
 	private:						   
@@ -64,16 +66,18 @@ namespace SmolEngine
 		Ref<Mesh>                      m_GridMesh = nullptr;
 		Ref<VulkanPBR>                 m_VulkanPBR = nullptr;
 		Ref<EnvironmentMap>            m_EnvironmentMap = nullptr;
+		Ref<PBRFactory>                m_PBRFactory = nullptr;
 									   
 		RendererStateEX                m_State{};
 		std::vector<Ref<Texture>>      m_BloomTex{};
 		ShadowMapSize                  m_MapSize = ShadowMapSize::SIZE_8;
 		glm::mat4                      m_GridModel{};
 
-		friend class RendererDeferred;
 		friend class Material;
+		friend class PBRFactory;
 		friend class MaterialPBR;
 		friend class GraphicsContext;
+		friend class RendererDeferred;
 	};
 
 	class RendererDeferred

@@ -13,8 +13,9 @@ namespace SmolEngine
 		virtual ~Material3D() = default;
 
 		bool         Build(MaterialCreateInfo* ci);
-		virtual void OnPushConstant(const uint32_t& dataOffset) = 0;
-		virtual void OnDrawCommand(Ref<Mesh>& mesh, DrawPackage* command) = 0;
+
+		virtual void OnPushConstant(const uint32_t& dataOffset);
+		virtual void OnDrawCommand(Ref<Mesh>& mesh, DrawPackage* command);
 
 		VertexInputInfo GetVertexInputInfo() const;
 	};

@@ -39,6 +39,10 @@
 #include "Renderer/RendererDebug.h"
 #include "Renderer/Renderer2D.h"
 
+#include "Materials/Material3D.h"
+#include "Materials/Material2D.h"
+#include "Materials/PBRFactory.h"
+
 #include "Multithreading/JobsSystemInstance.h"
 #include "Animation/AnimationController.h"
 

@@ -1,14 +1,17 @@
 #include "stdafx.h"
 #include "Renderer/RendererDeferred.h"
-#include "Pools/MaterialPool.h"
-#include "Tools/Utils.h"
+#include "Multithreading/JobsSystemInstance.h"
+#include "Animation/AnimationController.h"
 #include "Primitives/VertexArray.h"
 #include "Primitives/VertexBuffer.h"
 #include "Primitives/IndexBuffer.h"
 #include "Primitives/Shader.h"
 #include "Import/glTFImporter.h"
-#include "Animation/AnimationController.h"
-#include "Multithreading/JobsSystemInstance.h"
+#include "Pools/MaterialPool.h"
+#include "Tools/Utils.h"
+
+#include "Materials/MaterialPBR.h"
+#include "Materials/PBRFactory.h"
 
 #ifdef OPENGL_IMPL
 #include "Backends/OpenGL/OpenglShader.h"
@@ -72,7 +75,10 @@ namespace SmolEngine
 		CreatePBRMaps();
 		CreateFramebuffers();
 		CreatePipelines();
-		OnUpdateMaterials();
+
+		m_PBRFactory = std::make_shared<PBRFactory>();
+		m_PBRFactory->AddDefaultMaterial();
+		m_PBRFactory->UpdateMaterials();
 	}
 
 	void RendererStorage::SetRenderTarget(Ref<Framebuffer>& target)
@@ -80,11 +86,6 @@ namespace SmolEngine
 		s_Instance->f_Main = target;
 		s_Instance->p_Combination->SetFramebuffers({ s_Instance->f_Main });
 		s_Instance->p_Debug->SetFramebuffers({ s_Instance->f_Main });
-	}
-
-	void RendererStorage::OnUpdateMaterials()
-	{
-		s_Instance->m_DefaultMaterial->UpdateMaterials();
 	}
 
 	void RendererStorage::SetDefaultState()
@@ -510,8 +511,10 @@ namespace SmolEngine
 					auto& cmd = s_Instance->m_DrawList[s_Instance->m_InstanceIndex];
 					cmd.Mesh = mesh;
 
-					for (auto& object : instance.Objects)
+					for (uint32_t i = 0; i < instance.Index; i++)
 					{
+						auto& object = instance.Objects[i];
+
 						auto& cmdPackage = cmd.Packages[material];
 						bool is_animated = object.AnimController != nullptr;
 						uint32_t anim_offset = s_Instance->m_LastAnimationOffset;
@@ -793,7 +796,7 @@ namespace SmolEngine
 		data->WorldPos = const_cast<glm::vec3*>(&pos);
 		data->Rotation = const_cast<glm::vec3*>(&rotation);
 		data->Scale = const_cast<glm::vec3*>(&scale);
-		data->PBRHandle = view->GetDefaultMaterialHandle(mesh->GetNodeIndex()).get();
+		data->PBRHandle = view->GetPBRHandle(mesh->GetNodeIndex()).get();
 		data->AnimController = view->GetAnimationController().get();
 
 		instance.Index++;
@@ -859,6 +862,13 @@ namespace SmolEngine
 		s_Instance->m_SpotLightIndex = 0;
 		s_Instance->m_LastAnimationOffset = 0;
 		s_Instance->m_RootOffsets.clear();
+	}
+
+	void RendererDrawList::ClearCache()
+	{
+		ClearDrawList();
+
+		s_Instance->m_Packages.clear();
 	}
 
 	void RendererDrawList::BeginSubmit(SceneViewProjection* viewProj)

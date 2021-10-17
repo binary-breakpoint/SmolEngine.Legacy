@@ -16,20 +16,19 @@ namespace cereal
 namespace SmolEngine
 {
 	struct Primitive;
-	struct PBRMaterialHandle;
+	struct PBRHandle;
 
 	class Mesh;
 	class Material3D;
-	class MaterialPBR;
 	class AnimationController;
 
 	struct MeshView
 	{
 		struct Element
 		{
-			std::string            m_MaterialPath = "";
-			Ref<Material3D>        m_Material = nullptr;
-			Ref<PBRMaterialHandle> m_PBRHandle = nullptr;
+			std::string     m_MaterialPath = "";
+			Ref<Material3D> m_Material = nullptr;
+			Ref<PBRHandle>  m_PBRHandle = nullptr;
 
 			template<typename Archive>
 			void serialize(Archive& archive)
@@ -41,16 +40,16 @@ namespace SmolEngine
 		bool                       Serialize(const std::string& path);
 		bool                       Deserialize(const std::string& path);
 		void                       SetAnimationController(const Ref<AnimationController>& contoller);
-		void                       SetDefaultMaterialHandle(const Ref<PBRMaterialHandle>& handle, uint32_t nodeIndex = 0);
+		void                       SetPBRHandle(const Ref<PBRHandle>& handle, uint32_t nodeIndex = 0);
 		void                       SetMaterial(const Ref<Material3D>& material, uint32_t nodeIndex = 0);
 		Ref<AnimationController>   GetAnimationController() const;
-		Ref<PBRMaterialHandle>     GetDefaultMaterialHandle(uint32_t nodeIndex = 0) const;
+		Ref<PBRHandle>             GetPBRHandle(uint32_t nodeIndex = 0) const;
 		Ref<Material3D>            GetMaterial(uint32_t nodeIndex = 0) const;
 
 	private:
 		std::string                m_Path = "";
-		Ref<AnimationController>   m_AnimationController = nullptr;
 		std::vector<Element>       m_Elements;
+		Ref<AnimationController>   m_AnimationController = nullptr;
 
 		friend class Mesh;
 		friend class cereal::access;

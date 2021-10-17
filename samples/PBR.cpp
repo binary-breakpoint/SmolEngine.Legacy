@@ -15,7 +15,7 @@ struct Chunk
 
 } chunk;
 
-void GenerateMap(std::vector<Chunk>& map, std::vector<Ref<PBRMaterialHandle>>& materials, Ref<Mesh>& mesh)
+void GenerateMap(std::vector<Chunk>& map, std::vector<Ref<PBRHandle>>& materials, Ref<Mesh>& mesh)
 {
 	for (uint32_t x = 0; x < 50; x += 2)
 	{
@@ -29,14 +29,14 @@ void GenerateMap(std::vector<Chunk>& map, std::vector<Ref<PBRMaterialHandle>>& m
 			chunk.View = mesh->CreateMeshView();
 
 			uint32_t rIndex = rand() % materials.size();
-			chunk.View->SetDefaultMaterialHandle(materials[rIndex]);
+			chunk.View->SetPBRHandle(materials[rIndex]);
 
 			map.emplace_back(chunk);
 		}
 	}
 }
 
-void LoadMaterials(std::vector<Ref<PBRMaterialHandle>>& materials)
+void LoadMaterials(std::vector<Ref<PBRHandle>>& materials)
 {
 	std::string albedroPath = "";
 	std::string normalPath = "";
@@ -44,7 +44,7 @@ void LoadMaterials(std::vector<Ref<PBRMaterialHandle>>& materials)
 	std::string aoPath = "";
 	std::string metalPath = "";
 
-	PBRMaterialCreateInfo materialCI = {};
+	PBRCreateInfo materialCI = {};
 	TextureCreateInfo textureCI = {};
 	Ref<MaterialPBR> defaultMaterial = RendererStorage::GetDefaultMaterial();
 
@@ -64,7 +64,7 @@ void LoadMaterials(std::vector<Ref<PBRMaterialHandle>>& materials)
 		textureCI.FilePath = "Assets/materials/wood/WoodFloor041_1K_AmbientOcclusion.png";
 		materialCI.SetTexture(PBRTexture::AO, &textureCI);
 
-		auto material = defaultMaterial->AddMaterial(&materialCI, "wood");
+		auto material = PBRFactory::AddMaterial(&materialCI, "wood");
 		materials.push_back(material);
 	}
 
@@ -85,7 +85,7 @@ void LoadMaterials(std::vector<Ref<PBRMaterialHandle>>& materials)
 		textureCI.FilePath = "Assets/materials/stone/Tiles087_1K_AmbientOcclusion.png";
 		materialCI.SetTexture(PBRTexture::AO, &textureCI);
 
-		auto material = defaultMaterial->AddMaterial(&materialCI, "stone");
+		auto material = PBRFactory::AddMaterial(&materialCI, "stone");
 		materials.push_back(material);
 	}
 
@@ -105,7 +105,7 @@ void LoadMaterials(std::vector<Ref<PBRMaterialHandle>>& materials)
 		textureCI.FilePath = "Assets/materials/metal_1/Metal033_1K_Metalness.png";
 		materialCI.SetTexture(PBRTexture::Metallic, &textureCI);
 
-		auto material = defaultMaterial->AddMaterial(&materialCI, "metal1");
+		auto material = PBRFactory::AddMaterial(&materialCI, "metal1");
 		materials.push_back(material);
 	}
 
@@ -125,12 +125,12 @@ void LoadMaterials(std::vector<Ref<PBRMaterialHandle>>& materials)
 		textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Metalness.png";
 		materialCI.SetTexture(PBRTexture::Metallic, &textureCI);
 
-		auto material = defaultMaterial->AddMaterial(&materialCI, "metal2");
+		auto material = PBRFactory::AddMaterial(&materialCI, "metal2");
 		materials.push_back(material);
 	}
 
 	// Don't forget update materials
-	RendererStorage::OnUpdateMaterials();
+	PBRFactory::UpdateMaterials();
 }
 
 int main(int argc, char** argv)
@@ -167,7 +167,7 @@ int main(int argc, char** argv)
 
 	auto& [cube, view] = MeshPool::GetCube();
 
-	std::vector<Ref<PBRMaterialHandle>> materials;
+	std::vector<Ref<PBRHandle>> materials;
 	std::vector<Chunk> chunks;
 
 	LoadMaterials(materials);
@@ -221,7 +221,6 @@ int main(int argc, char** argv)
 
 		camera->OnUpdate(deltaTime);
 
-		RendererDrawList::GetFrustum().SetRadius(1000.0f);
 		RendererDrawList::BeginSubmit(camera->GetSceneViewProjection());
 		{
 			for (const auto& c : chunks)

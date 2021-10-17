@@ -235,7 +235,7 @@ namespace SmolEngine
         m_AnimationController = contoller;
     }
 
-    void MeshView::SetDefaultMaterialHandle(const Ref<PBRMaterialHandle>& handle, uint32_t nodeIndex)
+    void MeshView::SetPBRHandle(const Ref<PBRHandle>& handle, uint32_t nodeIndex)
     {
         m_Elements[nodeIndex].m_PBRHandle = handle;
     }
@@ -250,7 +250,7 @@ namespace SmolEngine
         return m_AnimationController;
     }
 
-    Ref<PBRMaterialHandle> MeshView::GetDefaultMaterialHandle(uint32_t nodeIndex) const
+    Ref<PBRHandle> MeshView::GetPBRHandle(uint32_t nodeIndex) const
     {
         return m_Elements[nodeIndex].m_PBRHandle;
     }

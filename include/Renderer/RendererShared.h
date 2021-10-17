@@ -7,12 +7,14 @@
 #include "Primitives/Texture.h"
 #include "Primitives/Mesh.h"
 #include "Primitives/EnvironmentMap.h"
-#include "Materials/MaterialPBR.h"
+
 #include "Camera/Frustum.h"
 #include "Camera/Camera.h"
 
 namespace SmolEngine
 {
+	struct PBRHandle;
+
 	struct RendererStorageBase
 	{
 		RendererStorageBase() = default;
@@ -208,7 +210,7 @@ namespace SmolEngine
 		glm::vec3* Rotation = nullptr;
 		glm::vec3* Scale = nullptr;
 		AnimationController* AnimController = nullptr;
-		PBRMaterialHandle* PBRHandle = nullptr;
+		PBRHandle* PBRHandle = nullptr;
 
 		void Reset()
 		{
@@ -245,6 +247,7 @@ namespace SmolEngine
 		static void              CalculateFrustum(SceneViewProjection* viewProj);
 		static void              SetDefaultState();
 		static void              ClearDrawList();
+		static void              ClearCache();
 		static Frustum&          GetFrustum();
 		static RendererDrawList* GetSingleton() { return s_Instance; }
 

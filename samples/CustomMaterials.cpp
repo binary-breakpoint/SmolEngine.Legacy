@@ -249,7 +249,7 @@ int main(int argc, char** argv)
 
 	{
 		TextureCreateInfo textureCI = {};
-		PBRMaterialCreateInfo materialCI = {};
+		PBRCreateInfo materialCI = {};
 
 		textureCI.FilePath = "Assets/materials/metal_1/Metal033_1K_Color.png";
 		materialCI.SetTexture(PBRTexture::Albedo, &textureCI);
@@ -263,10 +263,10 @@ int main(int argc, char** argv)
 		textureCI.FilePath = "Assets/materials/metal_1/Metal033_1K_Metalness.png";
 		materialCI.SetTexture(PBRTexture::Metallic, &textureCI);
 
-		auto materialID = RendererStorage::GetDefaultMaterial()->AddMaterial(&materialCI, "metal");
-        cubeView2->SetDefaultMaterialHandle(materialID, cube->GetNodeIndex());
+		auto materialID = PBRFactory::AddMaterial(&materialCI, "metal");
+        cubeView2->SetPBRHandle(materialID, cube->GetNodeIndex());
 
-		RendererStorage::OnUpdateMaterials();
+        PBRFactory::UpdateMaterials();
 	}
 
 	DirectionalLight dirLight = {};
