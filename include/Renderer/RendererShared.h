@@ -3,10 +3,10 @@
 #include "Animation/AnimationController.h"
 #include "Primitives/GraphicsPipeline.h"
 #include "Primitives/ComputePipeline.h"
+#include "Primitives/EnvironmentMap.h"
 #include "Primitives/Framebuffer.h"
 #include "Primitives/Texture.h"
 #include "Primitives/Mesh.h"
-#include "Primitives/EnvironmentMap.h"
 
 #include "Camera/Frustum.h"
 #include "Camera/Camera.h"

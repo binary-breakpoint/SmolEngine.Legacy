@@ -129,7 +129,9 @@ namespace SmolEngine
 		virtual bool                      UpdateSampler(Ref<Texture>& texture, uint32_t binding, bool storageImage = false) = 0;
 		virtual bool                      UpdateSampler(Ref<Framebuffer>& framebuffer, uint32_t binding, uint32_t attachmentIndex = 0) = 0;
 		virtual bool                      UpdateSampler(Ref<Framebuffer>& framebuffer, uint32_t binding, const std::string& attachmentName) = 0;
+		virtual bool                      UpdateImageDescriptor(uint32_t bindingPoint, void* dDescriptor) { return false; }
 		virtual bool                      UpdateCubeMap(Ref<Texture>& cubeMap, uint32_t binding) = 0;
+
 					                      
 		virtual void                      BindPipeline() {};
 		virtual void                      BindDescriptors() {};

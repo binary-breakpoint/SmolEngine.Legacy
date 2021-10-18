@@ -18,7 +18,7 @@
 #include "Backends/OpenGL/OpenglRendererAPI.h"
 #else
 #include "Backends/Vulkan/VulkanContext.h"
-#include "Backends/Vulkan/VulkanPBR.h"
+#include "Backends/Vulkan/VulkanPBRLoader.h"
 #include "Backends/Vulkan/VulkanPipeline.h"
 #include "Backends/Vulkan/VulkanTexture.h"
 #include "Backends/Vulkan/VulkanComputePipeline.h"
@@ -189,11 +189,10 @@ namespace SmolEngine
 			assert(result == true);
 
 			p_Lighting->UpdateSampler(f_Depth, 1, "Depth_Attachment");
-#ifndef OPENGL_IMPL
-			p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(2, m_VulkanPBR->GetIrradianceImageInfo());
-			p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(3, m_VulkanPBR->GetBRDFLUTImageInfo());
-			p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(4, m_VulkanPBR->GetPrefilteredCubeImageInfo());
-#endif
+			s_Instance->p_Lighting->UpdateImageDescriptor(2, s_Instance->m_PBRLoader->GetIrradianceDesriptor());
+			s_Instance->p_Lighting->UpdateImageDescriptor(3, s_Instance->m_PBRLoader->GetBRDFLUTDesriptor());
+			s_Instance->p_Lighting->UpdateImageDescriptor(4, s_Instance->m_PBRLoader->GetPrefilteredCubeDesriptor());
+
 			p_Lighting->UpdateSampler(f_GBuffer, 5, "albedro");
 			p_Lighting->UpdateSampler(f_GBuffer, 6, "position");
 			p_Lighting->UpdateSampler(f_GBuffer, 7, "normals");
@@ -487,7 +486,7 @@ namespace SmolEngine
 
 	void RendererStorage::CreatePBRMaps()
 	{
-		m_VulkanPBR = std::make_shared<VulkanPBR>(); // TODO: abstract
+		m_PBRLoader = PBRLoader::Create();
 		m_EnvironmentMap = std::make_shared<EnvironmentMap>();
 		auto& config = m_EnvironmentMap->GetDynamicSkyProperties();
 		config.SunPosition = glm::vec4(1, -11, 0, 0);
@@ -497,7 +496,7 @@ namespace SmolEngine
 		m_EnvironmentMap->GenerateDynamic();
 
 		auto map = m_EnvironmentMap->GetCubeMap();
-		m_VulkanPBR->GeneratePBRCubeMaps(map);
+		m_PBRLoader->GeneratePBRCubeMaps(map);
 	}
 
 	void RendererDrawList::BuildDrawList()
@@ -673,12 +672,12 @@ namespace SmolEngine
 			s_Instance->m_EnvironmentMap->GenerateDynamic(proj);
 
 			auto cubeMap = s_Instance->m_EnvironmentMap->GetCubeMap();
-			s_Instance->m_VulkanPBR->GeneratePBRCubeMaps(cubeMap);
+			s_Instance->m_PBRLoader->GeneratePBRCubeMaps(cubeMap);
 
 			// Update Descriptors
-			s_Instance->p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(2, s_Instance->m_VulkanPBR->GetIrradianceImageInfo());
-			s_Instance->p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(3, s_Instance->m_VulkanPBR->GetBRDFLUTImageInfo());
-			s_Instance->p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(4, s_Instance->m_VulkanPBR->GetPrefilteredCubeImageInfo());
+			s_Instance->p_Lighting->UpdateImageDescriptor(2, s_Instance->m_PBRLoader->GetIrradianceDesriptor());
+			s_Instance->p_Lighting->UpdateImageDescriptor(3, s_Instance->m_PBRLoader->GetBRDFLUTDesriptor());
+			s_Instance->p_Lighting->UpdateImageDescriptor(4, s_Instance->m_PBRLoader->GetPrefilteredCubeDesriptor());
 			s_Instance->p_Skybox->UpdateSampler(cubeMap, 1);
 		}
 		else
@@ -691,12 +690,12 @@ namespace SmolEngine
 	{
 		s_Instance->m_EnvironmentMap->GenerateStatic(skybox);
 		auto cubeMap = s_Instance->m_EnvironmentMap->GetCubeMap();
-		s_Instance->m_VulkanPBR->GeneratePBRCubeMaps(cubeMap);
+		s_Instance->m_PBRLoader->GeneratePBRCubeMaps(cubeMap);
 
 		// Update Descriptors
-		s_Instance->p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(2, s_Instance->m_VulkanPBR->GetIrradianceImageInfo());
-		s_Instance->p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(3, s_Instance->m_VulkanPBR->GetBRDFLUTImageInfo());
-		s_Instance->p_Lighting->Cast<VulkanPipeline>()->UpdateImageDescriptor(4, s_Instance->m_VulkanPBR->GetPrefilteredCubeImageInfo());
+		s_Instance->p_Lighting->UpdateImageDescriptor(2, s_Instance->m_PBRLoader->GetIrradianceDesriptor());
+		s_Instance->p_Lighting->UpdateImageDescriptor(3, s_Instance->m_PBRLoader->GetBRDFLUTDesriptor());
+		s_Instance->p_Lighting->UpdateImageDescriptor(4, s_Instance->m_PBRLoader->GetPrefilteredCubeDesriptor());
 		s_Instance->p_Skybox->UpdateSampler(cubeMap, 1);
 	}
 
@@ -708,6 +707,11 @@ namespace SmolEngine
 	Ref<MaterialPBR> RendererStorage::GetDefaultMaterial()
 	{
 		return s_Instance->m_DefaultMaterial;
+	}
+
+	Ref<PBRLoader> RendererStorage::GetPBRLoader()
+	{
+		return s_Instance->m_PBRLoader;
 	}
 
 	void RendererStorage::OnResize(uint32_t width, uint32_t height)

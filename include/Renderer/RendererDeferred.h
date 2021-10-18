@@ -5,6 +5,7 @@ namespace SmolEngine
 {
 	class MaterialPBR;
 	class PBRFactory;
+	class PBRLoader;
 
 	struct SubmitInfo;
 
@@ -19,6 +20,7 @@ namespace SmolEngine
 		static void                    SetDefaultState();
 		static RendererStateEX&        GetState();
 		static Ref<MaterialPBR>        GetDefaultMaterial();
+		static Ref<PBRLoader>          GetPBRLoader();
 		static RendererStorage*        GetSingleton() { return s_Instance; }
 									   
 	private:						   
@@ -64,7 +66,7 @@ namespace SmolEngine
 		Ref<Framebuffer>               f_Depth = nullptr;
 		Ref<Framebuffer>               f_DOF = nullptr;
 		Ref<Mesh>                      m_GridMesh = nullptr;
-		Ref<VulkanPBR>                 m_VulkanPBR = nullptr;
+		Ref<PBRLoader>                 m_PBRLoader = nullptr;
 		Ref<EnvironmentMap>            m_EnvironmentMap = nullptr;
 		Ref<PBRFactory>                m_PBRFactory = nullptr;
 									   

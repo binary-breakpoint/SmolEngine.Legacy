@@ -39,6 +39,7 @@ namespace SmolEngine
 		bool                                            UpdateSampler(Ref<Texture>& tetxure, uint32_t bindingPoint, bool storageImage = false) override;
 		bool                                            UpdateSampler(Ref<Framebuffer>& framebuffer, uint32_t bindingPoint, uint32_t attachmentIndex = 0) override;
 		bool                                            UpdateSampler(Ref<Framebuffer>& framebuffer, uint32_t bindingPoint, const std::string& attachmentName) override;
+		bool                                            UpdateImageDescriptor(uint32_t bindingPoint, void* descriptor) override;
 		bool                                            UpdateCubeMap(Ref<Texture>& cubeMap, uint32_t bindingPoint) override;
 								                        
 		void                                            BindPipeline() override;
@@ -52,7 +53,6 @@ namespace SmolEngine
 		const VkDescriptorSet                           GetVkDescriptorSets(uint32_t setIndex = 0) const;
 		bool                                            SaveCache(const std::string& fileName, DrawMode mode);
 		bool                                            CreateOrLoadCached(const std::string& fileName, DrawMode mode);
-		void                                            UpdateImageDescriptor(uint32_t bindingPoint, const VkDescriptorImageInfo& imageInfo);
 		// Helpers						                
 		static void                                     BuildDescriptors(Ref<Shader>& shader, uint32_t descriptorSets, 
 			                                            std::vector<VulkanDescriptor>& outDescriptors, VkDescriptorPool& pool);

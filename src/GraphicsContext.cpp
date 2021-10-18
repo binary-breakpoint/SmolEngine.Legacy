@@ -153,6 +153,11 @@ namespace SmolEngine
 		return m_bWindowMinimized;
 	}
 
+	bool GraphicsContext::IsOpen() const
+	{
+		return m_bOpen;
+	}
+
 	Window* GraphicsContext::GetWindow() const
 	{
 		return m_Window.get();
@@ -177,6 +182,7 @@ namespace SmolEngine
 	{
 		OnEventEX(e);
 
+		if (e.IsType(EventType::WINDOW_CLOSE)) { m_bOpen = false; }
 		if (e.IsType(EventType::WINDOW_RESIZE))
 		{
 			WindowResizeEvent* resize = e.Cast<WindowResizeEvent>();

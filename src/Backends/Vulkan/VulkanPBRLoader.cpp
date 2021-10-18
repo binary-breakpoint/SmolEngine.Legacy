@@ -1,8 +1,6 @@
 #include "stdafx.h"
 #ifndef OPENGL_IMPL
-#include "Backends/Vulkan/VulkanPBR.h"
-
-#include "GraphicsContext.h"
+#include "Backends/Vulkan/VulkanPBRLoader.h"
 
 #include "Backends/Vulkan/VulkanIndexBuffer.h"
 #include "Backends/Vulkan/VulkanVertexBuffer.h"
@@ -11,7 +9,6 @@
 #include "Backends/Vulkan/VulkanDevice.h"
 #include "Backends/Vulkan/VulkanCommandBuffer.h"
 #include "Backends/Vulkan/VulkanShader.h"
-
 
 #include "Multithreading/JobsSystemInstance.h"
 
@@ -24,7 +21,7 @@ namespace SmolEngine
 {
 #define M_PI       3.14159265358979323846   // pi
 
-	void VulkanPBR::GenerateBRDFLUT(VkDescriptorImageInfo& outImageInfo)
+	void VulkanPBRLoader::GenerateBRDFLUT(VkDescriptorImageInfo& outImageInfo)
 	{
 		auto start = std::chrono::high_resolution_clock::now();
 		VkDevice device = VulkanContext::GetDevice().GetLogicalDevice();
@@ -368,7 +365,7 @@ namespace SmolEngine
 		DebugLog::LogInfo("Generating BRDF LUT took {} ms", diff);
 	}
 
-	void VulkanPBR::GenerateIrradianceCube(VulkanTexture* skyBox, VkDescriptorImageInfo& outImageInfo)
+	void VulkanPBRLoader::GenerateIrradianceCube(VulkanTexture* skyBox, VkDescriptorImageInfo& outImageInfo)
 	{
 		auto start = std::chrono::high_resolution_clock::now();
 		VkDevice device = VulkanContext::GetDevice().GetLogicalDevice();
@@ -986,7 +983,7 @@ namespace SmolEngine
 		DebugLog::LogInfo("Generating irradiance cube with {} mip levels took {} ms", numMips, diff);
 	}
 
-	void VulkanPBR::GeneratePrefilteredCube(VulkanTexture* skyBox, VkDescriptorImageInfo& outImageInfo)
+	void VulkanPBRLoader::GeneratePrefilteredCube(VulkanTexture* skyBox, VkDescriptorImageInfo& outImageInfo)
 	{
 		auto start = std::chrono::high_resolution_clock::now();
 		VkDevice device = VulkanContext::GetDevice().GetLogicalDevice();
@@ -1599,7 +1596,7 @@ namespace SmolEngine
 		DebugLog::LogInfo("Generating pre-filtered enivornment cube with {} mip levels took {} ms", numMips, diff);
 	}
 
-	void VulkanPBR::DestroyAttachment(PBRAttachment& obj)
+	void VulkanPBRLoader::DestroyAttachment(PBRAttachment& obj)
 	{
 		auto device = VulkanContext::GetDevice().GetLogicalDevice();
 
@@ -1624,12 +1621,13 @@ namespace SmolEngine
 		
 	}
 
-	VulkanPBR::VulkanPBR()
+	void VulkanPBRLoader::Free()
 	{
-		s_Instance = this;
+		DestroyAttachment(m_Irradiance);
+		DestroyAttachment(m_PrefilteredCube);
 	}
 
-	void VulkanPBR::GeneratePBRCubeMaps(Ref<Texture>& environment_map)
+	void VulkanPBRLoader::GeneratePBRCubeMaps(Ref<Texture>& environment_map)
 	{
 		Free();
 		VulkanTexture* vulkanTex = environment_map->Cast<VulkanTexture>();
@@ -1643,30 +1641,19 @@ namespace SmolEngine
 		JobsSystemInstance::EndSubmition();
 	}
 
-	void VulkanPBR::Free()
+	void* VulkanPBRLoader::GetBRDFLUTDesriptor()
 	{
-		DestroyAttachment(m_Irradiance);
-		DestroyAttachment(m_PrefilteredCube);
+		return &m_BRDFLUTImageInfo;;
 	}
 
-	VulkanPBR* VulkanPBR::GetSingleton()
+	void* VulkanPBRLoader::GetIrradianceDesriptor()
 	{
-		return s_Instance;
+		return &m_IrradianceImageInfo;
 	}
 
-	const VkDescriptorImageInfo& VulkanPBR::GetBRDFLUTImageInfo()
+	void* VulkanPBRLoader::GetPrefilteredCubeDesriptor()
 	{
-		return m_BRDFLUTImageInfo;
-	}
-
-	const VkDescriptorImageInfo& VulkanPBR::GetIrradianceImageInfo()
-	{
-		return m_IrradianceImageInfo;
-	}
-
-	const VkDescriptorImageInfo& VulkanPBR::GetPrefilteredCubeImageInfo()
-	{
-		return m_PrefilteredCubeImageInfo;
+		return &m_PrefilteredCubeImageInfo;
 	}
 }
 #endif

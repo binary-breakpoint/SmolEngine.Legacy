@@ -238,11 +238,11 @@ int main(int argc, char** argv)
 	info.ResourcesFolder = "../resources/";
 	info.pWindowCI = &windoInfo;
 
-	bool process = true;
-	ClearInfo clearInfo = {};
-
 	auto context = GraphicsContext::Create(&info);
-	context->SetEventCallback([&](Event& e) { if (e.IsType(EventType::WINDOW_CLOSE)) { process = false; }  camera->OnEvent(e); });
+	context->SetEventCallback([&](Event& e) 
+     { 
+        camera->OnEvent(e);
+     });
 
 	auto& [cube, cubeView] = MeshPool::GetSphere();
     auto cubeView2 = cube->CreateMeshView();
@@ -284,8 +284,9 @@ int main(int argc, char** argv)
         cubeView->SetMaterial(material, mesh->GetNodeIndex());
 
     static float rotY = 0.0f;
+    ClearInfo clearInfo = {};
 
-	while (process)
+	while (context->IsOpen())
 	{
 		context->ProcessEvents();
 		float deltaTime = context->CalculateDeltaTime();

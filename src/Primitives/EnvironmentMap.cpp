@@ -1,15 +1,15 @@
 #include "stdafx.h"
 #include "Primitives/EnvironmentMap.h"
+#include "Renderer/RendererDeferred.h"
 
 #ifdef OPENGL_IMPL
 #else
-#include "Backends/Vulkan/VulkanPBR.h"
+#include "Renderer/PBRLoader.h"
 #include "Backends/Vulkan/VulkanTexture.h"
 #include "Backends/Vulkan/VulkanPipeline.h"
 #include "Backends/Vulkan/VulkanFramebuffer.h"
 #endif
 
-#include "GraphicsContext.h"
 #include "Tools/GLM.h"
 
 namespace SmolEngine
@@ -119,8 +119,8 @@ namespace SmolEngine
 		Free();
 		m_IsDynamic = false;
 		m_CubeMap = cubeMap;
-		VulkanPBR* instance = VulkanPBR::GetSingleton();
-		instance->GeneratePBRCubeMaps(m_CubeMap);
+
+		RendererStorage::GetPBRLoader()->GeneratePBRCubeMaps(m_CubeMap);
 	}
 
 	void EnvironmentMap::GenerateDynamic(const glm::mat4& cameraProj)

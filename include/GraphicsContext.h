@@ -55,6 +55,7 @@ namespace SmolEngine
 		void                              SetFramebufferSize(uint32_t width, uint32_t height);
 		float                             CalculateDeltaTime();
 		bool                              IsWindowMinimized() const;
+		bool                              IsOpen() const;
 		void                              Resize(uint32_t* width, uint32_t* height);
 									      
 	private:		
@@ -70,6 +71,7 @@ namespace SmolEngine
 
 	private:	
 		bool                              m_bWindowMinimized = false;
+		bool                              m_bOpen = true;
 		float                             m_LastFrameTime = 1.0f;
 		float                             m_DeltaTime = 0.0f;
 		static GraphicsContext*           s_Instance;

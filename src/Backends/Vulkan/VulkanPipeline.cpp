@@ -523,14 +523,14 @@ namespace SmolEngine
 		return m_Descriptors[m_DescriptorIndex].UpdateImageResource(bindingPoint, descriptor);
 	}
 
+	bool VulkanPipeline::UpdateImageDescriptor(uint32_t bindingPoint, void* descriptor)
+	{
+		return m_Descriptors[m_DescriptorIndex].UpdateImageResource(bindingPoint, *(VkDescriptorImageInfo*)descriptor);;
+	}
+
 	bool VulkanPipeline::UpdateCubeMap(Ref<Texture>& cubeMap, uint32_t bindingPoint)
 	{
 		return m_Descriptors[m_DescriptorIndex].UpdateCubeMap(cubeMap, bindingPoint);
-	}
-
-	void VulkanPipeline::UpdateImageDescriptor(uint32_t bindingPoint, const VkDescriptorImageInfo& imageInfo)
-	{
-		m_Descriptors[m_DescriptorIndex].UpdateImageResource(bindingPoint, imageInfo);
 	}
 
 	void VulkanPipeline::BindPipeline()

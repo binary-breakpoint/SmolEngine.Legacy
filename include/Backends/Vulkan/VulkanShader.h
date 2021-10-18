@@ -28,7 +28,7 @@ namespace SmolEngine
 		std::unordered_map<ShaderType, VkShaderModule>           m_ShaderModules;
 
 		friend class VulkanPipeline;
-		friend class VulkanPBR;
+		friend class VulkanPBRLoader;
 		friend class VulkanDescriptor;
 		friend class GraphicsPipeline;
 		friend class VulkanComputePipeline;

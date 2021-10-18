@@ -63,7 +63,7 @@ namespace SmolEngine
 	private:
 
 		friend class VulkanPipeline;
-		friend class VulkanPBR;
+		friend class VulkanPBRLoader;
 		friend class VulkanDescriptor;
 	};
 }

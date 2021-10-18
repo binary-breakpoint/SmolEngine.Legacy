@@ -157,13 +157,14 @@ int main(int argc, char** argv)
 		info.pWindowCI = &windoInfo;
 	}
 
-	bool process = true;
 	ClearInfo clearInfo = {};
-
 	DebugLog* log = new DebugLog([&](const std::string&& msg, LogLevel level) { std::cout << msg << "\n"; });
 
 	context = GraphicsContext::Create(&info);
-	context->SetEventCallback([&](Event& e) { if (e.IsType(EventType::WINDOW_CLOSE)) { process = false; }  camera->OnEvent(e); });
+	context->SetEventCallback([&](Event& e) 
+	{ 
+		camera->OnEvent(e); 
+	});
 
 	auto& [cube, view] = MeshPool::GetCube();
 
@@ -207,7 +208,7 @@ int main(int argc, char** argv)
 	textField.SetLayout(120, 30, 1);
 	textField.Label = "Player name:";
 
-	while (process)
+	while (context->IsOpen())
 	{
 		context->ProcessEvents();
 		float deltaTime = context->CalculateDeltaTime();

@@ -113,11 +113,11 @@ namespace SmolEngine
 		static const std::vector<Ref<PBRHandle>>& GetMaterials();
 
 	private:
-		inline static PBRFactory*       s_Instance = nullptr;
-		const uint32_t                  m_MaxTextures = 4096;
-		std::unordered_map<std::string, 
-			Ref<PBRHandle>>             m_IDs;
-		std::mutex                      m_Mutex{};
-		std::vector<Ref<PBRHandle>>     m_Materials;
+		inline static PBRFactory*                 s_Instance = nullptr;
+		const uint32_t                            m_MaxTextures = 4096;
+		std::unordered_map<std::string,			  
+			Ref<PBRHandle>>                       m_IDs;				  
+		std::mutex                                m_Mutex{};
+		std::vector<Ref<PBRHandle>>               m_Materials;
 	};
 }
