@@ -193,12 +193,12 @@ project "SmolEngine.Graphics"
 
 --------------------------------------------------------------------------------- PBR
 
-group "Samples"
+group "Tests"
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
-project "Physically Based Rendering"
+project "PBR"
 	kind "ConsoleApp"
-	location "samples"
+	location "tests"
 	language "C++"
 	cppdialect "C++17"
 	staticruntime "on"
@@ -208,8 +208,8 @@ project "Physically Based Rendering"
 
 	files
 	{
-		"samples/PBR.h",
-		"samples/PBR.cpp",
+		"tests/PBR.h",
+		"tests/PBR.cpp",
 	}
 
 	includedirs
@@ -249,9 +249,9 @@ project "Physically Based Rendering"
 
 ------------------------------------------------- 2D
 
-project "2D Rendering"
+project "2D"
 	kind "ConsoleApp"
-	location "samples"
+	location "tests"
 	language "C++"
 	cppdialect "C++17"
 	staticruntime "on"
@@ -261,8 +261,8 @@ project "2D Rendering"
 
 	files
 	{
-		"samples/2D.h",
-		"samples/2D.cpp",
+		"tests/2D.h",
+		"tests/2D.cpp",
 	}
 
 	includedirs
@@ -301,9 +301,9 @@ project "2D Rendering"
 
 	------------------------------------------------- 3D Animations
 
-	project "Vertex Skinning"
+	project "Skinning"
 	kind "ConsoleApp"
-	location "samples"
+	location "tests"
 	language "C++"
 	cppdialect "C++17"
 	staticruntime "on"
@@ -313,8 +313,8 @@ project "2D Rendering"
 
 	files
 	{
-		"samples/Skinning.h",
-		"samples/Skinning.cpp",
+		"tests/Skinning.h",
+		"tests/Skinning.cpp",
 	}
 
 	includedirs
@@ -351,9 +351,9 @@ project "2D Rendering"
 		buildoptions "/bigobj"
 		optimize "on"
 
-	project "Hello Triangle"
+	project "Materials"
 	kind "ConsoleApp"
-	location "samples"
+	location "tests"
 	language "C++"
 	cppdialect "C++17"
 	staticruntime "on"
@@ -363,58 +363,8 @@ project "2D Rendering"
 
 	files
 	{
-		"samples/HelloTriangle.h",
-		"samples/HelloTriangle.cpp",
-	}
-
-	includedirs
-	{
-		"include/",
-
-		"include/External",
-		"include/External/vulkan/include",
-		"include/External/spdlog/include",
-		"include/External/glm/"
-	}
-
-	links
-	{
-		"bin/" ..outputdir .. "/SmolEngine.Graphics/SmolEngine.Graphics.lib"
-	}
-
-	filter "system:windows"
-		systemversion "latest"
-
-		defines
-		{
-			"_CRT_SECURE_NO_WARNINGS",
-			"PLATFORM_WIN"
-		}
-
-		filter "configurations:Debug_Vulkan"
-		buildoptions "/MDd"
-		buildoptions "/bigobj"
-		symbols "on"
-	
-		filter "configurations:Release_Vulkan"
-		buildoptions "/MD"
-		buildoptions "/bigobj"
-		optimize "on"
-
-	project "Custom Materials"
-	kind "ConsoleApp"
-	location "samples"
-	language "C++"
-	cppdialect "C++17"
-	staticruntime "on"
-
-	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("vendor/libs/bin-int/" .. outputdir .. "/%{prj.name}")
-
-	files
-	{
-		"samples/CustomMaterials.h",
-		"samples/CustomMaterials.cpp",
+		"tests/CustomMaterials.h",
+		"tests/CustomMaterials.cpp",
 	}
 
 	includedirs
