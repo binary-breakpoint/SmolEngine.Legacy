@@ -386,6 +386,73 @@ namespace SmolEngine
 		LoadEX(info, nullptr, true);
 	}
 
+	void VulkanTexture::LoadAs3D(TextureCreateInfo* info)
+	{
+		FindTextureParams(info);
+
+		VkImageCreateInfo imageInfo{};
+		{
+			imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+			imageInfo.imageType = VK_IMAGE_TYPE_3D;
+			imageInfo.extent.width = info->Width;
+			imageInfo.extent.height = info->Height;
+			imageInfo.extent.depth = info->Depth;
+			imageInfo.mipLevels = info->Mips;
+			imageInfo.arrayLayers = 1;
+			imageInfo.format = m_Format;
+			imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+			imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			imageInfo.usage = VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+			imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+			imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+
+			m_Alloc = VulkanAllocator::AllocImage(imageInfo, VMA_MEMORY_USAGE_GPU_ONLY, m_Image);
+		}
+
+		VkSamplerCreateInfo samplerCI = {};
+		{
+			samplerCI.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+			samplerCI.maxAnisotropy = 1.0f;
+			samplerCI.magFilter = m_Filter;
+			samplerCI.minFilter = m_Filter;
+			samplerCI.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+			samplerCI.addressModeU = m_AddressMode;
+			samplerCI.addressModeV = m_AddressMode;
+			samplerCI.addressModeW = m_AddressMode;
+			samplerCI.compareOp = VK_COMPARE_OP_NEVER;
+			samplerCI.mipLodBias = 0.0f;
+			samplerCI.minLod = 0.0f;
+			samplerCI.maxLod = static_cast<float>(info->Mips);
+			samplerCI.maxAnisotropy = 1.0;
+			samplerCI.borderColor = m_BorderColor;
+
+			VK_CHECK_RESULT(vkCreateSampler(m_Device, &samplerCI, nullptr, &m_Samper));
+		}
+
+		VkImageViewCreateInfo imageViewCI = {};
+		{
+			imageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+			imageViewCI.viewType = VK_IMAGE_VIEW_TYPE_3D;
+			imageViewCI.format = m_Format;
+			imageViewCI.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
+			imageViewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			imageViewCI.subresourceRange.baseMipLevel = 0;
+			imageViewCI.subresourceRange.baseArrayLayer = 0;
+			imageViewCI.subresourceRange.layerCount = 1;
+			imageViewCI.subresourceRange.levelCount = info->Mips;
+			imageViewCI.image = m_Image;
+
+			VK_CHECK_RESULT(vkCreateImageView(m_Device, &imageViewCI, nullptr, &m_ImageView));
+		}
+
+		m_DescriptorImageInfo = {};
+
+		m_ImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		m_DescriptorImageInfo.imageLayout = m_ImageLayout;
+		m_DescriptorImageInfo.imageView = m_ImageView;
+		m_DescriptorImageInfo.sampler = m_Samper;
+	}
+
 	void VulkanTexture::LoadAsWhite()
 	{
 		TextureCreateInfo info = {};

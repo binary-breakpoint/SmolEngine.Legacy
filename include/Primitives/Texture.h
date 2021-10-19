@@ -69,6 +69,7 @@ namespace SmolEngine
 		uint32_t       Width = 0;
 		uint32_t       Height = 0;
 		uint32_t       Mips = 0;
+		uint32_t       Depth = 1;
 
 	public:
 		bool           Save(const std::string& filePath);
@@ -80,7 +81,7 @@ namespace SmolEngine
 		template<typename Archive>
 		void serialize(Archive& archive)
 		{
-			archive(bVerticalFlip, bAnisotropyEnable, bImGUIHandle, bIsCube, eFormat, eAddressMode, eFilter, eBorderColor, Width, Height, Mips, FilePath);
+			archive(bVerticalFlip, bAnisotropyEnable, bImGUIHandle, bIsCube, eFormat, eAddressMode, eFilter, eBorderColor, Width, Height, Mips, Depth, FilePath);
 		}
 	};
 
@@ -94,6 +95,7 @@ namespace SmolEngine
 		virtual void                          LoadAsCubeFromKtx(TextureCreateInfo* info) = 0;
 		virtual void                          LoadAsWhiteCube(TextureCreateInfo* info) = 0;
 		virtual void                          LoadAsStorage(TextureCreateInfo* info) = 0;
+		virtual void                          LoadAs3D(TextureCreateInfo* info) = 0;
 		virtual void                          LoadAsWhite() = 0;
 
 		virtual uint32_t                      GetMips() const { return 0; };

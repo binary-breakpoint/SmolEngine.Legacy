@@ -16,6 +16,7 @@ namespace SmolEngine
 		void                                       LoadAsCubeFromKtx(TextureCreateInfo* info) override;
 		void                                       LoadAsWhiteCube(TextureCreateInfo* info) override;
 		void                                       LoadAsStorage(TextureCreateInfo* info) override;
+		void                                       LoadAs3D(TextureCreateInfo* info) override;
 		void                                       LoadAsWhite() override;
 		void                                       Free() override;
 		void                                       SetFormat(VkFormat format);
