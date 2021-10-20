@@ -19,6 +19,7 @@ namespace SmolEngine
 		void                                       LoadAs3D(TextureCreateInfo* info) override;
 		void                                       LoadAsWhite() override;
 		void                                       Free() override;
+		void                                       ClearImage(void* cmdBuffer) override;
 		void                                       SetFormat(VkFormat format);
 
 		uint32_t                                   GetMips() const override;

@@ -97,6 +97,7 @@ namespace SmolEngine
 		virtual void                          LoadAsStorage(TextureCreateInfo* info) = 0;
 		virtual void                          LoadAs3D(TextureCreateInfo* info) = 0;
 		virtual void                          LoadAsWhite() = 0;
+		virtual void                          ClearImage(void* cmdBuffer) = 0;
 
 		virtual uint32_t                      GetMips() const { return 0; };
 		virtual std::pair<uint32_t, uint32_t> GetMipSize(uint32_t mip) const { return { 0, 0 }; };

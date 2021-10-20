@@ -607,6 +607,11 @@ namespace SmolEngine
 		m_Alloc = nullptr;
 	}
 
+	void VulkanTexture::ClearImage(void* cmdBuffer)
+	{
+		VkClearColorValue val = { 0, 0, 0, 1 };
+		vkCmdClearColorImage((VkCommandBuffer)cmdBuffer, m_Image, m_ImageLayout, &val, 0, nullptr);
+	}
 
 	VkImage VulkanTexture::CreateVkImage(uint32_t width, uint32_t height, int32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling,
 		VkImageUsageFlags usage, VmaAllocation& alloc, uint32_t arrayLayers)

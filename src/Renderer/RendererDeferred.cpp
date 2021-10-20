@@ -47,17 +47,23 @@ namespace SmolEngine
 		submitInfo.pStorage = RendererStorage::GetSingleton();
 		submitInfo.pCmdStorage = &cmdStorage;
 
-		submitInfo.pStorage->m_DefaultMaterial->GetPipeline()->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
-		submitInfo.pStorage->p_Lighting->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
-		submitInfo.pStorage->p_Skybox->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
-		submitInfo.pStorage->p_DepthPass->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
-		submitInfo.pStorage->p_Debug->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
-		submitInfo.pStorage->p_Grid->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
-		submitInfo.pStorage->p_Combination->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
+		submitInfo.pStorage->m_DefaultMaterial->GetPipeline()->SetCommandBuffer(cmdStorage.Buffer);
+		submitInfo.pStorage->p_Lighting->SetCommandBuffer(cmdStorage.Buffer);
+		submitInfo.pStorage->p_Skybox->SetCommandBuffer(cmdStorage.Buffer);
+		submitInfo.pStorage->p_DepthPass->SetCommandBuffer(cmdStorage.Buffer);
+		submitInfo.pStorage->p_Debug->SetCommandBuffer(cmdStorage.Buffer);
+		submitInfo.pStorage->p_Grid->SetCommandBuffer(cmdStorage.Buffer);
+		submitInfo.pStorage->p_Combination->SetCommandBuffer(cmdStorage.Buffer);
+		submitInfo.pStorage->p_Voxelization->SetCommandBuffer(cmdStorage.Buffer);
+
 		//submitInfo.pStorage->p_DOF->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
 
 		UpdateUniforms(&submitInfo);
 		DepthPass(&submitInfo);
+
+
+		VoxelizationPass(&submitInfo);
+
 		GBufferPass(&submitInfo);
 
 		if (DebugViewPass(&submitInfo)) { return; }
@@ -72,6 +78,29 @@ namespace SmolEngine
 
 	void RendererStorage::Initilize()
 	{
+		{
+			TextureCreateInfo texCI{};
+			uint32_t dimension = (uint32_t)pow(2, 0);
+			texCI.Width = 512 / dimension;
+			texCI.Height = 512 / dimension;
+			texCI.Depth = 512 / dimension;
+			texCI.eFormat = TextureFormat::R32G32B32A32_SFLOAT;
+			texCI.Mips = 7;
+
+			m_3DAlbedo = Texture::Create();
+			m_3DNormal = Texture::Create();
+			m_3DMaterials = Texture::Create();
+			m_3DValueFlags = Texture::Create();
+
+			m_3DAlbedo->LoadAs3D(&texCI);
+			m_3DNormal->LoadAs3D(&texCI);
+			m_3DMaterials->LoadAs3D(&texCI);
+
+			texCI.eFormat = TextureFormat::R8_UNORM;
+			m_3DValueFlags->LoadAs3D(&texCI);
+		}
+
+
 		CreatePBRMaps();
 		CreateFramebuffers();
 		CreatePipelines();
@@ -295,6 +324,33 @@ namespace SmolEngine
 					}
 				});
 
+			// Voxelization Pass
+			JobsSystemInstance::Schedule([&]()
+				{
+					ShaderCreateInfo shaderCI = {};
+					{
+						shaderCI.Stages[ShaderType::Vertex] = path + "Shaders/Gbuffer.vert";
+						shaderCI.Stages[ShaderType::Geometry] = path + "Shaders/Voxelization.geom";
+						shaderCI.Stages[ShaderType::Fragment] = path + "Shaders/Voxelization.frag";
+
+						shaderCI.Buffers[202].bGlobal = false;
+					};
+
+					GraphicsPipelineCreateInfo DynamicPipelineCI = {};
+					{
+						DynamicPipelineCI.VertexInputInfos = { vertexMain };
+						DynamicPipelineCI.PipelineName = "Voxelization_Pipeline";
+						DynamicPipelineCI.ShaderCreateInfo = shaderCI;
+						DynamicPipelineCI.TargetFramebuffers = { f_Voxelization };
+						DynamicPipelineCI.bDepthTestEnabled = false;
+						DynamicPipelineCI.eCullMode = CullMode::None;
+
+						p_Voxelization = GraphicsPipeline::Create();
+						auto result = p_Voxelization->Build(&DynamicPipelineCI);
+						assert(result == true);
+					}
+				});
+
 			// DOF
 			//JobsSystemInstance::Schedule([&]()
 			//	{
@@ -426,6 +482,25 @@ namespace SmolEngine
 					f_GBuffer->Build(&framebufferCI);
 
 				});
+
+			// Voxelization
+			JobsSystemInstance::Schedule([&]()
+				{
+
+					FramebufferAttachment color = FramebufferAttachment(AttachmentFormat::SFloat4_16, true, "color_1");
+					FramebufferSpecification framebufferCI = {};
+
+					framebufferCI.eFiltering = ImageFilter::LINEAR;
+					framebufferCI.Width = m_VCTParams.VolumeDimension;
+					framebufferCI.Height = m_VCTParams.VolumeDimension;
+					framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
+					framebufferCI.Attachments = { color };
+
+					f_Voxelization = Framebuffer::Create();
+					f_Voxelization->Build(&framebufferCI);
+
+				});
+
 
 			// Lighting
 			JobsSystemInstance::Schedule([&]()
@@ -1209,6 +1284,71 @@ namespace SmolEngine
 					1, &imageMemoryBarrier);
 
 				descriptorIndex++;
+			}
+		}
+	}
+
+	void RendererDeferred::VoxelizationPass(SubmitInfo* info)
+	{
+		auto drawList = info->pDrawList;
+		auto storage = info->pStorage;
+
+		struct UBO
+		{
+			glm::mat4 viewProjections[3];
+			glm::mat4 viewProjectionsI[3];
+			glm::vec3 worldMinPoint;
+			float voxelScale;
+			uint32_t volumeDimension;
+			uint32_t flagStaticVoxels;
+			glm::vec2 pad;
+
+		} ubo;
+
+		auto& aabb = drawList->m_VCTMesh->GetAABB();
+		auto axisSize = aabb.Extent() * 2.0f;
+		auto& center = aabb.Center();
+	
+		storage->m_VCTParams.VolumeGridSize = glm::max(axisSize.x, glm::max(axisSize.y, axisSize.z));
+		auto voxelCount = storage->m_VCTParams.VolumeDimension * storage->m_VCTParams.VolumeDimension * storage->m_VCTParams.VolumeDimension;
+		auto voxelSize = storage->m_VCTParams.VolumeGridSize / storage->m_VCTParams.VolumeDimension;
+		auto halfSize = storage->m_VCTParams.VolumeGridSize / 2.0f;
+
+		// projection matrices
+		auto projection = glm::ortho(-halfSize, halfSize, -halfSize, halfSize, 0.0f, storage->m_VCTParams.VolumeGridSize);
+
+		// view matrices
+		
+		ubo.viewProjections[0] = lookAt(center + glm::vec3(halfSize, 0.0f, 0.0f), center, glm::vec3(0.0f, 1.0f, 0.0f));
+		ubo.viewProjections[1] = lookAt(center + glm::vec3(0.0f, halfSize, 0.0f), center, glm::vec3(0.0f, 0.0f, -1.0f));
+		ubo.viewProjections[2] = lookAt(center + glm::vec3(0.0f, 0.0f, halfSize), center, glm::vec3(0.0f, 1.0f, 0.0f));
+
+		for (uint32_t i = 0; i < 3; i++)
+		{
+			auto& matrix = ubo.viewProjections[i];
+
+			matrix = projection * matrix;
+			ubo.viewProjectionsI[i++] = inverse(matrix);
+		}
+
+		ubo.volumeDimension = storage->m_VCTParams.VolumeDimension;
+		ubo.voxelScale = 1.0f / storage->m_VCTParams.VolumeGridSize;
+		ubo.worldMinPoint = aabb.MinPoint();
+		ubo.flagStaticVoxels = 1;
+
+		storage->p_Voxelization->UpdateSampler(storage->m_3DAlbedo, 0, true);
+		storage->p_Voxelization->UpdateSampler(storage->m_3DNormal, 1, true);
+		storage->p_Voxelization->UpdateSampler(storage->m_3DMaterials, 2, true);
+		storage->p_Voxelization->UpdateSampler(storage->m_3DValueFlags, 3, true);
+
+		for (uint32_t i = 0; i < drawList->m_InstanceIndex; ++i)
+		{
+			auto& cmd = drawList->m_DrawList[i];
+
+			for (auto& [material, package] : cmd.Packages)
+			{
+				storage->p_Voxelization->SubmitPushConstant(ShaderType::Vertex, sizeof(uint32_t), &package.Offset);
+				storage->p_Voxelization->DrawMeshIndexed(cmd.Mesh, package.Instances);
 			}
 		}
 	}

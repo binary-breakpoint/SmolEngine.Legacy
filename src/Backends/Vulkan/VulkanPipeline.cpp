@@ -508,7 +508,7 @@ namespace SmolEngine
 
 	bool VulkanPipeline::UpdateSampler(Ref<Texture>& tetxure, uint32_t bindingPoint, bool storageImage)
 	{
-		return m_Descriptors[m_DescriptorIndex].UpdateImageResource(bindingPoint, tetxure->Cast<VulkanTexture>()->GetVkDescriptorImageInfo());
+		return m_Descriptors[m_DescriptorIndex].UpdateImageResource(bindingPoint, tetxure->Cast<VulkanTexture>()->GetVkDescriptorImageInfo(), storageImage);
 	}
 
 	bool VulkanPipeline::UpdateSampler(Ref<Framebuffer>& framebuffer, uint32_t bindingPoint, uint32_t attachmentIndex)

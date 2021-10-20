@@ -266,7 +266,7 @@ namespace SmolEngine
 	void RendererDebug::DrawAABB(const BoundingBox& aabb, const glm::vec3& pos, const glm::vec3& scale)
 	{
 		glm::mat4 scaleMat = glm::scale(scale);
-		glm::vec3 halfExtents = (aabb.max - aabb.min) * 0.5f;
+		glm::vec3 halfExtents = (aabb.MaxPoint() - aabb.MinPoint()) * 0.5f;
 		int i, j;
 
 		glm::vec3 edgecoord(1.f, 1.f, 1.f), pa, pb;

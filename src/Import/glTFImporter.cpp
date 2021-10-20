@@ -196,8 +196,10 @@ namespace SmolEngine
 				}
 
 				primitive.MeshName = inputNode.name;
-				primitive.AABB.SetBoundingBox(posMin, posMax);
-				primitive.AABB.CalculateAABB(model);
+				primitive.AABB.MinPoint(posMin);
+				primitive.AABB.MaxPoint(posMax);
+				primitive.AABB.Transform(model);
+
 				out_data->Primitives.push_back(primitive);
 			}
 		}

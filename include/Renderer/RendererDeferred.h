@@ -58,18 +58,33 @@ namespace SmolEngine
 		Ref<GraphicsPipeline>          p_Debug = nullptr;
 		Ref<GraphicsPipeline>          p_Mask = nullptr;
 		Ref<GraphicsPipeline>          p_DOF = nullptr;
+		Ref<GraphicsPipeline>          p_Voxelization = nullptr;
 		Ref<ComputePipeline>           p_Bloom = nullptr;
 		// Framebuffers				   
 		Ref<Framebuffer>               f_Main = nullptr;
 		Ref<Framebuffer>               f_GBuffer = nullptr;
 		Ref<Framebuffer>               f_Lighting = nullptr;
 		Ref<Framebuffer>               f_Depth = nullptr;
+		Ref<Framebuffer>               f_Voxelization = nullptr;
 		Ref<Framebuffer>               f_DOF = nullptr;
 		Ref<Mesh>                      m_GridMesh = nullptr;
 		Ref<PBRLoader>                 m_PBRLoader = nullptr;
 		Ref<EnvironmentMap>            m_EnvironmentMap = nullptr;
 		Ref<PBRFactory>                m_PBRFactory = nullptr;
-									   
+
+		Ref<Texture>                   m_3DAlbedo = nullptr;
+		Ref<Texture>                   m_3DNormal = nullptr;
+		Ref<Texture>                   m_3DMaterials = nullptr;
+		Ref<Texture>                   m_3DValueFlags = nullptr;
+
+		struct VoxelConeTracing
+		{
+			uint32_t VolumeDimension = 256;
+			float    VolumeGridSize = 0;
+			float    VoxelSize = 0;
+		};
+
+		VoxelConeTracing               m_VCTParams{};
 		RendererStateEX                m_State{};
 		std::vector<Ref<Texture>>      m_BloomTex{};
 		ShadowMapSize                  m_MapSize = ShadowMapSize::SIZE_8;
@@ -92,6 +107,7 @@ namespace SmolEngine
 		static void LightingPass(SubmitInfo* info);
 		static void DepthPass(SubmitInfo* info);
 		static void BloomPass(SubmitInfo* info);
+		static void VoxelizationPass(SubmitInfo* info);
 		static bool DebugViewPass(SubmitInfo* info);
 		static void CompositionPass(SubmitInfo* info);
 		static void UpdateUniforms(SubmitInfo* info);

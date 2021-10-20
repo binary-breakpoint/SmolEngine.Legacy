@@ -227,6 +227,7 @@ int main(int argc, char** argv)
 			for (const auto& c : chunks)
 			{
 				RendererDrawList::SubmitMesh(c.Pos, c.Rot, c.Scale, cube, c.View);
+				RendererDrawList::SetVCTMesh(cube);
 			}
 		}
 		RendererDrawList::EndSubmit();
