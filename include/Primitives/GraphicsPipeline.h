@@ -4,6 +4,7 @@
 #include "Common/Vertex.h"
 
 #include "Primitives/PrimitiveBase.h"
+#include "Primitives/PipelineBase.h"
 #include "Primitives/VertexArray.h"
 #include "Primitives/VertexBuffer.h"
 #include "Primitives/IndexBuffer.h"
@@ -99,7 +100,7 @@ namespace SmolEngine
 		std::vector<Ref<Framebuffer>> TargetFramebuffers;
 	};
 
-	class GraphicsPipeline: public PrimitiveBase
+	class GraphicsPipeline: public PrimitiveBase, public PipelineBase
 	{
 	public:
 		GraphicsPipeline() = default;
@@ -115,24 +116,14 @@ namespace SmolEngine
 		virtual void                      EndRenderPass() = 0;
 		virtual void                      Reload() {};
 					                      
+		virtual void                      SubmitPushConstant(ShaderType stage, size_t size, const void* data) {};
 		virtual void                      DrawIndexed(uint32_t vbIndex = 0, uint32_t ibIndex = 0) = 0;
 		virtual void                      DrawIndexed(Ref<VertexBuffer>& vb, Ref<IndexBuffer>& ib) = 0;
 		virtual void                      Draw(Ref<VertexBuffer>& vb, uint32_t vertextCount) = 0;
 		virtual void                      Draw(uint32_t vertextCount, uint32_t vbIndex = 0) = 0;
 		virtual void                      DrawMeshIndexed(Ref<Mesh>& mesh, uint32_t instances = 1) = 0;
 		virtual void                      DrawMesh(Ref<Mesh>& mesh, uint32_t instances = 1) = 0;
-					                      
-		virtual bool                      SubmitBuffer(uint32_t binding, size_t size, const void* data, uint32_t offset = 0) = 0;
-		virtual void                      SubmitPushConstant(ShaderType stage, size_t size, const void* data) {};
-					                      
-		virtual bool                      UpdateSamplers(const std::vector<Ref<Texture>>& textures, uint32_t binding, bool storageImage = false) = 0;
-		virtual bool                      UpdateSampler(Ref<Texture>& texture, uint32_t binding, bool storageImage = false) = 0;
-		virtual bool                      UpdateSampler(Ref<Framebuffer>& framebuffer, uint32_t binding, uint32_t attachmentIndex = 0) = 0;
-		virtual bool                      UpdateSampler(Ref<Framebuffer>& framebuffer, uint32_t binding, const std::string& attachmentName) = 0;
-		virtual bool                      UpdateImageDescriptor(uint32_t bindingPoint, void* dDescriptor) { return false; }
-		virtual bool                      UpdateCubeMap(Ref<Texture>& cubeMap, uint32_t binding) = 0;
-
-					                      
+					                     
 		virtual void                      BindPipeline() {};
 		virtual void                      BindDescriptors() {};
 		virtual void                      BindIndexBuffer(uint32_t index = 0) {};

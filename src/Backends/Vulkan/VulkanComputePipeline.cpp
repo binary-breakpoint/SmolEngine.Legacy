@@ -83,15 +83,17 @@ namespace SmolEngine
 	{
 		for (uint32_t i = 0; i < static_cast<uint32_t>(m_Descriptors.size()); ++i)
 		{
-			Dispatch(groupCountX, groupCountY, groupCountZ, i);
+			SetDescriptorIndex(i);
+			Dispatch(groupCountX, groupCountY, groupCountZ);
 		}
 
+		SetDescriptorIndex(0);
 		VulkanCommandBuffer::ExecuteCommandBuffer(&m_CmdStorage);
 	}
 
-	void VulkanComputePipeline::Dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ, uint32_t descriptorIndex, void* descriptorSet)
+	void VulkanComputePipeline::Dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ, void* descriptorSet)
 	{
-		const auto& set = descriptorSet == nullptr ? m_Descriptors[descriptorIndex].GetDescriptorSets() : (VkDescriptorSet)descriptorSet;
+		const auto& set = m_Descriptors[m_DescriptorIndex].GetDescriptorSets();
 		vkCmdBindDescriptorSets(m_CmdStorage.Buffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_PipelineLayout, 0, 1, &set, 0, 0);
 		vkCmdDispatch(m_CmdStorage.Buffer, groupCountX, groupCountY, groupCountZ);
 	}
@@ -99,6 +101,43 @@ namespace SmolEngine
 	void VulkanComputePipeline::SubmitPushConstant(size_t size, const void* data)
 	{
 		vkCmdPushConstants(m_CmdStorage.Buffer, m_PipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, static_cast<uint32_t>(size), data);
+	}
+
+	bool VulkanComputePipeline::SubmitBuffer(uint32_t binding, size_t size, const void* data, uint32_t offset)
+	{
+		return m_Descriptors[m_DescriptorIndex].UpdateBuffer(binding, size, data, offset);
+	}
+
+	bool VulkanComputePipeline::UpdateSamplers(const std::vector<Ref<Texture>>& textures, uint32_t bindingPoint, bool storageImage)
+	{
+		return m_Descriptors[m_DescriptorIndex].Update2DSamplers(textures, bindingPoint, storageImage);
+	}
+
+	bool VulkanComputePipeline::UpdateSampler(Ref<Texture>& tetxure, uint32_t bindingPoint, bool storageImage)
+	{
+		return m_Descriptors[m_DescriptorIndex].UpdateImageResource(bindingPoint, tetxure->Cast<VulkanTexture>()->GetVkDescriptorImageInfo(), storageImage);
+	}
+
+	bool VulkanComputePipeline::UpdateSampler(Ref<Framebuffer>& framebuffer, uint32_t bindingPoint, uint32_t attachmentIndex)
+	{
+		const auto& descriptor = framebuffer->Cast<VulkanFramebuffer>()->GetAttachment(attachmentIndex)->ImageInfo;
+		return m_Descriptors[m_DescriptorIndex].UpdateImageResource(bindingPoint, descriptor);
+	}
+
+	bool VulkanComputePipeline::UpdateSampler(Ref<Framebuffer>& framebuffer, uint32_t bindingPoint, const std::string& attachmentName)
+	{
+		const auto& descriptor = framebuffer->Cast<VulkanFramebuffer>()->GetAttachment(attachmentName)->ImageInfo;
+		return m_Descriptors[m_DescriptorIndex].UpdateImageResource(bindingPoint, descriptor);
+	}
+
+	bool VulkanComputePipeline::UpdateImageDescriptor(uint32_t bindingPoint, void* descriptor)
+	{
+		return m_Descriptors[m_DescriptorIndex].UpdateImageResource(bindingPoint, *(VkDescriptorImageInfo*)descriptor);;
+	}
+
+	bool VulkanComputePipeline::UpdateCubeMap(Ref<Texture>& cubeMap, uint32_t bindingPoint)
+	{
+		return m_Descriptors[m_DescriptorIndex].UpdateCubeMap(cubeMap, bindingPoint);
 	}
 
 	VulkanDescriptor& VulkanComputePipeline::GeDescriptor(uint32_t index)

@@ -447,10 +447,27 @@ namespace SmolEngine
 
 		m_DescriptorImageInfo = {};
 
-		m_ImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		m_ImageLayout = VK_IMAGE_LAYOUT_GENERAL;
 		m_DescriptorImageInfo.imageLayout = m_ImageLayout;
 		m_DescriptorImageInfo.imageView = m_ImageView;
 		m_DescriptorImageInfo.sampler = m_Samper;
+
+		CommandBufferStorage cmdStorage{};
+		VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
+		{
+			VkImageSubresourceRange subresourceRange = {};
+			subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			subresourceRange.levelCount = m_Mips;
+			subresourceRange.layerCount = 1;
+
+			InsertImageMemoryBarrier(cmdStorage.Buffer, m_Image, 0, 0,
+				VK_IMAGE_LAYOUT_UNDEFINED, m_ImageLayout,
+				VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+				subresourceRange);
+
+			SetImageLayout(cmdStorage.Buffer, m_Image, VK_IMAGE_LAYOUT_UNDEFINED, m_ImageLayout, subresourceRange);
+		}
+		VulkanCommandBuffer::ExecuteCommandBuffer(&cmdStorage);
 	}
 
 	void VulkanTexture::LoadAsWhite()
@@ -933,11 +950,15 @@ namespace SmolEngine
 	{
 		switch (format)
 		{
+		case  TextureFormat::R32_INT:                         return VK_FORMAT_R32_SINT;
+		case  TextureFormat::R32_UINT:                        return VK_FORMAT_R32_UINT;
 		case TextureFormat::R8_UNORM:                         return VK_FORMAT_R8_UNORM;
 		case TextureFormat::R8G8B8A8_UNORM:                   return VK_FORMAT_R8G8B8A8_UNORM;
 		case TextureFormat::B8G8R8A8_UNORM:                   return VK_FORMAT_B8G8R8A8_UNORM;
 		case TextureFormat::R16G16B16A16_SFLOAT:              return VK_FORMAT_R16G16B16A16_SFLOAT;
 		case TextureFormat::R32G32B32A32_SFLOAT:              return VK_FORMAT_R32G32B32A32_SFLOAT;
+		case TextureFormat::R32G32B32A32_INT:                 return VK_FORMAT_R32G32B32A32_SINT;
+		case TextureFormat::R32G32B32A32_UINT:                return VK_FORMAT_R32G32B32A32_UINT;
 		default:                                              return VK_FORMAT_R8G8B8A8_UNORM;
 		}
 	}

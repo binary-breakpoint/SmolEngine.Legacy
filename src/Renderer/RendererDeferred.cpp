@@ -80,24 +80,29 @@ namespace SmolEngine
 	{
 		{
 			TextureCreateInfo texCI{};
-			uint32_t dimension = (uint32_t)pow(2, 0);
-			texCI.Width = 512 / dimension;
-			texCI.Height = 512 / dimension;
-			texCI.Depth = 512 / dimension;
-			texCI.eFormat = TextureFormat::R32G32B32A32_SFLOAT;
+
+			texCI.Width = m_VCTParams.VolumeDimension;
+			texCI.Height = m_VCTParams.VolumeDimension;
+			texCI.Depth = m_VCTParams.VolumeDimension;
+			texCI.eFormat = TextureFormat::R32_UINT;
 			texCI.Mips = 7;
 
 			m_3DAlbedo = Texture::Create();
 			m_3DNormal = Texture::Create();
 			m_3DMaterials = Texture::Create();
 			m_3DValueFlags = Texture::Create();
+			m_3DRadiance = Texture::Create();
 
 			m_3DAlbedo->LoadAs3D(&texCI);
 			m_3DNormal->LoadAs3D(&texCI);
 			m_3DMaterials->LoadAs3D(&texCI);
 
 			texCI.eFormat = TextureFormat::R8_UNORM;
+			texCI.Mips = 1;
 			m_3DValueFlags->LoadAs3D(&texCI);
+
+			texCI.eFormat = TextureFormat::R8G8B8A8_UNORM;
+			m_3DRadiance->LoadAs3D(&texCI);
 		}
 
 
@@ -324,12 +329,31 @@ namespace SmolEngine
 					}
 				});
 
+			// Inject Radiance Pass
+
+			JobsSystemInstance::Schedule([&]()
+			{
+				ComputePipelineCreateInfo compCI = {};
+				compCI.ShaderPath = path + "Shaders/InjectRadiance.comp";
+
+				p_InjectRadiance = ComputePipeline::Create();
+				auto result = p_InjectRadiance->Build(&compCI);
+				assert(result == true);
+
+				p_InjectRadiance->UpdateSampler(m_3DAlbedo, 0);
+				p_InjectRadiance->UpdateSampler(m_3DNormal, 1, true);
+				p_InjectRadiance->UpdateSampler(m_3DRadiance, 2, true);
+				p_InjectRadiance->UpdateSampler(m_3DMaterials, 3, true);
+				p_InjectRadiance->UpdateSampler(f_Depth, 4, "Depth_Attachment");
+
+			});
+
 			// Voxelization Pass
 			JobsSystemInstance::Schedule([&]()
 				{
 					ShaderCreateInfo shaderCI = {};
 					{
-						shaderCI.Stages[ShaderType::Vertex] = path + "Shaders/Gbuffer.vert";
+						shaderCI.Stages[ShaderType::Vertex] = path + "Shaders/Voxelization.vert";
 						shaderCI.Stages[ShaderType::Geometry] = path + "Shaders/Voxelization.geom";
 						shaderCI.Stages[ShaderType::Fragment] = path + "Shaders/Voxelization.frag";
 
@@ -349,6 +373,47 @@ namespace SmolEngine
 						auto result = p_Voxelization->Build(&DynamicPipelineCI);
 						assert(result == true);
 					}
+
+					m_VCTParams.VoxelCount = m_VCTParams.VolumeDimension * m_VCTParams.VolumeDimension * m_VCTParams.VolumeDimension;
+
+					auto& axisSize = m_VCTParams.AxisSize;
+					auto& center = m_VCTParams.Center;
+					auto& minPoint = m_VCTParams.MinPoint;
+					auto& maxPoint = m_VCTParams.MaxPoint;
+
+					m_VCTParams.VolumeGridSize = glm::max(axisSize.x, glm::max(axisSize.y, axisSize.z));
+					m_VCTParams.VoxelSize = m_VCTParams.VolumeGridSize / m_VCTParams.VolumeDimension;
+
+					auto halfSize = m_VCTParams.VolumeGridSize / 2.0f;
+
+					// projection matrices
+					auto projection = glm::ortho(-halfSize, halfSize, -halfSize, halfSize, 0.0f, m_VCTParams.VolumeGridSize);
+
+					// view matrices
+
+					 m_VCTParams.ubo.viewProjections[0] = lookAt(center + glm::vec3(halfSize, 0.0f, 0.0f), center, glm::vec3(0.0f, 1.0f, 0.0f));
+					 m_VCTParams.ubo.viewProjections[1] = lookAt(center + glm::vec3(0.0f, halfSize, 0.0f), center, glm::vec3(0.0f, 0.0f, -1.0f));
+					 m_VCTParams.ubo.viewProjections[2] = lookAt(center + glm::vec3(0.0f, 0.0f, halfSize), center, glm::vec3(0.0f, 1.0f, 0.0f));
+
+					 for (uint32_t i = 0; i < 3; i++)
+					 {
+					 	auto& matrix = m_VCTParams.ubo.viewProjections[i];
+					 
+					 	matrix = projection * matrix;
+					 	m_VCTParams.ubo.viewProjectionsI[i++] = inverse(matrix);
+					 }
+
+					 m_VCTParams.ubo.volumeDimension = m_VCTParams.VolumeDimension;
+					 m_VCTParams.ubo.voxelScale = 1.0f / m_VCTParams.VolumeGridSize;
+					 m_VCTParams.ubo.worldMinPoint = minPoint;
+					 m_VCTParams.ubo.flagStaticVoxels = 1;
+
+					 p_Voxelization->SubmitBuffer(202, sizeof(RendererStorage::VoxelConeTracing::UBO), &m_VCTParams.ubo);
+
+					 p_Voxelization->UpdateSampler(m_3DAlbedo, 0, true);
+					 p_Voxelization->UpdateSampler(m_3DNormal, 1, true);
+					 p_Voxelization->UpdateSampler(m_3DMaterials, 2, true);
+					 p_Voxelization->UpdateSampler(m_3DValueFlags, 3, true);
 				});
 
 			// DOF
@@ -1123,7 +1188,8 @@ namespace SmolEngine
 				workGroupsY = bloomTex[0]->GetInfo().Height / storage->m_BloomComputeWorkgroupSize;
 
 				storage->p_Bloom->SubmitPushConstant(sizeof(bloomComputePushConstants), &bloomComputePushConstants);
-				storage->p_Bloom->Dispatch(workGroupsX, workGroupsY, 1, descriptorIndex);
+				storage->p_Bloom->SetDescriptorIndex(descriptorIndex);
+				storage->p_Bloom->Dispatch(workGroupsX, workGroupsY, 1);
 
 				VkImageMemoryBarrier imageMemoryBarrier = {};
 				imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -1161,7 +1227,8 @@ namespace SmolEngine
 
 				bloomComputePushConstants.LOD = i - 1.0f;
 				storage->p_Bloom->SubmitPushConstant(sizeof(bloomComputePushConstants), &bloomComputePushConstants);
-				storage->p_Bloom->Dispatch(workGroupsX, workGroupsY, 1, descriptorIndex);
+				storage->p_Bloom->SetDescriptorIndex(descriptorIndex);
+				storage->p_Bloom->Dispatch(workGroupsX, workGroupsY, 1);
 
 				{
 					VkImageMemoryBarrier imageMemoryBarrier = {};
@@ -1190,7 +1257,8 @@ namespace SmolEngine
 
 				bloomComputePushConstants.LOD = (float)i;
 				storage->p_Bloom->SubmitPushConstant(sizeof(bloomComputePushConstants), &bloomComputePushConstants);
-				storage->p_Bloom->Dispatch(workGroupsX, workGroupsY, 1, descriptorIndex);
+				storage->p_Bloom->SetDescriptorIndex(descriptorIndex);
+				storage->p_Bloom->Dispatch(workGroupsX, workGroupsY, 1);
 
 				VkImageMemoryBarrier imageMemoryBarrier = {};
 				imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -1229,7 +1297,8 @@ namespace SmolEngine
 				workGroupsX = (uint32_t)glm::ceil((float)mipWidth / (float)storage->m_BloomComputeWorkgroupSize);
 				workGroupsY = (uint32_t)glm::ceil((float)mipHeight / (float)storage->m_BloomComputeWorkgroupSize);
 
-				storage->p_Bloom->Dispatch(workGroupsX, workGroupsY, 1, descriptorIndex);
+				storage->p_Bloom->SetDescriptorIndex(descriptorIndex);
+				storage->p_Bloom->Dispatch(workGroupsX, workGroupsY, 1);
 
 				VkImageMemoryBarrier imageMemoryBarrier = {};
 				imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -1264,7 +1333,8 @@ namespace SmolEngine
 
 				bloomComputePushConstants.LOD = (float)mip;
 				storage->p_Bloom->SubmitPushConstant(sizeof(bloomComputePushConstants), &bloomComputePushConstants);
-				storage->p_Bloom->Dispatch(workGroupsX, workGroupsY, 1, descriptorIndex);
+				storage->p_Bloom->SetDescriptorIndex(descriptorIndex);
+				storage->p_Bloom->Dispatch(workGroupsX, workGroupsY, 1);
 
 				VkImageMemoryBarrier imageMemoryBarrier = {};
 				imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -1293,64 +1363,58 @@ namespace SmolEngine
 		auto drawList = info->pDrawList;
 		auto storage = info->pStorage;
 
-		struct UBO
+		storage->p_Voxelization->BeginRenderPass();
 		{
-			glm::mat4 viewProjections[3];
-			glm::mat4 viewProjectionsI[3];
-			glm::vec3 worldMinPoint;
-			float voxelScale;
-			uint32_t volumeDimension;
-			uint32_t flagStaticVoxels;
-			glm::vec2 pad;
-
-		} ubo;
-
-		auto& aabb = drawList->m_VCTMesh->GetAABB();
-		auto axisSize = aabb.Extent() * 2.0f;
-		auto& center = aabb.Center();
-	
-		storage->m_VCTParams.VolumeGridSize = glm::max(axisSize.x, glm::max(axisSize.y, axisSize.z));
-		auto voxelCount = storage->m_VCTParams.VolumeDimension * storage->m_VCTParams.VolumeDimension * storage->m_VCTParams.VolumeDimension;
-		auto voxelSize = storage->m_VCTParams.VolumeGridSize / storage->m_VCTParams.VolumeDimension;
-		auto halfSize = storage->m_VCTParams.VolumeGridSize / 2.0f;
-
-		// projection matrices
-		auto projection = glm::ortho(-halfSize, halfSize, -halfSize, halfSize, 0.0f, storage->m_VCTParams.VolumeGridSize);
-
-		// view matrices
-		
-		ubo.viewProjections[0] = lookAt(center + glm::vec3(halfSize, 0.0f, 0.0f), center, glm::vec3(0.0f, 1.0f, 0.0f));
-		ubo.viewProjections[1] = lookAt(center + glm::vec3(0.0f, halfSize, 0.0f), center, glm::vec3(0.0f, 0.0f, -1.0f));
-		ubo.viewProjections[2] = lookAt(center + glm::vec3(0.0f, 0.0f, halfSize), center, glm::vec3(0.0f, 1.0f, 0.0f));
-
-		for (uint32_t i = 0; i < 3; i++)
-		{
-			auto& matrix = ubo.viewProjections[i];
-
-			matrix = projection * matrix;
-			ubo.viewProjectionsI[i++] = inverse(matrix);
-		}
-
-		ubo.volumeDimension = storage->m_VCTParams.VolumeDimension;
-		ubo.voxelScale = 1.0f / storage->m_VCTParams.VolumeGridSize;
-		ubo.worldMinPoint = aabb.MinPoint();
-		ubo.flagStaticVoxels = 1;
-
-		storage->p_Voxelization->UpdateSampler(storage->m_3DAlbedo, 0, true);
-		storage->p_Voxelization->UpdateSampler(storage->m_3DNormal, 1, true);
-		storage->p_Voxelization->UpdateSampler(storage->m_3DMaterials, 2, true);
-		storage->p_Voxelization->UpdateSampler(storage->m_3DValueFlags, 3, true);
-
-		for (uint32_t i = 0; i < drawList->m_InstanceIndex; ++i)
-		{
-			auto& cmd = drawList->m_DrawList[i];
-
-			for (auto& [material, package] : cmd.Packages)
+			for (uint32_t i = 0; i < drawList->m_InstanceIndex; ++i)
 			{
-				storage->p_Voxelization->SubmitPushConstant(ShaderType::Vertex, sizeof(uint32_t), &package.Offset);
-				storage->p_Voxelization->DrawMeshIndexed(cmd.Mesh, package.Instances);
+				auto& cmd = drawList->m_DrawList[i];
+
+				for (auto& [material, package] : cmd.Packages)
+				{
+					storage->p_Voxelization->SubmitPushConstant(ShaderType::Vertex, sizeof(uint32_t), &package.Offset);
+					storage->p_Voxelization->DrawMeshIndexed(cmd.Mesh, package.Instances);
+				}
 			}
 		}
+		storage->p_Voxelization->EndRenderPass();
+
+		struct ProcessData
+		{
+			glm::vec2 exponents = glm::vec2(40.0f, 5.0f);
+			float lightBleedingReduction = 0.0f;
+			float pad1;
+
+			glm::mat4 lightViewProjection;
+
+			float voxelSize;
+			float voxelScale;
+			int volumeDimension;
+			uint32_t storeVisibility = 0;
+
+			glm::vec3 worldMinPoint;
+			float traceShadowHit;
+
+			uint32_t normalWeightedLambert;
+			glm::vec3 pad2;
+
+		} static process_data{};
+
+		process_data.lightViewProjection = drawList->m_DepthMVP;
+		process_data.voxelSize = storage->m_VCTParams.VoxelSize;
+		process_data.voxelScale = 1.0f / storage->m_VCTParams.VolumeGridSize;
+		process_data.volumeDimension = storage->m_VCTParams.VolumeDimension;
+		process_data.worldMinPoint = storage->m_VCTParams.MinPoint;
+		process_data.traceShadowHit = 0.5f;
+		process_data.normalWeightedLambert = 1;
+
+		storage->p_InjectRadiance->SubmitBuffer(205, sizeof(RendererStorage::VoxelConeTracing::LightData), &storage->m_VCTParams.dirLight);
+		storage->p_InjectRadiance->SubmitBuffer(206, sizeof(ProcessData), &process_data);
+
+		auto workGroups = static_cast<unsigned>(glm::ceil(storage->m_VCTParams.VolumeDimension / 8.0f));
+
+		storage->p_InjectRadiance->BeginCompute(info->pCmdStorage);
+		storage->p_InjectRadiance->Dispatch(workGroups, workGroups, workGroups);
+
 	}
 
 	bool RendererDeferred::DebugViewPass(SubmitInfo* info)

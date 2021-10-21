@@ -1,7 +1,7 @@
 #version 450
 #extension GL_ARB_shader_image_load_store : require
 
-struct MaterialData
+struct Material
 {
 	vec4  Albedo;
 
@@ -30,11 +30,10 @@ layout (location = 0) in Input
 {
 	vec3 wsPosition;
     vec3 position;
-    vec3 normal;
     vec3 texCoord;
-    flat vec4 triangleAABB;
+	flat vec4 triangleAABB;
 	mat3 TBN;
-	flat MaterialData Material;
+	flat Material Material;
 } In;
 
 layout (std140, binding = 202) uniform Data
@@ -56,7 +55,8 @@ layout(binding = 0, r32ui) uniform volatile coherent uimage3D voxelAlbedo;
 layout(binding = 1, r32ui) uniform volatile coherent uimage3D voxelNormal;
 layout(binding = 2, r32ui) uniform volatile coherent uimage3D voxelEmission;
 layout(binding = 3, r8) uniform image3D staticVoxelFlag;
-layout (binding = 4) uniform sampler2D texturesMap[4096];
+
+layout (binding = 24) uniform sampler2D texturesMap[4096];
 
 vec4 convRGBA8ToVec4(uint val)
 {
@@ -103,7 +103,7 @@ vec3 fetchNormalMap()
 	}
 	else
 	{
-		return normalize(In.normal);
+		return normalize(In.TBN[2]);
 	}
 }
 
@@ -155,9 +155,6 @@ void main()
 		discard;
 	}
 
-	 // writing coords position
-    ivec3 position = ivec3(In.wsPosition);
-
 	vec3 N = fetchNormalMap(); 		
 	vec4 albedo = fetchAlbedoMap();
 	vec4 emissive = fetchEmissiveMap();
@@ -165,15 +162,13 @@ void main()
 	float roughness = fetchRoughnessMap();
 	roughness = max(roughness, 0.04);
     float ao = fetchAOMap();	
+	
+	// writing coords position
+    ivec3 position = ivec3(In.wsPosition);
 
     if(flagStaticVoxels == 0)
     {
-        bool isStatic = imageLoad(staticVoxelFlag, position).r > 0.0f;
-
-		if(isStatic)
-		{
-			return;
-		}
+        bool isStatic = imageLoad(staticVoxelFlag, position).r > 0.0;
     }
 
 	// average normal per fragments sorrounding the voxel volume

@@ -7,21 +7,21 @@ layout(location = 3) in vec2 a_UV;
 layout(location = 4) in ivec4 a_BoneIDs;
 layout(location = 5) in vec4 a_Weight;
 
-struct MaterialData
+struct Material
 {
-	vec4 AlbedroColor;
+	vec4  Albedo;
 
 	float Metalness;
 	float Roughness;
-	uint UseAlbedroTex;
-	uint UseNormalTex;
+	float EmissionStrength;
+	uint  UseAlbedroTex;
 
-	uint UseMetallicTex;
-	uint UseRoughnessTex;
+	uint  UseNormalTex;
+	uint  UseMetallicTex;
+	uint  UseRoughnessTex;
+    uint  UseAOTex;
+
 	uint UseEmissiveTex;
-	uint UseHeightTex;
-
-	uint UseAOTex;
 	uint AlbedroTexIndex;
 	uint NormalTexIndex;
 	uint MetallicTexIndex;
@@ -29,7 +29,7 @@ struct MaterialData
 	uint RoughnessTexIndex;
 	uint AOTexIndex;
 	uint EmissiveTexIndex;
-	uint HeightTexIndex;
+	uint ID;
 };
 
 struct InstanceData
@@ -48,7 +48,7 @@ layout(std140, binding = 25) readonly buffer InstancesBuffer
 
 layout(std140, binding = 26) readonly buffer MaterialsBuffer
 {   
-	MaterialData materials[];
+	Material materials[];
 };
 
 layout (std140, binding = 27) uniform SceneBuffer
@@ -70,31 +70,35 @@ layout(std430, binding = 28) readonly buffer JointMatrices
 
 layout(push_constant) uniform ConstantData
 {
-	mat4 lightSpace;
 	uint dataOffset;
 };
 
-const mat4 biasMat = mat4( 
-	0.5, 0.0, 0.0, 0.0,
-	0.0, -0.5, 0.0, 0.0,
-	0.0, 0.0, 1.0, 0.0,
-	0.5, 0.5, 0.0, 1.0 
-);
+Material GetMaterial(uint id)
+{
+	for(int i = 0; i < materials.length(); i++)
+	{
+		if(materials[i].ID == id)
+		{
+			return materials[i];
+		}
+	}
+}
 
-layout (location = 0)  out vec3 v_FragPos;
-layout (location = 1)  out vec3 v_Normal;
-layout (location = 2)  out vec3 v_CameraPos;
-layout (location = 3)  out vec2 v_UV;
-layout (location = 4)  out vec4 v_ShadowCoord;
-layout (location = 5)  out vec4 v_WorldPos;
-layout (location = 6)  out MaterialData v_Material;
-layout (location = 23) out mat3 v_TBN;
+layout (location = 0) out Vertex
+{
+    vec3 v_FragPos;
+    vec3 v_Normal;
+    vec2 v_UV;
+    float v_LinearDepth;
+    mat3 v_TBN;
+    Material v_Material;
+};
 
 void main()
 {
 	const uint instanceID = dataOffset + gl_InstanceIndex;
 	const mat4 model = instances[instanceID].model;
-	const uint materialIndex = instances[instanceID].matID;
+	const uint materialID = instances[instanceID].matID;
 	const uint animOffset = instances[instanceID].animOffset;
 	const bool isAnimated = bool(instances[instanceID].isAnimated);
 
@@ -109,21 +113,20 @@ void main()
 	}
 
 	const mat4 modelSkin = model * skinMat;
+
 	v_FragPos = vec3(modelSkin *  vec4(a_Position, 1.0));
-	v_Normal =  mat3(transpose(inverse(modelSkin))) * a_Normal;
-	v_CameraPos = sceneData.camPos.xyz;
-	v_ShadowCoord = ( biasMat * lightSpace * modelSkin) * vec4(a_Position, 1.0);	
-	v_WorldPos = vec4(a_Position, 1.0);
 	v_UV = a_UV;
+	v_Material =  GetMaterial(materialID);
+	v_LinearDepth = -(sceneData.view * vec4(v_FragPos, 1)).z;
 
-	// Materials
-	v_Material =  materials[materialIndex];
+	{
+		vec3 normal = mat3(transpose(inverse(modelSkin))) * a_Normal;
+		vec3 tangent = normalize(vec3(modelSkin * vec4(a_Tangent, 0.0)));
+		vec3 B = normalize(vec3(vec4(cross(normal, tangent), 0.0)));
 
-	// TBN matrix
-	vec3 T = normalize(vec3(modelSkin * vec4(a_Tangent, 0.0)));
-	vec3 N = normalize(vec3(modelSkin * vec4(a_Normal, 0.0)));
-	vec3 B = normalize(vec3(modelSkin * vec4(cross(N, T), 0.0)));
-	v_TBN = mat3(T, B, N);
+		v_TBN =  mat3(tangent, B, normal);
+		v_Normal = normal;
+	}	
 
-	gl_Position =  sceneData.projection * sceneData.view * model * skinMat * vec4(a_Position, 1.0);
+	gl_Position =  sceneData.projection * sceneData.view  * vec4(v_FragPos, 1.0);
 }

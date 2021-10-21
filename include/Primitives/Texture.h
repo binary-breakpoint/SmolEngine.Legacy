@@ -20,12 +20,19 @@ namespace SmolEngine
 
 	enum class TextureFormat : int
 	{
+		R32_INT,
+		R32_UINT,
+
 		R8_UNORM,
 		R8G8B8A8_UNORM,
 		B8G8R8A8_UNORM,
+
 		// HDR
 		R16G16B16A16_SFLOAT,
-		R32G32B32A32_SFLOAT
+		R32G32B32A32_SFLOAT,
+
+		R32G32B32A32_UINT,
+		R32G32B32A32_INT
 	};
 
 	enum class AddressMode: int

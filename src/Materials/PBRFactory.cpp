@@ -116,6 +116,10 @@ namespace SmolEngine
 
 			defMaterial->UpdateSamplers(textures, storage->m_TexturesBinding);
 			defMaterial->SubmitBuffer(storage->m_MaterialsBinding, sizeof(PBRUniform) * uniforms.size(), uniforms.data());
+
+			// TEMP
+			storage->p_Voxelization->UpdateSamplers(textures, storage->m_TexturesBinding);
+			storage->p_Voxelization->SubmitBuffer(storage->m_MaterialsBinding, sizeof(PBRUniform) * uniforms.size(), uniforms.data());
 		}
 	}
 

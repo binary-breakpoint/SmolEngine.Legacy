@@ -224,11 +224,8 @@ int main(int argc, char** argv)
 
 		RendererDrawList::BeginSubmit(camera->GetSceneViewProjection());
 		{
-			for (const auto& c : chunks)
-			{
-				RendererDrawList::SubmitMesh(c.Pos, c.Rot, c.Scale, cube, c.View);
-				RendererDrawList::SetVCTMesh(cube);
-			}
+			RendererDrawList::SetVCTMesh(cube);
+			RendererDrawList::SubmitMesh({ 0, 0, 0 }, { 0, 0, 0 }, { 1, 1, 1 }, cube, chunks[0].View);
 		}
 		RendererDrawList::EndSubmit();
 

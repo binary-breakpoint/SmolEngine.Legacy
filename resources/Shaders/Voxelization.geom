@@ -3,7 +3,7 @@
 layout(triangles) in;
 layout(triangle_strip, max_vertices = 3) out;
 
-struct MaterialData
+struct Material
 {
 	vec4  Albedo;
 
@@ -32,12 +32,10 @@ layout (location = 0) in Vertex
 {
     vec3 v_FragPos;
     vec3 v_Normal;
-	vec3 v_CameraPos;
-	vec2 v_UV;
-	vec4 v_ShadowCoord;
-	vec4 v_WorldPos;
-	flat MaterialData v_Material;
-	mat3 v_TBN;
+    vec2 v_UV;
+    float v_LinearDepth;
+    mat3 v_TBN;
+    Material v_Material;
 
 } In[3];
 
@@ -45,11 +43,10 @@ layout (location = 0) out GeometryOut
 {
 	vec3 wsPosition;
     vec3 position;
-    vec3 normal;
     vec3 texCoord;
-    flat vec4 triangleAABB;
+	flat vec4 triangleAABB;
 	mat3 TBN;
-	MaterialData Material;
+	flat Material Material;
 } Out;
 
 layout (std140, binding = 202) uniform Data
@@ -127,7 +124,7 @@ void main()
 	trianglePlane.xyz = normalize(trianglePlane.xyz);
 	trianglePlane.w = -dot(pos[0].xyz, trianglePlane.xyz);
 
-	// change winding, otherwise there are artifacts for the back faces.
+    // change winding, otherwise there are artifacts for the back faces.
     if (dot(trianglePlane.xyz, vec3(0.0, 0.0, 1.0)) < 0.0)
     {
         vec4 vertexTemp = pos[2];
@@ -181,7 +178,6 @@ void main()
 		gl_Position = pos[i];
 		Out.position = pos[i].xyz;
 		Out.TBN = In[i].v_TBN;
-		Out.Material = In[i].v_Material;
 		Out.texCoord = texCoord[i];
 		Out.wsPosition = voxelPos.xyz * volumeDimension;
 
