@@ -57,4 +57,9 @@ namespace SmolEngine
 
 		return true;
 	}
+
+	const std::array<glm::vec4, 6>& Frustum::GetPlanes() const
+	{
+		return planes;
+	}
 }

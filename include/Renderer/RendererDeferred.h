@@ -59,6 +59,7 @@ namespace SmolEngine
 		Ref<GraphicsPipeline>          p_Mask = nullptr;
 		Ref<GraphicsPipeline>          p_DOF = nullptr;
 		Ref<GraphicsPipeline>          p_Voxelization = nullptr;
+		Ref<GraphicsPipeline>          p_VoxelView = nullptr;
 		Ref<ComputePipeline>           p_Bloom = nullptr;
 		Ref<ComputePipeline>           p_InjectRadiance = nullptr;
 		// Framebuffers				   
@@ -73,35 +74,29 @@ namespace SmolEngine
 		Ref<EnvironmentMap>            m_EnvironmentMap = nullptr;
 		Ref<PBRFactory>                m_PBRFactory = nullptr;
 
-		Ref<Texture>                   m_3DAlbedo = nullptr;
-		Ref<Texture>                   m_3DNormal = nullptr;
-		Ref<Texture>                   m_3DMaterials = nullptr;
-		Ref<Texture>                   m_3DValueFlags = nullptr;
-		Ref<Texture>                   m_3DRadiance = nullptr;
-
 		struct VoxelConeTracing
 		{
-			uint32_t  VolumeDimension = 256;
-			uint32_t  VoxelCount = 0;
-			float     VolumeGridSize = 0.0f;
-			float     VoxelSize = 0;
+			uint32_t      VolumeDimension = 256;
+			uint32_t      VoxelCount = 0;
+			float         VolumeGridSize = 0.0f;
+			float         VoxelSize = 0;
 			// TEMP
-			glm::vec3 AxisSize = glm::vec3(1860.42700, 777.937866, 1144.11658) * 2.0f;
-			glm::vec3 Center = glm::vec3(-60.5189209, 651.495361, -38.6905518);
-			glm::vec3 MinPoint = glm::vec3(-1920.94592, -126.442497, -1182.80713);
-			glm::vec3 MaxPoint = glm::vec3(1799.90808, 1429.43323, 1105.42603);
+			glm::vec3     AxisSize = glm::vec3(1860.42700, 777.937866, 1144.11658);
+			glm::vec3     Center = glm::vec3(-60.5189209, 651.495361, -38.6905518);
+			glm::vec3     MinPoint = glm::vec3(-1920.94592, -126.442497, -1182.80713);
+			glm::vec3     MaxPoint = glm::vec3(1799.90808, 1429.43323, 1105.42603);
 
-			struct UBO
-			{
-				glm::mat4 viewProjections[3];
-				glm::mat4 viewProjectionsI[3];
-				glm::vec3 worldMinPoint;
-				float voxelScale;
-				uint32_t volumeDimension;
-				uint32_t flagStaticVoxels;
-				glm::vec2 pad;
-
-			} ubo{};
+			//Ref<Texture>  AlbedoBuffer = nullptr;
+			//Ref<Texture>  NormalBuffer = nullptr;
+			//Ref<Texture>  MaterialsBuffer = nullptr;
+			Ref<Texture>  VoxelAlbedo = nullptr;
+			Ref<Texture>  VoxelNormal = nullptr;
+			Ref<Texture>  VoxelMaterials = nullptr;
+			Ref<Texture>  AlbedoBuffer = nullptr;
+			Ref<Texture>  NormalBuffer = nullptr;
+			Ref<Texture>  MaterialsBuffer = nullptr;
+			Ref<Texture>  VoxelFlags = nullptr;
+			Ref<Texture>  Radiance = nullptr;
 
 			struct LightData
 			{

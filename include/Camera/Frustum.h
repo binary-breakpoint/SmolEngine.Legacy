@@ -12,6 +12,7 @@ namespace SmolEngine
 		void SetRadius(float value);
 		void Update(const glm::mat4& matrix);
 		bool CheckSphere(const glm::vec3& pos) const;
+		const std::array<glm::vec4, 6>& GetPlanes() const;
 
 	private:
 

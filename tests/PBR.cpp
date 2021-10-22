@@ -225,26 +225,30 @@ int main(int argc, char** argv)
 		RendererDrawList::BeginSubmit(camera->GetSceneViewProjection());
 		{
 			RendererDrawList::SetVCTMesh(cube);
-			RendererDrawList::SubmitMesh({ 0, 0, 0 }, { 0, 0, 0 }, { 1, 1, 1 }, cube, chunks[0].View);
+
+			for (uint32_t i = 0; i < 5; i++)
+			{
+				RendererDrawList::SubmitMesh({ i, 0, 0 }, { 0, 0, 0 }, { 1, 1, 1 }, cube, chunks[0].View);
+			}
 		}
 		RendererDrawList::EndSubmit();
 
 		context->BeginFrame(deltaTime);
 		{
-			ImGui::Begin("PBR Sample");
-			{
-				ImGui::Text("Some Text");
+			//ImGui::Begin("PBR Sample");
+			//{
+			//	ImGui::Text("Some Text");
+			//
+			//	ImGui::DragFloat("Bloom", &RendererStorage::GetState().Bloom.Threshold);
+			//}
+			//ImGui::End();
 
-				ImGui::DragFloat("Bloom", &RendererStorage::GetState().Bloom.Threshold);
-			}
-			ImGui::End();
-
-			canvas.Draw([&]() 
-			{
-				button.Draw();
-				text.Draw();
-				textField.Draw();
-			});
+			//canvas.Draw([&]() 
+			//{
+			//	button.Draw();
+			//	text.Draw();
+			//	textField.Draw();
+			//});
 
 			RendererDeferred::DrawFrame(&clearInfo);
 		}

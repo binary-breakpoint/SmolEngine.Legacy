@@ -87,11 +87,9 @@ Material GetMaterial(uint id)
 layout (location = 0) out Vertex
 {
     vec3 v_FragPos;
-    vec3 v_Normal;
     vec2 v_UV;
-    float v_LinearDepth;
     mat3 v_TBN;
-    Material v_Material;
+    flat Material v_Material;
 };
 
 void main()
@@ -116,8 +114,7 @@ void main()
 
 	v_FragPos = vec3(modelSkin *  vec4(a_Position, 1.0));
 	v_UV = a_UV;
-	v_Material =  GetMaterial(materialID);
-	v_LinearDepth = -(sceneData.view * vec4(v_FragPos, 1)).z;
+	v_Material = GetMaterial(materialID);
 
 	{
 		vec3 normal = mat3(transpose(inverse(modelSkin))) * a_Normal;
@@ -125,8 +122,7 @@ void main()
 		vec3 B = normalize(vec3(vec4(cross(normal, tangent), 0.0)));
 
 		v_TBN =  mat3(tangent, B, normal);
-		v_Normal = normal;
 	}	
 
-	gl_Position =  sceneData.projection * sceneData.view  * vec4(v_FragPos, 1.0);
+	gl_Position = vec4(v_FragPos, 1.0);
 }
