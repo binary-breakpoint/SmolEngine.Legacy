@@ -51,18 +51,6 @@ layout(std140, binding = 26) readonly buffer MaterialsBuffer
 	Material materials[];
 };
 
-layout (std140, binding = 27) uniform SceneBuffer
-{
-	mat4 projection;
-	mat4 view;
-	vec4 camPos;
-	float nearClip;
-    float farClip;
-	vec2  pad1;
-	mat4 skyBoxMatrix;
-
-} sceneData;
-
 layout(std430, binding = 28) readonly buffer JointMatrices
 {
 	mat4 joints[];

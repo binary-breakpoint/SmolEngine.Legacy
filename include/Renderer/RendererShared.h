@@ -245,7 +245,6 @@ namespace SmolEngine
 		static void              SubmitPointLight(PointLight* light);
 		static void              SubmitSpotLight(SpotLight* light);
 		static void              CalculateFrustum(SceneViewProjection* viewProj);
-		static void              SetVCTMesh(const Ref<Mesh>& mesh) { s_Instance->m_VCTMesh = mesh; }
 		static void              SetDefaultState();
 		static void              ClearDrawList();
 		static void              ClearCache();
@@ -259,12 +258,12 @@ namespace SmolEngine
 	private:
 		inline static RendererDrawList*         s_Instance = nullptr;
 		SceneViewProjection*                    m_SceneInfo = nullptr;
-		Ref<Mesh>                               m_VCTMesh = nullptr;
 		uint32_t                                m_InstanceIndex = 0;
 		uint32_t                                m_Objects = 0;
 		uint32_t                                m_PointLightIndex = 0;
 		uint32_t                                m_SpotLightIndex = 0;
 		uint32_t                                m_LastAnimationOffset = 0;
+		BoundingBox                             m_SceneAABB{};
 											    
 		Frustum                                 m_Frustum{};
 		DirectionalLight                        m_DirLight{}; 

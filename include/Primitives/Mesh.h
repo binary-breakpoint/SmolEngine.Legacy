@@ -97,6 +97,7 @@ namespace SmolEngine
 		uint32_t                  m_Index = 0;
 		size_t                    m_ID = 0;
 		BoundingBox               m_AABB{};
+		BoundingBox               m_SceneAABB{};
 		std::vector<Ref<Mesh>>    m_Childs;
 		std::vector<Ref<Mesh>>    m_Scene;
 

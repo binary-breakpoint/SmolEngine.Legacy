@@ -147,6 +147,8 @@ int main(int argc, char** argv)
 	Camera* camera = nullptr;
 	{
 		EditorCameraCreateInfo cameraCI = {};
+		//cameraCI.FOV = glm::radians(60.0f);
+
 		camera = new EditorCamera(&cameraCI);
 	}
 
@@ -166,27 +168,34 @@ int main(int argc, char** argv)
 		camera->OnEvent(e); 
 	});
 
-	auto& [cube, view] = MeshPool::GetCube();
-
 	std::vector<Ref<PBRHandle>> materials;
-	std::vector<Chunk> chunks;
-
 	LoadMaterials(materials);
-	GenerateMap(chunks, materials, cube);
 
-	RendererStateEX& state = RendererStorage::GetState();
-	state.Bloom.Threshold = 0.7f;
-	state.Bloom.Enabled = true;
-	state.bDrawGrid = false;
+	auto cube = Mesh::Create();
+	cube->LoadFromFile("Assets/sponza_small.gltf");
+	auto view = cube->CreateMeshView();
+
+	for (auto& child: cube->GetChilds())
+	{
+		uint32_t index = child->GetNodeIndex();
+		uint32_t rIndex = rand() % materials.size();
+
+		view->SetPBRHandle(materials[rIndex], index);
+	}
+
+	//RendererStateEX& state = RendererStorage::GetState();
+	//state.Bloom.Threshold = 0.7f;
+	//state.Bloom.Enabled = true;
+	//state.bDrawGrid = false;
 
 	DynamicSkyProperties sky;
-	RendererStorage::SetDynamicSkybox(sky, camera->GetProjection(), true);
+	//RendererStorage::SetDynamicSkybox(sky, camera->GetProjection(), true);
 
 	DirectionalLight dirLight = {};
 	dirLight.IsActive = true;
 	dirLight.IsCastShadows = true;
 	dirLight.Direction = glm::vec4(105.0f, 53.0f, 102.0f, 0);
-	RendererDrawList::SubmitDirLight(&dirLight);
+	//RendererDrawList::SubmitDirLight(&dirLight);
 
 	UICanvas canvas;
 	canvas.Rect.x = 0;
@@ -224,12 +233,7 @@ int main(int argc, char** argv)
 
 		RendererDrawList::BeginSubmit(camera->GetSceneViewProjection());
 		{
-			RendererDrawList::SetVCTMesh(cube);
-
-			for (uint32_t i = 0; i < 5; i++)
-			{
-				RendererDrawList::SubmitMesh({ i, 0, 0 }, { 0, 0, 0 }, { 1, 1, 1 }, cube, chunks[0].View);
-			}
+			RendererDrawList::SubmitMesh({ 0, 0, 0 }, { 0, 0, 0 }, { 1, 1, 1 }, cube, view);
 		}
 		RendererDrawList::EndSubmit();
 

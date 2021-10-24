@@ -397,7 +397,7 @@ namespace SmolEngine
 			imageInfo.extent.width = info->Width;
 			imageInfo.extent.height = info->Height;
 			imageInfo.extent.depth = info->Depth;
-			imageInfo.mipLevels = info->Mips;
+			imageInfo.mipLevels = m_Mips;
 			imageInfo.arrayLayers = 1;
 			imageInfo.format = m_Format;
 			imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
@@ -422,7 +422,7 @@ namespace SmolEngine
 			samplerCI.compareOp = VK_COMPARE_OP_NEVER;
 			samplerCI.mipLodBias = 0.0f;
 			samplerCI.minLod = 0.0f;
-			samplerCI.maxLod = static_cast<float>(info->Mips);
+			samplerCI.maxLod = static_cast<float>(m_Mips);
 			samplerCI.maxAnisotropy = 1.0;
 			samplerCI.borderColor = m_BorderColor;
 
@@ -439,7 +439,7 @@ namespace SmolEngine
 			imageViewCI.subresourceRange.baseMipLevel = 0;
 			imageViewCI.subresourceRange.baseArrayLayer = 0;
 			imageViewCI.subresourceRange.layerCount = 1;
-			imageViewCI.subresourceRange.levelCount = info->Mips;
+			imageViewCI.subresourceRange.levelCount = m_Mips;
 			imageViewCI.image = m_Image;
 
 			VK_CHECK_RESULT(vkCreateImageView(m_Device, &imageViewCI, nullptr, &m_ImageView));

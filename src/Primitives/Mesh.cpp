@@ -51,6 +51,9 @@ namespace SmolEngine
 
                 Build(m_Root, nullptr, primitve);
 
+                m_SceneAABB.MaxPoint(m_AABB.MaxPoint());
+                m_SceneAABB.MinPoint(m_AABB.MinPoint());
+
                 m_Scene.emplace_back(m_Root);
             }
 
@@ -68,6 +71,10 @@ namespace SmolEngine
                 Build(mesh, m_Root, primitve);
 
                 m_Childs[i] = mesh;
+
+                m_SceneAABB.MaxPoint(mesh->m_AABB.MaxPoint());
+                m_SceneAABB.MinPoint(mesh->m_AABB.MinPoint());
+
                 m_Scene.emplace_back(mesh);
             }
 
