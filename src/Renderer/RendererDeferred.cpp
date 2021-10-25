@@ -56,17 +56,9 @@ namespace SmolEngine
 		submitInfo.pStorage->p_Debug->SetCommandBuffer(cmdStorage.Buffer);
 		submitInfo.pStorage->p_Grid->SetCommandBuffer(cmdStorage.Buffer);
 		submitInfo.pStorage->p_Combination->SetCommandBuffer(cmdStorage.Buffer);
-		submitInfo.pStorage->p_Voxelization->SetCommandBuffer(cmdStorage.Buffer);
-		submitInfo.pStorage->p_VoxelView->SetCommandBuffer(cmdStorage.Buffer);
-		submitInfo.pStorage->p_GI->SetCommandBuffer(cmdStorage.Buffer);
-
-		//submitInfo.pStorage->p_DOF->Cast<VulkanPipeline>()->SetCommandBuffer(cmdStorage.Buffer);
 
 		UpdateUniforms(&submitInfo);
 		DepthPass(&submitInfo);
-
-
-		VoxelizationPass(&submitInfo);
 		GBufferPass(&submitInfo);
 
 		if (DebugViewPass(&submitInfo)) { return; }
@@ -81,59 +73,6 @@ namespace SmolEngine
 
 	void RendererStorage::Initilize()
 	{
-		{
-			auto& vct = m_VCTParams;
-			vct.VoxelFlags = Texture::Create();
-			vct.Radiance = Texture::Create();
-
-			vct.VoxelAlbedo = Texture::Create();
-			vct.VoxelNormal = Texture::Create();
-			vct.VoxelMaterials = Texture::Create();
-
-			vct.AlbedoBuffer = Texture::Create();
-			vct.NormalBuffer = Texture::Create();
-			vct.MaterialsBuffer = Texture::Create();
-
-			TextureCreateInfo texCI{};
-			texCI.Width = vct.VolumeDimension;
-			texCI.Height = vct.VolumeDimension;
-			texCI.Depth = vct.VolumeDimension;
-			texCI.Mips = 1;
-
-			texCI.eAddressMode = AddressMode::CLAMP_TO_EDGE;
-			texCI.eFormat = TextureFormat::R8G8B8A8_UNORM;
-			
-			vct.VoxelAlbedo->LoadAs3D(&texCI);
-			vct.VoxelNormal->LoadAs3D(&texCI);
-			vct.VoxelMaterials->LoadAs3D(&texCI);
-
-			vct.Radiance->LoadAs3D(&texCI);
-
-			texCI.eFormat = TextureFormat::R8_UNORM;
-			vct.VoxelFlags->LoadAs3D(&texCI);
-
-			texCI.eFormat = TextureFormat::R32_UINT;
-			vct.AlbedoBuffer->LoadAs3D(&texCI);
-			vct.NormalBuffer->LoadAs3D(&texCI);
-			vct.MaterialsBuffer->LoadAs3D(&texCI);
-
-
-			texCI.eFormat = TextureFormat::R8G8B8A8_UNORM;
-			texCI.Width = vct.VolumeDimension / 2;
-			texCI.Height = vct.VolumeDimension / 2;
-			texCI.Depth = vct.VolumeDimension / 2;
-			texCI.Mips = 0;
-
-			// mip mapping textures per face
-			vct.VoxelTexMipmap.resize(6);
-			for (uint32_t i = 0; i < 6; ++i)
-			{
-				vct.VoxelTexMipmap[i] = Texture::Create();
-				vct.VoxelTexMipmap[i]->LoadAs3D(&texCI);
-			}
-		}
-
-
 		CreatePBRMaps();
 		CreateFramebuffers();
 		CreatePipelines();
@@ -261,39 +200,6 @@ namespace SmolEngine
 			p_Lighting->UpdateSampler(f_GBuffer, 8, "materials");
 		}
 
-		// GI
-		{
-			ShaderCreateInfo shaderCI = {};
-			{
-				shaderCI.Stages[ShaderType::Vertex] = path + "Shaders/GenTriangle.vert";
-				shaderCI.Stages[ShaderType::Fragment] = path + "Shaders/GI.frag";
-
-				shaderCI.Buffers[304].bGlobal = false;
-			};
-
-			GraphicsPipelineCreateInfo DynamicPipelineCI = {};
-			{
-				DynamicPipelineCI.PipelineName = "Lighting_Pipeline";
-				DynamicPipelineCI.ShaderCreateInfo = shaderCI;
-				//DynamicPipelineCI.bDepthTestEnabled = false;
-				DynamicPipelineCI.TargetFramebuffers = { f_Lighting };
-			}
-
-			p_GI = GraphicsPipeline::Create();
-			auto result = p_GI->Build(&DynamicPipelineCI);
-			assert(result == true);
-
-			p_GI->UpdateSampler(f_GBuffer, 0, "albedro");
-			p_GI->UpdateSampler(f_GBuffer, 1, "position");
-			p_GI->UpdateSampler(f_GBuffer, 2, "normals");
-			p_GI->UpdateSampler(f_GBuffer, 3, "materials");
-			p_GI->UpdateSampler(f_Depth, 4, "Depth_Attachment");
-
-			p_GI->UpdateSampler(m_VCTParams.VoxelNormal, 5);
-			p_GI->UpdateSampler(m_VCTParams.Radiance, 6);
-			p_GI->UpdateSamplers(m_VCTParams.VoxelTexMipmap, 7);
-		}
-
 		JobsSystemInstance::BeginSubmition();
 		{
 			// Grid
@@ -388,149 +294,6 @@ namespace SmolEngine
 						auto result = p_DepthPass->Build(&DynamicPipelineCI);
 						assert(result == true);
 					}
-				});
-
-			// Draw Voxels
-
-			JobsSystemInstance::Schedule([&]()
-				{
-					ShaderCreateInfo shaderCI = {};
-					{
-						shaderCI.Stages[ShaderType::Vertex] = path + "Shaders/DrawVoxels.vert";
-						shaderCI.Stages[ShaderType::Geometry] = path + "Shaders/DrawVoxels.geom";
-						shaderCI.Stages[ShaderType::Fragment] = path + "Shaders/DrawVoxels.frag";
-
-						shaderCI.Buffers[202].bGlobal = false;
-					};
-
-					GraphicsPipelineCreateInfo DynamicPipelineCI = {};
-					{
-						DynamicPipelineCI.PipelineName = "DrawVoxels";
-						DynamicPipelineCI.ShaderCreateInfo = shaderCI;
-						DynamicPipelineCI.TargetFramebuffers = { f_Main };
-						DynamicPipelineCI.eCullMode = CullMode::None;
-						DynamicPipelineCI.bDepthTestEnabled = false;
-						DynamicPipelineCI.MaxDepth = 1.0f;
-
-						p_VoxelView = GraphicsPipeline::Create();
-						auto result = p_VoxelView->Build(&DynamicPipelineCI);
-						assert(result == true);
-					}
-				});
-
-
-			// Inject Propagation
-
-			JobsSystemInstance::Schedule([&]()
-				{
-					ComputePipelineCreateInfo compCI = {};
-					compCI.ShaderPath = path + "Shaders/InjectPropagation.comp";
-
-					p_InjectPropagation = ComputePipeline::Create();
-					auto result = p_InjectPropagation->Build(&compCI);
-					assert(result == true);
-
-					p_InjectPropagation->UpdateSampler(m_VCTParams.Radiance, 0, true);
-					p_InjectPropagation->UpdateSampler(m_VCTParams.VoxelAlbedo, 1);
-					p_InjectPropagation->UpdateSampler(m_VCTParams.VoxelNormal, 2);
-					p_InjectPropagation->UpdateSamplers(m_VCTParams.VoxelTexMipmap, 3);
-
-				});
-
-			// Mipmap Base
-
-			JobsSystemInstance::Schedule([&]()
-				{
-					ComputePipelineCreateInfo compCI = {};
-					compCI.ShaderPath = path + "Shaders/AnisoMipmapBase.comp";
-
-					p_MipmapBase = ComputePipeline::Create();
-					auto result = p_MipmapBase->Build(&compCI);
-					assert(result == true);
-
-					p_MipmapBase->UpdateSamplers(m_VCTParams.VoxelTexMipmap, 0, true);
-					p_MipmapBase->UpdateSampler(m_VCTParams.Radiance, 5);
-
-				});
-
-
-			// Mipmap Volume
-
-			JobsSystemInstance::Schedule([&]()
-				{
-					ComputePipelineCreateInfo compCI = {};
-					compCI.ShaderPath = path + "Shaders/AnisoMipmapVolume.comp";
-
-					p_MipmapVolume = ComputePipeline::Create();
-					auto result = p_MipmapVolume->Build(&compCI);
-					assert(result == true);
-
-					p_MipmapVolume->UpdateSamplers(m_VCTParams.VoxelTexMipmap, 0, true);
-					p_MipmapVolume->UpdateSamplers(m_VCTParams.VoxelTexMipmap, 5);
-
-				});
-
-
-			// Inject Radiance Pass
-
-			JobsSystemInstance::Schedule([&]()
-			{
-				ComputePipelineCreateInfo compCI = {};
-				compCI.ShaderPath = path + "Shaders/InjectRadiance.comp";
-
-				compCI.ShaderBufferInfos[205].bGlobal = false;
-				compCI.ShaderBufferInfos[206].bGlobal = false;
-
-				p_InjectRadiance = ComputePipeline::Create();
-				auto result = p_InjectRadiance->Build(&compCI);
-				assert(result == true);
-
-				auto& vct = m_VCTParams;
-
-				p_InjectRadiance->UpdateSampler(vct.VoxelAlbedo, 0);
-				p_InjectRadiance->UpdateSampler(vct.VoxelNormal, 1, true);
-				p_InjectRadiance->UpdateSampler(vct.Radiance, 2, true);
-				p_InjectRadiance->UpdateSampler(vct.VoxelMaterials, 3, true);
-				p_InjectRadiance->UpdateSampler(f_Depth, 4, "Depth_Attachment");
-
-			});
-
-			// Voxelization Pass
-			JobsSystemInstance::Schedule([&]()
-				{
-					ShaderCreateInfo shaderCI = {};
-					{
-						shaderCI.Stages[ShaderType::Vertex] = path + "Shaders/Voxelization.vert";
-						shaderCI.Stages[ShaderType::Geometry] = path + "Shaders/Voxelization.geom";
-						shaderCI.Stages[ShaderType::Fragment] = path + "Shaders/Voxelization.frag";
-
-						shaderCI.Buffers[202].bGlobal = false;
-					};
-
-					GraphicsPipelineCreateInfo DynamicPipelineCI = {};
-					{
-						DynamicPipelineCI.VertexInputInfos = { vertexMain };
-						DynamicPipelineCI.PipelineName = "Voxelization_Pipeline";
-						DynamicPipelineCI.ShaderCreateInfo = shaderCI;
-						DynamicPipelineCI.TargetFramebuffers = { f_Voxelization };
-						DynamicPipelineCI.bDepthTestEnabled = false;
-						DynamicPipelineCI.eCullMode = CullMode::None;
-
-						p_Voxelization = GraphicsPipeline::Create();
-						auto result = p_Voxelization->Build(&DynamicPipelineCI);
-						assert(result == true);
-					}
-
-					auto& vct = m_VCTParams;
-
-					p_Voxelization->UpdateSampler(vct.VoxelAlbedo, 3, true);
-					p_Voxelization->UpdateSampler(vct.VoxelNormal, 4, true);
-					p_Voxelization->UpdateSampler(vct.VoxelMaterials, 5, true);
-					p_Voxelization->UpdateSampler(vct.VoxelFlags, 6, true);
-
-					p_Voxelization->UpdateSampler(vct.AlbedoBuffer, 0, true);
-					p_Voxelization->UpdateSampler(vct.NormalBuffer, 1, true);
-					p_Voxelization->UpdateSampler(vct.MaterialsBuffer, 2, true);
 				});
 
 			// DOF
@@ -664,25 +427,6 @@ namespace SmolEngine
 					f_GBuffer->Build(&framebufferCI);
 
 				});
-
-			// Voxelization
-			JobsSystemInstance::Schedule([&]()
-				{
-
-					FramebufferAttachment color = FramebufferAttachment(AttachmentFormat::SFloat4_16, true, "color_1");
-					FramebufferSpecification framebufferCI = {};
-
-					framebufferCI.eFiltering = ImageFilter::LINEAR;
-					framebufferCI.Width = m_VCTParams.VolumeDimension;
-					framebufferCI.Height = m_VCTParams.VolumeDimension;
-					framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
-					framebufferCI.Attachments = { color };
-
-					f_Voxelization = Framebuffer::Create();
-					f_Voxelization->Build(&framebufferCI);
-
-				});
-
 
 			// Lighting
 			JobsSystemInstance::Schedule([&]()
@@ -989,16 +733,6 @@ namespace SmolEngine
 			p_Debug->UpdateSampler(f_GBuffer, 7, "normals");
 			p_Debug->UpdateSampler(f_GBuffer, 8, "materials");
 
-			p_GI->UpdateSampler(f_GBuffer, 0, "albedro");
-			p_GI->UpdateSampler(f_GBuffer, 1, "position");
-			p_GI->UpdateSampler(f_GBuffer, 2, "normals");
-			p_GI->UpdateSampler(f_GBuffer, 3, "materials");
-			p_GI->UpdateSampler(f_Depth, 4, "Depth_Attachment");
-
-			p_GI->UpdateSampler(m_VCTParams.VoxelNormal, 5);
-			p_GI->UpdateSampler(m_VCTParams.Radiance, 6);
-			p_GI->UpdateSamplers(m_VCTParams.VoxelTexMipmap, 7);
-
 			// Combination
 			p_Combination->UpdateSampler(f_Lighting, 0);
 
@@ -1048,8 +782,7 @@ namespace SmolEngine
 
 	void RendererDrawList::SubmitMesh(const glm::vec3& pos, const glm::vec3& rotation, const glm::vec3& scale, const Ref<Mesh>& mesh, const Ref<MeshView>& view)
 	{
-		//!s_Instance->m_Frustum.CheckSphere(pos) ||
-		if (s_Instance->m_InstanceIndex >= max_objects)
+		if (!s_Instance->m_Frustum.CheckSphere(pos) ||  s_Instance->m_InstanceIndex >= max_objects)
 		{
 			return;
 		}
@@ -1206,83 +939,23 @@ namespace SmolEngine
 		auto drawList = info->pDrawList;
 		auto storage = info->pStorage;
 
-		if (false)
+		storage->p_Lighting->BeginRenderPass();
 		{
-			storage->p_Lighting->BeginRenderPass();
+			struct push_constant
 			{
-				struct push_constant
-				{
-					glm::mat4 lightSpace{};
-					uint32_t numPointLights;
-					uint32_t numSpotLights;
-				};
-
-				push_constant light_pc;
-				light_pc.numPointLights = drawList->m_PointLightIndex;
-				light_pc.numSpotLights = drawList->m_SpotLightIndex;
-				light_pc.lightSpace = info->pDrawList->m_DepthMVP;
-				storage->p_Lighting->SubmitPushConstant(ShaderType::Fragment, sizeof(push_constant), &light_pc);
-				storage->p_Lighting->Draw(3);
-			}
-			storage->p_Lighting->EndRenderPass();
-		}
-
-		auto& vct = storage->m_VCTParams;
-
-		struct GIBuffer
-		{
-			struct Attenuation
-			{
-				float constant = 1.0f;
-				float linear = 0.2f;
-				float quadratic = 0.080f;
-				float pad = 0.0f;
+				glm::mat4 lightSpace{};
+				uint32_t numPointLights;
+				uint32_t numSpotLights;
 			};
 
-			struct Light {
-
-				glm::vec3 ambient = glm::vec3(1);;
-				float angleInnerCone = 25.0f;
-				glm::vec3 diffuse = glm::vec3(1);;
-				float angleOuterCone = 35.0f;
-				glm::vec3 specular = glm::vec3(1);
-				float pad1 = 0.0f;
-				glm::vec3 position = glm::vec3(0);
-				float pad2 = 1.0f;
-				glm::vec3 direction = glm::vec3(105.0f, 53.0f, 102.0f);
-				uint32_t shadowingMethod = 2;
-				Attenuation attenuation{};
-			};
-
-			glm::mat4 lightViewProjection;
-			glm::vec3 cameraPosition;
-			float lightBleedingReduction = 0.0f;
-			glm::vec2 exponents = glm::vec2(40.0f, 5.0f);
-			float voxelScale;
-			int volumeDimension;
-			glm::vec3 worldMaxPoint;
-			float pad1;
-			glm::vec3 worldMinPoint;
-			float pad2;
-			Light directionalLight{};
-
-		} static giBuffer{};
-
-
-		giBuffer.lightViewProjection = drawList->m_DepthMVP;
-		giBuffer.cameraPosition = drawList->m_SceneInfo->CamPos;
-		giBuffer.worldMinPoint = drawList->m_SceneAABB.MinPoint();
-		giBuffer.worldMaxPoint = drawList->m_SceneAABB.MaxPoint();
-		giBuffer.voxelScale = 1.0f / vct.VolumeGridSize;
-		giBuffer.volumeDimension = vct.VolumeDimension;
-
-		storage->p_GI->SubmitBuffer(304, sizeof(GIBuffer), &giBuffer);
-
-		storage->p_GI->BeginRenderPass();
-		{
-			storage->p_GI->Draw(3);
+			push_constant light_pc;
+			light_pc.numPointLights = drawList->m_PointLightIndex;
+			light_pc.numSpotLights = drawList->m_SpotLightIndex;
+			light_pc.lightSpace = info->pDrawList->m_DepthMVP;
+			storage->p_Lighting->SubmitPushConstant(ShaderType::Fragment, sizeof(push_constant), &light_pc);
+			storage->p_Lighting->Draw(3);
 		}
-		storage->p_GI->EndRenderPass();
+		storage->p_Lighting->EndRenderPass();
 	}
 
 	void RendererDeferred::DepthPass(SubmitInfo* info)
@@ -1548,261 +1221,6 @@ namespace SmolEngine
 		}
 
 		storage->p_Bloom->SetDescriptorIndex(0);
-	}
-
-	void RendererDeferred::VoxelizationPass(SubmitInfo* info) // TEMP
-	{
-		auto drawList = info->pDrawList;
-		auto storage = info->pStorage;
-		auto& vct = storage->m_VCTParams;
-
-		static bool voxilize = false;
-		auto axisSize = drawList->m_SceneAABB.Extent() * 2.0f;
-		auto center = drawList->m_SceneAABB.Center();
-		auto minPoint = drawList->m_SceneAABB.MinPoint();
-		auto maxPoint = drawList->m_SceneAABB.MaxPoint();
-
-		if (!voxilize)
-		{
-			voxilize = true;
-
-			{
-				vct.VoxelCount = vct.VolumeDimension * vct.VolumeDimension * vct.VolumeDimension;
-
-				vct.VolumeGridSize = glm::max(axisSize.x, glm::max(axisSize.y, axisSize.z));
-				vct.VoxelSize = vct.VolumeGridSize / vct.VolumeDimension;
-
-				auto halfSize = vct.VolumeGridSize / 2.0f;
-
-				// projection matrices
-				auto projection = glm::ortho(-halfSize, halfSize, -halfSize, halfSize, 0.0f, vct.VolumeGridSize);
-
-				// view matrices
-				vct.ubo.viewProjections[0] = lookAt(center + glm::vec3(halfSize, 0.0f, 0.0f), center, glm::vec3(0.0f, 1.0f, 0.0f));
-				vct.ubo.viewProjections[1] = lookAt(center + glm::vec3(0.0f, halfSize, 0.0f), center, glm::vec3(0.0f, 0.0f, -1.0f));
-				vct.ubo.viewProjections[2] = lookAt(center + glm::vec3(0.0f, 0.0f, halfSize), center, glm::vec3(0.0f, 1.0f, 0.0f));
-
-				for (uint32_t i = 0; i < 3; i++)
-				{
-					auto& matrix = vct.ubo.viewProjections[i];
-
-					matrix = projection * matrix;
-					vct.ubo.viewProjectionsI[i++] = inverse(matrix);
-				}
-
-				vct.ubo.volumeDimension = vct.VolumeDimension;
-				vct.ubo.voxelScale = 1.0f / vct.VolumeGridSize;
-				vct.ubo.worldMinPoint = minPoint;
-				vct.ubo.flagStaticVoxels = 2;
-
-				storage->p_Voxelization->SubmitBuffer(202, sizeof(RendererStorage::VoxelConeTracing::UBO), &vct.ubo);
-			}
-
-			storage->p_Voxelization->BeginRenderPass();
-			{
-				for (uint32_t i = 0; i < drawList->m_InstanceIndex; ++i)
-				{
-					auto& cmd = drawList->m_DrawList[i];
-
-					for (auto& [material, package] : cmd.Packages)
-					{
-						storage->p_Voxelization->SubmitPushConstant(ShaderType::Vertex, sizeof(uint32_t), &package.Offset);
-						storage->p_Voxelization->DrawMeshIndexed(cmd.Mesh, package.Instances);
-					}
-				}
-			}
-			storage->p_Voxelization->EndRenderPass();
-
-			{
-				struct ProcessData
-				{
-					glm::vec2 exponents = glm::vec2(40.0f, 5.0f);
-					float lightBleedingReduction = 0.0f;
-					float pad1;
-
-					glm::mat4 lightViewProjection;
-
-					float voxelSize;
-					float voxelScale;
-					int volumeDimension;
-					uint32_t storeVisibility = 0;
-
-					glm::vec3 worldMinPoint;
-					float traceShadowHit;
-
-					uint32_t normalWeightedLambert;
-					glm::vec3 pad2;
-
-				} static process_data{};
-
-				process_data.lightViewProjection = drawList->m_DepthMVP;
-				process_data.voxelSize = storage->m_VCTParams.VoxelSize;
-				process_data.voxelScale = 1.0f / storage->m_VCTParams.VolumeGridSize;
-				process_data.volumeDimension = storage->m_VCTParams.VolumeDimension;
-				process_data.worldMinPoint = minPoint;
-				process_data.traceShadowHit = 0.5f;
-				process_data.normalWeightedLambert = 1;
-
-				storage->p_InjectRadiance->SubmitBuffer(205, sizeof(RendererStorage::VoxelConeTracing::LightData), &storage->m_VCTParams.dirLight);
-				storage->p_InjectRadiance->SubmitBuffer(206, sizeof(ProcessData), &process_data);
-
-				auto workGroups = static_cast<unsigned>(glm::ceil(storage->m_VCTParams.VolumeDimension / 8.0f));
-
-				storage->p_InjectRadiance->BeginCompute(info->pCmdStorage);
-				storage->p_InjectRadiance->Dispatch(workGroups, workGroups, workGroups);
-
-				vkCmdPipelineBarrier(
-					info->pCmdStorage->Buffer,
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					0,
-					0, nullptr,
-					0, nullptr,
-					0, nullptr);
-			}
-
-			constexpr auto mip_map_base = [](RendererStorage* storage, SubmitInfo* info, RendererStorage::VoxelConeTracing& vct)
-			{
-				int halfDimension = vct.VolumeDimension / 2;
-				auto workGroups = static_cast<unsigned int>(ceil(halfDimension / 8));
-
-				storage->p_MipmapBase->BeginCompute(info->pCmdStorage);
-				storage->p_MipmapBase->SubmitPushConstant(sizeof(int), &halfDimension);
-				storage->p_MipmapBase->Dispatch(workGroups, workGroups, workGroups);
-
-				vkCmdPipelineBarrier(
-					info->pCmdStorage->Buffer,
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					0,
-					0, nullptr,
-					0, nullptr,
-					0, nullptr);
-			};
-
-			constexpr auto mip_map_volume = [](RendererStorage* storage, SubmitInfo* info, RendererStorage::VoxelConeTracing& vct)
-			{
-				auto mipDimension = vct.VolumeDimension / 4;
-				auto mipLevel = 0;
-
-				while (mipDimension >= 1)
-				{
-					struct push_constant
-					{
-						glm::vec3 mipDimension;
-						int mipLevel;
-					} pc;
-
-					pc.mipDimension = glm::vec3(mipDimension, mipDimension, mipDimension);
-					pc.mipLevel = mipLevel;
-
-					auto workGroups = static_cast<unsigned>(glm::ceil(mipDimension / 8.0f));
-
-					storage->p_MipmapVolume->BeginCompute(info->pCmdStorage);
-					storage->p_MipmapVolume->SubmitPushConstant(sizeof(push_constant), &pc);
-					storage->p_MipmapVolume->Dispatch(workGroups, workGroups, workGroups);
-
-					vkCmdPipelineBarrier(
-						info->pCmdStorage->Buffer,
-						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-						0,
-						0, nullptr,
-						0, nullptr,
-						0, nullptr);
-
-					mipLevel++;
-					mipDimension /= 2;
-				}
-			};
-
-			mip_map_base(storage, info, vct);
-			mip_map_volume(storage, info, vct);
-
-			// Inject Propagation
-			{
-				struct push_constant
-				{
-					float maxTracingDistanceGlobal = 1.0f;
-					int volumeDimension;
-					uint32_t checkBoundaries =  0;
-
-				} pc{};
-
-				pc.volumeDimension = vct.VolumeDimension;
-
-				// inject at level 0 of textur
-				auto workGroups = static_cast<unsigned>(glm::ceil(vct.VolumeDimension / 8.0f));
-
-				storage->p_InjectPropagation->BeginCompute(info->pCmdStorage);
-				storage->p_InjectPropagation->SubmitPushConstant(sizeof(push_constant), &pc);
-				storage->p_InjectPropagation->Dispatch(workGroups, workGroups, workGroups);
-
-				vkCmdPipelineBarrier(
-					info->pCmdStorage->Buffer,
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-					0,
-					0, nullptr,
-					0, nullptr,
-					0, nullptr);
-
-				mip_map_base(storage, info, vct);
-				mip_map_volume(storage, info, vct);
-			}
-
-		}
-
-		return;
-
-		// Draw Voxels
-		{
-			struct DrawVoxels
-			{
-				uint32_t volumeDimension;
-				float voxelSize;
-				glm::vec2 pad1;
-
-				glm::vec4 colorChannels = glm::vec4(1.0f);
-				glm::vec4 frustumPlanes[6];
-
-				glm::vec3 worldMinPoint;
-				float pad2;
-
-				glm::mat4 modelViewProjection;
-
-			} static drawVoxels{};
-
-			drawVoxels.voxelSize = storage->m_VCTParams.VoxelSize;
-			drawVoxels.worldMinPoint = minPoint;
-
-			uint32_t  drawMipLevel = 0;
-			uint32_t  vDimension = static_cast<unsigned>(storage->m_VCTParams.VolumeDimension / pow(2.0f, drawMipLevel));
-			float vSize = storage->m_VCTParams.VolumeGridSize / vDimension;
-			auto model = translate(drawVoxels.worldMinPoint) * scale(glm::vec3(vSize));
-
-			drawVoxels.volumeDimension = vDimension;
-			drawVoxels.modelViewProjection = (drawList->m_SceneInfo->Projection * drawList->m_SceneInfo->View) * model;
-
-			{
-				auto& frustum = drawList->GetFrustum();
-
-				uint32_t index = 0;
-				for (auto& plane : frustum.GetPlanes())
-				{
-					drawVoxels.frustumPlanes[index] = plane;
-					index++;
-				}
-			}
-
-			storage->p_VoxelView->UpdateSampler(storage->m_VCTParams.Radiance, 0, true);
-			storage->p_VoxelView->SubmitBuffer(202, sizeof(DrawVoxels), &drawVoxels);
-
-			storage->p_VoxelView->BeginRenderPass();
-			storage->p_VoxelView->Draw(storage->m_VCTParams.VoxelCount);
-			storage->p_VoxelView->EndRenderPass();
-		}
-
 	}
 
 	bool RendererDeferred::DebugViewPass(SubmitInfo* info)
