@@ -46,8 +46,7 @@ namespace SmolEngine
 		void                                       CreateSamplerAndImageView(uint32_t mipMaps, VkFormat format, bool anisotropy = true);
 		void                                       FindTextureParams(TextureCreateInfo* info);
 
-	private:
-
+	protected:
 		VkDescriptorImageInfo                      m_DescriptorImageInfo;
 		VkFormat                                   m_Format;
 		VkImageLayout                              m_ImageLayout;
@@ -62,9 +61,6 @@ namespace SmolEngine
 		VkImageView                                m_ImageView =  nullptr;
 		std::unordered_map<uint32_t,VkImageView>   m_ImageViewMap;
 
-	private:
-
-		friend class VulkanPipeline;
 		friend class VulkanPBRLoader;
 		friend class VulkanDescriptor;
 	};

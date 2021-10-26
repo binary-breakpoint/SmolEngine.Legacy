@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #ifndef OPENGL_IMPL
 #include "Backends/Vulkan/VulkanBuffer.h"
-
 #include "Backends/Vulkan/VulkanContext.h"
 #include "Backends/Vulkan/VulkanStagingBuffer.h"
 
@@ -17,7 +16,7 @@ namespace SmolEngine
 		Destroy();
 	}
 
-	void VulkanBuffer::CreateBuffer(const void* data, size_t size, VkBufferUsageFlags bufferUsage, VmaMemoryUsage VmaUsage)
+	void VulkanBuffer::CreateBuffer(const void* data, size_t size, VkBufferUsageFlags bufferUsage, bool deviceAdress, VmaMemoryUsage VmaUsage)
 	{
 		const auto& device = m_Device->GetLogicalDevice();
 
@@ -28,14 +27,14 @@ namespace SmolEngine
 		bufferInfo.usage = bufferUsage;
 		bufferInfo.sharingMode = VkSharingMode::VK_SHARING_MODE_EXCLUSIVE;
 
-		m_Alloc = VulkanAllocator::AllocBuffer(bufferInfo, VmaUsage, m_Buffer);
+		m_Alloc = VulkanAllocator::AllocBuffer(bufferInfo, VmaUsage, m_Buffer, deviceAdress);
 		m_Size = size;
 
 		if (data)
 			SetData(data, size);
 	}
 
-	void VulkanBuffer::CreateBuffer(size_t size, VkBufferUsageFlags bufferUsage, VmaMemoryUsage VmaUsage)
+	void VulkanBuffer::CreateBuffer(size_t size, VkBufferUsageFlags bufferUsage, bool deviceAdress, VmaMemoryUsage VmaUsage)
 	{
 		const auto& device = m_Device->GetLogicalDevice();
 
@@ -46,16 +45,16 @@ namespace SmolEngine
 		bufferInfo.usage = bufferUsage;
 		bufferInfo.sharingMode = VkSharingMode::VK_SHARING_MODE_EXCLUSIVE;
 
-		m_Alloc = VulkanAllocator::AllocBuffer(bufferInfo, VmaUsage, m_Buffer);
+		m_Alloc = VulkanAllocator::AllocBuffer(bufferInfo, VmaUsage, m_Buffer, deviceAdress);
 		m_Size = size;
 	}
 
-	void VulkanBuffer::CreateStaticBuffer(const void* data, size_t size, VkBufferUsageFlags usageFlags)
+	void VulkanBuffer::CreateStaticBuffer(const void* data, size_t size, VkBufferUsageFlags usageFlags, bool deviceAdress)
 	{
 		VulkanStagingBuffer staging = {};
 		staging.Create(data, size);
 
-		CreateBuffer(nullptr, size, usageFlags, VMA_MEMORY_USAGE_GPU_ONLY);
+		CreateBuffer(nullptr, size, usageFlags, deviceAdress, VMA_MEMORY_USAGE_GPU_ONLY);
 
 		CommandBufferStorage cmdStorage{};
 		VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);

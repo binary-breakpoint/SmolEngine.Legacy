@@ -15,9 +15,7 @@ namespace SmolEngine
 		uint32_t                      GetVertexCount() const { return m_VertexCount; }
 		static Ref<VertexBuffer>      Create();
 
-	private:
+	protected:
 		uint32_t m_VertexCount = 0;
-
-		friend class VulkanVertexBuffer;
 	};
 }

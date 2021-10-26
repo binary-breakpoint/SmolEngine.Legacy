@@ -115,10 +115,8 @@ namespace SmolEngine
 		// Factory
 		static Ref<Texture>                   Create();
 
-	private:
-		TextureInfo                           m_Info{};
-		size_t                                m_ID = 0;
-
-		friend class VulkanTexture;
+	protected:
+		TextureInfo m_Info{};
+		size_t m_ID = 0;
 	};
 }

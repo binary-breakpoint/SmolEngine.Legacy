@@ -351,6 +351,7 @@ project "2D"
 		buildoptions "/bigobj"
 		optimize "on"
 
+	------------------------------------------------- MATERIALS
 	project "Materials"
 	kind "ConsoleApp"
 	location "tests"
@@ -365,6 +366,57 @@ project "2D"
 	{
 		"tests/CustomMaterials.h",
 		"tests/CustomMaterials.cpp",
+	}
+
+	includedirs
+	{
+		"include/",
+
+		"include/External",
+		"include/External/vulkan/include",
+		"include/External/spdlog/include",
+		"include/External/glm/"
+	}
+
+	links
+	{
+		"bin/" ..outputdir .. "/SmolEngine.Graphics/SmolEngine.Graphics.lib"
+	}
+
+	filter "system:windows"
+		systemversion "latest"
+
+		defines
+		{
+			"_CRT_SECURE_NO_WARNINGS",
+			"PLATFORM_WIN"
+		}
+
+		filter "configurations:Debug_Vulkan"
+		buildoptions "/MDd"
+		buildoptions "/bigobj"
+		symbols "on"
+	
+		filter "configurations:Release_Vulkan"
+		buildoptions "/MD"
+		buildoptions "/bigobj"
+		optimize "on"
+
+	------------------------------------------------- RAYTRACING
+	project "Raytracing"
+	kind "ConsoleApp"
+	location "tests"
+	language "C++"
+	cppdialect "C++17"
+	staticruntime "on"
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("vendor/libs/bin-int/" .. outputdir .. "/%{prj.name}")
+
+	files
+	{
+		"tests/Raytracing.h",
+		"tests/Raytracing.cpp",
 	}
 
 	includedirs

@@ -16,11 +16,11 @@ namespace SmolEngine
 			if (isStatic)
 			{
 				usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-				object->VkBuffer.CreateStaticBuffer(data, size, usage);
+				object->VkBuffer.CreateStaticBuffer(data, size, usage, false);
 			}
 			else
 			{
-				object->VkBuffer.CreateBuffer(size, usage);
+				object->VkBuffer.CreateBuffer(size, usage, false);
 			}
 
 			object->DesriptorBufferInfo.buffer = object->VkBuffer.GetBuffer();

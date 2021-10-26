@@ -10,6 +10,7 @@ namespace SmolEngine
 	public:
 		~VulkanIndexBuffer();
 
+		void  GetBufferStateEX(bool& deviceAdress, VkBufferUsageFlags& flags);
 		bool  BuildFromMemory(uint32_t* indices, size_t count, bool is_static = false) override;
 		bool  BuildFromSize(size_t size, bool is_static = false) override;
 		void  Update(uint32_t* indices, size_t count, uint32_t offset = 0) override;

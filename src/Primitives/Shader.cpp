@@ -24,6 +24,9 @@ namespace SmolEngine
 		case ShaderType::Fragment:    return shaderc_shader_kind::shaderc_fragment_shader;
 		case ShaderType::Geometry:    return shaderc_shader_kind::shaderc_geometry_shader;
 		case ShaderType::Compute:     return shaderc_shader_kind::shaderc_compute_shader;
+		case ShaderType::RayGen:      return shaderc_shader_kind::shaderc_raygen_shader;
+		case ShaderType::RayHit:      return shaderc_shader_kind::shaderc_anyhit_shader;
+		case ShaderType::RayMiss:     return shaderc_shader_kind::shaderc_miss_shader;
 		}
 
 		return shaderc_shader_kind::shaderc_vertex_shader;
@@ -202,6 +205,21 @@ namespace SmolEngine
 			}
 		}
 
+		for (const auto& res : resources.acceleration_structures)
+		{
+			auto& type = compiler.get_type(res.base_type_id);
+			uint32_t binding = compiler.get_decoration(res.id, spv::DecorationBinding);
+
+			if (m_ReflectData.ACStructures.find(binding) == m_ReflectData.ACStructures.end())
+			{
+				ACStructure acStructure{};
+				acStructure.ArraySize = compiler.get_type(res.type_id).array[0];
+				acStructure.Name = res.name;
+
+				m_ReflectData.ACStructures[binding] = std::move(acStructure);
+			}
+		}
+
 		for (const auto& res : resources.storage_buffers)
 		{
 			auto& type = compiler.get_type(res.base_type_id);
@@ -257,7 +275,7 @@ namespace SmolEngine
 			m_ReflectData.PushConstant = pc;
 		}
 
-		auto processImage = [&](std::unordered_map<uint32_t, SamplerBuffer>& map, const spirv_cross::Resource& res)
+		auto processImage = [&](std::map<uint32_t, SamplerBuffer>& map, const spirv_cross::Resource& res)
 		{
 			auto& type = compiler.get_type(res.base_type_id);
 			uint32_t binding = compiler.get_decoration(res.id, spv::DecorationBinding);

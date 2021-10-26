@@ -25,17 +25,13 @@ namespace SmolEngine
 		virtual void                Execute(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ) = 0;
 		virtual void                Dispatch(uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ, void* descriptorSet = nullptr) = 0;
 		virtual void                SubmitPushConstant(size_t size, const void* data) {};
-		void                        SetDescriptorIndex(uint32_t index);
 		static Ref<ComputePipeline> Create();
 
-	private:
+	protected:
 		bool                        BuildBase(ComputePipelineCreateInfo* info);
 
-	private:
-		Ref<Shader>                m_Shader = nullptr;
-		uint32_t                   m_DescriptorIndex = 0;
-		ComputePipelineCreateInfo  m_Info{};
-
-		friend class VulkanComputePipeline;
+	protected:
+		Ref<Shader>                 m_Shader = nullptr;
+		ComputePipelineCreateInfo   m_Info{};
 	};
 }

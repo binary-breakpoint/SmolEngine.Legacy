@@ -29,6 +29,12 @@ namespace SmolEngine
 		ShaderType           Stage = ShaderType::Vertex;
 	};
 
+	struct ACStructure
+	{
+		uint32_t             ArraySize = 0;
+		std::string          Name = "";
+	};
+
 	struct ShaderBuffer
 	{
 		ShaderType           Stage = ShaderType::Vertex;
@@ -52,16 +58,19 @@ namespace SmolEngine
 
 	struct ReflectionData
 	{
-		PushContantData                                PushConstant{};
-		std::unordered_map<uint32_t, SamplerBuffer>    ImageSamplers;
-		std::unordered_map<uint32_t, SamplerBuffer>    StorageImages;
-		std::unordered_map<uint32_t, ShaderBuffer>     Buffers;
+		PushContantData                      PushConstant{};
+		std::map<uint32_t, SamplerBuffer>    ImageSamplers;
+		std::map<uint32_t, ACStructure>      ACStructures;
+		std::map<uint32_t, SamplerBuffer>    StorageImages;
+		std::map<uint32_t, ShaderBuffer>     Buffers;
 
 		void Clean()
 		{
 			ImageSamplers.clear();
 			StorageImages.clear();
 			Buffers.clear();
+			ACStructures.clear();
+
 			PushConstant = {};
 		}
 	};
@@ -92,18 +101,16 @@ namespace SmolEngine
 		ShaderCreateInfo&      GetCreateInfo();
 		static Ref<Shader>     Create();
 
-	private:	
+	protected:
 		bool                   BuildBase(ShaderCreateInfo* info);
 		void                   Reflect(const std::vector<uint32_t>& binaryData, ShaderType type);
 
-	private:
+	protected:
 		ShaderCreateInfo       m_CreateInfo{};
 		ReflectionData         m_ReflectData{};
 
 		std::unordered_map<
 		ShaderType, 
 		std::vector<uint32_t>> m_Binary;
-
-		friend class VulkanShader;
 	};
 }

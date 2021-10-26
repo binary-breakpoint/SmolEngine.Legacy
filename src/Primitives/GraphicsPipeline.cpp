@@ -23,7 +23,6 @@ namespace SmolEngine
 	void GraphicsPipeline::Reset()
 	{
 		m_FBIndex = 0;
-		m_DescriptorIndex = 0;
 		m_FBattachmentIndex = 0;
 		m_DrawMode = DrawMode::Triangle;
 	}
@@ -41,11 +40,6 @@ namespace SmolEngine
 	void GraphicsPipeline::SetIndexBuffers(const std::vector<Ref<IndexBuffer>>& ib)
 	{
 		m_IndexBuffers = ib;
-	}
-
-	void GraphicsPipeline::SetDescriptorIndex(uint32_t value)
-	{
-		m_DescriptorIndex = value;
 	}
 
 	void GraphicsPipeline::SetDrawMode(DrawMode mode)

@@ -17,7 +17,7 @@ namespace SmolEngine
 		~VulkanAllocator();
 
 		void                              Init(VulkanDevice* device, VulkanInstance* instance);
-		static VmaAllocation              AllocBuffer(VkBufferCreateInfo ci, VmaMemoryUsage usage, VkBuffer& outBuffer);
+		static VmaAllocation              AllocBuffer(VkBufferCreateInfo ci, VmaMemoryUsage usage, VkBuffer& outBuffer, bool deviceAdress = false);
 		static VmaAllocation              AllocImage(VkImageCreateInfo ci, VmaMemoryUsage usage, VkImage& outImage);
 		static void                       AllocFree(VmaAllocation alloc);
 		static void                       FreeImage(VkImage image, VmaAllocation allocation);

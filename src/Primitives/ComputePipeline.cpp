@@ -7,11 +7,6 @@
 
 namespace SmolEngine
 {
-	void ComputePipeline::SetDescriptorIndex(uint32_t index)
-	{
-		m_DescriptorIndex = index;
-	}
-
 	Ref<ComputePipeline> ComputePipeline::Create()
 	{
 		Ref<ComputePipeline> pipeline = nullptr;

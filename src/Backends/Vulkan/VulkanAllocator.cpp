@@ -27,18 +27,19 @@ namespace SmolEngine
 		allocatorInfo.instance = instance->GetInstance();
 
 		if(device->GetRaytracingSupport())
-			allocatorInfo.flags = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT_KHR;
+			allocatorInfo.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
 
 		vmaCreateAllocator(&allocatorInfo, &m_Allocator);
 	}
 
-	VmaAllocation VulkanAllocator::AllocBuffer(VkBufferCreateInfo ci, VmaMemoryUsage usage, VkBuffer& outBuffer)
+	VmaAllocation VulkanAllocator::AllocBuffer(VkBufferCreateInfo ci, VmaMemoryUsage usage, VkBuffer& outBuffer, bool deviceAdress)
 	{
 		VmaAllocationCreateInfo allocCreateInfo = {};
 		allocCreateInfo.usage = usage;
 
 		VmaAllocation allocation;
 		vmaCreateBuffer(s_Instance->m_Allocator, &ci, &allocCreateInfo, &outBuffer, &allocation, nullptr);
+
 		VmaAllocationInfo allocInfo{};
 		vmaGetAllocationInfo(s_Instance->m_Allocator, allocation, &allocInfo);
 

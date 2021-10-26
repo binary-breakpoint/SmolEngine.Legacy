@@ -105,12 +105,10 @@ namespace SmolEngine
 		const FramebufferSpecification&   GetSpecification() const;
 		static Ref<Framebuffer>           Create();
 
-	private:
+	protected:
 		bool                              BuildBase(FramebufferSpecification* info);
 
-	private: 
+	protected:
 		FramebufferSpecification          m_Info = {};
-
-		friend class VulkanFramebuffer;
 	};
 }

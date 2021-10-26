@@ -15,9 +15,7 @@ namespace SmolEngine
 		uint32_t                      GetCount() const;
 		static Ref<IndexBuffer>       Create();
 		
-	private:
+	protected:
 		uint32_t m_Elements = 0;
-
-		friend class VulkanIndexBuffer;
 	};
 }

@@ -78,6 +78,9 @@ namespace SmolEngine
 		PFN_vkCmdTraceRaysKHR                            m_vkCmdTraceRaysKHR;
 		PFN_vkGetRayTracingShaderGroupHandlesKHR         m_vkGetRayTracingShaderGroupHandlesKHR;
 		PFN_vkCreateRayTracingPipelinesKHR               m_vkCreateRayTracingPipelinesKHR;
+
+		VkPhysicalDeviceRayTracingPipelinePropertiesKHR  rayTracingPipelineProperties{};
+		VkPhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures{};
 										                 
 		friend class VulkanRendererAPI;
 		friend class VulkanCommandPool;

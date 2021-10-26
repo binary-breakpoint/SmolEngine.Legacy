@@ -131,7 +131,6 @@ namespace SmolEngine
 
 		static Ref<GraphicsPipeline>      Create();
 		void                              Reset();
-		void                              SetDescriptorIndex(uint32_t value);
 		void                              SetDrawMode(DrawMode mode);
 		void                              SetFramebufferIndex(uint32_t index);
 		void                              SetFramebufferAttachmentIndex(uint32_t index);
@@ -139,22 +138,19 @@ namespace SmolEngine
 		void                              SetVertexBuffers(const std::vector<Ref<VertexBuffer>>& vb);
 		void                              SetIndexBuffers(const std::vector<Ref<IndexBuffer>>& ib);
 
-	private:
+	protected:
 		bool                              BuildBase(GraphicsPipelineCreateInfo* pipelineInfo);
 		bool                              IsPipelineCreateInfoValid(const GraphicsPipelineCreateInfo* pipelineInfo);
 
-	private:
+	protected:
 		Ref<VertexArray>                  m_VextexArray = nullptr;
 		Ref<Shader>                       m_Shader = nullptr;
 		GraphicsContext*                  m_GraphicsContext = nullptr;
 		DrawMode                          m_DrawMode = DrawMode::Triangle;
-		uint32_t                          m_DescriptorIndex = 0;
 		uint32_t                          m_FBIndex = 0;
 		uint32_t                          m_FBattachmentIndex = 0;
 		GraphicsPipelineCreateInfo        m_PiplineCreateInfo;
 		std::vector<Ref<VertexBuffer>>    m_VertexBuffers;
 		std::vector<Ref<IndexBuffer>>     m_IndexBuffers;
-
-		friend class VulkanPipeline;
 	};
 }

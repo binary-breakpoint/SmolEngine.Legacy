@@ -15,6 +15,8 @@ namespace SmolEngine
 		void  Free() override;
 		bool  IsGood() const override;
 		void  Update(const void* data, size_t size, const uint32_t offset = 0) override;
+
+		void  GetBufferStateEX(bool& deviceAdress, VkBufferUsageFlags& flags);
 	};
 }
 #endif

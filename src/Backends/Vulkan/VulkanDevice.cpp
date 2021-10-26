@@ -72,9 +72,10 @@ namespace SmolEngine
 
 			if (HasRequiredExtensions(current_device, rayTracingEX)) // Ray Tracing
 			{
-				SelectDevice(current_device);
 				m_ExtensionsList = rayTracingEX;
 				m_RayTracingEnabled = true;
+
+				SelectDevice(current_device);
 				break;
 			}
 
@@ -124,6 +125,21 @@ namespace SmolEngine
 			queueCreateInfos.push_back(queueCreateInfo);
 		}
 
+		// Enable features required for ray tracing using feature chaining via pNext	
+		VkPhysicalDeviceBufferDeviceAddressFeatures enabledBufferDeviceAddresFeatures{};
+		enabledBufferDeviceAddresFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES;
+		enabledBufferDeviceAddresFeatures.bufferDeviceAddress = VK_TRUE;
+
+		VkPhysicalDeviceRayTracingPipelineFeaturesKHR enabledRayTracingPipelineFeatures{};
+		enabledRayTracingPipelineFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR;
+		enabledRayTracingPipelineFeatures.rayTracingPipeline = VK_TRUE;
+		enabledRayTracingPipelineFeatures.pNext = &enabledBufferDeviceAddresFeatures;
+
+		VkPhysicalDeviceAccelerationStructureFeaturesKHR enabledAccelerationStructureFeatures{};
+		enabledAccelerationStructureFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR;
+		enabledAccelerationStructureFeatures.accelerationStructure = VK_TRUE;
+		enabledAccelerationStructureFeatures.pNext = &enabledRayTracingPipelineFeatures;
+
 		VkDeviceCreateInfo deviceInfo = {};
 		{
 			deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -132,6 +148,11 @@ namespace SmolEngine
 			deviceInfo.ppEnabledExtensionNames = m_ExtensionsList.data();
 			deviceInfo.enabledExtensionCount = static_cast<uint32_t>(m_ExtensionsList.size());
 			deviceInfo.pEnabledFeatures = &m_VkDeviceFeatures;
+
+			if (m_RayTracingEnabled)
+			{
+				deviceInfo.pNext = &enabledAccelerationStructureFeatures;
+			}
 		}
 
 		VkResult result = vkCreateDevice(m_VkPhysicalDevice, &deviceInfo, nullptr, &m_VkLogicalDevice);
@@ -205,10 +226,24 @@ namespace SmolEngine
 
 		VkPhysicalDeviceProperties2 deviceProperties2{};
 		deviceProperties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+		// Get ray tracing pipeline properties
+		if (m_RayTracingEnabled)
+		{
+			rayTracingPipelineProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR;
+			deviceProperties2.pNext = &rayTracingPipelineProperties;
+		}
 		vkGetPhysicalDeviceProperties2(device, &deviceProperties2);
+
 		VkPhysicalDeviceFeatures2 deviceFeatures2 = {};
 		deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+		// Get acceleration structure properties
+		if (m_RayTracingEnabled)
+		{
+			accelerationStructureFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR;
+			deviceFeatures2.pNext = &accelerationStructureFeatures;
+		}
 		vkGetPhysicalDeviceFeatures2(device, &deviceFeatures2);
+
 		VkPhysicalDeviceMemoryProperties memoryProperties = {};
 		vkGetPhysicalDeviceMemoryProperties(device, &memoryProperties);
 
