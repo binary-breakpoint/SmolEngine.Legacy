@@ -1,4 +1,5 @@
 #pragma once
+#ifndef OPENGL_IMPL
 #include "Backends/Vulkan/Vulkan.h"
 
 
@@ -39,3 +40,5 @@ namespace SmolEngine
 		uint64_t                        m_TotalAllocatedBytes = 0;
 	};
 }
+
+#endif

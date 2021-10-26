@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#ifndef OPENGL_IMPL
 #include "Backends/Vulkan/VulkanAllocator.h"
 #include "Backends/Vulkan/VulkanDevice.h"
 #include "Backends/Vulkan/VulkanInstance.h"
@@ -24,6 +25,9 @@ namespace SmolEngine
 		allocatorInfo.physicalDevice = device->GetPhysicalDevice();
 		allocatorInfo.device = device->GetLogicalDevice();
 		allocatorInfo.instance = instance->GetInstance();
+
+		if(device->GetRaytracingSupport())
+			allocatorInfo.flags = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT_KHR;
 
 		vmaCreateAllocator(&allocatorInfo, &m_Allocator);
 	}
@@ -89,3 +93,4 @@ namespace SmolEngine
 		return s_Instance->m_Allocator;
 	}
 }
+#endif
