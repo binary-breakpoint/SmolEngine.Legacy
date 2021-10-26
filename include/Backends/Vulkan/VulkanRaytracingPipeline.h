@@ -19,6 +19,10 @@ namespace SmolEngine
 		virtual bool  UpdateSampler(Ref<Framebuffer>& framebuffer, uint32_t bindingPoint, const std::string& attachmentName) override;
 		virtual bool  UpdateImageDescriptor(uint32_t bindingPoint, void* descriptor) override;
 		virtual bool  UpdateCubeMap(Ref<Texture>& cubeMap, uint32_t bindingPoint) override;
+
+	private:
+		VkCommandBuffer  m_CommandBuffer = nullptr;
+		VkPipelineLayout m_PipelineLayout = nullptr;
 	};
 }
 

@@ -2,12 +2,14 @@
 #include "Primitives/PrimitiveBase.h"
 #include "Primitives/PipelineBase.h"
 #include "Primitives/Shader.h"
+#include "Primitives/Texture.h"
 
 namespace SmolEngine
 {
 	struct RaytracingPipelineCreateInfo
 	{
 		ShaderCreateInfo ShaderCI{};
+		Ref<Texture>     Storage = nullptr;
 	};
 
 	class RaytracingPipeline: public PrimitiveBase, public PipelineBase
@@ -22,6 +24,10 @@ namespace SmolEngine
 		static Ref<RaytracingPipeline> Create();
 
 	protected:
-		Ref<Shader> m_Shader = nullptr;
+		bool                           BuildEX(RaytracingPipelineCreateInfo* info);
+
+	protected:
+		Ref<Shader>  m_Shader = nullptr;
+		Ref<Texture> m_Storage = nullptr;
 	};
 }

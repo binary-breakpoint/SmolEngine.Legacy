@@ -171,11 +171,11 @@ namespace SmolEngine
 						if (bufferInfo.bStatic)
 						{
 							usage |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-							object->VkBuffer.CreateStaticBuffer(bufferInfo.Data, size, usage, false);
+							object->VkBuffer.CreateStaticBuffer(bufferInfo.Data, size, usage);
 						}
 						else
 						{
-							object->VkBuffer.CreateBuffer(size, usage, false);
+							object->VkBuffer.CreateBuffer(size, usage);
 						}
 
 						object->DesriptorBufferInfo.buffer = object->VkBuffer.GetBuffer();

@@ -10,14 +10,12 @@ namespace SmolEngine
 		Free();
 	}
 
-	void VulkanIndexBuffer::GetBufferStateEX(bool& deviceAdress, VkBufferUsageFlags& flags)
+	void VulkanIndexBuffer::GetBufferFlagsEX(VkBufferUsageFlags& flags)
 	{
 		flags = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-		deviceAdress = false;
 
 		if (VulkanContext::GetDevice().GetRaytracingSupport())
 		{
-			deviceAdress = true;
 			flags |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
 		}
 	}
@@ -25,11 +23,10 @@ namespace SmolEngine
 	bool VulkanIndexBuffer::BuildFromMemory(uint32_t* indices, size_t count, bool is_static)
 	{
 		VkBufferUsageFlags usage;
-		bool deviceAdress;
-		GetBufferStateEX(deviceAdress, usage);
+		GetBufferFlagsEX(usage);
 
-		if (is_static) { CreateStaticBuffer(indices, sizeof(uint32_t) * count, usage, deviceAdress); }
-		else { CreateBuffer(indices, sizeof(uint32_t) * count, usage, deviceAdress); }
+		if (is_static) { CreateStaticBuffer(indices, sizeof(uint32_t) * count, usage); }
+		else { CreateBuffer(indices, sizeof(uint32_t) * count, usage); }
 
 		m_Elements = static_cast<uint32_t>(count);
 		return true;
@@ -38,10 +35,9 @@ namespace SmolEngine
 	bool VulkanIndexBuffer::BuildFromSize(size_t size, bool is_static)
 	{
 		VkBufferUsageFlags usage;
-		bool deviceAdress;
-		GetBufferStateEX(deviceAdress, usage);
+		GetBufferFlagsEX(usage);
 
-		CreateBuffer(size, usage, deviceAdress);
+		CreateBuffer(size, usage);
 		return true;
 	}
 

@@ -32,7 +32,7 @@ namespace SmolEngine
 		vmaCreateAllocator(&allocatorInfo, &m_Allocator);
 	}
 
-	VmaAllocation VulkanAllocator::AllocBuffer(VkBufferCreateInfo ci, VmaMemoryUsage usage, VkBuffer& outBuffer, bool deviceAdress)
+	VmaAllocation VulkanAllocator::AllocBuffer(VkBufferCreateInfo ci, VmaMemoryUsage usage, VkBuffer& outBuffer)
 	{
 		VmaAllocationCreateInfo allocCreateInfo = {};
 		allocCreateInfo.usage = usage;

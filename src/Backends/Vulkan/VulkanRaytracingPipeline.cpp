@@ -1,18 +1,23 @@
 #include "stdafx.h"
 #ifndef OPENGL_IMPL
 #include "Backends/Vulkan/VulkanRaytracingPipeline.h"
+#include "Backends/Vulkan/VulkanShader.h"
 
 namespace SmolEngine
 {
 	bool VulkanRaytracingPipeline::Build(RaytracingPipelineCreateInfo* info)
 	{
-		return false;
+		if(!BuildEX(info))
+			return false;
+
+
 	}
 
 	void VulkanRaytracingPipeline::SubmitPushConstant(ShaderType stage, size_t size, const void* data)
 	{
-
+		vkCmdPushConstants(m_CommandBuffer, m_PipelineLayout, VulkanShader::GetVkShaderStage(stage), 0, static_cast<uint32_t>(size), data);
 	}
+
 	bool VulkanRaytracingPipeline::SubmitBuffer(uint32_t binding, size_t size, const void* data, uint32_t offset)
 	{
 		return false;
@@ -48,6 +53,5 @@ namespace SmolEngine
 		return false;
 	}
 }
-
 
 #endif

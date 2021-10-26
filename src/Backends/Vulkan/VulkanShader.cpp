@@ -103,9 +103,25 @@ namespace SmolEngine
         {
             flags |= VkShaderStageFlagBits::VK_SHADER_STAGE_COMPUTE_BIT;
         }
+
         if ((type & ShaderType::Geometry) == ShaderType::Geometry)
         {
             flags |= VkShaderStageFlagBits::VK_SHADER_STAGE_GEOMETRY_BIT;
+        }
+
+        if ((type & ShaderType::RayGen) == ShaderType::RayGen)
+        {
+            flags |= VkShaderStageFlagBits::VK_SHADER_STAGE_RAYGEN_BIT_KHR;
+        }
+
+        if ((type & ShaderType::RayHit) == ShaderType::RayHit)
+        {
+            flags |= VkShaderStageFlagBits::VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
+        }
+
+        if ((type & ShaderType::RayMiss) == ShaderType::RayMiss)
+        {
+            flags |= VkShaderStageFlagBits::VK_SHADER_STAGE_MISS_BIT_KHR;
         }
 
         return (VkShaderStageFlagBits)flags;

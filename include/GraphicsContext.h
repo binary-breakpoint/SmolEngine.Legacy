@@ -58,7 +58,7 @@ namespace SmolEngine
 		bool                              IsOpen() const;
 		void                              Resize(uint32_t* width, uint32_t* height);
 									      
-	private:		
+	protected:
 		virtual void                      SwapBuffersEX() = 0;
 		virtual void                      BeginFrameEX(float time) = 0;
 		virtual void                      ShutdownEX() = 0;
@@ -69,7 +69,7 @@ namespace SmolEngine
 		void                              Initialize(GraphicsContextCreateInfo* info);
 		void                              OnEvent(Event& event);
 
-	private:	
+	protected:	
 		bool                              m_bWindowMinimized = false;
 		bool                              m_bOpen = true;
 		float                             m_LastFrameTime = 1.0f;
@@ -97,7 +97,6 @@ namespace SmolEngine
 		friend class DebugRenderer;
 		friend class ImGuiContext;
 		friend class VulkanPBR;
-		friend class VulkanContext;
 		friend class VulkanDescriptor;
 		friend class Window;
 		friend class EnvironmentMap;
