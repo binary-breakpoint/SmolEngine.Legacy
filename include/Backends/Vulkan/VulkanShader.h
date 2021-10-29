@@ -15,6 +15,7 @@ namespace SmolEngine
 	{
 	public:							
 		bool                                                     Build(ShaderCreateInfo* info) override;
+		bool                                                     BuildRT(ShaderCreateInfo* info);
 		bool                                                     Realod() override;
 		void                                                     Free() override;
 							         
@@ -25,6 +26,7 @@ namespace SmolEngine
 	private:
 		std::vector<VkPushConstantRange>                         m_VkPushConstantRanges;
 		std::vector<VkPipelineShaderStageCreateInfo>             m_PipelineShaderStages;
+		std::vector<VkRayTracingShaderGroupCreateInfoKHR>        m_ShaderGroupsRT{};
 		std::unordered_map<ShaderType, VkShaderModule>           m_ShaderModules;
 
 		friend class VulkanPipeline;

@@ -3,6 +3,7 @@
 #ifndef OPENGL_IMPL
 #include "Backends/Vulkan/VulkanScratchBuffer.h"
 #include "Backends/Vulkan/VulkanContext.h"
+#include "Backends/Vulkan/VulkanUtils.h"
 
 namespace SmolEngine
 {
@@ -38,7 +39,12 @@ namespace SmolEngine
 		bufferDeviceAddressInfo.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
 		bufferDeviceAddressInfo.buffer = m_Buffer;
 
-		m_DeviceAddress = vkGetBufferDeviceAddressKHR(VulkanContext::GetDevice().GetLogicalDevice(), &bufferDeviceAddressInfo);
+		m_DeviceAddress = VulkanUtils::GetBufferDeviceAddress(m_Buffer);
+	}
+
+	uint64_t VulkanScratchBuffer::GetDeviceAddress() const
+	{
+		return m_DeviceAddress;
 	}
 }
 

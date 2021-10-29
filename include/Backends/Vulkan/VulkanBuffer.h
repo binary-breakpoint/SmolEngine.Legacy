@@ -20,7 +20,6 @@ namespace SmolEngine
 		void                    CreateBuffer(size_t size, VkBufferUsageFlags bufferUsage, VmaMemoryUsage VmaUsage = VMA_MEMORY_USAGE_CPU_TO_GPU);
 		void                    CreateStaticBuffer(const void* data, size_t size, VkBufferUsageFlags usageFlags);
 		void                    SetData(const void* data, size_t size, uint32_t offset = 0);
-		void                    CmdUpdateData(VkCommandBuffer cmdBuffer, const void* data, size_t size, uint32_t offset = 0);
 		size_t                  GetSize() const;
 		const VkBuffer&         GetBuffer() const;
 

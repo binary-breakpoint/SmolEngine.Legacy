@@ -25,7 +25,8 @@ namespace SmolEngine
 		case ShaderType::Geometry:    return shaderc_shader_kind::shaderc_geometry_shader;
 		case ShaderType::Compute:     return shaderc_shader_kind::shaderc_compute_shader;
 		case ShaderType::RayGen:      return shaderc_shader_kind::shaderc_raygen_shader;
-		case ShaderType::RayHit:      return shaderc_shader_kind::shaderc_anyhit_shader;
+		case ShaderType::RayAnyHit:   return shaderc_shader_kind::shaderc_anyhit_shader;
+		case ShaderType::RayCloseHit: return shaderc_shader_kind::shaderc_closesthit_shader;
 		case ShaderType::RayMiss:     return shaderc_shader_kind::shaderc_miss_shader;
 		}
 
@@ -50,6 +51,8 @@ namespace SmolEngine
 	{
 		shaderc::Compiler compiler;
 		shaderc::CompileOptions options;
+		options.SetTargetSpirv(shaderc_spirv_version_1_4);
+
 #ifdef OPENGL_IMPL
 #else
 		options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
@@ -77,7 +80,7 @@ namespace SmolEngine
 
 		// Compile
 		{
-			const shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(src, GetShaderType(type), " ", options);
+			auto result = compiler.CompileGlslToSpv(src, GetShaderType(type), " ", options);
 			if (result.GetCompilationStatus() != shaderc_compilation_status_success)
 			{
 				DebugLog::LogError(result.GetErrorMessage().c_str());
@@ -87,10 +90,25 @@ namespace SmolEngine
 			binaries = std::vector<uint32_t>(result.cbegin(), result.cend());
 		}
 
+		std::string cachedPath = Utils::GetCachedPath(path, CachedPathType::Shader);
+
+#ifdef SMOLENGINE_DEBUG
+		// Assembly
+		{
+			auto result = compiler.CompileGlslToSpvAssembly(src, GetShaderType(type), " ", options);
+			if (result.GetCompilationStatus() == shaderc_compilation_status_success)
+			{
+				std::string assembly = std::string(result.cbegin(), result.cend());
+				std::ofstream myfile;
+				myfile.open(cachedPath + "_assembly.txt");
+				myfile << assembly;
+				myfile.close();
+			}
+		}
+#endif
 		// Save
 		if (!isSource)
 		{
-			std::string cachedPath = Utils::GetCachedPath(path, CachedPathType::Shader);
 			std::ofstream out(cachedPath, std::ios::out | std::ios::binary);
 			if (out.is_open())
 			{

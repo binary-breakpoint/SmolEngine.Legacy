@@ -29,14 +29,24 @@ int main(int argc, char** argv)
          camera->OnEvent(e);
      });
 
-	//ShaderCreateInfo shaderCI{};
-	//
-	//shaderCI.Stages[ShaderType::RayHit] = info.ResourcesFolder + "Shaders/Raytracing/basic.rchit";
-	//shaderCI.Stages[ShaderType::RayGen] = info.ResourcesFolder + "Shaders/Raytracing/basic.rgen";
-	//shaderCI.Stages[ShaderType::RayMiss] = info.ResourcesFolder + "Shaders/Raytracing/basic.rmiss";
-	//
-	//Ref<Shader> shader = Shader::Create();
-	//shader->Build(&shaderCI);
+	BufferLayout mainLayout =
+	{
+		{ DataTypes::Float3, "aPos" },
+		{ DataTypes::Float3, "aNormal" },
+		{ DataTypes::Float3, "aTangent" },
+		{ DataTypes::Float2, "aUV" },
+		{ DataTypes::Int4,   "aBoneIDs"},
+		{ DataTypes::Float4, "aWeight"}
+	};
+
+	RaytracingPipelineCreateInfo rtCreateInfo{};
+	rtCreateInfo.ShaderCI.Stages[ShaderType::RayCloseHit] = info.ResourcesFolder + "Shaders/Raytracing/basic.rchit";
+	rtCreateInfo.ShaderCI.Stages[ShaderType::RayGen] = info.ResourcesFolder + "Shaders/Raytracing/basic.rgen";
+	rtCreateInfo.ShaderCI.Stages[ShaderType::RayMiss] = info.ResourcesFolder + "Shaders/Raytracing/basic.rmiss";
+	rtCreateInfo.VertexInput = VertexInputInfo(sizeof(PBRVertex), mainLayout);
+
+	Ref<RaytracingPipeline> rtPipeline = RaytracingPipeline::Create();
+	rtPipeline->Build(&rtCreateInfo);
 
 
 	while (context->IsOpen())

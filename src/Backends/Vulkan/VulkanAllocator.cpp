@@ -44,10 +44,14 @@ namespace SmolEngine
 		vmaGetAllocationInfo(s_Instance->m_Allocator, allocation, &allocInfo);
 
 #ifdef SMOLENGINE_DEBUG
+
 		s_Instance->m_TotalAllocatedBytes += allocInfo.size;
+
 		DebugLog::LogInfo("VulkanAllocator: allocating buffer; size = {}", allocInfo.size);
 		DebugLog::LogInfo("VulkanAllocator: total allocated since start is = {}", s_Instance->m_TotalAllocatedBytes);
-#endif // SMOLENGINE_DEBUG
+
+#endif 
+
 		return allocation;
 	}
 

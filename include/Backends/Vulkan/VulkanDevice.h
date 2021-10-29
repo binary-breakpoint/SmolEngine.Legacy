@@ -50,6 +50,22 @@ namespace SmolEngine
 		void                                             SelectDevice(VkPhysicalDevice device);
 		void                                             GetFuncPtrs();
 
+	public:
+		// Function pointers for ray tracing related stuff
+		PFN_vkGetBufferDeviceAddressKHR                  vkGetBufferDeviceAddressKHR;
+		PFN_vkCreateAccelerationStructureKHR             vkCreateAccelerationStructureKHR;
+		PFN_vkDestroyAccelerationStructureKHR            vkDestroyAccelerationStructureKHR;
+		PFN_vkGetAccelerationStructureBuildSizesKHR      vkGetAccelerationStructureBuildSizesKHR;
+		PFN_vkGetAccelerationStructureDeviceAddressKHR   vkGetAccelerationStructureDeviceAddressKHR;
+		PFN_vkBuildAccelerationStructuresKHR             vkBuildAccelerationStructuresKHR;
+		PFN_vkCmdBuildAccelerationStructuresKHR          vkCmdBuildAccelerationStructuresKHR;
+		PFN_vkCmdTraceRaysKHR                            vkCmdTraceRaysKHR;
+		PFN_vkGetRayTracingShaderGroupHandlesKHR         vkGetRayTracingShaderGroupHandlesKHR;
+		PFN_vkCreateRayTracingPipelinesKHR               vkCreateRayTracingPipelinesKHR;
+
+		VkPhysicalDeviceRayTracingPipelinePropertiesKHR  rayTracingPipelineProperties{};
+		VkPhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures{};
+
 	private:
 
 		VkQueue                                          m_GraphicsQueue = nullptr;
@@ -66,21 +82,6 @@ namespace SmolEngine
 		QueueFamilyIndices                               m_QueueFamilyIndices = {};
 		std::vector<VkQueueFamilyProperties>             m_QueueFamilyProperties;
 		std::vector<const char*>                         m_ExtensionsList;
-
-		// Function pointers for ray tracing related stuff
-		PFN_vkGetBufferDeviceAddressKHR                  m_vkGetBufferDeviceAddressKHR;
-		PFN_vkCreateAccelerationStructureKHR             m_vkCreateAccelerationStructureKHR;
-		PFN_vkDestroyAccelerationStructureKHR            m_vkDestroyAccelerationStructureKHR;
-		PFN_vkGetAccelerationStructureBuildSizesKHR      m_vkGetAccelerationStructureBuildSizesKHR;
-		PFN_vkGetAccelerationStructureDeviceAddressKHR   m_vkGetAccelerationStructureDeviceAddressKHR;
-		PFN_vkBuildAccelerationStructuresKHR             m_vkBuildAccelerationStructuresKHR;
-		PFN_vkCmdBuildAccelerationStructuresKHR          m_vkCmdBuildAccelerationStructuresKHR;
-		PFN_vkCmdTraceRaysKHR                            m_vkCmdTraceRaysKHR;
-		PFN_vkGetRayTracingShaderGroupHandlesKHR         m_vkGetRayTracingShaderGroupHandlesKHR;
-		PFN_vkCreateRayTracingPipelinesKHR               m_vkCreateRayTracingPipelinesKHR;
-
-		VkPhysicalDeviceRayTracingPipelinePropertiesKHR  rayTracingPipelineProperties{};
-		VkPhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures{};
 										                 
 		friend class VulkanRendererAPI;
 		friend class VulkanCommandPool;

@@ -10,7 +10,7 @@ namespace SmolEngine
 		if(!BuildEX(info))
 			return false;
 
-
+		m_ACStructure.BuildBottomLevel(info);
 	}
 
 	void VulkanRaytracingPipeline::SubmitPushConstant(ShaderType stage, size_t size, const void* data)

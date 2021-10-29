@@ -1,8 +1,8 @@
 #pragma once
 #ifndef OPENGL_IMPL
+#include "Backends/Vulkan/VulkanACStructure.h"
 
 #include "Primitives/RaytracingPipeline.h"
-#include "Backends/Vulkan/Vulkan.h"
 
 namespace SmolEngine
 {
@@ -21,8 +21,9 @@ namespace SmolEngine
 		virtual bool  UpdateCubeMap(Ref<Texture>& cubeMap, uint32_t bindingPoint) override;
 
 	private:
-		VkCommandBuffer  m_CommandBuffer = nullptr;
-		VkPipelineLayout m_PipelineLayout = nullptr;
+		VkCommandBuffer   m_CommandBuffer = nullptr;
+		VkPipelineLayout  m_PipelineLayout = nullptr;
+		VulkanACStructure m_ACStructure{};
 	};
 }
 

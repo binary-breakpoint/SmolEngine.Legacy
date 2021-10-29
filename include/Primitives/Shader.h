@@ -85,9 +85,9 @@ namespace SmolEngine
 
 	struct ShaderCreateInfo
 	{
-		std::unordered_map<ShaderType, std::string>      Stages;
-		std::unordered_map<uint32_t, ShaderBufferInfo>   Buffers;
-		bool                                             IsSource = false;
+		std::map<ShaderType, std::string> Stages;
+		std::map<uint32_t, ShaderBufferInfo> Buffers;
+		bool IsSource = false;
 	};
 
 	class Shader: public PrimitiveBase

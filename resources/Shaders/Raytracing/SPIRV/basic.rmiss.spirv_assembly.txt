@@ -1,0 +1,31 @@
+; SPIR-V
+; Version: 1.4
+; Generator: Google Shaderc over Glslang; 10
+; Bound: 13
+; Schema: 0
+               OpCapability RayTracingProvisionalKHR
+               OpExtension "SPV_KHR_ray_tracing"
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint MissNV %main "main" %hitValue
+               OpSource GLSL 460
+               OpSourceExtension "GL_EXT_ray_tracing"
+               OpSourceExtension "GL_GOOGLE_cpp_style_line_directive"
+               OpSourceExtension "GL_GOOGLE_include_directive"
+               OpName %main "main"
+               OpName %hitValue "hitValue"
+               OpDecorate %hitValue Location 0
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+      %float = OpTypeFloat 32
+    %v3float = OpTypeVector %float 3
+%_ptr_IncomingRayPayloadNV_v3float = OpTypePointer IncomingRayPayloadNV %v3float
+   %hitValue = OpVariable %_ptr_IncomingRayPayloadNV_v3float IncomingRayPayloadNV
+    %float_0 = OpConstant %float 0
+%float_0_200000003 = OpConstant %float 0.200000003
+         %12 = OpConstantComposite %v3float %float_0 %float_0 %float_0_200000003
+       %main = OpFunction %void None %3
+          %5 = OpLabel
+               OpStore %hitValue %12
+               OpReturn
+               OpFunctionEnd

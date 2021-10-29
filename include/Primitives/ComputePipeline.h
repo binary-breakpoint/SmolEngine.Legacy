@@ -7,10 +7,9 @@ namespace SmolEngine
 {
 	struct ComputePipelineCreateInfo
 	{
-		uint32_t                     DescriptorCount = 1;
-		std::string                  ShaderPath = "";
-		std::unordered_map<uint32_t, 
-			ShaderBufferInfo>        ShaderBufferInfos;
+		uint32_t DescriptorCount = 1;
+		std::string ShaderPath = "";
+		std::map<uint32_t,ShaderBufferInfo> ShaderBufferInfos;
 	};
 
 	class ComputePipeline: public PrimitiveBase, public PipelineBase

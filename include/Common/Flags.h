@@ -11,7 +11,8 @@ namespace SmolEngine
 
 		RayGen = 16,
 		RayMiss = 32,
-		RayHit = 64,
+		RayCloseHit = 64,
+		RayAnyHit = 128,
 	};
 
 	inline ShaderType operator~ (ShaderType a) { return (ShaderType)~(int)a; }

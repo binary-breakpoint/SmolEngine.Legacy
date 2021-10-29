@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #ifndef OPENGL_IMPL
 #include "Backends/Vulkan/VulkanUtils.h"
+#include "Backends/Vulkan/VulkanContext.h"
 
 namespace SmolEngine
 {
@@ -25,5 +26,16 @@ namespace SmolEngine
 		free(data);
 #endif
     }
+
+	uint64_t VulkanUtils::GetBufferDeviceAddress(VkBuffer buffer)
+	{
+		auto& device = VulkanContext::GetDevice();
+
+		VkBufferDeviceAddressInfoKHR bufferDeviceAI{};
+		bufferDeviceAI.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+		bufferDeviceAI.buffer = buffer;
+
+		return device.vkGetBufferDeviceAddressKHR(device.GetLogicalDevice(), &bufferDeviceAI);
+	}
 }
 #endif

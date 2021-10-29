@@ -11,8 +11,9 @@ namespace SmolEngine
 		VulkanScratchBuffer() = default;
 		~VulkanScratchBuffer();
 
-		void Free();
-		void Build(size_t size, VmaMemoryUsage memUsage = VMA_MEMORY_USAGE_GPU_ONLY);
+		void     Free();
+		void     Build(size_t size, VmaMemoryUsage memUsage = VMA_MEMORY_USAGE_GPU_ONLY);
+		uint64_t GetDeviceAddress() const;
 
 	private:
 		VmaAllocation m_Alloc = nullptr;

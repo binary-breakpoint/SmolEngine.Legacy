@@ -265,16 +265,16 @@ namespace SmolEngine
 		if (m_RayTracingEnabled)
 		{
 			// Get the function pointers required for ray tracing
-			m_vkGetBufferDeviceAddressKHR = reinterpret_cast<PFN_vkGetBufferDeviceAddressKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkGetBufferDeviceAddressKHR"));
-			m_vkCmdBuildAccelerationStructuresKHR = reinterpret_cast<PFN_vkCmdBuildAccelerationStructuresKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkCmdBuildAccelerationStructuresKHR"));
-			m_vkBuildAccelerationStructuresKHR = reinterpret_cast<PFN_vkBuildAccelerationStructuresKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkBuildAccelerationStructuresKHR"));
-			m_vkCreateAccelerationStructureKHR = reinterpret_cast<PFN_vkCreateAccelerationStructureKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkCreateAccelerationStructureKHR"));
-			m_vkDestroyAccelerationStructureKHR = reinterpret_cast<PFN_vkDestroyAccelerationStructureKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkDestroyAccelerationStructureKHR"));
-			m_vkGetAccelerationStructureBuildSizesKHR = reinterpret_cast<PFN_vkGetAccelerationStructureBuildSizesKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkGetAccelerationStructureBuildSizesKHR"));
-			m_vkGetAccelerationStructureDeviceAddressKHR = reinterpret_cast<PFN_vkGetAccelerationStructureDeviceAddressKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkGetAccelerationStructureDeviceAddressKHR"));
-			m_vkCmdTraceRaysKHR = reinterpret_cast<PFN_vkCmdTraceRaysKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkCmdTraceRaysKHR"));
-			m_vkGetRayTracingShaderGroupHandlesKHR = reinterpret_cast<PFN_vkGetRayTracingShaderGroupHandlesKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkGetRayTracingShaderGroupHandlesKHR"));
-			m_vkCreateRayTracingPipelinesKHR = reinterpret_cast<PFN_vkCreateRayTracingPipelinesKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkCreateRayTracingPipelinesKHR"));
+			vkGetBufferDeviceAddressKHR = reinterpret_cast<PFN_vkGetBufferDeviceAddressKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkGetBufferDeviceAddressKHR"));
+			vkCmdBuildAccelerationStructuresKHR = reinterpret_cast<PFN_vkCmdBuildAccelerationStructuresKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkCmdBuildAccelerationStructuresKHR"));
+			vkBuildAccelerationStructuresKHR = reinterpret_cast<PFN_vkBuildAccelerationStructuresKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkBuildAccelerationStructuresKHR"));
+			vkCreateAccelerationStructureKHR = reinterpret_cast<PFN_vkCreateAccelerationStructureKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkCreateAccelerationStructureKHR"));
+			vkDestroyAccelerationStructureKHR = reinterpret_cast<PFN_vkDestroyAccelerationStructureKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkDestroyAccelerationStructureKHR"));
+			vkGetAccelerationStructureBuildSizesKHR = reinterpret_cast<PFN_vkGetAccelerationStructureBuildSizesKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkGetAccelerationStructureBuildSizesKHR"));
+			vkGetAccelerationStructureDeviceAddressKHR = reinterpret_cast<PFN_vkGetAccelerationStructureDeviceAddressKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkGetAccelerationStructureDeviceAddressKHR"));
+			vkCmdTraceRaysKHR = reinterpret_cast<PFN_vkCmdTraceRaysKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkCmdTraceRaysKHR"));
+			vkGetRayTracingShaderGroupHandlesKHR = reinterpret_cast<PFN_vkGetRayTracingShaderGroupHandlesKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkGetRayTracingShaderGroupHandlesKHR"));
+			vkCreateRayTracingPipelinesKHR = reinterpret_cast<PFN_vkCreateRayTracingPipelinesKHR>(vkGetDeviceProcAddr(m_VkLogicalDevice, "vkCreateRayTracingPipelinesKHR"));
 		}
 	}
 

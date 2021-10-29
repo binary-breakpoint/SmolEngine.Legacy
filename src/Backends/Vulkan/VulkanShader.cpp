@@ -18,8 +18,8 @@ namespace SmolEngine
             for (auto& [type, data] : m_Binary)
             {
                 VkShaderModule shaderModule = nullptr;
-                VkShaderModuleCreateInfo shaderModuleCI = {};
                 {
+                    VkShaderModuleCreateInfo shaderModuleCI = {};
                     shaderModuleCI.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
                     shaderModuleCI.codeSize = data.size() * sizeof(uint32_t);
                     shaderModuleCI.pCode = data.data();
@@ -57,6 +57,11 @@ namespace SmolEngine
             return true;
         }
 
+        return false;
+    }
+
+    bool VulkanShader::BuildRT(ShaderCreateInfo* info)
+    {
         return false;
     }
 
@@ -114,9 +119,14 @@ namespace SmolEngine
             flags |= VkShaderStageFlagBits::VK_SHADER_STAGE_RAYGEN_BIT_KHR;
         }
 
-        if ((type & ShaderType::RayHit) == ShaderType::RayHit)
+        if ((type & ShaderType::RayAnyHit) == ShaderType::RayAnyHit)
         {
             flags |= VkShaderStageFlagBits::VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
+        }
+
+        if ((type & ShaderType::RayCloseHit) == ShaderType::RayCloseHit)
+        {
+            flags |= VkShaderStageFlagBits::VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
         }
 
         if ((type & ShaderType::RayMiss) == ShaderType::RayMiss)

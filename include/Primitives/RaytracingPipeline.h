@@ -4,11 +4,14 @@
 #include "Primitives/Shader.h"
 #include "Primitives/Texture.h"
 
+#include "Common/Vertex.h"
+
 namespace SmolEngine
 {
 	struct RaytracingPipelineCreateInfo
 	{
 		ShaderCreateInfo ShaderCI{};
+		VertexInputInfo  VertexInput{};
 		Ref<Texture>     Storage = nullptr;
 	};
 

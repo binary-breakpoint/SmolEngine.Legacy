@@ -89,11 +89,6 @@ namespace SmolEngine
 		UnMapMemory();
 	}
 
-	void VulkanBuffer::CmdUpdateData(VkCommandBuffer cmdBuffer, const void* data, size_t size, uint32_t offset)
-	{
-		vkCmdUpdateBuffer(cmdBuffer, m_Buffer, offset, size, data);
-	}
-
 	void* VulkanBuffer::MapMemory()
 	{
 		uint8_t* destData = VulkanAllocator::MapMemory<uint8_t>(m_Alloc);

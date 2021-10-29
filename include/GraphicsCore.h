@@ -12,6 +12,8 @@
 #include "Primitives/VertexBuffer.h"
 #include "Primitives/IndexBuffer.h"
 #include "Primitives/GraphicsPipeline.h"
+#include "Primitives/ComputePipeline.h"
+#include "Primitives/RaytracingPipeline.h"
 #include "Primitives/EnvironmentMap.h"
 
 #include "Pools/MaterialPool.h"
