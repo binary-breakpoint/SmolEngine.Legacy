@@ -52,6 +52,16 @@ namespace SmolEngine
 	{
 		return false;
 	}
+
+	VkPipelineLayout VulkanRaytracingPipeline::GetVkPipelineLayout() const
+	{
+		return m_PipelineLayout;
+	}
+
+	VkPipeline VulkanRaytracingPipeline::GetVkPipeline() const
+	{
+		return m_Pipeline;
+	}
 }
 
 #endif

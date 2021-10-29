@@ -2,8 +2,8 @@
 #ifndef OPENGL_IMPL
 #include "Backends/Vulkan/VulkanShader.h"
 #include "Backends/Vulkan/VulkanContext.h"
-
-#include "Primitives/Shader.h"
+#include "Backends/Vulkan/VulkanUtils.h"
+#include "Backends/Vulkan/VulkanRaytracingPipeline.h"
 
 #include "Tools/Utils.h"
 #include <shaderc/shaderc.hpp>
@@ -36,7 +36,7 @@ namespace SmolEngine
                     assert(pipelineShaderStageCI.module != VK_NULL_HANDLE);
                 }
 
-                m_PipelineShaderStages.emplace_back(pipelineShaderStageCI);
+                m_VkPipelineShaderStages.emplace_back(pipelineShaderStageCI);
                 m_ShaderModules[type] = shaderModule;
             }
 
@@ -75,7 +75,7 @@ namespace SmolEngine
     {
         DeleteShaderModules();
         m_VkPushConstantRanges.clear();
-        m_PipelineShaderStages.clear();
+        m_VkPipelineShaderStages.clear();
     }
 
     void VulkanShader::DeleteShaderModules()
@@ -88,6 +88,39 @@ namespace SmolEngine
 
         m_ShaderModules.clear();
         m_ReflectData.Clean();
+    }
+
+    void VulkanShader::CreateShaderBindingTable(VulkanRaytracingPipeline* pipeline)
+    {
+        VulkanDevice& device = VulkanContext::GetDevice();
+
+        const uint32_t handleSize = device.rayTracingPipelineProperties.shaderGroupHandleSize;
+        const uint32_t handleSizeAligned = VulkanUtils::GetAlignedSize(device.rayTracingPipelineProperties.shaderGroupHandleSize, device.rayTracingPipelineProperties.shaderGroupHandleAlignment);
+        const uint32_t groupCount = static_cast<uint32_t>(m_ShaderGroupsRT.size());
+        const uint32_t sbtSize = groupCount * handleSizeAligned;
+
+        std::vector<uint8_t> shaderHandleStorage(sbtSize);
+        VK_CHECK_RESULT(device.vkGetRayTracingShaderGroupHandlesKHR(device.GetLogicalDevice(), pipeline->GetVkPipeline(), 0, groupCount, sbtSize, shaderHandleStorage.data()));
+
+        auto& rayGen = m_BindingTables[ShaderType::RayGen];
+        auto& rayHit = m_BindingTables[ShaderType::RayCloseHit]; // temp
+        auto& rayMiss = m_BindingTables[ShaderType::RayMiss];
+
+        rayGen.CreateBuffer(handleSize, VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT);
+        rayHit.CreateBuffer(handleSize, VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT);
+        rayMiss.CreateBuffer(handleSize, VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT);
+
+        void* rayGenSrc = rayGen.MapMemory();
+        void* rayHitSrc = rayHit.MapMemory();
+        void* rayMissSrc = rayMiss.MapMemory();
+
+        memcpy(rayGenSrc, shaderHandleStorage.data(), handleSize);
+        memcpy(rayMissSrc, shaderHandleStorage.data() + handleSizeAligned, handleSize);
+        memcpy(rayHitSrc, shaderHandleStorage.data() + handleSizeAligned * 2, handleSize);
+
+        rayGen.UnMapMemory();
+        rayHit.UnMapMemory();
+        rayMiss.UnMapMemory();
     }
 
     VkShaderStageFlagBits VulkanShader::GetVkShaderStage(ShaderType type)
@@ -139,7 +172,7 @@ namespace SmolEngine
 
     std::vector<VkPipelineShaderStageCreateInfo>& VulkanShader::GetVkPipelineShaderStages()
     {
-        return m_PipelineShaderStages;
+        return m_VkPipelineShaderStages;
     }
 }
 #endif

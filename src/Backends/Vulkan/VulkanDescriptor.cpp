@@ -11,6 +11,7 @@
 #include "Backends/Vulkan/VulkanBufferPool.h"
 #include "Backends/Vulkan/VulkanTexture.h"
 
+// TODO: Refactor
 
 namespace SmolEngine
 {
@@ -54,6 +55,20 @@ namespace SmolEngine
 				layoutBinding.descriptorType = type;
 				layoutBinding.descriptorCount = 1;
 				layoutBinding.stageFlags = VulkanShader::GetVkShaderStage(buffer.Stage);
+			}
+
+			layouts.push_back(layoutBinding);
+		}
+
+		for (auto& info : refData.ACStructures)
+		{
+			auto& [bindingPoint, res] = info;
+			VkDescriptorSetLayoutBinding layoutBinding = {};
+			{
+				layoutBinding.binding = bindingPoint;
+				layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
+				layoutBinding.descriptorCount = res.ArraySize > 0 ? res.ArraySize : 1;
+				layoutBinding.stageFlags = VulkanShader::GetVkShaderStage(res.Stage);
 			}
 
 			layouts.push_back(layoutBinding);

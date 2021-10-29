@@ -31,6 +31,7 @@ namespace SmolEngine
 
 	struct ACStructure
 	{
+		ShaderType           Stage = ShaderType::RayGen;
 		uint32_t             ArraySize = 0;
 		std::string          Name = "";
 	};

@@ -15,6 +15,7 @@ namespace SmolEngine
 		static void AlignedFree(void* data);
 
 		static uint64_t GetBufferDeviceAddress(VkBuffer buffer);
+		static uint32_t GetAlignedSize(uint32_t value, uint32_t alignment);
 	};
 }
 #endif
