@@ -11,22 +11,26 @@ namespace SmolEngine
 	class VulkanACStructure
 	{
 	public:
-		VulkanACStructure() = default;
-		~VulkanACStructure();
+		struct Structure
+		{
+			uint64_t m_DeviceAddress = 0;
+			VkAccelerationStructureKHR m_Handle = nullptr;
+			VulkanBuffer m_Buffer{};
+		};
 
-		void                       Free();
-		bool                       BuildBottomLevel(RaytracingPipelineCreateInfo* info);
-		VkAccelerationStructureKHR GetHandle() const;
+		void         Build(RaytracingPipelineCreateInfo* info);
+		Structure&   GetTopLevel();
+		Structure&   GetBottomLevel();
 
 	private:
-		bool                       BuildBufferEX(size_t size, VmaMemoryUsage memUsage = VMA_MEMORY_USAGE_GPU_ONLY);
+		void         BuildBottomLevel(RaytracingPipelineCreateInfo* info);
+		void         BuildTopLevel(RaytracingPipelineCreateInfo* info);
 
 	private:
-		VkAccelerationStructureKHR m_Handle = nullptr;
-		VmaAllocation              m_Alloc = nullptr;
-		VkBuffer                   m_Buffer = nullptr;
-		uint64_t                   m_DeviceAddress = 0;
-		VulkanBuffer               m_TransformBuffer{};
+		Structure    m_TopLevelAS{};
+		Structure    m_BottomLevelAS{};
+		VulkanBuffer m_TransformBuffer{};
+		VulkanBuffer m_InstancesBuffer{};
 	};
 }
 

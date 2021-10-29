@@ -13,19 +13,7 @@
 
 namespace SmolEngine
 {
-	bool VulkanACStructure::BuildBufferEX(size_t size, VmaMemoryUsage memUsage)
-	{
-		VkBufferCreateInfo bufferCreateInfo{};
-		bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferCreateInfo.size = size;
-		bufferCreateInfo.usage = VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
-
-		m_Alloc = VulkanAllocator::AllocBuffer(bufferCreateInfo, memUsage, m_Buffer);
-
-		return m_Alloc != nullptr;
-	}
-
-	bool VulkanACStructure::BuildBottomLevel(RaytracingPipelineCreateInfo* info)
+	void VulkanACStructure::BuildBottomLevel(RaytracingPipelineCreateInfo* info)
 	{
 		// Setup identity transform matrix
 		VkTransformMatrixKHR transformMatrix = {
@@ -86,15 +74,17 @@ namespace SmolEngine
 			&accelerationStructureBuildGeometryInfo,
 			&numTriangles,
 			&accelerationStructureBuildSizesInfo);
-
-		BuildBufferEX(accelerationStructureBuildSizesInfo.accelerationStructureSize);
+		
+		m_BottomLevelAS.m_Buffer.CreateBuffer(accelerationStructureBuildSizesInfo.accelerationStructureSize,
+		VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+			VMA_MEMORY_USAGE_GPU_ONLY);
 
 		VkAccelerationStructureCreateInfoKHR accelerationStructureCreateInfo{};
 		accelerationStructureCreateInfo.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR;
-		accelerationStructureCreateInfo.buffer = m_Buffer;
+		accelerationStructureCreateInfo.buffer = m_BottomLevelAS.m_Buffer.GetBuffer();
 		accelerationStructureCreateInfo.size = accelerationStructureBuildSizesInfo.accelerationStructureSize;
 		accelerationStructureCreateInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
-		device.vkCreateAccelerationStructureKHR(device.GetLogicalDevice(), &accelerationStructureCreateInfo, nullptr, &m_Handle);
+		device.vkCreateAccelerationStructureKHR(device.GetLogicalDevice(), &accelerationStructureCreateInfo, nullptr, &m_BottomLevelAS.m_Handle);
 
 		// Create a small scratch buffer used during build of the bottom level acceleration structure
 		VulkanScratchBuffer scratchBuffer{};
@@ -105,7 +95,7 @@ namespace SmolEngine
 		accelerationBuildGeometryInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
 		accelerationBuildGeometryInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
 		accelerationBuildGeometryInfo.mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR;
-		accelerationBuildGeometryInfo.dstAccelerationStructure = m_Handle;
+		accelerationBuildGeometryInfo.dstAccelerationStructure = m_BottomLevelAS.m_Handle;
 		accelerationBuildGeometryInfo.geometryCount = 1;
 		accelerationBuildGeometryInfo.pGeometries = &accelerationStructureGeometry;
 		accelerationBuildGeometryInfo.scratchData.deviceAddress = scratchBuffer.GetDeviceAddress();
@@ -134,34 +124,133 @@ namespace SmolEngine
 
 		VkAccelerationStructureDeviceAddressInfoKHR accelerationDeviceAddressInfo{};
 		accelerationDeviceAddressInfo.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR;
-		accelerationDeviceAddressInfo.accelerationStructure = m_Handle;
-		m_DeviceAddress = device.vkGetAccelerationStructureDeviceAddressKHR(device.GetLogicalDevice(), &accelerationDeviceAddressInfo);
-
-		return true;
+		accelerationDeviceAddressInfo.accelerationStructure = m_BottomLevelAS.m_Handle;
+		m_BottomLevelAS.m_DeviceAddress = device.vkGetAccelerationStructureDeviceAddressKHR(device.GetLogicalDevice(), &accelerationDeviceAddressInfo);
 	}
 
-	VulkanACStructure::~VulkanACStructure()
+	void VulkanACStructure::BuildTopLevel(RaytracingPipelineCreateInfo* info)
 	{
-		Free();
-	}
+		VkTransformMatrixKHR transformMatrix = {
+	     1.0f, 0.0f, 0.0f, 0.0f,
+	     0.0f, 1.0f, 0.0f, 0.0f,
+	     0.0f, 0.0f, 1.0f, 0.0f };
 
-	void VulkanACStructure::Free()
-	{
-		if (m_Alloc != nullptr)
+		VkAccelerationStructureInstanceKHR instance{};
+		instance.transform = transformMatrix;
+		instance.instanceCustomIndex = 0;
+		instance.mask = 0xFF;
+		instance.instanceShaderBindingTableRecordOffset = 0;
+		instance.flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR;
+		instance.accelerationStructureReference = m_BottomLevelAS.m_DeviceAddress;
+
+		m_InstancesBuffer.CreateBuffer(&instance, sizeof(VkAccelerationStructureInstanceKHR),
+		VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR);
+
+		VkDeviceOrHostAddressConstKHR instanceDataDeviceAddress{};
+		instanceDataDeviceAddress.deviceAddress = VulkanUtils::GetBufferDeviceAddress(m_InstancesBuffer.GetBuffer());
+
+		VkAccelerationStructureGeometryKHR accelerationStructureGeometry{};
+		accelerationStructureGeometry.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR;
+		accelerationStructureGeometry.geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR;
+		accelerationStructureGeometry.flags = VK_GEOMETRY_OPAQUE_BIT_KHR;
+		accelerationStructureGeometry.geometry.instances.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR;
+		accelerationStructureGeometry.geometry.instances.arrayOfPointers = VK_FALSE;
+		accelerationStructureGeometry.geometry.instances.data = instanceDataDeviceAddress;
+
+		// Get size info
+        /*
+        The pSrcAccelerationStructure, dstAccelerationStructure, and mode members of pBuildInfo are ignored.
+		Any VkDeviceOrHostAddressKHR members of pBuildInfo are ignored by this command, 
+		except that the hostAddress member of VkAccelerationStructureGeometryTrianglesDataKHR::transformData will be examined to check if it is NULL.*
+        */
+		VkAccelerationStructureBuildGeometryInfoKHR accelerationStructureBuildGeometryInfo{};
+		accelerationStructureBuildGeometryInfo.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR;
+		accelerationStructureBuildGeometryInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
+		accelerationStructureBuildGeometryInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
+		accelerationStructureBuildGeometryInfo.geometryCount = 1;
+		accelerationStructureBuildGeometryInfo.pGeometries = &accelerationStructureGeometry;
+
+		uint32_t primitive_count = 1;
+		auto& device = VulkanContext::GetDevice();
+
+		VkAccelerationStructureBuildSizesInfoKHR accelerationStructureBuildSizesInfo{};
+		accelerationStructureBuildSizesInfo.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR;
+		device.vkGetAccelerationStructureBuildSizesKHR(
+			device.GetLogicalDevice(),
+			VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
+			&accelerationStructureBuildGeometryInfo,
+			&primitive_count,
+			&accelerationStructureBuildSizesInfo);
+
+		m_TopLevelAS.m_Buffer.CreateBuffer(accelerationStructureBuildSizesInfo.accelerationStructureSize,
+			VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+			VMA_MEMORY_USAGE_GPU_ONLY);
+
+		VkAccelerationStructureCreateInfoKHR accelerationStructureCreateInfo{};
+		accelerationStructureCreateInfo.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR;
+		accelerationStructureCreateInfo.buffer = m_TopLevelAS.m_Buffer.GetBuffer();
+		accelerationStructureCreateInfo.size = accelerationStructureBuildSizesInfo.accelerationStructureSize;
+		accelerationStructureCreateInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
+
+		device.vkCreateAccelerationStructureKHR(device.GetLogicalDevice(), &accelerationStructureCreateInfo, nullptr, &m_TopLevelAS.m_Handle);
+
+		// Create a small scratch buffer used during build of the bottom level acceleration structure
+		VulkanScratchBuffer scratchBuffer{};
+		scratchBuffer.Build(accelerationStructureBuildSizesInfo.buildScratchSize);
+
+		VkAccelerationStructureBuildGeometryInfoKHR accelerationBuildGeometryInfo{};
+		accelerationBuildGeometryInfo.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR;
+		accelerationBuildGeometryInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
+		accelerationBuildGeometryInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
+		accelerationBuildGeometryInfo.mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR;
+		accelerationBuildGeometryInfo.dstAccelerationStructure = m_TopLevelAS.m_Handle;
+		accelerationBuildGeometryInfo.geometryCount = 1;
+		accelerationBuildGeometryInfo.pGeometries = &accelerationStructureGeometry;
+		accelerationBuildGeometryInfo.scratchData.deviceAddress = scratchBuffer.GetDeviceAddress();
+
+		VkAccelerationStructureBuildRangeInfoKHR accelerationStructureBuildRangeInfo{};
+		accelerationStructureBuildRangeInfo.primitiveCount = 1;
+		accelerationStructureBuildRangeInfo.primitiveOffset = 0;
+		accelerationStructureBuildRangeInfo.firstVertex = 0;
+		accelerationStructureBuildRangeInfo.transformOffset = 0;
+		std::vector<VkAccelerationStructureBuildRangeInfoKHR*> accelerationBuildStructureRangeInfos = { &accelerationStructureBuildRangeInfo };
+
+		// Build the acceleration structure on the device via a one-time command buffer submission
+        // Some implementations may support acceleration structure building on the host (VkPhysicalDeviceAccelerationStructureFeaturesKHR->accelerationStructureHostCommands), but we prefer device builds
+
+		CommandBufferStorage cmdStorage{};
+		VulkanCommandBuffer::CreateCommandBuffer(&cmdStorage);
 		{
-			VulkanAllocator::FreeBuffer(m_Buffer, m_Alloc);
-
-			m_Alloc = nullptr;
-			m_Buffer = nullptr;
-			m_Handle = nullptr;
-			m_DeviceAddress = 0;
+			device.vkCmdBuildAccelerationStructuresKHR(
+				cmdStorage.Buffer,
+				1,
+				&accelerationBuildGeometryInfo,
+				accelerationBuildStructureRangeInfos.data());
 		}
+		VulkanCommandBuffer::ExecuteCommandBuffer(&cmdStorage);
+
+		VkAccelerationStructureDeviceAddressInfoKHR accelerationDeviceAddressInfo{};
+		accelerationDeviceAddressInfo.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR;
+		accelerationDeviceAddressInfo.accelerationStructure = m_TopLevelAS.m_Handle;
+		m_TopLevelAS.m_DeviceAddress = device.vkGetAccelerationStructureDeviceAddressKHR(device.GetLogicalDevice(), &accelerationDeviceAddressInfo);
 	}
 
-	VkAccelerationStructureKHR VulkanACStructure::GetHandle() const
+	void VulkanACStructure::Build(RaytracingPipelineCreateInfo* info)
 	{
-		return m_Handle;
+		BuildBottomLevel(info);
+		BuildTopLevel(info);
 	}
+
+	VulkanACStructure::Structure& VulkanACStructure::GetTopLevel()
+	{
+		return m_TopLevelAS;
+	}
+
+	VulkanACStructure::Structure& VulkanACStructure::GetBottomLevel()
+	{
+		return m_BottomLevelAS;
+	}
+
 }
 
 #endif

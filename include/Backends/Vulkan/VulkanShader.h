@@ -18,7 +18,6 @@ namespace SmolEngine
 	{
 	public:		
 		bool                                                     Build(ShaderCreateInfo* info) override;
-		bool                                                     BuildRT(ShaderCreateInfo* info);
 		bool                                                     Realod() override;
 		void                                                     Free() override;
 							         

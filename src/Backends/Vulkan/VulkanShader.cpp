@@ -12,57 +12,71 @@ namespace SmolEngine
 {
     bool VulkanShader::Build(ShaderCreateInfo* info)
     {
-        if (BuildBase(info))
+        if (!BuildBase(info)) { return false; }
+
+        // Shader Modules
+        for (auto& [type, data] : m_Binary)
         {
-            // Shader Modules
-            for (auto& [type, data] : m_Binary)
+            VkShaderStageFlagBits vkStage = GetVkShaderStage(type);
+            VkShaderModule shaderModule = nullptr;
             {
-                VkShaderModule shaderModule = nullptr;
-                {
-                    VkShaderModuleCreateInfo shaderModuleCI = {};
-                    shaderModuleCI.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-                    shaderModuleCI.codeSize = data.size() * sizeof(uint32_t);
-                    shaderModuleCI.pCode = data.data();
+                VkShaderModuleCreateInfo shaderModuleCI = {};
+                shaderModuleCI.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+                shaderModuleCI.codeSize = data.size() * sizeof(uint32_t);
+                shaderModuleCI.pCode = data.data();
 
-                    VK_CHECK_RESULT(vkCreateShaderModule(VulkanContext::GetDevice().GetLogicalDevice(), &shaderModuleCI, nullptr, &shaderModule));
-                }
-
-                VkPipelineShaderStageCreateInfo pipelineShaderStageCI = {};
-                {
-                    pipelineShaderStageCI.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-                    pipelineShaderStageCI.stage = GetVkShaderStage(type);
-                    pipelineShaderStageCI.pName = "main";
-                    pipelineShaderStageCI.module = shaderModule;
-                    assert(pipelineShaderStageCI.module != VK_NULL_HANDLE);
-                }
-
-                m_VkPipelineShaderStages.emplace_back(pipelineShaderStageCI);
-                m_ShaderModules[type] = shaderModule;
+                VK_CHECK_RESULT(vkCreateShaderModule(VulkanContext::GetDevice().GetLogicalDevice(), &shaderModuleCI, nullptr, &shaderModule));
             }
 
-            // Push Constant
-            if (m_ReflectData.PushConstant.Size > 0)
+            VkPipelineShaderStageCreateInfo pipelineShaderStageCI{};
             {
-                VkPushConstantRange range = {};
-                {
-                    range.offset = m_ReflectData.PushConstant.Offset;
-                    range.size = m_ReflectData.PushConstant.Size;
-                    range.stageFlags = GetVkShaderStage(m_ReflectData.PushConstant.Stage);
-                }
+                pipelineShaderStageCI.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+                pipelineShaderStageCI.stage = vkStage;
+                pipelineShaderStageCI.pName = "main";
+                pipelineShaderStageCI.module = shaderModule;
 
-                m_VkPushConstantRanges.emplace_back(range);
+                assert(pipelineShaderStageCI.module != VK_NULL_HANDLE);
             }
 
-            m_Binary.clear();
-            return true;
+            if (m_RTPipeline)
+            {
+                VkRayTracingShaderGroupCreateInfoKHR shaderGroup{};
+                shaderGroup.sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR;
+                shaderGroup.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
+                shaderGroup.generalShader = static_cast<uint32_t>(m_VkPipelineShaderStages.size()) - 1;
+                shaderGroup.closestHitShader = VK_SHADER_UNUSED_KHR;
+                shaderGroup.anyHitShader = VK_SHADER_UNUSED_KHR;
+                shaderGroup.intersectionShader = VK_SHADER_UNUSED_KHR;
+
+                if (type == ShaderType::RayCloseHit)
+                {
+                    shaderGroup.generalShader = VK_SHADER_UNUSED_KHR;
+                    shaderGroup.closestHitShader = static_cast<uint32_t>(m_VkPipelineShaderStages.size()) - 1;;
+                }
+
+                m_ShaderGroupsRT.push_back(shaderGroup);
+            }
+
+            m_VkPipelineShaderStages.emplace_back(pipelineShaderStageCI);
+            m_ShaderModules[type] = shaderModule;
         }
 
-        return false;
-    }
+        m_Binary.clear();
 
-    bool VulkanShader::BuildRT(ShaderCreateInfo* info)
-    {
-        return false;
+        // Push Constant
+        if (m_ReflectData.PushConstant.Size > 0)
+        {
+            VkPushConstantRange range = {};
+            {
+                range.offset = m_ReflectData.PushConstant.Offset;
+                range.size = m_ReflectData.PushConstant.Size;
+                range.stageFlags = GetVkShaderStage(m_ReflectData.PushConstant.Stage);
+            }
+
+            m_VkPushConstantRanges.emplace_back(range);
+        }
+
+        return true;
     }
 
     bool VulkanShader::Realod()

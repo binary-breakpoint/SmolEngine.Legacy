@@ -107,11 +107,11 @@ namespace SmolEngine
 		void                   Reflect(const std::vector<uint32_t>& binaryData, ShaderType type);
 
 	protected:
+		bool                   m_RTPipeline = false;
 		ShaderCreateInfo       m_CreateInfo{};
 		ReflectionData         m_ReflectData{};
 
-		std::unordered_map<
-		ShaderType, 
+		std::map<ShaderType, 
 		std::vector<uint32_t>> m_Binary;
 	};
 }
