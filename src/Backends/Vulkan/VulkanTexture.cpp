@@ -279,6 +279,8 @@ namespace SmolEngine
 		m_DescriptorImageInfo.imageView = m_ImageView;
 		m_DescriptorImageInfo.sampler = m_Samper;
 		ktxTexture_Destroy(ktxTexture);
+
+		m_eFlags = TextureFlags::CUBEMAP;
 	}
 
 	void VulkanTexture::LoadAsWhiteCube(TextureCreateInfo* info)
@@ -378,12 +380,16 @@ namespace SmolEngine
 		m_DescriptorImageInfo.imageLayout = m_ImageLayout;
 		m_DescriptorImageInfo.imageView = m_ImageView;
 		m_DescriptorImageInfo.sampler = m_Samper;
+
+		m_eFlags = TextureFlags::CUBEMAP;
 	}
 
 	void VulkanTexture::LoadAsStorage(TextureCreateInfo* info)
 	{
 		FindTextureParams(info);
 		LoadEX(info, nullptr, true);
+		
+		m_eFlags = TextureFlags::IMAGE_2D;
 	}
 
 	void VulkanTexture::LoadAs3D(TextureCreateInfo* info)
@@ -468,6 +474,8 @@ namespace SmolEngine
 			SetImageLayout(cmdStorage.Buffer, m_Image, VK_IMAGE_LAYOUT_UNDEFINED, m_ImageLayout, subresourceRange);
 		}
 		VulkanCommandBuffer::ExecuteCommandBuffer(&cmdStorage);
+
+		m_eFlags = TextureFlags::IMAGE_3D;
 	}
 
 	void VulkanTexture::LoadAsWhite()

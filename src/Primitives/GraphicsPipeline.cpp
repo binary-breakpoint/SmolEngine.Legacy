@@ -72,7 +72,7 @@ namespace SmolEngine
 
 	bool GraphicsPipeline::IsPipelineCreateInfoValid(const GraphicsPipelineCreateInfo* pipelineInfo)
 	{
-		if (pipelineInfo->DescriptorSets < 1 || pipelineInfo->TargetFramebuffers.size() == 0)
+		if (pipelineInfo->NumDescriptorSets < 1 || pipelineInfo->TargetFramebuffers.size() == 0)
 			return false;
 
 		return true;

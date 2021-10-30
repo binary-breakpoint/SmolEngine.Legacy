@@ -12,6 +12,7 @@ namespace SmolEngine
 	{
 		ShaderCreateInfo ShaderCI{};
 		VertexInputInfo  VertexInput{};
+		int32_t          NumDescriptorSets = 1;
 		Ref<Texture>     Storage = nullptr;
 	};
 

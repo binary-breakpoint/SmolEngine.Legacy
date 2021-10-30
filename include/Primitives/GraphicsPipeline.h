@@ -90,7 +90,7 @@ namespace SmolEngine
 		bool                          bPrimitiveRestartEnable = false;
 		float                         MinDepth = 0.0f;
 		float                         MaxDepth = 1.0f;
-		int32_t                       DescriptorSets = 1;
+		int32_t                       NumDescriptorSets = 1;
 		int32_t                       StageCount = -1;
 									  
 		std::string                   PipelineName = "";

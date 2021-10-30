@@ -126,54 +126,46 @@ namespace SmolEngine
 	void VulkanDescriptor::GenBuffersDescriptors(Ref<Shader>& shader)
 	{
 		const ReflectionData& refData = shader->GetReflection();
+
 		for (auto& [key, buffer] : refData.Buffers)
 		{
-			VkDescriptorBufferInfo descriptorBufferInfo = {};
 			ShaderBufferInfo bufferInfo = {};
 
 			VkDescriptorType type = buffer.Type == BufferType::Uniform ?  VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 			VkBufferUsageFlags usage = buffer.Type == BufferType::Uniform ?  VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT : VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
 			size_t size = buffer.Size;
 
+			const auto& it = shader->GetCreateInfo().Buffers.find(buffer.BindingPoint);
+			if (it == shader->GetCreateInfo().Buffers.end())
 			{
-				const auto& it = shader->GetCreateInfo().Buffers.find(buffer.BindingPoint);
-				if (it == shader->GetCreateInfo().Buffers.end())
+				if (buffer.Type == BufferType::Storage)
 				{
-					if (buffer.Type == BufferType::Storage)
+					bool found = false;
+
 					{
-						bool found = false;
-
+						if (bufferInfo.bGlobal)
+							found = VulkanBufferPool::GetSingleton()->IsBindingExist(buffer.BindingPoint);
+						else
 						{
-							if (bufferInfo.bGlobal)
-								found = VulkanBufferPool::GetSingleton()->IsBindingExist(buffer.BindingPoint);
-							else
-							{
-								auto& f_res = m_LocalBuffers.find(buffer.BindingPoint);
-								if (f_res != m_LocalBuffers.end())
-									found = true;
+							auto& f_res = m_LocalBuffers.find(buffer.BindingPoint);
+							if (f_res != m_LocalBuffers.end())
+								found = true;
 
-							}
 						}
 
-						if (found == false)
-						{
-#ifdef SMOLENGINE_DEBUG
-							DebugLog::LogError("Storage buffer dataSize must be declared inside GraphicsPipelineShaderCreateInfo!");
-#endif
-							continue;
-						}
+						assert(found == true);
 					}
 				}
-				else
-				{
-					if (buffer.Type == BufferType::Storage)
-						size = it->second.Size;
+			}
+			else
+			{
+				if (buffer.Type == BufferType::Storage)
+					size = it->second.Size;
 
-					bufferInfo = it->second;
-				}
+				bufferInfo = it->second;
 			}
 
-
+			VkDescriptorBufferInfo descriptorBufferInfo = {};
 			if (bufferInfo.bGlobal)
 				VulkanBufferPool::GetSingleton()->Add(size, buffer.BindingPoint, usage, descriptorBufferInfo, bufferInfo.bStatic, bufferInfo.Data);
 			else
@@ -207,10 +199,10 @@ namespace SmolEngine
 				}
 			}
 
-			m_WriteSets.push_back(CreateWriteSet(m_DescriptorSet,
-				buffer.BindingPoint, &descriptorBufferInfo, type));
+			auto& set = CreateWriteSet(m_DescriptorSet, buffer.BindingPoint, &descriptorBufferInfo, type);
+			vkUpdateDescriptorSets(m_Device, 1, &set, 0, nullptr);
 
-			vkUpdateDescriptorSets(m_Device, 1, &m_WriteSets.back(), 0, nullptr);
+			m_WriteSets[buffer.BindingPoint] = set;
 
 #ifdef SMOLENGINE_DEBUG
 			DebugLog::LogWarn("Created " + buffer.ObjectName + " {}: Members Count: {}, Binding Point: {}",
@@ -241,10 +233,8 @@ namespace SmolEngine
 					writeSet.pImageInfo = &cube->Cast<VulkanTexture>()->m_DescriptorImageInfo;
 				}
 
-				m_WriteSets.push_back(writeSet);
-
-				auto& kek = m_WriteSets.back();
-				vkUpdateDescriptorSets(m_Device, 1, &m_WriteSets.back(), 0, nullptr);
+				vkUpdateDescriptorSets(m_Device, 1, &writeSet, 0, nullptr);
+				m_WriteSets[res.BindingPoint] = writeSet;
 			}
 			else
 			{
@@ -258,12 +248,12 @@ namespace SmolEngine
 						infos[i] = m_ImageInfo;
 					}
 				}
-				else
-					infos.push_back(m_ImageInfo);
+				else { infos.push_back(m_ImageInfo); }
 
-				m_WriteSets.push_back(CreateWriteSet(m_DescriptorSet,
-					res.BindingPoint, infos, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER));
-				vkUpdateDescriptorSets(m_Device, 1, &m_WriteSets.back(), 0, nullptr);
+				auto& set = CreateWriteSet(m_DescriptorSet, res.BindingPoint, infos, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+				vkUpdateDescriptorSets(m_Device, 1, &set, 0, nullptr);
+
+				m_WriteSets[res.BindingPoint] = set;
 			}
 		}
 
@@ -282,103 +272,84 @@ namespace SmolEngine
 			else
 				infos.push_back(storageInfo);
 
-			m_WriteSets.push_back(CreateWriteSet(m_DescriptorSet, res.BindingPoint, infos, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE));
-			vkUpdateDescriptorSets(m_Device, 1, &m_WriteSets.back(), 0, nullptr);
+			auto& set = CreateWriteSet(m_DescriptorSet, res.BindingPoint, infos, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+			vkUpdateDescriptorSets(m_Device, 1, &set, 0, nullptr);
+
+			m_WriteSets[res.BindingPoint] = set;
 		}
 	}
 
-	bool VulkanDescriptor::Update2DSamplers(const std::vector<Ref<Texture>>& textures, uint32_t bindingPoint, bool storage)
+	void VulkanDescriptor::GenACStructureDescriptors(Ref<Shader>& shader, VulkanRaytracingPipeline* rtPipeline)
 	{
-		VkWriteDescriptorSet* writeSet = nullptr;
-		for (auto& set: m_WriteSets)
-		{
-			if (set.dstBinding == bindingPoint)
-			{
-				writeSet = &set;
-				break;
-			}
-		}
 
-		if (!writeSet)
-			return false;
+	}
 
-		std::vector<VkDescriptorImageInfo> infos(writeSet->descriptorCount);
-		for (uint32_t i = 0; i < writeSet->descriptorCount; ++i)
+	bool VulkanDescriptor::UpdateTextures(const std::vector<Ref<Texture>>& textures, uint32_t bindingPoint, TextureFlags usage_)
+	{
+		auto& it = m_WriteSets.find(bindingPoint);
+		if (it != m_WriteSets.end())
 		{
-			if (textures.size() > i)
+			VkWriteDescriptorSet* writeSet = &it->second;
+			std::vector<VkDescriptorImageInfo> infos(writeSet->descriptorCount);
+
+			for (uint32_t i = 0; i < writeSet->descriptorCount; ++i)
 			{
-				if (textures[i])
+				if (textures.size() > i)
 				{
-					infos[i] = textures[i]->Cast<VulkanTexture>()->m_DescriptorImageInfo;
-					continue;
+					if (textures[i])
+					{
+						infos[i] = textures[i]->Cast<VulkanTexture>()->m_DescriptorImageInfo;
+						continue;
+					}
 				}
+
+				infos[i] = m_ImageInfo;
 			}
 
-			infos[i] = m_ImageInfo;
+			Ref<Texture> texGroup = textures[0] == nullptr? TexturePool::GetWhiteTexture(): textures[0];
+			VkDescriptorType descriptorType = usage_ == TextureFlags::MAX_ENUM ? GetVkDescriptorType(texGroup->GetFlags()) : GetVkDescriptorType(usage_);
+
+			*writeSet = CreateWriteSet(m_DescriptorSet, bindingPoint, infos, descriptorType);
+			vkUpdateDescriptorSets(m_Device, 1, writeSet, 0, nullptr);
+
+			return true;
 		}
 
-		*writeSet = CreateWriteSet(m_DescriptorSet,
-			bindingPoint, infos, storage ? VK_DESCRIPTOR_TYPE_STORAGE_IMAGE: VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
-
-		vkUpdateDescriptorSets(m_Device, 1, writeSet, 0, nullptr);
-		return true;
+		return false;
 	}
 
-	bool VulkanDescriptor::UpdateImageResource(uint32_t bindingPoint, const VkDescriptorImageInfo& imageInfo, bool storage)
+	bool VulkanDescriptor::UpdateTexture(const Ref<Texture>& texture, uint32_t bindingPoint, TextureFlags usage)
 	{
-		VkWriteDescriptorSet* writeSet = nullptr;
-		for (auto& set : m_WriteSets)
-		{
-			if (set.dstBinding == bindingPoint)
-			{
-				writeSet = &set;
-				break;
-			}
-		}
-
-		if (!writeSet)
-			return false;
-
-		writeSet->sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		writeSet->dstSet = m_DescriptorSet;
-		writeSet->descriptorType = storage ? VK_DESCRIPTOR_TYPE_STORAGE_IMAGE : VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		writeSet->dstBinding = bindingPoint;
-		writeSet->dstArrayElement = 0;
-		writeSet->descriptorCount = 1;
-		writeSet->pImageInfo = &imageInfo;
-
-		vkUpdateDescriptorSets(m_Device, 1, writeSet, 0, nullptr);
-		return true;
+		return UpdateTextures({ texture }, bindingPoint, usage);
 	}
 
-	bool VulkanDescriptor::UpdateCubeMap(Ref<Texture>& cubeMap, uint32_t bindingPoint)
+	bool VulkanDescriptor::UpdateVkDescriptor(uint32_t bindingPoint, const VkDescriptorImageInfo& imageInfo, TextureFlags flags)
 	{
-		if (!cubeMap)
-			return false;
-
-		VkWriteDescriptorSet* writeSet = nullptr;
-		for (auto& set : m_WriteSets)
+		auto& it = m_WriteSets.find(bindingPoint);
+		if (it != m_WriteSets.end())
 		{
-			if (set.dstBinding == bindingPoint)
-			{
-				writeSet = &set;
-				break;
-			}
+			VkWriteDescriptorSet* writeSet = &it->second;
+
+			writeSet->sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			writeSet->dstSet = m_DescriptorSet;
+			writeSet->descriptorType = GetVkDescriptorType(flags);
+			writeSet->dstBinding = bindingPoint;
+			writeSet->dstArrayElement = 0;
+			writeSet->descriptorCount = 1;
+			writeSet->pImageInfo = &imageInfo;
+
+			vkUpdateDescriptorSets(m_Device, 1, writeSet, 0, nullptr);
+
+			return true;
 		}
 
-		if (!writeSet)
-			return false;
-
-		*writeSet = CreateWriteSet(m_DescriptorSet,
-			bindingPoint, { cubeMap->Cast<VulkanTexture>()->m_DescriptorImageInfo }, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
-
-		vkUpdateDescriptorSets(m_Device, 1, writeSet, 0, nullptr);
-		return true;
+		return false;
 	}
 
 	bool VulkanDescriptor::UpdateBuffer(uint32_t binding, size_t size, const void* data, uint32_t offset)
 	{
 		VulkanBuffer* buffer = nullptr;
+
 		// Local Buffers
 		{
 			if (m_LocalBuffers.size() > 0)
@@ -406,14 +377,23 @@ namespace SmolEngine
 		return false;
 	}
 
-	void VulkanDescriptor::UpdateWriteSets()
-	{
-		vkUpdateDescriptorSets(m_Device, static_cast<uint32_t>(m_WriteSets.size()), m_WriteSets.data(), 0, nullptr);
-	}
-
 	VkDescriptorSet VulkanDescriptor::GetDescriptorSets() const
 	{
 		return m_DescriptorSet;
+	}
+
+	VkDescriptorType VulkanDescriptor::GetVkDescriptorType(TextureFlags flags)
+	{
+		switch (flags)
+		{
+		case TextureFlags::SAMPLER_2D:  return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		case TextureFlags::SAMPLER_3D:  return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		case TextureFlags::IMAGE_2D:    return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+		case TextureFlags::IMAGE_3D:    return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+		case TextureFlags::CUBEMAP:     return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		}
+
+		return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	}
 
 	VkDescriptorSetLayout VulkanDescriptor::GetLayout() const

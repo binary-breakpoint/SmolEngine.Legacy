@@ -98,7 +98,7 @@ namespace SmolEngine
 
 		vulkanTex->LoadFromMemory(image, width * height * sizeof(float), &ci);
 
-		NuklearVulkanImpl::s_Instance->m_Pipeline->UpdateSampler(_tex, 1);
+		NuklearVulkanImpl::s_Instance->m_Pipeline->UpdateTexture(_tex, 1);
 	}
 
 	NK_API void nk_glfw3_mouse_button_callback(GLFWwindow* win, int button, int action, int mods)
@@ -278,7 +278,7 @@ namespace SmolEngine
 		VulkanIndexBuffer* indexBuffer = inst->m_IndexBuffer->Cast<VulkanIndexBuffer>();
 		VulkanVertexBuffer* vertexBuffer = inst->m_VertexBuffer->Cast<VulkanVertexBuffer>();
 
-		pipeline->SubmitBuffer(0, sizeof(ortho), &ortho);
+		pipeline->UpdateBuffer(0, sizeof(ortho), &ortho);
 		pipeline->BeginCommandBuffer(true);
 		{
 			/* convert from command queue into draw list and draw to screen */

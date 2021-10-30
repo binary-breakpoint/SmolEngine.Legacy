@@ -189,15 +189,15 @@ namespace SmolEngine
 			auto result = p_Lighting->Build(&DynamicPipelineCI);
 			assert(result == true);
 
-			p_Lighting->UpdateSampler(f_Depth, 1, "Depth_Attachment");
-			s_Instance->p_Lighting->UpdateImageDescriptor(2, s_Instance->m_PBRLoader->GetIrradianceDesriptor());
-			s_Instance->p_Lighting->UpdateImageDescriptor(3, s_Instance->m_PBRLoader->GetBRDFLUTDesriptor());
-			s_Instance->p_Lighting->UpdateImageDescriptor(4, s_Instance->m_PBRLoader->GetPrefilteredCubeDesriptor());
+			s_Instance->p_Lighting->UpdateVkDescriptor(2, s_Instance->m_PBRLoader->GetIrradianceDesriptor());
+			s_Instance->p_Lighting->UpdateVkDescriptor(3, s_Instance->m_PBRLoader->GetBRDFLUTDesriptor());
+			s_Instance->p_Lighting->UpdateVkDescriptor(4, s_Instance->m_PBRLoader->GetPrefilteredCubeDesriptor());
 
-			p_Lighting->UpdateSampler(f_GBuffer, 5, "albedro");
-			p_Lighting->UpdateSampler(f_GBuffer, 6, "position");
-			p_Lighting->UpdateSampler(f_GBuffer, 7, "normals");
-			p_Lighting->UpdateSampler(f_GBuffer, 8, "materials");
+			p_Lighting->UpdateTexture(f_Depth, 1, "Depth_Attachment");
+			p_Lighting->UpdateTexture(f_GBuffer, 5, "albedro");
+			p_Lighting->UpdateTexture(f_GBuffer, 6, "position");
+			p_Lighting->UpdateTexture(f_GBuffer, 7, "normals");
+			p_Lighting->UpdateTexture(f_GBuffer, 8, "materials");
 		}
 
 		JobsSystemInstance::BeginSubmition();
@@ -264,7 +264,7 @@ namespace SmolEngine
 					assert(result == true);
 
 					auto map = m_EnvironmentMap->GetCubeMap();
-					p_Skybox->UpdateSampler(map, 1);
+					p_Skybox->UpdateTexture(map, 1);
 
 					Ref<VertexBuffer> skyBoxFB = VertexBuffer::Create();
 					skyBoxFB->BuildFromMemory(skyboxVertices, sizeof(skyboxVertices));
@@ -333,7 +333,7 @@ namespace SmolEngine
 					auto result = p_Combination->Build(&DynamicPipelineCI);
 					assert(result == true);
 
-					p_Combination->UpdateSampler(f_Lighting, 0);
+					p_Combination->UpdateTexture(f_Lighting, 0);
 				});
 
 			// Debug
@@ -353,11 +353,11 @@ namespace SmolEngine
 					auto result = p_Debug->Build(&DynamicPipelineCI);
 					assert(result == true);
 
-					p_Debug->UpdateSampler(f_Depth, 1, "Depth_Attachment");
-					p_Debug->UpdateSampler(f_GBuffer, 5, "albedro");
-					p_Debug->UpdateSampler(f_GBuffer, 6, "position");
-					p_Debug->UpdateSampler(f_GBuffer, 7, "normals");
-					p_Debug->UpdateSampler(f_GBuffer, 8, "materials");
+					p_Debug->UpdateTexture(f_Depth, 1, "Depth_Attachment");
+					p_Debug->UpdateTexture(f_GBuffer, 5, "albedro");
+					p_Debug->UpdateTexture(f_GBuffer, 6, "position");
+					p_Debug->UpdateTexture(f_GBuffer, 7, "normals");
+					p_Debug->UpdateTexture(f_GBuffer, 8, "materials");
 				});
 
 			//Bloom
@@ -579,19 +579,19 @@ namespace SmolEngine
 			// Updates Scene Data
 			JobsSystemInstance::Schedule([&]()
 				{
-					m_DefaultMaterial->SubmitBuffer(m_SceneDataBinding, sizeof(SceneViewProjection), drawList->m_SceneInfo);
+					m_DefaultMaterial->UpdateBuffer(m_SceneDataBinding, sizeof(SceneViewProjection), drawList->m_SceneInfo);
 				});
 
 			// Updates Lighting State
 			JobsSystemInstance::Schedule([&]()
 				{
-					p_Lighting->SubmitBuffer(m_LightingStateBinding, sizeof(IBLProperties), &m_State.IBL);
+					p_Lighting->UpdateBuffer(m_LightingStateBinding, sizeof(IBLProperties), &m_State.IBL);
 				});
 
 			// Updates Bloom State
 			JobsSystemInstance::Schedule([&]()
 				{
-					p_Lighting->SubmitBuffer(m_BloomStateBinding, sizeof(BloomProperties), &m_State.Bloom);
+					p_Lighting->UpdateBuffer(m_BloomStateBinding, sizeof(BloomProperties), &m_State.Bloom);
 				});
 
 			// Updates FXAA State
@@ -600,13 +600,13 @@ namespace SmolEngine
 					float width = 1.0f / static_cast<float>(target->GetSpecification().Width);
 					float height = 1.0f / static_cast<float>(target->GetSpecification().Height);
 					m_State.FXAA.InverseScreenSize = glm::vec2(width, height);
-					p_Combination->SubmitBuffer(m_FXAAStateBinding, sizeof(FXAAProperties), &m_State.FXAA);
+					p_Combination->UpdateBuffer(m_FXAAStateBinding, sizeof(FXAAProperties), &m_State.FXAA);
 				});
 
 			// Updates Directional Lights
 			JobsSystemInstance::Schedule([&]()
 				{
-					p_Lighting->SubmitBuffer(m_DirLightBinding, sizeof(DirectionalLight), &drawList->m_DirLight);
+					p_Lighting->UpdateBuffer(m_DirLightBinding, sizeof(DirectionalLight), &drawList->m_DirLight);
 				});
 
 			// Updates Point Lights
@@ -614,7 +614,7 @@ namespace SmolEngine
 				{
 					if (drawList->m_PointLightIndex > 0)
 					{
-						p_Lighting->SubmitBuffer(m_PointLightBinding,
+						p_Lighting->UpdateBuffer(m_PointLightBinding,
 							sizeof(PointLight) * drawList->m_PointLightIndex, drawList->m_PointLights.data());
 					}
 				});
@@ -624,7 +624,7 @@ namespace SmolEngine
 				{
 					if (drawList->m_SpotLightIndex > 0)
 					{
-						p_Lighting->SubmitBuffer(m_SpotLightBinding,
+						p_Lighting->UpdateBuffer(m_SpotLightBinding,
 							sizeof(SpotLight) * drawList->m_SpotLightIndex, drawList->m_SpotLights.data());
 					}
 				});
@@ -634,7 +634,7 @@ namespace SmolEngine
 				{
 					if (drawList->m_LastAnimationOffset > 0)
 					{
-						m_DefaultMaterial->SubmitBuffer(m_AnimBinding,
+						m_DefaultMaterial->UpdateBuffer(m_AnimBinding,
 							sizeof(glm::mat4) * drawList->m_LastAnimationOffset, drawList->m_AnimationJoints.data());
 					}
 				});
@@ -644,7 +644,7 @@ namespace SmolEngine
 				{
 					if (drawList->m_Objects > 0)
 					{
-						m_DefaultMaterial->SubmitBuffer(m_ShaderDataBinding,
+						m_DefaultMaterial->UpdateBuffer(m_ShaderDataBinding,
 							sizeof(InstanceData) * drawList->m_Objects, drawList->m_InstancesData.data());
 					}
 				});
@@ -676,10 +676,10 @@ namespace SmolEngine
 			s_Instance->m_PBRLoader->GeneratePBRCubeMaps(cubeMap);
 
 			// Update Descriptors
-			s_Instance->p_Lighting->UpdateImageDescriptor(2, s_Instance->m_PBRLoader->GetIrradianceDesriptor());
-			s_Instance->p_Lighting->UpdateImageDescriptor(3, s_Instance->m_PBRLoader->GetBRDFLUTDesriptor());
-			s_Instance->p_Lighting->UpdateImageDescriptor(4, s_Instance->m_PBRLoader->GetPrefilteredCubeDesriptor());
-			s_Instance->p_Skybox->UpdateSampler(cubeMap, 1);
+			s_Instance->p_Lighting->UpdateVkDescriptor(2, s_Instance->m_PBRLoader->GetIrradianceDesriptor());
+			s_Instance->p_Lighting->UpdateVkDescriptor(3, s_Instance->m_PBRLoader->GetBRDFLUTDesriptor());
+			s_Instance->p_Lighting->UpdateVkDescriptor(4, s_Instance->m_PBRLoader->GetPrefilteredCubeDesriptor());
+			s_Instance->p_Skybox->UpdateTexture(cubeMap, 1);
 		}
 		else
 		{
@@ -694,10 +694,10 @@ namespace SmolEngine
 		s_Instance->m_PBRLoader->GeneratePBRCubeMaps(cubeMap);
 
 		// Update Descriptors
-		s_Instance->p_Lighting->UpdateImageDescriptor(2, s_Instance->m_PBRLoader->GetIrradianceDesriptor());
-		s_Instance->p_Lighting->UpdateImageDescriptor(3, s_Instance->m_PBRLoader->GetBRDFLUTDesriptor());
-		s_Instance->p_Lighting->UpdateImageDescriptor(4, s_Instance->m_PBRLoader->GetPrefilteredCubeDesriptor());
-		s_Instance->p_Skybox->UpdateSampler(cubeMap, 1);
+		s_Instance->p_Lighting->UpdateVkDescriptor(2, s_Instance->m_PBRLoader->GetIrradianceDesriptor());
+		s_Instance->p_Lighting->UpdateVkDescriptor(3, s_Instance->m_PBRLoader->GetBRDFLUTDesriptor());
+		s_Instance->p_Lighting->UpdateVkDescriptor(4, s_Instance->m_PBRLoader->GetPrefilteredCubeDesriptor());
+		s_Instance->p_Skybox->UpdateTexture(cubeMap, 1);
 	}
 
 	RendererStateEX& RendererStorage::GetState()
@@ -722,19 +722,20 @@ namespace SmolEngine
 
 		{
 			// Lighting pipeline
-			p_Lighting->UpdateSampler(f_GBuffer, 5, "albedro");
-			p_Lighting->UpdateSampler(f_GBuffer, 6, "position");
-			p_Lighting->UpdateSampler(f_GBuffer, 7, "normals");
-			p_Lighting->UpdateSampler(f_GBuffer, 8, "materials");
+			p_Lighting->UpdateTexture(f_GBuffer, 5, "albedro");
+			p_Lighting->UpdateTexture(f_GBuffer, 6, "position");
+			p_Lighting->UpdateTexture(f_GBuffer, 7, "normals");
+			p_Lighting->UpdateTexture(f_GBuffer, 8, "materials");
+
 			// Debug view pipeline
-			p_Debug->UpdateSampler(f_Depth, 1, "Depth_Attachment");
-			p_Debug->UpdateSampler(f_GBuffer, 5, "albedro");
-			p_Debug->UpdateSampler(f_GBuffer, 6, "position");
-			p_Debug->UpdateSampler(f_GBuffer, 7, "normals");
-			p_Debug->UpdateSampler(f_GBuffer, 8, "materials");
+			p_Debug->UpdateTexture(f_Depth, 1, "Depth_Attachment");
+			p_Debug->UpdateTexture(f_GBuffer, 5, "albedro");
+			p_Debug->UpdateTexture(f_GBuffer, 6, "position");
+			p_Debug->UpdateTexture(f_GBuffer, 7, "normals");
+			p_Debug->UpdateTexture(f_GBuffer, 8, "materials");
 
 			// Combination
-			p_Combination->UpdateSampler(f_Lighting, 0);
+			p_Combination->UpdateTexture(f_Lighting, 0);
 
 			//// FOV
 			// f_DOF.OnResize(width, height);
@@ -1015,18 +1016,19 @@ namespace SmolEngine
 		auto TEXTURE_STORAGE_SET = [&](Ref<Texture>& tex, uint32_t mip = 0, uint32_t binding = 0)
 		{
 			auto descriptor = tex->Cast<VulkanTexture>()->GetMipImageView(mip);
-			storage->p_Bloom->Cast<VulkanComputePipeline>()->GeDescriptor(descriptorIndex).UpdateImageResource(binding, descriptor, binding == 0 ? true : false);
+			storage->p_Bloom->Cast<VulkanComputePipeline>()->GeDescriptor(descriptorIndex).UpdateVkDescriptor(binding, descriptor, 
+				binding == 0 ? TextureFlags::IMAGE_2D : TextureFlags::SAMPLER_2D);
 		};
 
 		auto TEXTURE_SET_SCENE = [&](Ref<Texture>& tex)
 		{
-			storage->p_Bloom->Cast<VulkanComputePipeline>()->GeDescriptor(descriptorIndex).Update2DSamplers({ tex }, 1);
+			storage->p_Bloom->Cast<VulkanComputePipeline>()->GeDescriptor(descriptorIndex).UpdateTextures({ tex }, 1, TextureFlags::SAMPLER_2D);
 		};
 
 		const auto TEXTURE_BLOOM_SET_FROM_SECENE = [&](uint32_t binding = 2)
 		{
 			const auto& descriptor = storage->f_Lighting->Cast<VulkanFramebuffer>()->GetAttachment(0)->ImageInfo;
-			storage->p_Bloom->Cast<VulkanComputePipeline>()->GeDescriptor(descriptorIndex).UpdateImageResource(binding, descriptor);
+			storage->p_Bloom->Cast<VulkanComputePipeline>()->GeDescriptor(descriptorIndex).UpdateVkDescriptor(binding, descriptor);
 		};
 
 		struct BloomComputePushConstants
@@ -1192,7 +1194,7 @@ namespace SmolEngine
 
 				TEXTURE_STORAGE_SET(bloomTex[2], mip);
 				TEXTURE_SET_SCENE(bloomTex[0]);
-				storage->p_Bloom->Cast<VulkanComputePipeline>()->GeDescriptor(descriptorIndex).Update2DSamplers({ bloomTex[2] }, 2, false);
+				storage->p_Bloom->Cast<VulkanComputePipeline>()->GeDescriptor(descriptorIndex).UpdateTexture({ bloomTex[2] }, 2, TextureFlags::SAMPLER_2D);
 
 				bloomComputePushConstants.LOD = (float)mip;
 				storage->p_Bloom->SetDescriptorIndex(descriptorIndex);
@@ -1259,7 +1261,7 @@ namespace SmolEngine
 		if (storage->m_State.Bloom.Enabled)
 		{
 			push_constant.state = 1;
-			storage->p_Combination->UpdateSampler(storage->m_BloomTex[2], 1);
+			storage->p_Combination->UpdateTexture(storage->m_BloomTex[2], 1, TextureFlags::SAMPLER_2D);
 		}
 
 		if (info->pClearInfo->bClear)

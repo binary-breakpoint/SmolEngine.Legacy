@@ -263,7 +263,7 @@ namespace SmolEngine
 
 	void EnvironmentMap::UpdateDescriptors()
 	{
-		m_GraphicsPipeline->SubmitBuffer(512, sizeof(DynamicSkyProperties), &m_UBO);
+		m_GraphicsPipeline->UpdateBuffer(512, sizeof(DynamicSkyProperties), &m_UBO);
 	}
 
 	void EnvironmentMap::SetDimension(uint32_t dim)

@@ -74,7 +74,7 @@ namespace SmolEngine
 		s_Instance->m_IDs.clear();
 
 		std::vector<Ref<Texture>> textures(s_Instance->m_MaxTextures);
-		RendererStorage::GetDefaultMaterial()->UpdateSamplers(textures, RendererStorage::GetSingleton()->m_TexturesBinding);
+		RendererStorage::GetDefaultMaterial()->UpdateTextures(textures, RendererStorage::GetSingleton()->m_TexturesBinding);
 	}
 
 	void PBRFactory::UpdateMaterials()
@@ -114,8 +114,8 @@ namespace SmolEngine
 			auto storage = RendererStorage::GetSingleton();
 			auto defMaterial = storage->GetDefaultMaterial();
 
-			defMaterial->UpdateSamplers(textures, storage->m_TexturesBinding);
-			defMaterial->SubmitBuffer(storage->m_MaterialsBinding, sizeof(PBRUniform) * uniforms.size(), uniforms.data());
+			defMaterial->UpdateTextures(textures, storage->m_TexturesBinding);
+			defMaterial->UpdateBuffer(storage->m_MaterialsBinding, sizeof(PBRUniform) * uniforms.size(), uniforms.data());
 		}
 	}
 

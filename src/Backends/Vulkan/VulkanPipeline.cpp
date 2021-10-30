@@ -254,7 +254,7 @@ namespace SmolEngine
 		if (BuildBase(pipelineInfo))
 		{
 			m_Device = VulkanContext::GetDevice().GetLogicalDevice();
-			BuildDescriptors(m_Shader, pipelineInfo->DescriptorSets, m_Descriptors, m_DescriptorPool);
+			BuildDescriptors(m_Shader, pipelineInfo->NumDescriptorSets, m_Descriptors, m_DescriptorPool);
 
 			Ref<Framebuffer> fb = pipelineInfo->TargetFramebuffers[0];
 			VulkanShader* shader = m_Shader->Cast<VulkanShader>();
@@ -491,46 +491,41 @@ namespace SmolEngine
 		vkCmdDraw(m_CommandBuffer, mesh->GetVertexBuffer()->GetVertexCount(), instances, 0, 0);
 	}
 
-	bool VulkanPipeline::SubmitBuffer(uint32_t bindingPoint, size_t size, const void* data, uint32_t offset)
-	{
-		return m_Descriptors[m_DescriptorIndex].UpdateBuffer(bindingPoint, size, data, offset);
-	}
-
 	void VulkanPipeline::SubmitPushConstant(ShaderType shaderStage, size_t size, const void* data)
 	{
 		vkCmdPushConstants(m_CommandBuffer, m_PipelineLayout, VulkanShader::GetVkShaderStage(shaderStage), 0, static_cast<uint32_t>(size), data);
 	}
 
-	bool VulkanPipeline::UpdateSamplers(const std::vector<Ref<Texture>>& textures, uint32_t bindingPoint, bool storageImage)
+	bool VulkanPipeline::UpdateBuffer(uint32_t binding, size_t size, const void* data, uint32_t offset)
 	{
-		return m_Descriptors[m_DescriptorIndex].Update2DSamplers(textures, bindingPoint, storageImage);
+		return m_Descriptors[m_DescriptorIndex].UpdateBuffer(binding, size, data, offset);
 	}
 
-	bool VulkanPipeline::UpdateSampler(Ref<Texture>& tetxure, uint32_t bindingPoint, bool storageImage)
+	bool VulkanPipeline::UpdateTextures(const std::vector<Ref<Texture>>& textures, uint32_t bindingPoint, TextureFlags usage)
 	{
-		return m_Descriptors[m_DescriptorIndex].UpdateImageResource(bindingPoint, tetxure->Cast<VulkanTexture>()->GetVkDescriptorImageInfo(), storageImage);
+		return m_Descriptors[m_DescriptorIndex].UpdateTextures(textures, bindingPoint, usage);
 	}
 
-	bool VulkanPipeline::UpdateSampler(Ref<Framebuffer>& framebuffer, uint32_t bindingPoint, uint32_t attachmentIndex)
+	bool VulkanPipeline::UpdateTexture(const Ref<Texture>& texture, uint32_t bindingPoint, TextureFlags usage)
 	{
-		const auto& descriptor = framebuffer->Cast<VulkanFramebuffer>()->GetAttachment(attachmentIndex)->ImageInfo;
-		return m_Descriptors[m_DescriptorIndex].UpdateImageResource(bindingPoint, descriptor);
+		return m_Descriptors[m_DescriptorIndex].UpdateTexture(texture, bindingPoint, usage);
 	}
 
-	bool VulkanPipeline::UpdateSampler(Ref<Framebuffer>& framebuffer, uint32_t bindingPoint, const std::string& attachmentName)
+	bool VulkanPipeline::UpdateTexture(const Ref<Framebuffer>& fb, uint32_t bindingPoint, uint32_t attachmentIndex)
 	{
-		const auto& descriptor = framebuffer->Cast<VulkanFramebuffer>()->GetAttachment(attachmentName)->ImageInfo;
-		return m_Descriptors[m_DescriptorIndex].UpdateImageResource(bindingPoint, descriptor);
+		const auto& descriptor = fb->Cast<VulkanFramebuffer>()->GetAttachment(attachmentIndex)->ImageInfo;
+		return m_Descriptors[m_DescriptorIndex].UpdateVkDescriptor(bindingPoint, descriptor);
 	}
 
-	bool VulkanPipeline::UpdateImageDescriptor(uint32_t bindingPoint, void* descriptor)
+	bool VulkanPipeline::UpdateTexture(const Ref<Framebuffer>& fb, uint32_t bindingPoint, const std::string& attachmentName)
 	{
-		return m_Descriptors[m_DescriptorIndex].UpdateImageResource(bindingPoint, *(VkDescriptorImageInfo*)descriptor);;
+		const auto& descriptor = fb->Cast<VulkanFramebuffer>()->GetAttachment(attachmentName)->ImageInfo;
+		return m_Descriptors[m_DescriptorIndex].UpdateVkDescriptor(bindingPoint, descriptor);
 	}
 
-	bool VulkanPipeline::UpdateCubeMap(Ref<Texture>& cubeMap, uint32_t bindingPoint)
+	bool VulkanPipeline::UpdateVkDescriptor(uint32_t bindingPoint, const void* descriptorPtr)
 	{
-		return m_Descriptors[m_DescriptorIndex].UpdateCubeMap(cubeMap, bindingPoint);
+		return m_Descriptors[m_DescriptorIndex].UpdateVkDescriptor(bindingPoint, *(VkDescriptorImageInfo*)descriptorPtr);
 	}
 
 	void VulkanPipeline::BindPipeline()
@@ -695,6 +690,23 @@ namespace SmolEngine
 
 				DescriptorPoolSizes.push_back(poolSize);
 			}
+		}
+
+		if (refData.ACStructures.size() > 0)
+		{
+			uint32_t ACDescriptors = 0;
+			for (auto& [type, info] : refData.ACStructures)
+			{
+				ACDescriptors += info.ArraySize > 0 ? info.ArraySize : 1;
+			}
+
+			VkDescriptorPoolSize poolSize = {};
+			{
+				poolSize.descriptorCount = ACDescriptors;
+				poolSize.type = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
+			}
+
+			DescriptorPoolSizes.push_back(poolSize);
 		}
 
 		if(refData.ImageSamplers.size() > 0)

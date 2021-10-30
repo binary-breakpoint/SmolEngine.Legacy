@@ -32,15 +32,13 @@ namespace SmolEngine
 		void                                            DrawMeshIndexed(Ref<Mesh>& mesh, uint32_t instances = 1) override;
 		void                                            DrawMesh(Ref<Mesh>& mesh, uint32_t instances = 1) override;
 								                        
-		bool                                            SubmitBuffer(uint32_t bindingPoint, size_t size, const void* data, uint32_t offset = 0) override;
-		void                                            SubmitPushConstant(ShaderType shaderStage, size_t size, const void* data) override;
-								                        
-		bool                                            UpdateSamplers(const std::vector<Ref<Texture>>& textures, uint32_t bindingPoint, bool storageImage = false) override;
-		bool                                            UpdateSampler(Ref<Texture>& tetxure, uint32_t bindingPoint, bool storageImage = false) override;
-		bool                                            UpdateSampler(Ref<Framebuffer>& framebuffer, uint32_t bindingPoint, uint32_t attachmentIndex = 0) override;
-		bool                                            UpdateSampler(Ref<Framebuffer>& framebuffer, uint32_t bindingPoint, const std::string& attachmentName) override;
-		bool                                            UpdateImageDescriptor(uint32_t bindingPoint, void* descriptor) override;
-		bool                                            UpdateCubeMap(Ref<Texture>& cubeMap, uint32_t bindingPoint) override;
+		void                                            SubmitPushConstant(ShaderType shaderStage, size_t size, const void* data) override;        
+		bool                                            UpdateBuffer(uint32_t binding, size_t size, const void* data, uint32_t offset = 0) override;
+		bool                                            UpdateTextures(const std::vector<Ref<Texture>>& textures, uint32_t bindingPoint, TextureFlags usage = TextureFlags::MAX_ENUM) override;
+		bool                                            UpdateTexture(const Ref<Texture>& texture, uint32_t bindingPoint, TextureFlags usage = TextureFlags::MAX_ENUM) override;
+		bool                                            UpdateTexture(const Ref<Framebuffer>& fb, uint32_t bindingPoint, uint32_t attachmentIndex = 0) override;
+		bool                                            UpdateTexture(const Ref<Framebuffer>& fb, uint32_t bindingPoint, const std::string& attachmentName) override;
+		bool                                            UpdateVkDescriptor(uint32_t bindingPoint, const void* descriptorPtr) override;
 								                        
 		void                                            BindPipeline() override;
 		void                                            BindDescriptors() override;

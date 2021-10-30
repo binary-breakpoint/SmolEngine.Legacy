@@ -2,15 +2,21 @@
 #ifndef OPENGL_IMPL
 #include "Backends/Vulkan/VulkanRaytracingPipeline.h"
 #include "Backends/Vulkan/VulkanShader.h"
+#include "Backends/Vulkan/VulkanPipeline.h"
+#include "Backends/Vulkan/VulkanFramebuffer.h"
 
 namespace SmolEngine
 {
 	bool VulkanRaytracingPipeline::Build(RaytracingPipelineCreateInfo* info)
 	{
-		if(!BuildEX(info))
-			return false;
+		if(!BuildEX(info)) { return false; }
 
 		m_ACStructure.Build(info);
+
+		VulkanPipeline::BuildDescriptors(m_Shader, info->NumDescriptorSets, m_Descriptors, m_DescriptorPool);
+
+
+		return true;
 	}
 
 	void VulkanRaytracingPipeline::SubmitPushConstant(ShaderType stage, size_t size, const void* data)
@@ -18,39 +24,36 @@ namespace SmolEngine
 		vkCmdPushConstants(m_CommandBuffer, m_PipelineLayout, VulkanShader::GetVkShaderStage(stage), 0, static_cast<uint32_t>(size), data);
 	}
 
-	bool VulkanRaytracingPipeline::SubmitBuffer(uint32_t binding, size_t size, const void* data, uint32_t offset)
+	bool VulkanRaytracingPipeline::UpdateBuffer(uint32_t binding, size_t size, const void* data, uint32_t offset)
 	{
-		return false;
+		return m_Descriptors[m_DescriptorIndex].UpdateBuffer(binding, size, data, offset);
 	}
 
-	bool VulkanRaytracingPipeline::UpdateSamplers(const std::vector<Ref<Texture>>& textures, uint32_t bindingPoint, bool storageImage)
+	bool VulkanRaytracingPipeline::UpdateTextures(const std::vector<Ref<Texture>>& textures, uint32_t bindingPoint, TextureFlags usage)
 	{
-		return false;
+		return m_Descriptors[m_DescriptorIndex].UpdateTextures(textures, bindingPoint, usage);
 	}
 
-	bool VulkanRaytracingPipeline::UpdateSampler(Ref<Texture>& tetxure, uint32_t bindingPoint, bool storageImage)
+	bool VulkanRaytracingPipeline::UpdateTexture(const Ref<Texture>& texture, uint32_t bindingPoint, TextureFlags usage)
 	{
-		return false;
+		return m_Descriptors[m_DescriptorIndex].UpdateTexture(texture, bindingPoint, usage);
 	}
 
-	bool VulkanRaytracingPipeline::UpdateSampler(Ref<Framebuffer>& framebuffer, uint32_t bindingPoint, uint32_t attachmentIndex)
+	bool VulkanRaytracingPipeline::UpdateTexture(const Ref<Framebuffer>& fb, uint32_t bindingPoint, uint32_t attachmentIndex)
 	{
-		return false;
+		const auto& descriptor = fb->Cast<VulkanFramebuffer>()->GetAttachment(attachmentIndex)->ImageInfo;
+		return m_Descriptors[m_DescriptorIndex].UpdateVkDescriptor(bindingPoint, descriptor);
 	}
 
-	bool VulkanRaytracingPipeline::UpdateSampler(Ref<Framebuffer>& framebuffer, uint32_t bindingPoint, const std::string& attachmentName)
+	bool VulkanRaytracingPipeline::UpdateTexture(const Ref<Framebuffer>& fb, uint32_t bindingPoint, const std::string& attachmentName)
 	{
-		return false;
+		const auto& descriptor = fb->Cast<VulkanFramebuffer>()->GetAttachment(attachmentName)->ImageInfo;
+		return m_Descriptors[m_DescriptorIndex].UpdateVkDescriptor(bindingPoint, descriptor);
 	}
 
-	bool VulkanRaytracingPipeline::UpdateImageDescriptor(uint32_t bindingPoint, void* descriptor)
+	bool VulkanRaytracingPipeline::UpdateVkDescriptor(uint32_t bindingPoint, const void* descriptorPtr)
 	{
-		return false;
-	}
-
-	bool VulkanRaytracingPipeline::UpdateCubeMap(Ref<Texture>& cubeMap, uint32_t bindingPoint)
-	{
-		return false;
+		return m_Descriptors[m_DescriptorIndex].UpdateVkDescriptor(bindingPoint, *(VkDescriptorImageInfo*)descriptorPtr);
 	}
 
 	VkPipelineLayout VulkanRaytracingPipeline::GetVkPipelineLayout() const

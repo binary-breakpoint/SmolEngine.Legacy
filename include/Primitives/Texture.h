@@ -92,6 +92,17 @@ namespace SmolEngine
 		}
 	};
 
+	enum class TextureFlags
+	{
+		SAMPLER_2D = 1,
+		SAMPLER_3D = 2,
+		IMAGE_2D   = 4,
+		IMAGE_3D   = 8,
+		CUBEMAP    = 16,
+
+		MAX_ENUM   = 32,
+	};
+
 	class Texture: public PrimitiveBase
 	{
 	public:
@@ -112,11 +123,13 @@ namespace SmolEngine
 		const TextureInfo&                    GetInfo() const { return m_Info; }
 		void*                                 GetImGuiTexture() const { return m_Info.ImHandle; }
 		bool                                  IsGood() const override { return m_Info.Width > 0; }
+		TextureFlags                          GetFlags() const { return m_eFlags; }
 		// Factory
 		static Ref<Texture>                   Create();
 
 	protected:
-		TextureInfo m_Info{};
-		size_t m_ID = 0;
+		TextureFlags m_eFlags = TextureFlags::SAMPLER_2D;
+		TextureInfo  m_Info{};
+		size_t       m_ID = 0;
 	};
 }

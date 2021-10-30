@@ -1,0 +1,188 @@
+; SPIR-V
+; Version: 1.4
+; Generator: Google Shaderc over Glslang; 10
+; Bound: 131
+; Schema: 0
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Fragment %main "main" %_ %albedroMap %inUV %positionsMap %normalsMap %materialsMap %shadowMap %shadowCoordMap %outFragColor
+               OpExecutionMode %main OriginUpperLeft
+               OpSource GLSL 460
+               OpSourceExtension "GL_GOOGLE_cpp_style_line_directive"
+               OpSourceExtension "GL_GOOGLE_include_directive"
+               OpName %main "main"
+               OpName %color "color"
+               OpName %ConstantData "ConstantData"
+               OpMemberName %ConstantData 0 "state"
+               OpName %_ ""
+               OpName %albedroMap "albedroMap"
+               OpName %inUV "inUV"
+               OpName %positionsMap "positionsMap"
+               OpName %normalsMap "normalsMap"
+               OpName %metalnessRoughness "metalnessRoughness"
+               OpName %materialsMap "materialsMap"
+               OpName %shadowMap "shadowMap"
+               OpName %shadowCoordMap "shadowCoordMap"
+               OpName %ao "ao"
+               OpName %outFragColor "outFragColor"
+               OpMemberDecorate %ConstantData 0 Offset 0
+               OpDecorate %ConstantData Block
+               OpDecorate %albedroMap DescriptorSet 0
+               OpDecorate %albedroMap Binding 5
+               OpDecorate %inUV Location 0
+               OpDecorate %positionsMap DescriptorSet 0
+               OpDecorate %positionsMap Binding 6
+               OpDecorate %normalsMap DescriptorSet 0
+               OpDecorate %normalsMap Binding 7
+               OpDecorate %materialsMap DescriptorSet 0
+               OpDecorate %materialsMap Binding 8
+               OpDecorate %shadowMap DescriptorSet 0
+               OpDecorate %shadowMap Binding 1
+               OpDecorate %shadowCoordMap DescriptorSet 0
+               OpDecorate %shadowCoordMap Binding 9
+               OpDecorate %outFragColor Location 0
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+      %float = OpTypeFloat 32
+    %v4float = OpTypeVector %float 4
+%_ptr_Function_v4float = OpTypePointer Function %v4float
+%float_0_200000003 = OpConstant %float 0.200000003
+    %float_1 = OpConstant %float 1
+         %12 = OpConstantComposite %v4float %float_0_200000003 %float_0_200000003 %float_0_200000003 %float_1
+       %uint = OpTypeInt 32 0
+%ConstantData = OpTypeStruct %uint
+%_ptr_PushConstant_ConstantData = OpTypePointer PushConstant %ConstantData
+          %_ = OpVariable %_ptr_PushConstant_ConstantData PushConstant
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+%_ptr_PushConstant_uint = OpTypePointer PushConstant %uint
+         %31 = OpTypeImage %float 2D 0 0 0 1 Unknown
+         %32 = OpTypeSampledImage %31
+%_ptr_UniformConstant_32 = OpTypePointer UniformConstant %32
+ %albedroMap = OpVariable %_ptr_UniformConstant_32 UniformConstant
+    %v2float = OpTypeVector %float 2
+%_ptr_Input_v2float = OpTypePointer Input %v2float
+       %inUV = OpVariable %_ptr_Input_v2float Input
+    %v3float = OpTypeVector %float 3
+%positionsMap = OpVariable %_ptr_UniformConstant_32 UniformConstant
+ %normalsMap = OpVariable %_ptr_UniformConstant_32 UniformConstant
+%_ptr_Function_v2float = OpTypePointer Function %v2float
+%materialsMap = OpVariable %_ptr_UniformConstant_32 UniformConstant
+     %uint_3 = OpConstant %uint 3
+  %shadowMap = OpVariable %_ptr_UniformConstant_32 UniformConstant
+     %uint_0 = OpConstant %uint 0
+%shadowCoordMap = OpVariable %_ptr_UniformConstant_32 UniformConstant
+%_ptr_Function_float = OpTypePointer Function %float
+     %uint_2 = OpConstant %uint 2
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+%outFragColor = OpVariable %_ptr_Output_v4float Output
+       %main = OpFunction %void None %3
+          %5 = OpLabel
+      %color = OpVariable %_ptr_Function_v4float Function
+%metalnessRoughness = OpVariable %_ptr_Function_v2float Function
+         %ao = OpVariable %_ptr_Function_float Function
+               OpStore %color %12
+         %20 = OpAccessChain %_ptr_PushConstant_uint %_ %int_0
+         %21 = OpLoad %uint %20
+               OpSelectionMerge %30 None
+               OpSwitch %21 %30 1 %22 2 %23 3 %24 4 %25 5 %26 6 %27 7 %28 8 %29
+         %22 = OpLabel
+         %35 = OpLoad %32 %albedroMap
+         %39 = OpLoad %v2float %inUV
+         %40 = OpImageSampleImplicitLod %v4float %35 %39
+         %42 = OpVectorShuffle %v3float %40 %40 0 1 2
+         %43 = OpCompositeExtract %float %42 0
+         %44 = OpCompositeExtract %float %42 1
+         %45 = OpCompositeExtract %float %42 2
+         %46 = OpCompositeConstruct %v4float %43 %44 %45 %float_1
+               OpStore %color %46
+               OpBranch %30
+         %23 = OpLabel
+         %49 = OpLoad %32 %positionsMap
+         %50 = OpLoad %v2float %inUV
+         %51 = OpImageSampleImplicitLod %v4float %49 %50
+         %52 = OpVectorShuffle %v3float %51 %51 0 1 2
+         %53 = OpCompositeExtract %float %52 0
+         %54 = OpCompositeExtract %float %52 1
+         %55 = OpCompositeExtract %float %52 2
+         %56 = OpCompositeConstruct %v4float %53 %54 %55 %float_1
+               OpStore %color %56
+               OpBranch %30
+         %24 = OpLabel
+         %59 = OpLoad %32 %normalsMap
+         %60 = OpLoad %v2float %inUV
+         %61 = OpImageSampleImplicitLod %v4float %59 %60
+         %62 = OpVectorShuffle %v3float %61 %61 0 1 2
+         %63 = OpCompositeExtract %float %62 0
+         %64 = OpCompositeExtract %float %62 1
+         %65 = OpCompositeExtract %float %62 2
+         %66 = OpCompositeConstruct %v4float %63 %64 %65 %float_1
+               OpStore %color %66
+               OpBranch %30
+         %25 = OpLabel
+         %71 = OpLoad %32 %materialsMap
+         %72 = OpLoad %v2float %inUV
+         %73 = OpImageSampleImplicitLod %v4float %71 %72
+         %74 = OpVectorShuffle %v2float %73 %73 0 1
+               OpStore %metalnessRoughness %74
+         %75 = OpLoad %v2float %metalnessRoughness
+         %76 = OpCompositeExtract %float %75 0
+         %77 = OpCompositeExtract %float %75 1
+         %78 = OpCompositeConstruct %v4float %76 %77 %float_1 %float_1
+               OpStore %color %78
+               OpBranch %30
+         %26 = OpLabel
+         %80 = OpLoad %32 %materialsMap
+         %81 = OpLoad %v2float %inUV
+         %82 = OpImageSampleImplicitLod %v4float %80 %81
+         %84 = OpCompositeExtract %float %82 3
+         %85 = OpCompositeConstruct %v3float %84 %84 %84
+         %86 = OpCompositeExtract %float %85 0
+         %87 = OpCompositeExtract %float %85 1
+         %88 = OpCompositeExtract %float %85 2
+         %89 = OpCompositeConstruct %v4float %86 %87 %88 %float_1
+               OpStore %color %89
+               OpBranch %30
+         %27 = OpLabel
+         %92 = OpLoad %32 %shadowMap
+         %93 = OpLoad %v2float %inUV
+         %94 = OpImageSampleImplicitLod %v4float %92 %93
+         %96 = OpCompositeExtract %float %94 0
+         %97 = OpCompositeConstruct %v3float %96 %96 %96
+         %98 = OpCompositeExtract %float %97 0
+         %99 = OpCompositeExtract %float %97 1
+        %100 = OpCompositeExtract %float %97 2
+        %101 = OpCompositeConstruct %v4float %98 %99 %100 %float_1
+               OpStore %color %101
+               OpBranch %30
+         %28 = OpLabel
+        %104 = OpLoad %32 %shadowCoordMap
+        %105 = OpLoad %v2float %inUV
+        %106 = OpImageSampleImplicitLod %v4float %104 %105
+        %107 = OpVectorShuffle %v3float %106 %106 0 1 2
+        %108 = OpCompositeExtract %float %107 0
+        %109 = OpCompositeExtract %float %107 1
+        %110 = OpCompositeExtract %float %107 2
+        %111 = OpCompositeConstruct %v4float %108 %109 %110 %float_1
+               OpStore %color %111
+               OpBranch %30
+         %29 = OpLabel
+        %115 = OpLoad %32 %materialsMap
+        %116 = OpLoad %v2float %inUV
+        %117 = OpImageSampleImplicitLod %v4float %115 %116
+        %119 = OpCompositeExtract %float %117 2
+               OpStore %ao %119
+        %120 = OpLoad %float %ao
+        %121 = OpCompositeConstruct %v3float %120 %120 %120
+        %122 = OpCompositeExtract %float %121 0
+        %123 = OpCompositeExtract %float %121 1
+        %124 = OpCompositeExtract %float %121 2
+        %125 = OpCompositeConstruct %v4float %122 %123 %124 %float_1
+               OpStore %color %125
+               OpBranch %30
+         %30 = OpLabel
+        %130 = OpLoad %v4float %color
+               OpStore %outFragColor %130
+               OpReturn
+               OpFunctionEnd

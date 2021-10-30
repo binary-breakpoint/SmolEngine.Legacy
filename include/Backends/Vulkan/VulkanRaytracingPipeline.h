@@ -1,6 +1,7 @@
 #pragma once
 #ifndef OPENGL_IMPL
 #include "Backends/Vulkan/VulkanACStructure.h"
+#include "Backends/Vulkan/VulkanDescriptor.h"
 
 #include "Primitives/RaytracingPipeline.h"
 
@@ -12,22 +13,24 @@ namespace SmolEngine
 		virtual bool     Build(RaytracingPipelineCreateInfo* info) override;
 		virtual void     SubmitPushConstant(ShaderType stage, size_t size, const void* data) override;
 
-		virtual bool     SubmitBuffer(uint32_t binding, size_t size, const void* data, uint32_t offset = 0) override;
-		virtual bool     UpdateSamplers(const std::vector<Ref<Texture>>& textures, uint32_t bindingPoint, bool storageImage = false) override;
-		virtual bool     UpdateSampler(Ref<Texture>& tetxure, uint32_t bindingPoint, bool storageImage = false) override;
-		virtual bool     UpdateSampler(Ref<Framebuffer>& framebuffer, uint32_t bindingPoint, uint32_t attachmentIndex = 0) override;
-		virtual bool     UpdateSampler(Ref<Framebuffer>& framebuffer, uint32_t bindingPoint, const std::string& attachmentName) override;
-		virtual bool     UpdateImageDescriptor(uint32_t bindingPoint, void* descriptor) override;
-		virtual bool     UpdateCubeMap(Ref<Texture>& cubeMap, uint32_t bindingPoint) override;
+		virtual bool     UpdateBuffer(uint32_t binding, size_t size, const void* data, uint32_t offset = 0) override;
+		virtual bool     UpdateTextures(const std::vector<Ref<Texture>>& textures, uint32_t bindingPoint, TextureFlags usage = TextureFlags::MAX_ENUM) override;
+		virtual bool     UpdateTexture(const Ref<Texture>& texture, uint32_t bindingPoint, TextureFlags usage = TextureFlags::MAX_ENUM) override;
+		virtual bool     UpdateTexture(const Ref<Framebuffer>& fb, uint32_t bindingPoint, uint32_t attachmentIndex = 0) override;
+		virtual bool     UpdateTexture(const Ref<Framebuffer>& fb, uint32_t bindingPoint, const std::string& attachmentName) override;
+		virtual bool     UpdateVkDescriptor(uint32_t bindingPoint, const void* descriptorPtr) override;
 
 		VkPipelineLayout GetVkPipelineLayout() const;
 		VkPipeline       GetVkPipeline() const;
 
 	private:
-		VkCommandBuffer   m_CommandBuffer = nullptr;
-		VkPipelineLayout  m_PipelineLayout = nullptr;
-		VkPipeline        m_Pipeline = nullptr;
-		VulkanACStructure m_ACStructure{};
+		VkCommandBuffer                    m_CommandBuffer = nullptr;
+		VkPipelineLayout                   m_PipelineLayout = nullptr;
+		VkPipeline                         m_Pipeline = nullptr;
+		VkDescriptorPool                   m_DescriptorPool = nullptr;
+		VulkanACStructure                  m_ACStructure{};
+		std::vector<VulkanDescriptor>      m_Descriptors;
+		std::vector<VkDescriptorSetLayout> m_SetLayout;
 	};
 }
 

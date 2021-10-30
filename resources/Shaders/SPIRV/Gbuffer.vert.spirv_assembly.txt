@@ -1,0 +1,551 @@
+; SPIR-V
+; Version: 1.4
+; Generator: Google Shaderc over Glslang; 10
+; Bound: 327
+; Schema: 0
+               OpCapability Shader
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint Vertex %main "main" %_ %__0 %gl_InstanceIndex %__1 %a_Weight %__2 %a_BoneIDs %v_FragPos %a_Position %v_UV %a_UV %v_Material %v_LinearDepth %sceneData %a_Normal %a_Tangent %v_TBN %v_Normal %__3
+               OpSource GLSL 460
+               OpSourceExtension "GL_GOOGLE_cpp_style_line_directive"
+               OpSourceExtension "GL_GOOGLE_include_directive"
+               OpName %main "main"
+               OpName %Material "Material"
+               OpMemberName %Material 0 "Albedo"
+               OpMemberName %Material 1 "Metalness"
+               OpMemberName %Material 2 "Roughness"
+               OpMemberName %Material 3 "EmissionStrength"
+               OpMemberName %Material 4 "UseAlbedroTex"
+               OpMemberName %Material 5 "UseNormalTex"
+               OpMemberName %Material 6 "UseMetallicTex"
+               OpMemberName %Material 7 "UseRoughnessTex"
+               OpMemberName %Material 8 "UseAOTex"
+               OpMemberName %Material 9 "UseEmissiveTex"
+               OpMemberName %Material 10 "AlbedroTexIndex"
+               OpMemberName %Material 11 "NormalTexIndex"
+               OpMemberName %Material 12 "MetallicTexIndex"
+               OpMemberName %Material 13 "RoughnessTexIndex"
+               OpMemberName %Material 14 "AOTexIndex"
+               OpMemberName %Material 15 "EmissiveTexIndex"
+               OpMemberName %Material 16 "ID"
+               OpName %GetMaterial_u1_ "GetMaterial(u1;"
+               OpName %id "id"
+               OpName %i "i"
+               OpName %Material_0 "Material"
+               OpMemberName %Material_0 0 "Albedo"
+               OpMemberName %Material_0 1 "Metalness"
+               OpMemberName %Material_0 2 "Roughness"
+               OpMemberName %Material_0 3 "EmissionStrength"
+               OpMemberName %Material_0 4 "UseAlbedroTex"
+               OpMemberName %Material_0 5 "UseNormalTex"
+               OpMemberName %Material_0 6 "UseMetallicTex"
+               OpMemberName %Material_0 7 "UseRoughnessTex"
+               OpMemberName %Material_0 8 "UseAOTex"
+               OpMemberName %Material_0 9 "UseEmissiveTex"
+               OpMemberName %Material_0 10 "AlbedroTexIndex"
+               OpMemberName %Material_0 11 "NormalTexIndex"
+               OpMemberName %Material_0 12 "MetallicTexIndex"
+               OpMemberName %Material_0 13 "RoughnessTexIndex"
+               OpMemberName %Material_0 14 "AOTexIndex"
+               OpMemberName %Material_0 15 "EmissiveTexIndex"
+               OpMemberName %Material_0 16 "ID"
+               OpName %MaterialsBuffer "MaterialsBuffer"
+               OpMemberName %MaterialsBuffer 0 "materials"
+               OpName %_ ""
+               OpName %instanceID "instanceID"
+               OpName %ConstantData "ConstantData"
+               OpMemberName %ConstantData 0 "dataOffset"
+               OpName %__0 ""
+               OpName %gl_InstanceIndex "gl_InstanceIndex"
+               OpName %model "model"
+               OpName %InstanceData "InstanceData"
+               OpMemberName %InstanceData 0 "matID"
+               OpMemberName %InstanceData 1 "isAnimated"
+               OpMemberName %InstanceData 2 "animOffset"
+               OpMemberName %InstanceData 3 "entityID"
+               OpMemberName %InstanceData 4 "model"
+               OpName %InstancesBuffer "InstancesBuffer"
+               OpMemberName %InstancesBuffer 0 "instances"
+               OpName %__1 ""
+               OpName %materialID "materialID"
+               OpName %animOffset "animOffset"
+               OpName %isAnimated "isAnimated"
+               OpName %skinMat "skinMat"
+               OpName %a_Weight "a_Weight"
+               OpName %JointMatrices "JointMatrices"
+               OpMemberName %JointMatrices 0 "joints"
+               OpName %__2 ""
+               OpName %a_BoneIDs "a_BoneIDs"
+               OpName %modelSkin "modelSkin"
+               OpName %v_FragPos "v_FragPos"
+               OpName %a_Position "a_Position"
+               OpName %v_UV "v_UV"
+               OpName %a_UV "a_UV"
+               OpName %v_Material "v_Material"
+               OpName %param "param"
+               OpName %v_LinearDepth "v_LinearDepth"
+               OpName %SceneBuffer "SceneBuffer"
+               OpMemberName %SceneBuffer 0 "projection"
+               OpMemberName %SceneBuffer 1 "view"
+               OpMemberName %SceneBuffer 2 "camPos"
+               OpMemberName %SceneBuffer 3 "nearClip"
+               OpMemberName %SceneBuffer 4 "farClip"
+               OpMemberName %SceneBuffer 5 "pad1"
+               OpMemberName %SceneBuffer 6 "skyBoxMatrix"
+               OpName %sceneData "sceneData"
+               OpName %normal "normal"
+               OpName %a_Normal "a_Normal"
+               OpName %tangent "tangent"
+               OpName %a_Tangent "a_Tangent"
+               OpName %B "B"
+               OpName %v_TBN "v_TBN"
+               OpName %v_Normal "v_Normal"
+               OpName %gl_PerVertex "gl_PerVertex"
+               OpMemberName %gl_PerVertex 0 "gl_Position"
+               OpMemberName %gl_PerVertex 1 "gl_PointSize"
+               OpMemberName %gl_PerVertex 2 "gl_ClipDistance"
+               OpMemberName %gl_PerVertex 3 "gl_CullDistance"
+               OpName %__3 ""
+               OpMemberDecorate %Material_0 0 Offset 0
+               OpMemberDecorate %Material_0 1 Offset 16
+               OpMemberDecorate %Material_0 2 Offset 20
+               OpMemberDecorate %Material_0 3 Offset 24
+               OpMemberDecorate %Material_0 4 Offset 28
+               OpMemberDecorate %Material_0 5 Offset 32
+               OpMemberDecorate %Material_0 6 Offset 36
+               OpMemberDecorate %Material_0 7 Offset 40
+               OpMemberDecorate %Material_0 8 Offset 44
+               OpMemberDecorate %Material_0 9 Offset 48
+               OpMemberDecorate %Material_0 10 Offset 52
+               OpMemberDecorate %Material_0 11 Offset 56
+               OpMemberDecorate %Material_0 12 Offset 60
+               OpMemberDecorate %Material_0 13 Offset 64
+               OpMemberDecorate %Material_0 14 Offset 68
+               OpMemberDecorate %Material_0 15 Offset 72
+               OpMemberDecorate %Material_0 16 Offset 76
+               OpDecorate %_runtimearr_Material_0 ArrayStride 80
+               OpMemberDecorate %MaterialsBuffer 0 NonWritable
+               OpMemberDecorate %MaterialsBuffer 0 Offset 0
+               OpDecorate %MaterialsBuffer Block
+               OpDecorate %_ DescriptorSet 0
+               OpDecorate %_ Binding 26
+               OpMemberDecorate %ConstantData 0 Offset 0
+               OpDecorate %ConstantData Block
+               OpDecorate %gl_InstanceIndex BuiltIn InstanceIndex
+               OpMemberDecorate %InstanceData 0 Offset 0
+               OpMemberDecorate %InstanceData 1 Offset 4
+               OpMemberDecorate %InstanceData 2 Offset 8
+               OpMemberDecorate %InstanceData 3 Offset 12
+               OpMemberDecorate %InstanceData 4 ColMajor
+               OpMemberDecorate %InstanceData 4 Offset 16
+               OpMemberDecorate %InstanceData 4 MatrixStride 16
+               OpDecorate %_runtimearr_InstanceData ArrayStride 80
+               OpMemberDecorate %InstancesBuffer 0 NonWritable
+               OpMemberDecorate %InstancesBuffer 0 Offset 0
+               OpDecorate %InstancesBuffer Block
+               OpDecorate %__1 DescriptorSet 0
+               OpDecorate %__1 Binding 25
+               OpDecorate %a_Weight Location 5
+               OpDecorate %_runtimearr_mat4v4float ArrayStride 64
+               OpMemberDecorate %JointMatrices 0 ColMajor
+               OpMemberDecorate %JointMatrices 0 NonWritable
+               OpMemberDecorate %JointMatrices 0 Offset 0
+               OpMemberDecorate %JointMatrices 0 MatrixStride 16
+               OpDecorate %JointMatrices Block
+               OpDecorate %__2 DescriptorSet 0
+               OpDecorate %__2 Binding 28
+               OpDecorate %a_BoneIDs Location 4
+               OpDecorate %v_FragPos Location 0
+               OpDecorate %a_Position Location 0
+               OpDecorate %v_UV Location 2
+               OpDecorate %a_UV Location 3
+               OpDecorate %v_Material Location 7
+               OpDecorate %v_LinearDepth Location 3
+               OpMemberDecorate %SceneBuffer 0 ColMajor
+               OpMemberDecorate %SceneBuffer 0 Offset 0
+               OpMemberDecorate %SceneBuffer 0 MatrixStride 16
+               OpMemberDecorate %SceneBuffer 1 ColMajor
+               OpMemberDecorate %SceneBuffer 1 Offset 64
+               OpMemberDecorate %SceneBuffer 1 MatrixStride 16
+               OpMemberDecorate %SceneBuffer 2 Offset 128
+               OpMemberDecorate %SceneBuffer 3 Offset 144
+               OpMemberDecorate %SceneBuffer 4 Offset 148
+               OpMemberDecorate %SceneBuffer 5 Offset 152
+               OpMemberDecorate %SceneBuffer 6 ColMajor
+               OpMemberDecorate %SceneBuffer 6 Offset 160
+               OpMemberDecorate %SceneBuffer 6 MatrixStride 16
+               OpDecorate %SceneBuffer Block
+               OpDecorate %sceneData DescriptorSet 0
+               OpDecorate %sceneData Binding 27
+               OpDecorate %a_Normal Location 1
+               OpDecorate %a_Tangent Location 2
+               OpDecorate %v_TBN Location 4
+               OpDecorate %v_Normal Location 1
+               OpMemberDecorate %gl_PerVertex 0 BuiltIn Position
+               OpMemberDecorate %gl_PerVertex 1 BuiltIn PointSize
+               OpMemberDecorate %gl_PerVertex 2 BuiltIn ClipDistance
+               OpMemberDecorate %gl_PerVertex 3 BuiltIn CullDistance
+               OpDecorate %gl_PerVertex Block
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+       %uint = OpTypeInt 32 0
+%_ptr_Function_uint = OpTypePointer Function %uint
+      %float = OpTypeFloat 32
+    %v4float = OpTypeVector %float 4
+   %Material = OpTypeStruct %v4float %float %float %float %uint %uint %uint %uint %uint %uint %uint %uint %uint %uint %uint %uint %uint
+         %11 = OpTypeFunction %Material %_ptr_Function_uint
+        %int = OpTypeInt 32 1
+%_ptr_Function_int = OpTypePointer Function %int
+      %int_0 = OpConstant %int 0
+ %Material_0 = OpTypeStruct %v4float %float %float %float %uint %uint %uint %uint %uint %uint %uint %uint %uint %uint %uint %uint %uint
+%_runtimearr_Material_0 = OpTypeRuntimeArray %Material_0
+%MaterialsBuffer = OpTypeStruct %_runtimearr_Material_0
+%_ptr_StorageBuffer_MaterialsBuffer = OpTypePointer StorageBuffer %MaterialsBuffer
+          %_ = OpVariable %_ptr_StorageBuffer_MaterialsBuffer StorageBuffer
+       %bool = OpTypeBool
+     %int_16 = OpConstant %int 16
+%_ptr_StorageBuffer_uint = OpTypePointer StorageBuffer %uint
+%_ptr_StorageBuffer_Material_0 = OpTypePointer StorageBuffer %Material_0
+%_ptr_Function_Material = OpTypePointer Function %Material
+      %int_1 = OpConstant %int 1
+%ConstantData = OpTypeStruct %uint
+%_ptr_PushConstant_ConstantData = OpTypePointer PushConstant %ConstantData
+        %__0 = OpVariable %_ptr_PushConstant_ConstantData PushConstant
+%_ptr_PushConstant_uint = OpTypePointer PushConstant %uint
+%_ptr_Input_int = OpTypePointer Input %int
+%gl_InstanceIndex = OpVariable %_ptr_Input_int Input
+%mat4v4float = OpTypeMatrix %v4float 4
+%_ptr_Function_mat4v4float = OpTypePointer Function %mat4v4float
+%InstanceData = OpTypeStruct %uint %uint %uint %uint %mat4v4float
+%_runtimearr_InstanceData = OpTypeRuntimeArray %InstanceData
+%InstancesBuffer = OpTypeStruct %_runtimearr_InstanceData
+%_ptr_StorageBuffer_InstancesBuffer = OpTypePointer StorageBuffer %InstancesBuffer
+        %__1 = OpVariable %_ptr_StorageBuffer_InstancesBuffer StorageBuffer
+      %int_4 = OpConstant %int 4
+%_ptr_StorageBuffer_mat4v4float = OpTypePointer StorageBuffer %mat4v4float
+      %int_2 = OpConstant %int 2
+%_ptr_Function_bool = OpTypePointer Function %bool
+     %uint_0 = OpConstant %uint 0
+    %float_1 = OpConstant %float 1
+    %float_0 = OpConstant %float 0
+        %100 = OpConstantComposite %v4float %float_1 %float_0 %float_0 %float_0
+        %101 = OpConstantComposite %v4float %float_0 %float_1 %float_0 %float_0
+        %102 = OpConstantComposite %v4float %float_0 %float_0 %float_1 %float_0
+        %103 = OpConstantComposite %v4float %float_0 %float_0 %float_0 %float_1
+        %104 = OpConstantComposite %mat4v4float %100 %101 %102 %103
+%_ptr_Input_v4float = OpTypePointer Input %v4float
+   %a_Weight = OpVariable %_ptr_Input_v4float Input
+%_ptr_Input_float = OpTypePointer Input %float
+%_runtimearr_mat4v4float = OpTypeRuntimeArray %mat4v4float
+%JointMatrices = OpTypeStruct %_runtimearr_mat4v4float
+%_ptr_StorageBuffer_JointMatrices = OpTypePointer StorageBuffer %JointMatrices
+        %__2 = OpVariable %_ptr_StorageBuffer_JointMatrices StorageBuffer
+      %v4int = OpTypeVector %int 4
+%_ptr_Input_v4int = OpTypePointer Input %v4int
+  %a_BoneIDs = OpVariable %_ptr_Input_v4int Input
+     %uint_1 = OpConstant %uint 1
+     %uint_2 = OpConstant %uint 2
+     %uint_3 = OpConstant %uint 3
+    %v3float = OpTypeVector %float 3
+%_ptr_Output_v3float = OpTypePointer Output %v3float
+  %v_FragPos = OpVariable %_ptr_Output_v3float Output
+%_ptr_Input_v3float = OpTypePointer Input %v3float
+ %a_Position = OpVariable %_ptr_Input_v3float Input
+    %v2float = OpTypeVector %float 2
+%_ptr_Output_v2float = OpTypePointer Output %v2float
+       %v_UV = OpVariable %_ptr_Output_v2float Output
+%_ptr_Input_v2float = OpTypePointer Input %v2float
+       %a_UV = OpVariable %_ptr_Input_v2float Input
+%_ptr_Output_Material = OpTypePointer Output %Material
+ %v_Material = OpVariable %_ptr_Output_Material Output
+%_ptr_Output_float = OpTypePointer Output %float
+%v_LinearDepth = OpVariable %_ptr_Output_float Output
+%SceneBuffer = OpTypeStruct %mat4v4float %mat4v4float %v4float %float %float %v2float %mat4v4float
+%_ptr_Uniform_SceneBuffer = OpTypePointer Uniform %SceneBuffer
+  %sceneData = OpVariable %_ptr_Uniform_SceneBuffer Uniform
+%_ptr_Uniform_mat4v4float = OpTypePointer Uniform %mat4v4float
+%_ptr_Function_v3float = OpTypePointer Function %v3float
+%mat3v3float = OpTypeMatrix %v3float 3
+   %a_Normal = OpVariable %_ptr_Input_v3float Input
+  %a_Tangent = OpVariable %_ptr_Input_v3float Input
+%_ptr_Output_mat3v3float = OpTypePointer Output %mat3v3float
+      %v_TBN = OpVariable %_ptr_Output_mat3v3float Output
+   %v_Normal = OpVariable %_ptr_Output_v3float Output
+%_arr_float_uint_1 = OpTypeArray %float %uint_1
+%gl_PerVertex = OpTypeStruct %v4float %float %_arr_float_uint_1 %_arr_float_uint_1
+%_ptr_Output_gl_PerVertex = OpTypePointer Output %gl_PerVertex
+        %__3 = OpVariable %_ptr_Output_gl_PerVertex Output
+%_ptr_Output_v4float = OpTypePointer Output %v4float
+       %main = OpFunction %void None %3
+          %5 = OpLabel
+ %instanceID = OpVariable %_ptr_Function_uint Function
+      %model = OpVariable %_ptr_Function_mat4v4float Function
+ %materialID = OpVariable %_ptr_Function_uint Function
+ %animOffset = OpVariable %_ptr_Function_uint Function
+ %isAnimated = OpVariable %_ptr_Function_bool Function
+    %skinMat = OpVariable %_ptr_Function_mat4v4float Function
+  %modelSkin = OpVariable %_ptr_Function_mat4v4float Function
+      %param = OpVariable %_ptr_Function_uint Function
+     %normal = OpVariable %_ptr_Function_v3float Function
+    %tangent = OpVariable %_ptr_Function_v3float Function
+          %B = OpVariable %_ptr_Function_v3float Function
+         %61 = OpAccessChain %_ptr_PushConstant_uint %__0 %int_0
+         %62 = OpLoad %uint %61
+         %65 = OpLoad %int %gl_InstanceIndex
+         %66 = OpBitcast %uint %65
+         %67 = OpIAdd %uint %62 %66
+               OpStore %instanceID %67
+         %76 = OpLoad %uint %instanceID
+         %79 = OpAccessChain %_ptr_StorageBuffer_mat4v4float %__1 %int_0 %76 %int_4
+         %80 = OpLoad %mat4v4float %79
+               OpStore %model %80
+         %82 = OpLoad %uint %instanceID
+         %83 = OpAccessChain %_ptr_StorageBuffer_uint %__1 %int_0 %82 %int_0
+         %84 = OpLoad %uint %83
+               OpStore %materialID %84
+         %86 = OpLoad %uint %instanceID
+         %88 = OpAccessChain %_ptr_StorageBuffer_uint %__1 %int_0 %86 %int_2
+         %89 = OpLoad %uint %88
+               OpStore %animOffset %89
+         %92 = OpLoad %uint %instanceID
+         %93 = OpAccessChain %_ptr_StorageBuffer_uint %__1 %int_0 %92 %int_1
+         %94 = OpLoad %uint %93
+         %96 = OpINotEqual %bool %94 %uint_0
+               OpStore %isAnimated %96
+               OpStore %skinMat %104
+        %105 = OpLoad %bool %isAnimated
+               OpSelectionMerge %107 None
+               OpBranchConditional %105 %106 %107
+        %106 = OpLabel
+        %111 = OpAccessChain %_ptr_Input_float %a_Weight %uint_0
+        %112 = OpLoad %float %111
+        %117 = OpLoad %uint %animOffset
+        %121 = OpAccessChain %_ptr_Input_int %a_BoneIDs %uint_0
+        %122 = OpLoad %int %121
+        %123 = OpBitcast %uint %122
+        %124 = OpIAdd %uint %117 %123
+        %125 = OpAccessChain %_ptr_StorageBuffer_mat4v4float %__2 %int_0 %124
+        %126 = OpLoad %mat4v4float %125
+        %127 = OpMatrixTimesScalar %mat4v4float %126 %112
+        %129 = OpAccessChain %_ptr_Input_float %a_Weight %uint_1
+        %130 = OpLoad %float %129
+        %131 = OpLoad %uint %animOffset
+        %132 = OpAccessChain %_ptr_Input_int %a_BoneIDs %uint_1
+        %133 = OpLoad %int %132
+        %134 = OpBitcast %uint %133
+        %135 = OpIAdd %uint %131 %134
+        %136 = OpAccessChain %_ptr_StorageBuffer_mat4v4float %__2 %int_0 %135
+        %137 = OpLoad %mat4v4float %136
+        %138 = OpMatrixTimesScalar %mat4v4float %137 %130
+        %139 = OpCompositeExtract %v4float %127 0
+        %140 = OpCompositeExtract %v4float %138 0
+        %141 = OpFAdd %v4float %139 %140
+        %142 = OpCompositeExtract %v4float %127 1
+        %143 = OpCompositeExtract %v4float %138 1
+        %144 = OpFAdd %v4float %142 %143
+        %145 = OpCompositeExtract %v4float %127 2
+        %146 = OpCompositeExtract %v4float %138 2
+        %147 = OpFAdd %v4float %145 %146
+        %148 = OpCompositeExtract %v4float %127 3
+        %149 = OpCompositeExtract %v4float %138 3
+        %150 = OpFAdd %v4float %148 %149
+        %151 = OpCompositeConstruct %mat4v4float %141 %144 %147 %150
+        %153 = OpAccessChain %_ptr_Input_float %a_Weight %uint_2
+        %154 = OpLoad %float %153
+        %155 = OpLoad %uint %animOffset
+        %156 = OpAccessChain %_ptr_Input_int %a_BoneIDs %uint_2
+        %157 = OpLoad %int %156
+        %158 = OpBitcast %uint %157
+        %159 = OpIAdd %uint %155 %158
+        %160 = OpAccessChain %_ptr_StorageBuffer_mat4v4float %__2 %int_0 %159
+        %161 = OpLoad %mat4v4float %160
+        %162 = OpMatrixTimesScalar %mat4v4float %161 %154
+        %163 = OpCompositeExtract %v4float %151 0
+        %164 = OpCompositeExtract %v4float %162 0
+        %165 = OpFAdd %v4float %163 %164
+        %166 = OpCompositeExtract %v4float %151 1
+        %167 = OpCompositeExtract %v4float %162 1
+        %168 = OpFAdd %v4float %166 %167
+        %169 = OpCompositeExtract %v4float %151 2
+        %170 = OpCompositeExtract %v4float %162 2
+        %171 = OpFAdd %v4float %169 %170
+        %172 = OpCompositeExtract %v4float %151 3
+        %173 = OpCompositeExtract %v4float %162 3
+        %174 = OpFAdd %v4float %172 %173
+        %175 = OpCompositeConstruct %mat4v4float %165 %168 %171 %174
+        %177 = OpAccessChain %_ptr_Input_float %a_Weight %uint_3
+        %178 = OpLoad %float %177
+        %179 = OpLoad %uint %animOffset
+        %180 = OpAccessChain %_ptr_Input_int %a_BoneIDs %uint_3
+        %181 = OpLoad %int %180
+        %182 = OpBitcast %uint %181
+        %183 = OpIAdd %uint %179 %182
+        %184 = OpAccessChain %_ptr_StorageBuffer_mat4v4float %__2 %int_0 %183
+        %185 = OpLoad %mat4v4float %184
+        %186 = OpMatrixTimesScalar %mat4v4float %185 %178
+        %187 = OpCompositeExtract %v4float %175 0
+        %188 = OpCompositeExtract %v4float %186 0
+        %189 = OpFAdd %v4float %187 %188
+        %190 = OpCompositeExtract %v4float %175 1
+        %191 = OpCompositeExtract %v4float %186 1
+        %192 = OpFAdd %v4float %190 %191
+        %193 = OpCompositeExtract %v4float %175 2
+        %194 = OpCompositeExtract %v4float %186 2
+        %195 = OpFAdd %v4float %193 %194
+        %196 = OpCompositeExtract %v4float %175 3
+        %197 = OpCompositeExtract %v4float %186 3
+        %198 = OpFAdd %v4float %196 %197
+        %199 = OpCompositeConstruct %mat4v4float %189 %192 %195 %198
+               OpStore %skinMat %199
+               OpBranch %107
+        %107 = OpLabel
+        %201 = OpLoad %mat4v4float %model
+        %202 = OpLoad %mat4v4float %skinMat
+        %203 = OpMatrixTimesMatrix %mat4v4float %201 %202
+               OpStore %modelSkin %203
+        %207 = OpLoad %mat4v4float %modelSkin
+        %210 = OpLoad %v3float %a_Position
+        %211 = OpCompositeExtract %float %210 0
+        %212 = OpCompositeExtract %float %210 1
+        %213 = OpCompositeExtract %float %210 2
+        %214 = OpCompositeConstruct %v4float %211 %212 %213 %float_1
+        %215 = OpMatrixTimesVector %v4float %207 %214
+        %216 = OpCompositeExtract %float %215 0
+        %217 = OpCompositeExtract %float %215 1
+        %218 = OpCompositeExtract %float %215 2
+        %219 = OpCompositeConstruct %v3float %216 %217 %218
+               OpStore %v_FragPos %219
+        %225 = OpLoad %v2float %a_UV
+               OpStore %v_UV %225
+        %229 = OpLoad %uint %materialID
+               OpStore %param %229
+        %230 = OpFunctionCall %Material %GetMaterial_u1_ %param
+               OpStore %v_Material %230
+        %237 = OpAccessChain %_ptr_Uniform_mat4v4float %sceneData %int_1
+        %238 = OpLoad %mat4v4float %237
+        %239 = OpLoad %v3float %v_FragPos
+        %240 = OpCompositeExtract %float %239 0
+        %241 = OpCompositeExtract %float %239 1
+        %242 = OpCompositeExtract %float %239 2
+        %243 = OpCompositeConstruct %v4float %240 %241 %242 %float_1
+        %244 = OpMatrixTimesVector %v4float %238 %243
+        %245 = OpCompositeExtract %float %244 2
+        %246 = OpFNegate %float %245
+               OpStore %v_LinearDepth %246
+        %249 = OpLoad %mat4v4float %modelSkin
+        %250 = OpExtInst %mat4v4float %1 MatrixInverse %249
+        %251 = OpTranspose %mat4v4float %250
+        %253 = OpCompositeExtract %v4float %251 0
+        %254 = OpVectorShuffle %v3float %253 %253 0 1 2
+        %255 = OpCompositeExtract %v4float %251 1
+        %256 = OpVectorShuffle %v3float %255 %255 0 1 2
+        %257 = OpCompositeExtract %v4float %251 2
+        %258 = OpVectorShuffle %v3float %257 %257 0 1 2
+        %259 = OpCompositeConstruct %mat3v3float %254 %256 %258
+        %261 = OpLoad %v3float %a_Normal
+        %262 = OpMatrixTimesVector %v3float %259 %261
+               OpStore %normal %262
+        %264 = OpLoad %mat4v4float %modelSkin
+        %266 = OpLoad %v3float %a_Tangent
+        %267 = OpCompositeExtract %float %266 0
+        %268 = OpCompositeExtract %float %266 1
+        %269 = OpCompositeExtract %float %266 2
+        %270 = OpCompositeConstruct %v4float %267 %268 %269 %float_0
+        %271 = OpMatrixTimesVector %v4float %264 %270
+        %272 = OpCompositeExtract %float %271 0
+        %273 = OpCompositeExtract %float %271 1
+        %274 = OpCompositeExtract %float %271 2
+        %275 = OpCompositeConstruct %v3float %272 %273 %274
+        %276 = OpExtInst %v3float %1 Normalize %275
+               OpStore %tangent %276
+        %278 = OpLoad %v3float %normal
+        %279 = OpLoad %v3float %tangent
+        %280 = OpExtInst %v3float %1 Cross %278 %279
+        %281 = OpCompositeExtract %float %280 0
+        %282 = OpCompositeExtract %float %280 1
+        %283 = OpCompositeExtract %float %280 2
+        %284 = OpCompositeConstruct %v4float %281 %282 %283 %float_0
+        %285 = OpCompositeExtract %float %284 0
+        %286 = OpCompositeExtract %float %284 1
+        %287 = OpCompositeExtract %float %284 2
+        %288 = OpCompositeConstruct %v3float %285 %286 %287
+        %289 = OpExtInst %v3float %1 Normalize %288
+               OpStore %B %289
+        %292 = OpLoad %v3float %tangent
+        %293 = OpLoad %v3float %B
+        %294 = OpLoad %v3float %normal
+        %295 = OpCompositeExtract %float %292 0
+        %296 = OpCompositeExtract %float %292 1
+        %297 = OpCompositeExtract %float %292 2
+        %298 = OpCompositeExtract %float %293 0
+        %299 = OpCompositeExtract %float %293 1
+        %300 = OpCompositeExtract %float %293 2
+        %301 = OpCompositeExtract %float %294 0
+        %302 = OpCompositeExtract %float %294 1
+        %303 = OpCompositeExtract %float %294 2
+        %304 = OpCompositeConstruct %v3float %295 %296 %297
+        %305 = OpCompositeConstruct %v3float %298 %299 %300
+        %306 = OpCompositeConstruct %v3float %301 %302 %303
+        %307 = OpCompositeConstruct %mat3v3float %304 %305 %306
+               OpStore %v_TBN %307
+        %309 = OpLoad %v3float %normal
+               OpStore %v_Normal %309
+        %314 = OpAccessChain %_ptr_Uniform_mat4v4float %sceneData %int_0
+        %315 = OpLoad %mat4v4float %314
+        %316 = OpAccessChain %_ptr_Uniform_mat4v4float %sceneData %int_1
+        %317 = OpLoad %mat4v4float %316
+        %318 = OpMatrixTimesMatrix %mat4v4float %315 %317
+        %319 = OpLoad %v3float %v_FragPos
+        %320 = OpCompositeExtract %float %319 0
+        %321 = OpCompositeExtract %float %319 1
+        %322 = OpCompositeExtract %float %319 2
+        %323 = OpCompositeConstruct %v4float %320 %321 %322 %float_1
+        %324 = OpMatrixTimesVector %v4float %318 %323
+        %326 = OpAccessChain %_ptr_Output_v4float %__3 %int_0
+               OpStore %326 %324
+               OpReturn
+               OpFunctionEnd
+%GetMaterial_u1_ = OpFunction %Material None %11
+         %id = OpFunctionParameter %_ptr_Function_uint
+         %14 = OpLabel
+          %i = OpVariable %_ptr_Function_int Function
+         %48 = OpVariable %_ptr_Function_Material Function
+               OpStore %i %int_0
+               OpBranch %19
+         %19 = OpLabel
+               OpLoopMerge %21 %22 None
+               OpBranch %23
+         %23 = OpLabel
+         %24 = OpLoad %int %i
+         %30 = OpArrayLength %uint %_ 0
+         %31 = OpBitcast %int %30
+         %33 = OpSLessThan %bool %24 %31
+               OpBranchConditional %33 %20 %21
+         %20 = OpLabel
+         %34 = OpLoad %int %i
+         %37 = OpAccessChain %_ptr_StorageBuffer_uint %_ %int_0 %34 %int_16
+         %38 = OpLoad %uint %37
+         %39 = OpLoad %uint %id
+         %40 = OpIEqual %bool %38 %39
+               OpSelectionMerge %42 None
+               OpBranchConditional %40 %41 %42
+         %41 = OpLabel
+         %43 = OpLoad %int %i
+         %45 = OpAccessChain %_ptr_StorageBuffer_Material_0 %_ %int_0 %43
+         %46 = OpLoad %Material_0 %45
+         %49 = OpCopyLogical %Material %46
+               OpStore %48 %49
+         %50 = OpLoad %Material %48
+               OpReturnValue %50
+         %42 = OpLabel
+               OpBranch %22
+         %22 = OpLabel
+         %52 = OpLoad %int %i
+         %54 = OpIAdd %int %52 %int_1
+               OpStore %i %54
+               OpBranch %19
+         %21 = OpLabel
+         %55 = OpUndef %Material
+               OpReturnValue %55
+               OpFunctionEnd

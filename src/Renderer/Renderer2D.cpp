@@ -95,9 +95,9 @@ namespace SmolEngine
 
 	void Renderer2DStorage::UpdateUniforms(RendererDrawList2D* drawList)
 	{
-		MainPipeline->SubmitBuffer(SceneDataBP, sizeof(SceneViewProjection), drawList->SceneInfo);
-		MainPipeline->SubmitBuffer(InstancesBP, ShaderInstanceSize * drawList->InstIndex, drawList->ShaderInstances);
-		MainPipeline->UpdateSamplers(drawList->Textures, 0);
+		MainPipeline->UpdateBuffer(SceneDataBP, sizeof(SceneViewProjection), drawList->SceneInfo);
+		MainPipeline->UpdateBuffer(InstancesBP, ShaderInstanceSize * drawList->InstIndex, drawList->ShaderInstances);
+		MainPipeline->UpdateTextures(drawList->Textures, 0);
 	}
 
 	void Renderer2D::DrawFrame(ClearInfo* clearInfo, bool batch_cmd)
