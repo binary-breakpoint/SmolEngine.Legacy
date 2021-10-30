@@ -3,7 +3,6 @@
 #include "Backends/Vulkan/VulkanShader.h"
 #include "Backends/Vulkan/VulkanContext.h"
 #include "Backends/Vulkan/VulkanUtils.h"
-#include "Backends/Vulkan/VulkanRaytracingPipeline.h"
 
 #include "Tools/Utils.h"
 #include <shaderc/shaderc.hpp>
@@ -104,7 +103,7 @@ namespace SmolEngine
         m_ReflectData.Clean();
     }
 
-    void VulkanShader::CreateShaderBindingTable(VulkanRaytracingPipeline* pipeline)
+    void VulkanShader::CreateShaderBindingTable(VkPipeline vkPipeline)
     {
         VulkanDevice& device = VulkanContext::GetDevice();
 
@@ -114,7 +113,7 @@ namespace SmolEngine
         const uint32_t sbtSize = groupCount * handleSizeAligned;
 
         std::vector<uint8_t> shaderHandleStorage(sbtSize);
-        VK_CHECK_RESULT(device.vkGetRayTracingShaderGroupHandlesKHR(device.GetLogicalDevice(), pipeline->GetVkPipeline(), 0, groupCount, sbtSize, shaderHandleStorage.data()));
+        VK_CHECK_RESULT(device.vkGetRayTracingShaderGroupHandlesKHR(device.GetLogicalDevice(), vkPipeline, 0, groupCount, sbtSize, shaderHandleStorage.data()));
 
         auto& rayGen = m_BindingTables[ShaderType::RayGen];
         auto& rayHit = m_BindingTables[ShaderType::RayCloseHit]; // temp

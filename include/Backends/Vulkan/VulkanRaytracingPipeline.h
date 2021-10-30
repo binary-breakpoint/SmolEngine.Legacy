@@ -30,7 +30,6 @@ namespace SmolEngine
 		VkDescriptorPool                   m_DescriptorPool = nullptr;
 		VulkanACStructure                  m_ACStructure{};
 		std::vector<VulkanDescriptor>      m_Descriptors;
-		std::vector<VkDescriptorSetLayout> m_SetLayout;
 	};
 }
 

@@ -146,8 +146,8 @@ namespace SmolEngine
 
 		const auto loadFn = [this](ShaderType type, const std::string& str, bool isSource)
 		{
-			if (str.empty())
-				return;
+			if (str.empty()){ return; }
+			if (type == ShaderType::RayGen) { m_RTPipeline = true; }
 
 			auto& binaries = m_Binary[type];
 
@@ -158,6 +158,7 @@ namespace SmolEngine
 				{
 					LoadSPIRV(cachedPath, binaries);
 					Reflect(binaries, type); // TODO:: serialize
+
 					return;
 				}
 			}

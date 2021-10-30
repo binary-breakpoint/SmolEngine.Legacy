@@ -12,8 +12,6 @@
 
 namespace SmolEngine
 {
-	class VulkanRaytracingPipeline;
-
 	class VulkanShader: public Shader
 	{
 	public:		
@@ -26,7 +24,7 @@ namespace SmolEngine
 		void                                                     DeleteShaderModules();
 
 	private:
-		void                                                     CreateShaderBindingTable(VulkanRaytracingPipeline* pipeline);
+		void                                                     CreateShaderBindingTable(VkPipeline vkPipeline);
 
 	private:
 		std::vector<VkPushConstantRange>                         m_VkPushConstantRanges;
@@ -40,6 +38,7 @@ namespace SmolEngine
 		friend class VulkanDescriptor;
 		friend class GraphicsPipeline;
 		friend class VulkanComputePipeline;
+		friend class VulkanRaytracingPipeline;
 	};
 }
 #endif

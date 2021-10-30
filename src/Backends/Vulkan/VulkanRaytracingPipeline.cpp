@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #ifndef OPENGL_IMPL
 #include "Backends/Vulkan/VulkanRaytracingPipeline.h"
+#include "Backends/Vulkan/VulkanContext.h"
 #include "Backends/Vulkan/VulkanShader.h"
 #include "Backends/Vulkan/VulkanPipeline.h"
 #include "Backends/Vulkan/VulkanFramebuffer.h"
@@ -11,10 +12,61 @@ namespace SmolEngine
 	{
 		if(!BuildEX(info)) { return false; }
 
+		// Acceleration Structure 
 		m_ACStructure.Build(info);
+		
+		// Descriptors
+		{
+			// Base
+			VulkanPipeline::BuildDescriptors(m_Shader, info->NumDescriptorSets, m_Descriptors, m_DescriptorPool);
 
-		VulkanPipeline::BuildDescriptors(m_Shader, info->NumDescriptorSets, m_Descriptors, m_DescriptorPool);
+			// RT only
+			for (auto& descriptor : m_Descriptors)
+				descriptor.GenACStructureDescriptors(m_Shader, &m_ACStructure);
+		}
 
+		// Pipeline
+		{
+			VulkanShader* vkShader = m_Shader->Cast<VulkanShader>();
+			VulkanDevice& device = VulkanContext::GetDevice();
+
+			std::vector<VkDescriptorSetLayout> setLayouts;
+			for (auto& descriptor : m_Descriptors)
+			{
+				setLayouts.push_back(descriptor.GetLayout());
+			}
+
+			VkPipelineLayoutCreateInfo pipelineLayoutCI = {};
+			{
+				pipelineLayoutCI.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+				pipelineLayoutCI.pNext = nullptr;
+				pipelineLayoutCI.setLayoutCount = static_cast<uint32_t>(setLayouts.size());
+				pipelineLayoutCI.pSetLayouts = setLayouts.data();
+				pipelineLayoutCI.pushConstantRangeCount = static_cast<uint32_t>(vkShader->m_VkPushConstantRanges.size());
+				pipelineLayoutCI.pPushConstantRanges = vkShader->m_VkPushConstantRanges.data();
+
+				VK_CHECK_RESULT(vkCreatePipelineLayout(device.GetLogicalDevice(), &pipelineLayoutCI, nullptr, &m_PipelineLayout));
+			}
+
+			/*
+	           Create the ray tracing pipeline
+            */
+
+			VkRayTracingPipelineCreateInfoKHR rayTracingPipelineCI{};
+			rayTracingPipelineCI.sType = VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR;
+			rayTracingPipelineCI.stageCount = static_cast<uint32_t>(vkShader->m_VkPipelineShaderStages.size());
+			rayTracingPipelineCI.pStages = vkShader->m_VkPipelineShaderStages.data();
+			rayTracingPipelineCI.groupCount = static_cast<uint32_t>(vkShader->m_ShaderGroupsRT.size());
+			rayTracingPipelineCI.pGroups = vkShader->m_ShaderGroupsRT.data();
+			rayTracingPipelineCI.maxPipelineRayRecursionDepth = 1;
+			rayTracingPipelineCI.layout = m_PipelineLayout;
+
+			VK_CHECK_RESULT(device.vkCreateRayTracingPipelinesKHR(device.GetLogicalDevice(), VK_NULL_HANDLE,
+				VK_NULL_HANDLE, 1, &rayTracingPipelineCI, nullptr, &m_Pipeline));
+
+			// SBT
+			vkShader->CreateShaderBindingTable(m_Pipeline);
+		}
 
 		return true;
 	}

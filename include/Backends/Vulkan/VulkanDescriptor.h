@@ -9,7 +9,7 @@ namespace SmolEngine
 {
 	class Shader;
 	class Texture;
-	class VulkanRaytracingPipeline;
+	class VulkanACStructure;
 	enum class TextureFlags;
 	struct BufferObject;
 
@@ -23,10 +23,11 @@ namespace SmolEngine
 		void                                             GenDescriptorSet(Ref<Shader>& shader, VkDescriptorPool pool);
 		void                                             GenBuffersDescriptors(Ref<Shader>& shader);
 		void                                             GenSamplersDescriptors(Ref<Shader>& shader);
-		void                                             GenACStructureDescriptors(Ref<Shader>& shader, VulkanRaytracingPipeline* rtPipeline);
+		void                                             GenACStructureDescriptors(Ref<Shader>& shader, VulkanACStructure* baseStructure);
 		bool                                             UpdateTextures(const std::vector<Ref<Texture>>& textures, uint32_t bindingPoint, TextureFlags usage);
 		bool                                             UpdateTexture(const Ref<Texture>& texture, uint32_t bindingPoint, TextureFlags usage);
 		bool                                             UpdateVkDescriptor(uint32_t bindingPoint, const VkDescriptorImageInfo& imageInfo, TextureFlags flags = TextureFlags::SAMPLER_2D);
+		bool                                             UpdateVkAccelerationStructure(uint32_t bindingPoint, VulkanACStructure* structure);
 		bool                                             UpdateBuffer(uint32_t binding, size_t size, const void* data, uint32_t offset = 0);
 		VkDescriptorSet                                  GetDescriptorSets() const;
 		static VkDescriptorType                          GetVkDescriptorType(TextureFlags flags);

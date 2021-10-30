@@ -10,6 +10,7 @@
 #include "Backends/Vulkan/VulkanContext.h"
 #include "Backends/Vulkan/VulkanBufferPool.h"
 #include "Backends/Vulkan/VulkanTexture.h"
+#include "Backends/Vulkan/VulkanACStructure.h"
 
 // TODO: Refactor
 
@@ -213,10 +214,9 @@ namespace SmolEngine
 
 	void VulkanDescriptor::GenSamplersDescriptors(Ref<Shader>& shader)
 	{
-		const ReflectionData& refData = shader->GetReflection();
-#ifndef OPENGL_IMPL
 		m_ImageInfo = TexturePool::GetWhiteTexture()->Cast<VulkanTexture>()->m_DescriptorImageInfo;
-#endif
+
+		const ReflectionData& refData = shader->GetReflection();
 		for (auto& [bindingPoint, res] : refData.ImageSamplers)
 		{
 			if (res.Dimension == 3) // cubeMap
@@ -279,9 +279,28 @@ namespace SmolEngine
 		}
 	}
 
-	void VulkanDescriptor::GenACStructureDescriptors(Ref<Shader>& shader, VulkanRaytracingPipeline* rtPipeline)
+	void VulkanDescriptor::GenACStructureDescriptors(Ref<Shader>& shader, VulkanACStructure* baseStructure)
 	{
+		const ReflectionData& refData = shader->GetReflection();
 
+		for (auto& [binding, structure] : refData.ACStructures)
+		{
+			VkWriteDescriptorSetAccelerationStructureKHR descriptorAccelerationStructureInfo{};
+			descriptorAccelerationStructureInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR;
+			descriptorAccelerationStructureInfo.accelerationStructureCount = 1;
+			descriptorAccelerationStructureInfo.pAccelerationStructures = &baseStructure->GetTopLevel().m_Handle;
+
+			VkWriteDescriptorSet accelerationStructureWrite{};
+			accelerationStructureWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			accelerationStructureWrite.pNext = &descriptorAccelerationStructureInfo;
+			accelerationStructureWrite.dstSet = m_DescriptorSet;
+			accelerationStructureWrite.dstBinding = binding;
+			accelerationStructureWrite.descriptorCount = structure.ArraySize == 0 ? 1 : structure.ArraySize;
+			accelerationStructureWrite.descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
+
+			vkUpdateDescriptorSets(m_Device, 1, &accelerationStructureWrite, 0, nullptr);
+			m_WriteSets[binding] = accelerationStructureWrite;
+		}
 	}
 
 	bool VulkanDescriptor::UpdateTextures(const std::vector<Ref<Texture>>& textures, uint32_t bindingPoint, TextureFlags usage_)
@@ -338,6 +357,26 @@ namespace SmolEngine
 			writeSet->descriptorCount = 1;
 			writeSet->pImageInfo = &imageInfo;
 
+			vkUpdateDescriptorSets(m_Device, 1, writeSet, 0, nullptr);
+
+			return true;
+		}
+
+		return false;
+	}
+
+	bool VulkanDescriptor::UpdateVkAccelerationStructure(uint32_t bindingPoint, VulkanACStructure* structure)
+	{
+		auto& it = m_WriteSets.find(bindingPoint);
+		if (it != m_WriteSets.end())
+		{
+			VkWriteDescriptorSetAccelerationStructureKHR descriptorAccelerationStructureInfo{};
+			descriptorAccelerationStructureInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR;
+			descriptorAccelerationStructureInfo.accelerationStructureCount = 1;
+			descriptorAccelerationStructureInfo.pAccelerationStructures = &structure->GetTopLevel().m_Handle;
+
+			VkWriteDescriptorSet* writeSet = &it->second;
+			writeSet->pNext = &descriptorAccelerationStructureInfo;
 			vkUpdateDescriptorSets(m_Device, 1, writeSet, 0, nullptr);
 
 			return true;
