@@ -5,9 +5,55 @@
 #include "Backends/Vulkan/VulkanShader.h"
 #include "Backends/Vulkan/VulkanPipeline.h"
 #include "Backends/Vulkan/VulkanFramebuffer.h"
+#include "Backends/Vulkan/VulkanUtils.h"
 
 namespace SmolEngine
 {
+	void VulkanRaytracingPipeline::Dispatch(uint32_t width, uint32_t height, void* cmdStorage)
+	{
+		const CommandBufferStorage* storage = (CommandBufferStorage*)cmdStorage;
+		const VulkanDevice& device = VulkanContext::GetDevice();
+		const VkDescriptorSet& descriptorSet = m_Descriptors[m_DescriptorIndex].GetDescriptorSets();
+		auto& shaderBindingTable = m_Shader->Cast<VulkanShader>()->m_BindingTables;
+
+		const uint32_t handleSizeAligned = VulkanUtils::GetAlignedSize(device.rayTracingPipelineProperties.shaderGroupHandleSize,
+			device.rayTracingPipelineProperties.shaderGroupHandleAlignment);
+
+		VkStridedDeviceAddressRegionKHR raygenShaderSbtEntry{};
+		raygenShaderSbtEntry.deviceAddress = VulkanUtils::GetBufferDeviceAddress(shaderBindingTable[ShaderType::RayGen].GetBuffer());
+		raygenShaderSbtEntry.stride = handleSizeAligned;
+		raygenShaderSbtEntry.size = handleSizeAligned;
+
+		VkStridedDeviceAddressRegionKHR missShaderSbtEntry{};
+		missShaderSbtEntry.deviceAddress = VulkanUtils::GetBufferDeviceAddress(shaderBindingTable[ShaderType::RayMiss].GetBuffer());
+		missShaderSbtEntry.stride = handleSizeAligned;
+		missShaderSbtEntry.size = handleSizeAligned;
+
+		VkStridedDeviceAddressRegionKHR hitShaderSbtEntry{};
+		hitShaderSbtEntry.deviceAddress = VulkanUtils::GetBufferDeviceAddress(shaderBindingTable[ShaderType::RayCloseHit].GetBuffer());
+		hitShaderSbtEntry.stride = handleSizeAligned;
+		hitShaderSbtEntry.size = handleSizeAligned;
+
+		VkStridedDeviceAddressRegionKHR callableShaderSbtEntry{};
+
+		m_CommandBuffer = cmdStorage != nullptr ? storage->Buffer : VulkanContext::GetCurrentVkCmdBuffer();
+		{
+			vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, m_Pipeline);
+			vkCmdBindDescriptorSets(m_CommandBuffer, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, m_PipelineLayout, 0, 1, &descriptorSet, 0, 0);
+
+			device.vkCmdTraceRaysKHR(
+				m_CommandBuffer,
+				&raygenShaderSbtEntry,
+				&missShaderSbtEntry,
+				&hitShaderSbtEntry,
+				&callableShaderSbtEntry,
+				width,
+				height,
+				1);
+		}
+		m_CommandBuffer = nullptr;
+	}
+
 	bool VulkanRaytracingPipeline::Build(RaytracingPipelineCreateInfo* info)
 	{
 		if(!BuildEX(info)) { return false; }

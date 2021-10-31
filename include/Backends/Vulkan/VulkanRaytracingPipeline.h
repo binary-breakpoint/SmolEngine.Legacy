@@ -10,9 +10,9 @@ namespace SmolEngine
 	class VulkanRaytracingPipeline: public RaytracingPipeline
 	{
 	public:
+		virtual void     Dispatch(uint32_t width, uint32_t height, void* cmdStorage = nullptr) override;
 		virtual bool     Build(RaytracingPipelineCreateInfo* info) override;
 		virtual void     SubmitPushConstant(ShaderType stage, size_t size, const void* data) override;
-
 		virtual bool     UpdateBuffer(uint32_t binding, size_t size, const void* data, uint32_t offset = 0) override;
 		virtual bool     UpdateTextures(const std::vector<Ref<Texture>>& textures, uint32_t bindingPoint, TextureFlags usage = TextureFlags::MAX_ENUM) override;
 		virtual bool     UpdateTexture(const Ref<Texture>& texture, uint32_t bindingPoint, TextureFlags usage = TextureFlags::MAX_ENUM) override;

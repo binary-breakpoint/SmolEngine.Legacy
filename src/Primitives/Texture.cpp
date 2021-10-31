@@ -61,7 +61,7 @@ namespace SmolEngine
 		storage << file.rdbuf();
 		{
 			cereal::JSONInputArchive input{ storage };
-			input(bVerticalFlip, bAnisotropyEnable, bImGUIHandle, bIsCube, eFormat, eAddressMode, eFilter, eBorderColor, Width, Height, Mips, Depth, FilePath);
+			input(bVerticalFlip, bAnisotropyEnable, bImGUIHandle, eFormat, eAddressMode, eFilter, eBorderColor, Width, Height, Mips, Depth, FilePath);
 		}
 
 		return true;

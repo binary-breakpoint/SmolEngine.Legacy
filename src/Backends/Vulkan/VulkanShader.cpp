@@ -37,6 +37,9 @@ namespace SmolEngine
                 assert(pipelineShaderStageCI.module != VK_NULL_HANDLE);
             }
 
+            m_VkPipelineShaderStages.emplace_back(pipelineShaderStageCI);
+            m_ShaderModules[type] = shaderModule;
+
             if (m_RTPipeline)
             {
                 VkRayTracingShaderGroupCreateInfoKHR shaderGroup{};
@@ -49,15 +52,13 @@ namespace SmolEngine
 
                 if (type == ShaderType::RayCloseHit)
                 {
+                    shaderGroup.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR;
                     shaderGroup.generalShader = VK_SHADER_UNUSED_KHR;
                     shaderGroup.closestHitShader = static_cast<uint32_t>(m_VkPipelineShaderStages.size()) - 1;;
                 }
 
                 m_ShaderGroupsRT.push_back(shaderGroup);
             }
-
-            m_VkPipelineShaderStages.emplace_back(pipelineShaderStageCI);
-            m_ShaderModules[type] = shaderModule;
         }
 
         m_Binary.clear();

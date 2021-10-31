@@ -43,11 +43,26 @@ int main(int argc, char** argv)
 	rtCreateInfo.ShaderCI.Stages[ShaderType::RayCloseHit] = info.ResourcesFolder + "Shaders/Raytracing/basic.rchit";
 	rtCreateInfo.ShaderCI.Stages[ShaderType::RayGen] = info.ResourcesFolder + "Shaders/Raytracing/basic.rgen";
 	rtCreateInfo.ShaderCI.Stages[ShaderType::RayMiss] = info.ResourcesFolder + "Shaders/Raytracing/basic.rmiss";
+
+	rtCreateInfo.ShaderCI.Buffers[2].bGlobal = false;
+
 	rtCreateInfo.VertexInput = VertexInputInfo(sizeof(PBRVertex), mainLayout);
 
 	Ref<RaytracingPipeline> rtPipeline = RaytracingPipeline::Create();
+
 	rtPipeline->Build(&rtCreateInfo);
 
+	Ref<Texture> storageTex = Texture::Create();
+	{
+		TextureCreateInfo texCI{};
+
+		texCI.Width = 720;
+		texCI.Height = 480;
+
+		storageTex->LoadAsStorage(&texCI);
+
+		rtPipeline->UpdateTexture(storageTex, 1);
+	}
 
 	while (context->IsOpen())
 	{
@@ -57,8 +72,22 @@ int main(int argc, char** argv)
 		if (context->IsWindowMinimized())
 			continue;
 
-		context->BeginFrame(deltaTime);
+		camera->OnUpdate(deltaTime);
 
+		context->BeginFrame(deltaTime);
+		{
+			struct CameraProperties
+			{
+				glm::mat4 viewInverse;
+				glm::mat4 projInverse;
+			} camData;
+
+			camData.projInverse = glm::inverse(camera->GetProjection());
+			camData.viewInverse = glm::inverse(camera->GetViewMatrix());
+
+			rtPipeline->UpdateBuffer(2, sizeof(CameraProperties), &camData);
+			rtPipeline->Dispatch(720, 480);
+		}
 		context->SwapBuffers();
 	}
 }

@@ -67,7 +67,6 @@ namespace SmolEngine
 		bool           bVerticalFlip = true;
 		bool           bAnisotropyEnable = true;
 		bool           bImGUIHandle = false;
-		bool           bIsCube = false;
 		TextureFormat  eFormat = TextureFormat::R8G8B8A8_UNORM;
 		AddressMode    eAddressMode = AddressMode::REPEAT;
 		ImageFilter    eFilter = ImageFilter::LINEAR;
@@ -88,7 +87,7 @@ namespace SmolEngine
 		template<typename Archive>
 		void serialize(Archive& archive)
 		{
-			archive(bVerticalFlip, bAnisotropyEnable, bImGUIHandle, bIsCube, eFormat, eAddressMode, eFilter, eBorderColor, Width, Height, Mips, Depth, FilePath);
+			archive(bVerticalFlip, bAnisotropyEnable, bImGUIHandle, eFormat, eAddressMode, eFilter, eBorderColor, Width, Height, Mips, Depth, FilePath);
 		}
 	};
 

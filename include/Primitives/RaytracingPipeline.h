@@ -13,7 +13,6 @@ namespace SmolEngine
 		ShaderCreateInfo ShaderCI{};
 		VertexInputInfo  VertexInput{};
 		int32_t          NumDescriptorSets = 1;
-		Ref<Texture>     Storage = nullptr;
 	};
 
 	class RaytracingPipeline: public PrimitiveBase, public PipelineBase
@@ -22,9 +21,9 @@ namespace SmolEngine
 		RaytracingPipeline() = default;
 		virtual ~RaytracingPipeline() = default;
 
+		virtual void                   Dispatch(uint32_t width, uint32_t height, void* cmdStorage = nullptr) = 0;
 		virtual bool                   Build(RaytracingPipelineCreateInfo* info) = 0;
 		virtual void                   SubmitPushConstant(ShaderType stage, size_t size, const void* data) {};
-
 		static Ref<RaytracingPipeline> Create();
 
 	protected:
@@ -32,6 +31,5 @@ namespace SmolEngine
 
 	protected:
 		Ref<Shader>  m_Shader = nullptr;
-		Ref<Texture> m_Storage = nullptr;
 	};
 }
