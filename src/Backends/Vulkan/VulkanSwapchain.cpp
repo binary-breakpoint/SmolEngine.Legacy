@@ -679,6 +679,11 @@ namespace SmolEngine
 		return m_Framebuffers[m_CurrentBufferIndex];
 	}
 
+	const  VkImage VulkanSwapchain::GetCurrentImage() const
+	{
+		return m_Images[m_CurrentBufferIndex];
+	}
+
 	const VkRenderPass VulkanSwapchain::GetVkRenderPass() const
 	{
 		return m_RenderPass;

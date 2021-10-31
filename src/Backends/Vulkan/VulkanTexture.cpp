@@ -528,9 +528,8 @@ namespace SmolEngine
 		VulkanStagingBuffer stagingBuffer;
 		stagingBuffer.Create(size);
 
-		VkImageUsageFlags usage = VK_IMAGE_USAGE_SAMPLED_BIT;
-		if (is_storage) { usage |= VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT; }
-		else { usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT; }
+		VkImageUsageFlags usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+		if (is_storage) { usage |= VK_IMAGE_USAGE_STORAGE_BIT; }
 
 		m_Image = CreateVkImage(info->Width, info->Height, m_Mips, VK_SAMPLE_COUNT_1_BIT, m_Format, VK_IMAGE_TILING_OPTIMAL, usage, m_Alloc);
 

@@ -50,6 +50,7 @@ namespace SmolEngine
 
 		// Getters
 		const VkFramebuffer GetCurrentFramebuffer() const;
+		const VkImage GetCurrentImage() const;
 		const VkSwapchainKHR& GetVkSwapchain() const;
 		const VkRenderPass GetVkRenderPass() const;
 		const VkSurfaceKHR GetVkSurface() const;

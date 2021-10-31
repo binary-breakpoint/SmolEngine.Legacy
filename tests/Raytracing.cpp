@@ -2,6 +2,9 @@
 
 #include <GraphicsCore.h>
 
+#include <Backends/Vulkan/VulkanTexture.h>
+#include "Backends/Vulkan/VulkanContext.h"
+
 using namespace SmolEngine;
 int main(int argc, char** argv)
 {
@@ -87,6 +90,52 @@ int main(int argc, char** argv)
 
 			rtPipeline->UpdateBuffer(2, sizeof(CameraProperties), &camData);
 			rtPipeline->Dispatch(720, 480);
+
+			VkImageSubresourceRange subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+
+			auto& swapchain = VulkanContext::GetSwapchain();
+			auto cmd = VulkanContext::GetCurrentVkCmdBuffer();
+
+			// Prepare current swap chain image as transfer destination
+			VulkanTexture::SetImageLayout(
+				cmd,
+				swapchain.GetCurrentImage(),
+				VK_IMAGE_LAYOUT_UNDEFINED,
+				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+				subresourceRange);
+
+			// Prepare ray tracing output image as transfer source
+			VulkanTexture::SetImageLayout(
+				cmd,
+				storageTex->Cast<VulkanTexture>()->GetVkImage(),
+				VK_IMAGE_LAYOUT_GENERAL,
+				VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+				subresourceRange);
+
+			VkImageCopy copyRegion{};
+			copyRegion.srcSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
+			copyRegion.srcOffset = { 0, 0, 0 };
+			copyRegion.dstSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
+			copyRegion.dstOffset = { 0, 0, 0 };
+			copyRegion.extent = { 720, 480, 1 };
+			vkCmdCopyImage(cmd, storageTex->Cast<VulkanTexture>()->GetVkImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, swapchain.GetCurrentImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
+
+			// Transition swap chain image back for presentation
+			VulkanTexture::SetImageLayout(
+				cmd,
+				swapchain.GetCurrentImage(),
+				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+				VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+				subresourceRange);
+
+			// Transition ray tracing output image back to general layout
+			VulkanTexture::SetImageLayout(
+				cmd,
+				storageTex->Cast<VulkanTexture>()->GetVkImage(),
+				VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+				VK_IMAGE_LAYOUT_GENERAL,
+				subresourceRange);
+
 		}
 		context->SwapBuffers();
 	}
