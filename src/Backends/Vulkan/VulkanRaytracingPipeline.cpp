@@ -54,6 +54,18 @@ namespace SmolEngine
 		m_CommandBuffer = nullptr;
 	}
 
+	void VulkanRaytracingPipeline::Free()
+	{
+		m_ACStructure.Free();
+
+		{
+			VkDevice device = VulkanContext::GetDevice().GetLogicalDevice();
+
+			vkDestroyPipeline(device, m_Pipeline, nullptr);
+			vkDestroyPipelineLayout(device, m_PipelineLayout, nullptr);
+		}
+	}
+
 	bool VulkanRaytracingPipeline::Build(RaytracingPipelineCreateInfo* info)
 	{
 		if(!BuildEX(info)) { return false; }

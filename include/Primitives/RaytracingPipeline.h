@@ -15,14 +15,23 @@ namespace SmolEngine
 		int32_t          NumDescriptorSets = 1;
 	};
 
+	struct RaytracingPipelineSceneInfo
+	{
+		std::vector<Ref<Mesh>>     Meshes;
+		std::vector<Ref<MeshView>> View;
+	};
+
 	class RaytracingPipeline: public PrimitiveBase, public PipelineBase
 	{
 	public:
 		RaytracingPipeline() = default;
 		virtual ~RaytracingPipeline() = default;
 
-		virtual void                   Dispatch(uint32_t width, uint32_t height, void* cmdStorage = nullptr) = 0;
+		virtual void                   Free() = 0;
 		virtual bool                   Build(RaytracingPipelineCreateInfo* info) = 0;
+		virtual void                   CreateScene(RaytracingPipelineSceneInfo* info) = 0;
+		virtual void                   UpdateScene(RaytracingPipelineSceneInfo* info) = 0;
+		virtual void                   Dispatch(uint32_t width, uint32_t height, void* cmdStorage = nullptr) = 0;
 		virtual void                   SubmitPushConstant(ShaderType stage, size_t size, const void* data) {};
 		static Ref<RaytracingPipeline> Create();
 

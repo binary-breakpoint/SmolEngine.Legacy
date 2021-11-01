@@ -252,6 +252,15 @@ namespace SmolEngine
         m_Elements[nodeIndex].m_Material = material;
     }
 
+    void MeshView::SetTransform(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& scale)
+    {
+    }
+
+    const glm::mat4& MeshView::GetTransform() const
+    {
+        return m_ModelMatrix;
+    }
+
     Ref<AnimationController> MeshView::GetAnimationController() const
     {
         return m_AnimationController;

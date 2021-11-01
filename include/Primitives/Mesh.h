@@ -42,12 +42,15 @@ namespace SmolEngine
 		void                       SetAnimationController(const Ref<AnimationController>& contoller);
 		void                       SetPBRHandle(const Ref<PBRHandle>& handle, uint32_t nodeIndex = 0);
 		void                       SetMaterial(const Ref<Material3D>& material, uint32_t nodeIndex = 0);
+		void                       SetTransform(const glm::vec3& position, const glm::vec3& rotation = glm::vec3(0), const glm::vec3& scale = glm::vec3(1));
+		const glm::mat4&           GetTransform() const;
 		Ref<AnimationController>   GetAnimationController() const;
 		Ref<PBRHandle>             GetPBRHandle(uint32_t nodeIndex = 0) const;
 		Ref<Material3D>            GetMaterial(uint32_t nodeIndex = 0) const;
 
 	private:
 		std::string                m_Path = "";
+		glm::mat4                  m_ModelMatrix{};
 		std::vector<Element>       m_Elements;
 		Ref<AnimationController>   m_AnimationController = nullptr;
 

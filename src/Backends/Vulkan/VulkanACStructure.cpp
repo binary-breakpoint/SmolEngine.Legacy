@@ -64,7 +64,8 @@ namespace SmolEngine
 		accelerationStructureBuildGeometryInfo.geometryCount = 1;
 		accelerationStructureBuildGeometryInfo.pGeometries = &accelerationStructureGeometry;
 
-		const uint32_t numTriangles = 1;
+		const uint32_t numTriangles = ib->GetCount() / 3;
+
 		VkAccelerationStructureBuildSizesInfoKHR accelerationStructureBuildSizesInfo{};
 		accelerationStructureBuildSizesInfo.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR;
 
@@ -235,10 +236,72 @@ namespace SmolEngine
 		m_TopLevelAS.m_DeviceAddress = device.vkGetAccelerationStructureDeviceAddressKHR(device.GetLogicalDevice(), &accelerationDeviceAddressInfo);
 	}
 
+	uint64_t VulkanACStructure::AddTriangleGeometry(Ref<Mesh>& mesh, Ref<MeshView>& view, const VertexInputInfo& vertexInfo, uint32_t transform_offset)
+	{
+		auto vb = mesh->GetVertexBuffer()->Cast<VulkanVertexBuffer>();
+		auto ib = mesh->GetIndexBuffer()->Cast<VulkanIndexBuffer>();
+
+		VkDeviceOrHostAddressConstKHR vertexBufferDeviceAddress{};
+		vertexBufferDeviceAddress.deviceAddress = VulkanUtils::GetBufferDeviceAddress(vb->GetBuffer());
+
+		VkDeviceOrHostAddressConstKHR indexBufferDeviceAddress{};
+		indexBufferDeviceAddress.deviceAddress = VulkanUtils::GetBufferDeviceAddress(ib->GetBuffer());
+
+		VkDeviceOrHostAddressConstKHR transformBufferDeviceAddress{};
+		transformBufferDeviceAddress.deviceAddress = VulkanUtils::GetBufferDeviceAddress(m_TransformBuffer.GetBuffer());
+
+		VkAccelerationStructureGeometryKHR geometry{};
+		geometry.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR;
+		geometry.geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
+		geometry.flags = VK_GEOMETRY_OPAQUE_BIT_KHR;
+		geometry.geometry.triangles.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR;
+		geometry.geometry.triangles.vertexFormat = VK_FORMAT_R32G32B32_SFLOAT;
+		geometry.geometry.triangles.maxVertex = vb->GetVertexCount();
+		geometry.geometry.triangles.vertexStride = vertexInfo.Stride;
+		geometry.geometry.triangles.indexType = VK_INDEX_TYPE_UINT32;
+		geometry.geometry.triangles.vertexData = vertexBufferDeviceAddress;
+		geometry.geometry.triangles.indexData = indexBufferDeviceAddress;
+		geometry.geometry.triangles.transformData = transformBufferDeviceAddress;
+
+		uint64_t index = m_Geometries.size();
+		const uint32_t numTriangles = ib->GetCount() / 3;
+		m_Geometries.insert({ index, {geometry, numTriangles, transform_offset} });
+
+		return index;
+	}
+
+	void VulkanACStructure::UpdateTriangleGeometry(uint64_t UUID, Ref<Mesh>& mesh, Ref<MeshView>& view, const VertexInputInfo& vertexInfo, uint32_t transform_offset)
+	{
+
+	}
+
 	void VulkanACStructure::Build(RaytracingPipelineCreateInfo* info)
 	{
 		BuildBottomLevel(info);
 		BuildTopLevel(info);
+	}
+
+	void VulkanACStructure::BuildScene(RaytracingPipelineSceneInfo* info, bool isStatic)
+	{
+	}
+
+	void VulkanACStructure::Free()
+	{
+		m_BottomLevelAS.m_DeviceAddress = 0;
+		m_TopLevelAS.m_DeviceAddress = 0;
+
+		m_BottomLevelAS.m_Buffer.Destroy();
+		m_TopLevelAS.m_Buffer.Destroy();
+
+		{
+			auto& device = VulkanContext::GetDevice();
+
+			device.vkDestroyAccelerationStructureKHR(device.GetLogicalDevice(), m_BottomLevelAS.m_Handle, nullptr);
+			device.vkDestroyAccelerationStructureKHR(device.GetLogicalDevice(), m_TopLevelAS.m_Handle, nullptr);
+		}
+
+		m_TransformBuffer.Destroy();
+		m_InstancesBuffer.Destroy();
 	}
 
 	VulkanACStructure::Structure& VulkanACStructure::GetTopLevel()
