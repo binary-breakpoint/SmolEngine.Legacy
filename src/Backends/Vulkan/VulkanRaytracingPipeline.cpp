@@ -6,6 +6,7 @@
 #include "Backends/Vulkan/VulkanPipeline.h"
 #include "Backends/Vulkan/VulkanFramebuffer.h"
 #include "Backends/Vulkan/VulkanUtils.h"
+#include "Tools/Utils.h"
 
 namespace SmolEngine
 {
@@ -56,7 +57,8 @@ namespace SmolEngine
 
 	void VulkanRaytracingPipeline::Free()
 	{
-		m_ACStructure.Free();
+		m_BottomLevelAS.clear();
+		m_TopLevelAS.Free();
 
 		{
 			VkDevice device = VulkanContext::GetDevice().GetLogicalDevice();
@@ -70,8 +72,31 @@ namespace SmolEngine
 	{
 		if(!BuildEX(info)) { return false; }
 
-		// Acceleration Structure 
-		m_ACStructure.Build(info);
+
+		{
+			// Setup identity transform matrix
+			VkTransformMatrixKHR transformMatrix = {
+				1.0f, 0.0f, 0.0f, 0.0f,
+				0.0f, 1.0f, 0.0f, 0.0f,
+				0.0f, 0.0f, 1.0f, 0.0f
+			};
+
+			m_TransformBuffer.CreateBuffer(&transformMatrix, sizeof(VkTransformMatrixKHR),
+				VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR);
+		}
+
+		// Dummy Scene 
+		RaytracingPipelineSceneInfo sceneCI{};
+		{
+			glm::mat4 model;
+			Utils::ComposeTransform(glm::vec3(0), glm::vec3(0), glm::vec3(1), model);
+			sceneCI.Transforms = { model, };
+
+			auto [cube, view] = MeshPool::GetCube();
+			sceneCI.Scene.push_back({ cube, 1});
+
+			CreateScene(&sceneCI);
+		}
 		
 		// Descriptors
 		{
@@ -80,7 +105,7 @@ namespace SmolEngine
 
 			// RT only
 			for (auto& descriptor : m_Descriptors)
-				descriptor.GenACStructureDescriptors(m_Shader, &m_ACStructure);
+				descriptor.GenACStructureDescriptors(m_Shader, &m_TopLevelAS);
 		}
 
 		// Pipeline
@@ -127,6 +152,45 @@ namespace SmolEngine
 		}
 
 		return true;
+	}
+
+	void VulkanRaytracingPipeline::CreateScene(RaytracingPipelineSceneInfo* info)
+	{
+		m_BottomLevelAS.clear();
+		m_InstanceBuffer.Destroy();
+
+		// Buttom Level
+		for (auto& [topNode, instances] : info->Scene)
+		{
+			auto root = std::make_shared<BLAS>();
+			root->IntanceCount = instances;
+
+			for (auto& mesh : topNode->GetScene())
+			{
+				auto ac = std::make_shared<VulkanACStructure>();
+				ac->BuildAsBottomLevel(m_Info.VertexInput.Stride, &m_TransformBuffer, mesh);
+
+				root->Nodes.push_back(ac);
+			}
+
+			m_BottomLevelAS[topNode] = root;
+		}
+
+		// Top Level
+		bool updateDescriptors = false;
+		m_TopLevelAS.BuildAsTopLevel(&m_InstanceBuffer, info, m_BottomLevelAS, updateDescriptors);
+
+		// Update Descriptors if needed (runtime)
+		if (updateDescriptors)
+		{
+			for (auto& descriptor : m_Descriptors)
+				descriptor.UpdateVkAccelerationStructure(m_Shader->GetACBindingPoint(), &m_TopLevelAS);
+		}
+	}
+
+	void VulkanRaytracingPipeline::UpdateScene(RaytracingPipelineSceneInfo* info)
+	{
+
 	}
 
 	void VulkanRaytracingPipeline::SubmitPushConstant(ShaderType stage, size_t size, const void* data)

@@ -124,6 +124,11 @@ namespace SmolEngine
 		return m_ReflectData;
 	}
 
+	uint32_t Shader::GetACBindingPoint() const
+	{
+		return m_ACBindingPoint;
+	}
+
 	ShaderCreateInfo& Shader::GetCreateInfo()
 	{
 		return m_CreateInfo;
@@ -236,6 +241,7 @@ namespace SmolEngine
 				acStructure.Name = res.name;
 
 				m_ReflectData.ACStructures[binding] = std::move(acStructure);
+				m_ACBindingPoint = binding;
 			}
 		}
 

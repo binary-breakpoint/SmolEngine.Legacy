@@ -99,6 +99,7 @@ namespace SmolEngine
 		virtual bool           Build(ShaderCreateInfo* info) = 0;
 		virtual bool           Realod() = 0;
 		const ReflectionData&  GetReflection() const;
+		uint32_t               GetACBindingPoint() const;
 		ShaderCreateInfo&      GetCreateInfo();
 		static Ref<Shader>     Create();
 
@@ -108,6 +109,7 @@ namespace SmolEngine
 
 	protected:
 		bool                   m_RTPipeline = false;
+		uint32_t               m_ACBindingPoint = 0;
 		ShaderCreateInfo       m_CreateInfo{};
 		ReflectionData         m_ReflectData{};
 

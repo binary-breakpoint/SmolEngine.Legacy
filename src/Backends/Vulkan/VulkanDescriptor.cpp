@@ -288,7 +288,9 @@ namespace SmolEngine
 			VkWriteDescriptorSetAccelerationStructureKHR descriptorAccelerationStructureInfo{};
 			descriptorAccelerationStructureInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR;
 			descriptorAccelerationStructureInfo.accelerationStructureCount = 1;
-			descriptorAccelerationStructureInfo.pAccelerationStructures = &baseStructure->GetTopLevel().m_Handle;
+
+			auto handle = baseStructure->GetHandle();
+			descriptorAccelerationStructureInfo.pAccelerationStructures = &handle;
 
 			VkWriteDescriptorSet accelerationStructureWrite{};
 			accelerationStructureWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -373,7 +375,9 @@ namespace SmolEngine
 			VkWriteDescriptorSetAccelerationStructureKHR descriptorAccelerationStructureInfo{};
 			descriptorAccelerationStructureInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR;
 			descriptorAccelerationStructureInfo.accelerationStructureCount = 1;
-			descriptorAccelerationStructureInfo.pAccelerationStructures = &structure->GetTopLevel().m_Handle;
+
+			auto handle = structure->GetHandle();
+			descriptorAccelerationStructureInfo.pAccelerationStructures = &handle;
 
 			VkWriteDescriptorSet* writeSet = &it->second;
 			writeSet->pNext = &descriptorAccelerationStructureInfo;

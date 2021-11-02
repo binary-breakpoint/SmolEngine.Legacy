@@ -48,22 +48,31 @@ int main(int argc, char** argv)
 	rtCreateInfo.ShaderCI.Stages[ShaderType::RayMiss] = info.ResourcesFolder + "Shaders/Raytracing/basic.rmiss";
 
 	rtCreateInfo.ShaderCI.Buffers[2].bGlobal = false;
-
 	rtCreateInfo.VertexInput = VertexInputInfo(sizeof(PBRVertex), mainLayout);
 
 	Ref<RaytracingPipeline> rtPipeline = RaytracingPipeline::Create();
-
 	rtPipeline->Build(&rtCreateInfo);
+
+	glm::mat4 model;
+	Utils::ComposeTransform(glm::vec3(0), glm::vec3(0), glm::vec3(1), model);
+
+	Ref<Mesh> sponza = Mesh::Create();
+	sponza->LoadFromFile("Assets/sponza_small.gltf");
+
+	RaytracingPipelineSceneInfo sceneCI{};
+	sceneCI.Transforms = { model };
+	//                         mesh, instance count
+	sceneCI.Scene.push_back({ sponza , 1 });
+
+	rtPipeline->CreateScene(&sceneCI);
 
 	Ref<Texture> storageTex = Texture::Create();
 	{
 		TextureCreateInfo texCI{};
-
 		texCI.Width = 720;
 		texCI.Height = 480;
 
 		storageTex->LoadAsStorage(&texCI);
-
 		rtPipeline->UpdateTexture(storageTex, 1);
 	}
 

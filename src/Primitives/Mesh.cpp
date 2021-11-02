@@ -254,6 +254,7 @@ namespace SmolEngine
 
     void MeshView::SetTransform(const glm::vec3& position, const glm::vec3& rotation, const glm::vec3& scale)
     {
+        Utils::ComposeTransform(position, rotation, scale, m_ModelMatrix);
     }
 
     const glm::mat4& MeshView::GetTransform() const

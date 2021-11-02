@@ -49,12 +49,13 @@ namespace SmolEngine
 		Ref<Material3D>            GetMaterial(uint32_t nodeIndex = 0) const;
 
 	private:
-		std::string                m_Path = "";
 		glm::mat4                  m_ModelMatrix{};
+		std::string                m_Path = "";
 		std::vector<Element>       m_Elements;
 		Ref<AnimationController>   m_AnimationController = nullptr;
 
 		friend class Mesh;
+		friend class VulkanACStructure;
 		friend class cereal::access;
 
 		template<typename Archive>

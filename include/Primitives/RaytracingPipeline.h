@@ -17,8 +17,8 @@ namespace SmolEngine
 
 	struct RaytracingPipelineSceneInfo
 	{
-		std::vector<Ref<Mesh>>     Meshes;
-		std::vector<Ref<MeshView>> View;
+		std::vector<glm::mat4> Transforms;
+		std::vector<std::pair<Ref<Mesh>, uint32_t>> Scene;
 	};
 
 	class RaytracingPipeline: public PrimitiveBase, public PipelineBase
@@ -39,6 +39,7 @@ namespace SmolEngine
 		bool                           BuildEX(RaytracingPipelineCreateInfo* info);
 
 	protected:
-		Ref<Shader>  m_Shader = nullptr;
+		Ref<Shader>                  m_Shader = nullptr;
+		RaytracingPipelineCreateInfo m_Info{};
 	};
 }

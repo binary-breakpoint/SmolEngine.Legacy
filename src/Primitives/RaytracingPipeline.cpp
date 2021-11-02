@@ -20,6 +20,7 @@ namespace SmolEngine
 	bool RaytracingPipeline::BuildEX(RaytracingPipelineCreateInfo* info)
 	{
 		m_Shader = Shader::Create();
+		m_Info = *info;
 		return m_Shader->Build(&info->ShaderCI);
 	}
 }

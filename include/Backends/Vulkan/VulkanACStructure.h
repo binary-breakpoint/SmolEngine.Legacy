@@ -3,53 +3,32 @@
 
 #include "Backends/Vulkan/Vulkan.h"
 #include "Backends/Vulkan/VulkanBuffer.h"
-#include "Common/Vertex.h"
 
 namespace SmolEngine
 {
-	struct RaytracingPipelineCreateInfo;
-	struct RaytracingPipelineSceneInfo;
-
 	class Mesh;
-	class MeshView;
+	struct RaytracingPipelineSceneInfo;
+	struct BLAS;
 
 	class VulkanACStructure
 	{
 	public:
-		struct Structure
-		{
-			uint64_t m_DeviceAddress = 0;
-			VkAccelerationStructureKHR m_Handle = nullptr;
-			VulkanBuffer m_Buffer{};
-		};
+		~VulkanACStructure();
 
-		void         Free();
-		void         Build(RaytracingPipelineCreateInfo* info);
-		void         BuildScene(RaytracingPipelineSceneInfo* info, bool isStatic);
-		Structure&   GetTopLevel();
-		Structure&   GetBottomLevel();
+		void                       Free();
+		void                       BuildAsBottomLevel(uint32_t vertexStride, VulkanBuffer* transformBuffer, const Ref<Mesh>& mesh);
+		void                       BuildAsTopLevel(VulkanBuffer* instancesBuffer, RaytracingPipelineSceneInfo* scene, const std::map<Ref<Mesh>, 
+			                       Ref<BLAS>>& bottomLevels, bool& out_update_descriptor);
 
-	private:
-		void         BuildBottomLevel(RaytracingPipelineCreateInfo* info);
-		void         BuildTopLevel(RaytracingPipelineCreateInfo* info);
+		VkAccelerationStructureKHR GetHandle();
+		VulkanBuffer               GetBuffer() const;
+		uint64_t                   GetDeviceAddress() const;
 
-		uint64_t     AddTriangleGeometry(Ref< Mesh>& mesh, Ref<MeshView>& view, const VertexInputInfo& vertexInfo, uint32_t transform_offset = 0);
-		void         UpdateTriangleGeometry(uint64_t UUID, Ref<Mesh>& mesh, Ref<MeshView>& view, const VertexInputInfo& vertexInfo, uint32_t transform_offset = 0);
 
 	private:
-		struct GeometryInfo
-		{
-			VkAccelerationStructureGeometryKHR geometry{};
-			uint32_t primitive_count{};
-			uint32_t transform_offset{};
-			bool updated = false;
-		};
-
-		Structure m_TopLevelAS{};
-		Structure m_BottomLevelAS{};
-		VulkanBuffer m_TransformBuffer{};
-		VulkanBuffer m_InstancesBuffer{};
-		std::map<uint64_t, GeometryInfo> m_Geometries{};
+		uint64_t                    m_DeviceAddress = 0;
+		VkAccelerationStructureKHR  m_Handle = nullptr;
+		VulkanBuffer                m_Buffer{};
 	};
 }
 

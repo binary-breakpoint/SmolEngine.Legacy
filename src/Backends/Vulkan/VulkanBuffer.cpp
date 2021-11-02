@@ -76,7 +76,11 @@ namespace SmolEngine
 		if (m_Alloc != nullptr)
 		{
 			VulkanAllocator::FreeBuffer(m_Buffer, m_Alloc);
+
+			m_Size = 0;
 			m_Alloc = nullptr;
+			m_Mapped = nullptr;
+			m_Buffer = nullptr;
 		}
 	}
 
