@@ -10,9 +10,8 @@
 
 namespace SmolEngine
 {
-	void VulkanRaytracingPipeline::Dispatch(uint32_t width, uint32_t height, void* cmdStorage)
+	void VulkanRaytracingPipeline::Dispatch(uint32_t width, uint32_t height)
 	{
-		const CommandBufferStorage* storage = (CommandBufferStorage*)cmdStorage;
 		const VulkanDevice& device = VulkanContext::GetDevice();
 		const VkDescriptorSet& descriptorSet = m_Descriptors[m_DescriptorIndex].GetDescriptorSets();
 		auto& shaderBindingTable = m_Shader->Cast<VulkanShader>()->m_BindingTables;
@@ -37,7 +36,6 @@ namespace SmolEngine
 
 		VkStridedDeviceAddressRegionKHR callableShaderSbtEntry{};
 
-		m_CommandBuffer = cmdStorage != nullptr ? storage->Buffer : VulkanContext::GetCurrentVkCmdBuffer();
 		{
 			vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, m_Pipeline);
 			vkCmdBindDescriptorSets(m_CommandBuffer, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, m_PipelineLayout, 0, 1, &descriptorSet, 0, 0);
@@ -53,6 +51,12 @@ namespace SmolEngine
 				1);
 		}
 		m_CommandBuffer = nullptr;
+	}
+
+	void VulkanRaytracingPipeline::SetCommandBuffer(void* cmdStorage)
+	{
+		const CommandBufferStorage* storage = (CommandBufferStorage*)cmdStorage;
+		m_CommandBuffer = cmdStorage != nullptr ? storage->Buffer : VulkanContext::GetCurrentVkCmdBuffer();
 	}
 
 	void VulkanRaytracingPipeline::Free()
@@ -167,9 +171,18 @@ namespace SmolEngine
 
 			for (auto& mesh : topNode->GetScene())
 			{
+				auto vb = mesh->GetVertexBuffer()->Cast<VulkanVertexBuffer>();
+				auto ib = mesh->GetIndexBuffer()->Cast<VulkanIndexBuffer>();
+
+				ObjDesc objDesc{};
+				objDesc.materialUUID = 0;
+				objDesc.vertexAddress = VulkanUtils::GetBufferDeviceAddress(vb->GetBuffer());
+				objDesc.indexAddress = VulkanUtils::GetBufferDeviceAddress(ib->GetBuffer());;
+
 				auto ac = std::make_shared<VulkanACStructure>();
 				ac->BuildAsBottomLevel(m_Info.VertexInput.Stride, &m_TransformBuffer, mesh);
 
+				m_ObjDescriptions.emplace_back(std::move(objDesc));
 				root->Nodes.push_back(ac);
 			}
 
@@ -179,6 +192,12 @@ namespace SmolEngine
 		// Top Level
 		bool updateDescriptors = false;
 		m_TopLevelAS.BuildAsTopLevel(&m_InstanceBuffer, info, m_BottomLevelAS, updateDescriptors);
+
+		for (auto& descriptor : m_Descriptors)
+		{
+			descriptor.UpdateBuffer(666, sizeof(VulkanRaytracingPipeline::ObjDesc) * m_ObjDescriptions.size(), m_ObjDescriptions.data());
+			m_ObjDescriptions.clear();
+		}
 
 		// Update Descriptors if needed (runtime)
 		if (updateDescriptors)

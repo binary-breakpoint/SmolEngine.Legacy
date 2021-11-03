@@ -16,8 +16,15 @@ namespace SmolEngine
 	class VulkanRaytracingPipeline: public RaytracingPipeline
 	{
 	public:
+		struct ObjDesc
+		{
+			uint32_t materialUUID;
+			uint64_t vertexAddress;
+			uint64_t indexAddress;
+		};
 
-		virtual void       Dispatch(uint32_t width, uint32_t height, void* cmdStorage = nullptr) override;
+		virtual void       SetCommandBuffer(void* cmdStorage = nullptr) override;
+		virtual void       Dispatch(uint32_t width, uint32_t height) override;
 		virtual void       Free() override;
 		virtual bool       Build(RaytracingPipelineCreateInfo* info) override;
 		virtual void       CreateScene(RaytracingPipelineSceneInfo* info) override;
@@ -41,6 +48,7 @@ namespace SmolEngine
 		VulkanBuffer                   m_TransformBuffer{};
 		VulkanBuffer                   m_InstanceBuffer{};
 		std::vector<VulkanDescriptor>  m_Descriptors;
+		std::vector<ObjDesc>           m_ObjDescriptions;
 		std::map<Ref<Mesh>, Ref<BLAS>> m_BottomLevelAS;
 		VulkanACStructure              m_TopLevelAS;
 	};

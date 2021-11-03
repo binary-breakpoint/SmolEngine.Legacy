@@ -2,8 +2,9 @@
 
 #include <GraphicsCore.h>
 
-#include <Backends/Vulkan/VulkanTexture.h>
+#include "Backends/Vulkan/VulkanTexture.h"
 #include "Backends/Vulkan/VulkanContext.h"
+#include "Backends/Vulkan/VulkanRaytracingPipeline.h"
 
 using namespace SmolEngine;
 int main(int argc, char** argv)
@@ -43,11 +44,13 @@ int main(int argc, char** argv)
 	};
 
 	RaytracingPipelineCreateInfo rtCreateInfo{};
-	rtCreateInfo.ShaderCI.Stages[ShaderType::RayCloseHit] = info.ResourcesFolder + "Shaders/Raytracing/basic.rchit";
-	rtCreateInfo.ShaderCI.Stages[ShaderType::RayGen] = info.ResourcesFolder + "Shaders/Raytracing/basic.rgen";
-	rtCreateInfo.ShaderCI.Stages[ShaderType::RayMiss] = info.ResourcesFolder + "Shaders/Raytracing/basic.rmiss";
+	rtCreateInfo.ShaderCI.Stages[ShaderType::RayCloseHit] = info.ResourcesFolder + "Shaders/Raytracing/reflections.rchit";
+	rtCreateInfo.ShaderCI.Stages[ShaderType::RayGen] = info.ResourcesFolder + "Shaders/Raytracing/reflections.rgen";
+	rtCreateInfo.ShaderCI.Stages[ShaderType::RayMiss] = info.ResourcesFolder + "Shaders/Raytracing/reflections.rmiss";
 
 	rtCreateInfo.ShaderCI.Buffers[2].bGlobal = false;
+	rtCreateInfo.ShaderCI.Buffers[666].bGlobal = false;
+	rtCreateInfo.ShaderCI.Buffers[666].Size = sizeof(VulkanRaytracingPipeline::ObjDesc) * 1000;
 	rtCreateInfo.VertexInput = VertexInputInfo(sizeof(PBRVertex), mainLayout);
 
 	Ref<RaytracingPipeline> rtPipeline = RaytracingPipeline::Create();
@@ -90,14 +93,27 @@ int main(int argc, char** argv)
 		{
 			struct CameraProperties
 			{
+				glm::mat4 viewProj;
 				glm::mat4 viewInverse;
 				glm::mat4 projInverse;
 			} camData;
 
+			struct PC
+			{
+				glm::vec4  clearColor = glm::vec4(1);
+				glm::vec3  lightPosition = glm::vec3(105.0f, 53.0f, 102.0f);
+				float lightIntensity = 1;
+				int   lightType = 1;
+				int   maxDepth = 4;
+			} static pc{};
+
+			camData.viewProj = camera->GetProjection() * camera->GetViewMatrix();
 			camData.projInverse = glm::inverse(camera->GetProjection());
 			camData.viewInverse = glm::inverse(camera->GetViewMatrix());
 
 			rtPipeline->UpdateBuffer(2, sizeof(CameraProperties), &camData);
+			rtPipeline->SetCommandBuffer(); // default
+			rtPipeline->SubmitPushConstant(ShaderType::RayCloseHit, sizeof(PC), &pc);
 			rtPipeline->Dispatch(720, 480);
 
 			VkImageSubresourceRange subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };

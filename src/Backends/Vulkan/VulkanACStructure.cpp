@@ -150,13 +150,13 @@ namespace SmolEngine
 				glm::mat3x4 transform = glm::mat3x4(glm::transpose(scene->Transforms[instanceIndex]));
 				memcpy(&acceleration_structure_instance.transform, &transform, sizeof(VkTransformMatrixKHR));
 
-				acceleration_structure_instance.instanceCustomIndex = instanceIndex;
 				acceleration_structure_instance.mask = 0xFF;
 				acceleration_structure_instance.instanceShaderBindingTableRecordOffset = 0;
 				acceleration_structure_instance.flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR;
 
 				for (uint32_t j = 0; j < static_cast<uint32_t>(blas->Nodes.size()); ++j)
 				{
+					acceleration_structure_instance.instanceCustomIndex = instanceIndex + j;
 					acceleration_structure_instance.accelerationStructureReference = blas->Nodes[j]->GetDeviceAddress();
 					instances.emplace_back(acceleration_structure_instance);
 				}

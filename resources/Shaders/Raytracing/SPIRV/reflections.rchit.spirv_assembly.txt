@@ -1,0 +1,379 @@
+; SPIR-V
+; Version: 1.4
+; Generator: Google Shaderc over Glslang; 10
+; Bound: 222
+; Schema: 0
+               OpCapability Int64
+               OpCapability PhysicalStorageBufferAddresses
+               OpCapability RayTracingProvisionalKHR
+               OpExtension "SPV_EXT_physical_storage_buffer"
+               OpExtension "SPV_KHR_ray_tracing"
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel PhysicalStorageBuffer64 GLSL450
+               OpEntryPoint ClosestHitNV %main "main" %_ %gl_InstanceCustomIndexEXT %gl_PrimitiveID %attribs %gl_ObjectToWorldEXT %gl_WorldToObjectEXT %__0 %gl_WorldRayDirectionEXT %prd
+               OpSource GLSL 460
+               OpSourceExtension "GL_EXT_buffer_reference"
+               OpSourceExtension "GL_EXT_buffer_reference2"
+               OpSourceExtension "GL_EXT_nonuniform_qualifier"
+               OpSourceExtension "GL_EXT_ray_tracing"
+               OpSourceExtension "GL_EXT_scalar_block_layout"
+               OpSourceExtension "GL_EXT_shader_explicit_arithmetic_types_int64"
+               OpSourceExtension "GL_GOOGLE_cpp_style_line_directive"
+               OpSourceExtension "GL_GOOGLE_include_directive"
+               OpName %main "main"
+               OpName %ObjBuffer "ObjBuffer"
+               OpMemberName %ObjBuffer 0 "materialUUID"
+               OpMemberName %ObjBuffer 1 "vertexAddress"
+               OpMemberName %ObjBuffer 2 "indexAddress"
+               OpName %objResource "objResource"
+               OpName %ObjBuffer_0 "ObjBuffer"
+               OpMemberName %ObjBuffer_0 0 "materialUUID"
+               OpMemberName %ObjBuffer_0 1 "vertexAddress"
+               OpMemberName %ObjBuffer_0 2 "indexAddress"
+               OpName %IntsBuffer "IntsBuffer"
+               OpMemberName %IntsBuffer 0 "i"
+               OpName %_ ""
+               OpName %gl_InstanceCustomIndexEXT "gl_InstanceCustomIndexEXT"
+               OpName %Indices "Indices"
+               OpMemberName %Indices 0 "i"
+               OpName %indices "indices"
+               OpName %Vertex "Vertex"
+               OpMemberName %Vertex 0 "Pos"
+               OpMemberName %Vertex 1 "Normals"
+               OpMemberName %Vertex 2 "Tangent"
+               OpMemberName %Vertex 3 "UVs"
+               OpMemberName %Vertex 4 "jointIndices"
+               OpMemberName %Vertex 5 "jointWeight"
+               OpName %Vertices "Vertices"
+               OpMemberName %Vertices 0 "v"
+               OpName %vertices "vertices"
+               OpName %ind "ind"
+               OpName %gl_PrimitiveID "gl_PrimitiveID"
+               OpName %Vertex_0 "Vertex"
+               OpMemberName %Vertex_0 0 "Pos"
+               OpMemberName %Vertex_0 1 "Normals"
+               OpMemberName %Vertex_0 2 "Tangent"
+               OpMemberName %Vertex_0 3 "UVs"
+               OpMemberName %Vertex_0 4 "jointIndices"
+               OpMemberName %Vertex_0 5 "jointWeight"
+               OpName %v0 "v0"
+               OpName %v1 "v1"
+               OpName %v2 "v2"
+               OpName %barycentrics "barycentrics"
+               OpName %attribs "attribs"
+               OpName %pos "pos"
+               OpName %worldPos "worldPos"
+               OpName %gl_ObjectToWorldEXT "gl_ObjectToWorldEXT"
+               OpName %nrm "nrm"
+               OpName %worldNrm "worldNrm"
+               OpName %gl_WorldToObjectEXT "gl_WorldToObjectEXT"
+               OpName %lightIntensity "lightIntensity"
+               OpName %lightDistance "lightDistance"
+               OpName %L "L"
+               OpName %PushConstantRay "PushConstantRay"
+               OpMemberName %PushConstantRay 0 "clearColor"
+               OpMemberName %PushConstantRay 1 "lightPosition"
+               OpMemberName %PushConstantRay 2 "lightIntensity"
+               OpMemberName %PushConstantRay 3 "lightType"
+               OpMemberName %PushConstantRay 4 "maxDepth"
+               OpName %_PushConstantRay "_PushConstantRay"
+               OpMemberName %_PushConstantRay 0 "pcRay"
+               OpName %__0 ""
+               OpName %diffuse "diffuse"
+               OpName %specular "specular"
+               OpName %attenuation "attenuation"
+               OpName %origin "origin"
+               OpName %rayDir "rayDir"
+               OpName %gl_WorldRayDirectionEXT "gl_WorldRayDirectionEXT"
+               OpName %hitPayload "hitPayload"
+               OpMemberName %hitPayload 0 "hitValue"
+               OpMemberName %hitPayload 1 "depth"
+               OpMemberName %hitPayload 2 "attenuation"
+               OpMemberName %hitPayload 3 "done"
+               OpMemberName %hitPayload 4 "rayOrigin"
+               OpMemberName %hitPayload 5 "rayDir"
+               OpName %prd "prd"
+               OpMemberDecorate %ObjBuffer_0 0 Offset 0
+               OpMemberDecorate %ObjBuffer_0 1 Offset 8
+               OpMemberDecorate %ObjBuffer_0 2 Offset 16
+               OpDecorate %_runtimearr_ObjBuffer_0 ArrayStride 24
+               OpMemberDecorate %IntsBuffer 0 Offset 0
+               OpDecorate %IntsBuffer Block
+               OpDecorate %_ DescriptorSet 0
+               OpDecorate %_ Binding 666
+               OpDecorate %gl_InstanceCustomIndexEXT BuiltIn InstanceCustomIndexNV
+               OpDecorate %_runtimearr_v3int ArrayStride 12
+               OpMemberDecorate %Indices 0 Offset 0
+               OpDecorate %Indices Block
+               OpDecorate %indices AliasedPointer
+               OpMemberDecorate %Vertex 0 Offset 0
+               OpMemberDecorate %Vertex 1 Offset 12
+               OpMemberDecorate %Vertex 2 Offset 24
+               OpMemberDecorate %Vertex 3 Offset 36
+               OpMemberDecorate %Vertex 4 Offset 44
+               OpMemberDecorate %Vertex 5 Offset 60
+               OpDecorate %_runtimearr_Vertex ArrayStride 76
+               OpMemberDecorate %Vertices 0 Offset 0
+               OpDecorate %Vertices Block
+               OpDecorate %vertices AliasedPointer
+               OpDecorate %gl_PrimitiveID BuiltIn PrimitiveId
+               OpDecorate %gl_ObjectToWorldEXT BuiltIn ObjectToWorldNV
+               OpDecorate %gl_WorldToObjectEXT BuiltIn WorldToObjectNV
+               OpMemberDecorate %PushConstantRay 0 Offset 0
+               OpMemberDecorate %PushConstantRay 1 Offset 16
+               OpMemberDecorate %PushConstantRay 2 Offset 28
+               OpMemberDecorate %PushConstantRay 3 Offset 32
+               OpMemberDecorate %PushConstantRay 4 Offset 36
+               OpMemberDecorate %_PushConstantRay 0 Offset 0
+               OpDecorate %_PushConstantRay Block
+               OpDecorate %gl_WorldRayDirectionEXT BuiltIn WorldRayDirectionNV
+               OpDecorate %prd Location 0
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+       %uint = OpTypeInt 32 0
+      %ulong = OpTypeInt 64 0
+  %ObjBuffer = OpTypeStruct %uint %ulong %ulong
+%_ptr_Function_ObjBuffer = OpTypePointer Function %ObjBuffer
+%ObjBuffer_0 = OpTypeStruct %uint %ulong %ulong
+%_runtimearr_ObjBuffer_0 = OpTypeRuntimeArray %ObjBuffer_0
+ %IntsBuffer = OpTypeStruct %_runtimearr_ObjBuffer_0
+%_ptr_StorageBuffer_IntsBuffer = OpTypePointer StorageBuffer %IntsBuffer
+          %_ = OpVariable %_ptr_StorageBuffer_IntsBuffer StorageBuffer
+        %int = OpTypeInt 32 1
+      %int_0 = OpConstant %int 0
+%_ptr_Input_int = OpTypePointer Input %int
+%gl_InstanceCustomIndexEXT = OpVariable %_ptr_Input_int Input
+%_ptr_StorageBuffer_ObjBuffer_0 = OpTypePointer StorageBuffer %ObjBuffer_0
+               OpTypeForwardPointer %_ptr_PhysicalStorageBuffer_Indices PhysicalStorageBuffer
+      %v3int = OpTypeVector %int 3
+%_runtimearr_v3int = OpTypeRuntimeArray %v3int
+    %Indices = OpTypeStruct %_runtimearr_v3int
+%_ptr_PhysicalStorageBuffer_Indices = OpTypePointer PhysicalStorageBuffer %Indices
+%_ptr_Function__ptr_PhysicalStorageBuffer_Indices = OpTypePointer Function %_ptr_PhysicalStorageBuffer_Indices
+      %int_2 = OpConstant %int 2
+%_ptr_Function_ulong = OpTypePointer Function %ulong
+               OpTypeForwardPointer %_ptr_PhysicalStorageBuffer_Vertices PhysicalStorageBuffer
+      %float = OpTypeFloat 32
+    %v3float = OpTypeVector %float 3
+    %v2float = OpTypeVector %float 2
+      %v4int = OpTypeVector %int 4
+    %v4float = OpTypeVector %float 4
+     %Vertex = OpTypeStruct %v3float %v3float %v3float %v2float %v4int %v4float
+%_runtimearr_Vertex = OpTypeRuntimeArray %Vertex
+   %Vertices = OpTypeStruct %_runtimearr_Vertex
+%_ptr_PhysicalStorageBuffer_Vertices = OpTypePointer PhysicalStorageBuffer %Vertices
+%_ptr_Function__ptr_PhysicalStorageBuffer_Vertices = OpTypePointer Function %_ptr_PhysicalStorageBuffer_Vertices
+      %int_1 = OpConstant %int 1
+%_ptr_Function_v3int = OpTypePointer Function %v3int
+%gl_PrimitiveID = OpVariable %_ptr_Input_int Input
+%_ptr_PhysicalStorageBuffer_v3int = OpTypePointer PhysicalStorageBuffer %v3int
+   %Vertex_0 = OpTypeStruct %v3float %v3float %v3float %v2float %v4int %v4float
+%_ptr_Function_Vertex_0 = OpTypePointer Function %Vertex_0
+     %uint_0 = OpConstant %uint 0
+%_ptr_Function_int = OpTypePointer Function %int
+%_ptr_PhysicalStorageBuffer_Vertex = OpTypePointer PhysicalStorageBuffer %Vertex
+     %uint_1 = OpConstant %uint 1
+     %uint_2 = OpConstant %uint 2
+%_ptr_Function_v3float = OpTypePointer Function %v3float
+    %float_1 = OpConstant %float 1
+%_ptr_HitAttributeNV_v2float = OpTypePointer HitAttributeNV %v2float
+    %attribs = OpVariable %_ptr_HitAttributeNV_v2float HitAttributeNV
+%_ptr_HitAttributeNV_float = OpTypePointer HitAttributeNV %float
+%_ptr_Function_float = OpTypePointer Function %float
+%mat4v3float = OpTypeMatrix %v3float 4
+%_ptr_Input_mat4v3float = OpTypePointer Input %mat4v3float
+%gl_ObjectToWorldEXT = OpVariable %_ptr_Input_mat4v3float Input
+%gl_WorldToObjectEXT = OpVariable %_ptr_Input_mat4v3float Input
+%float_100000 = OpConstant %float 100000
+%PushConstantRay = OpTypeStruct %v4float %v3float %float %int %int
+%_PushConstantRay = OpTypeStruct %PushConstantRay
+%_ptr_PushConstant__PushConstantRay = OpTypePointer PushConstant %_PushConstantRay
+        %__0 = OpVariable %_ptr_PushConstant__PushConstantRay PushConstant
+%_ptr_PushConstant_v3float = OpTypePointer PushConstant %v3float
+%float_0_800000012 = OpConstant %float 0.800000012
+        %180 = OpConstantComposite %v3float %float_0_800000012 %float_0_800000012 %float_1
+    %float_0 = OpConstant %float 0
+        %183 = OpConstantComposite %v3float %float_0 %float_0 %float_0
+%_ptr_Input_v3float = OpTypePointer Input %v3float
+%gl_WorldRayDirectionEXT = OpVariable %_ptr_Input_v3float Input
+ %hitPayload = OpTypeStruct %v3float %int %v3float %int %v3float %v3float
+%_ptr_IncomingRayPayloadNV_hitPayload = OpTypePointer IncomingRayPayloadNV %hitPayload
+        %prd = OpVariable %_ptr_IncomingRayPayloadNV_hitPayload IncomingRayPayloadNV
+%_ptr_IncomingRayPayloadNV_v3float = OpTypePointer IncomingRayPayloadNV %v3float
+      %int_3 = OpConstant %int 3
+%_ptr_IncomingRayPayloadNV_int = OpTypePointer IncomingRayPayloadNV %int
+      %int_4 = OpConstant %int 4
+      %int_5 = OpConstant %int 5
+       %main = OpFunction %void None %3
+          %5 = OpLabel
+%objResource = OpVariable %_ptr_Function_ObjBuffer Function
+    %indices = OpVariable %_ptr_Function__ptr_PhysicalStorageBuffer_Indices Function
+   %vertices = OpVariable %_ptr_Function__ptr_PhysicalStorageBuffer_Vertices Function
+        %ind = OpVariable %_ptr_Function_v3int Function
+         %v0 = OpVariable %_ptr_Function_Vertex_0 Function
+         %v1 = OpVariable %_ptr_Function_Vertex_0 Function
+         %v2 = OpVariable %_ptr_Function_Vertex_0 Function
+%barycentrics = OpVariable %_ptr_Function_v3float Function
+        %pos = OpVariable %_ptr_Function_v3float Function
+   %worldPos = OpVariable %_ptr_Function_v3float Function
+        %nrm = OpVariable %_ptr_Function_v3float Function
+   %worldNrm = OpVariable %_ptr_Function_v3float Function
+%lightIntensity = OpVariable %_ptr_Function_float Function
+%lightDistance = OpVariable %_ptr_Function_float Function
+          %L = OpVariable %_ptr_Function_v3float Function
+    %diffuse = OpVariable %_ptr_Function_v3float Function
+   %specular = OpVariable %_ptr_Function_v3float Function
+%attenuation = OpVariable %_ptr_Function_float Function
+     %origin = OpVariable %_ptr_Function_v3float Function
+     %rayDir = OpVariable %_ptr_Function_v3float Function
+         %20 = OpLoad %int %gl_InstanceCustomIndexEXT
+         %22 = OpAccessChain %_ptr_StorageBuffer_ObjBuffer_0 %_ %int_0 %20
+         %23 = OpLoad %ObjBuffer_0 %22
+         %24 = OpCopyLogical %ObjBuffer %23
+               OpStore %objResource %24
+         %33 = OpAccessChain %_ptr_Function_ulong %objResource %int_2
+         %34 = OpLoad %ulong %33
+         %35 = OpConvertUToPtr %_ptr_PhysicalStorageBuffer_Indices %34
+               OpStore %indices %35
+         %48 = OpAccessChain %_ptr_Function_ulong %objResource %int_1
+         %49 = OpLoad %ulong %48
+         %50 = OpConvertUToPtr %_ptr_PhysicalStorageBuffer_Vertices %49
+               OpStore %vertices %50
+         %53 = OpLoad %_ptr_PhysicalStorageBuffer_Indices %indices
+         %55 = OpLoad %int %gl_PrimitiveID
+         %57 = OpAccessChain %_ptr_PhysicalStorageBuffer_v3int %53 %int_0 %55
+         %58 = OpLoad %v3int %57 Aligned 4
+               OpStore %ind %58
+         %62 = OpLoad %_ptr_PhysicalStorageBuffer_Vertices %vertices
+         %65 = OpAccessChain %_ptr_Function_int %ind %uint_0
+         %66 = OpLoad %int %65
+         %68 = OpAccessChain %_ptr_PhysicalStorageBuffer_Vertex %62 %int_0 %66
+         %69 = OpLoad %Vertex %68 Aligned 4
+         %70 = OpCopyLogical %Vertex_0 %69
+               OpStore %v0 %70
+         %72 = OpLoad %_ptr_PhysicalStorageBuffer_Vertices %vertices
+         %74 = OpAccessChain %_ptr_Function_int %ind %uint_1
+         %75 = OpLoad %int %74
+         %76 = OpAccessChain %_ptr_PhysicalStorageBuffer_Vertex %72 %int_0 %75
+         %77 = OpLoad %Vertex %76 Aligned 4
+         %78 = OpCopyLogical %Vertex_0 %77
+               OpStore %v1 %78
+         %80 = OpLoad %_ptr_PhysicalStorageBuffer_Vertices %vertices
+         %82 = OpAccessChain %_ptr_Function_int %ind %uint_2
+         %83 = OpLoad %int %82
+         %84 = OpAccessChain %_ptr_PhysicalStorageBuffer_Vertex %80 %int_0 %83
+         %85 = OpLoad %Vertex %84 Aligned 4
+         %86 = OpCopyLogical %Vertex_0 %85
+               OpStore %v2 %86
+         %93 = OpAccessChain %_ptr_HitAttributeNV_float %attribs %uint_0
+         %94 = OpLoad %float %93
+         %95 = OpFSub %float %float_1 %94
+         %96 = OpAccessChain %_ptr_HitAttributeNV_float %attribs %uint_1
+         %97 = OpLoad %float %96
+         %98 = OpFSub %float %95 %97
+         %99 = OpAccessChain %_ptr_HitAttributeNV_float %attribs %uint_0
+        %100 = OpLoad %float %99
+        %101 = OpAccessChain %_ptr_HitAttributeNV_float %attribs %uint_1
+        %102 = OpLoad %float %101
+        %103 = OpCompositeConstruct %v3float %98 %100 %102
+               OpStore %barycentrics %103
+        %105 = OpAccessChain %_ptr_Function_v3float %v0 %int_0
+        %106 = OpLoad %v3float %105
+        %108 = OpAccessChain %_ptr_Function_float %barycentrics %uint_0
+        %109 = OpLoad %float %108
+        %110 = OpVectorTimesScalar %v3float %106 %109
+        %111 = OpAccessChain %_ptr_Function_v3float %v1 %int_0
+        %112 = OpLoad %v3float %111
+        %113 = OpAccessChain %_ptr_Function_float %barycentrics %uint_1
+        %114 = OpLoad %float %113
+        %115 = OpVectorTimesScalar %v3float %112 %114
+        %116 = OpFAdd %v3float %110 %115
+        %117 = OpAccessChain %_ptr_Function_v3float %v2 %int_0
+        %118 = OpLoad %v3float %117
+        %119 = OpAccessChain %_ptr_Function_float %barycentrics %uint_2
+        %120 = OpLoad %float %119
+        %121 = OpVectorTimesScalar %v3float %118 %120
+        %122 = OpFAdd %v3float %116 %121
+               OpStore %pos %122
+        %127 = OpLoad %mat4v3float %gl_ObjectToWorldEXT
+        %128 = OpLoad %v3float %pos
+        %129 = OpCompositeExtract %float %128 0
+        %130 = OpCompositeExtract %float %128 1
+        %131 = OpCompositeExtract %float %128 2
+        %132 = OpCompositeConstruct %v4float %129 %130 %131 %float_1
+        %133 = OpMatrixTimesVector %v3float %127 %132
+        %134 = OpCompositeExtract %float %133 0
+        %135 = OpCompositeExtract %float %133 1
+        %136 = OpCompositeExtract %float %133 2
+        %137 = OpCompositeConstruct %v3float %134 %135 %136
+               OpStore %worldPos %137
+        %139 = OpAccessChain %_ptr_Function_v3float %v0 %int_1
+        %140 = OpLoad %v3float %139
+        %141 = OpAccessChain %_ptr_Function_float %barycentrics %uint_0
+        %142 = OpLoad %float %141
+        %143 = OpVectorTimesScalar %v3float %140 %142
+        %144 = OpAccessChain %_ptr_Function_v3float %v1 %int_1
+        %145 = OpLoad %v3float %144
+        %146 = OpAccessChain %_ptr_Function_float %barycentrics %uint_1
+        %147 = OpLoad %float %146
+        %148 = OpVectorTimesScalar %v3float %145 %147
+        %149 = OpFAdd %v3float %143 %148
+        %150 = OpAccessChain %_ptr_Function_v3float %v2 %int_1
+        %151 = OpLoad %v3float %150
+        %152 = OpAccessChain %_ptr_Function_float %barycentrics %uint_2
+        %153 = OpLoad %float %152
+        %154 = OpVectorTimesScalar %v3float %151 %153
+        %155 = OpFAdd %v3float %149 %154
+               OpStore %nrm %155
+        %157 = OpLoad %v3float %nrm
+        %159 = OpLoad %mat4v3float %gl_WorldToObjectEXT
+        %160 = OpVectorTimesMatrix %v4float %157 %159
+        %161 = OpCompositeExtract %float %160 0
+        %162 = OpCompositeExtract %float %160 1
+        %163 = OpCompositeExtract %float %160 2
+        %164 = OpCompositeConstruct %v3float %161 %162 %163
+        %165 = OpExtInst %v3float %1 Normalize %164
+               OpStore %worldNrm %165
+               OpStore %lightIntensity %float_1
+               OpStore %lightDistance %float_100000
+        %175 = OpAccessChain %_ptr_PushConstant_v3float %__0 %int_0 %int_1
+        %176 = OpLoad %v3float %175
+        %177 = OpExtInst %v3float %1 Normalize %176
+               OpStore %L %177
+               OpStore %diffuse %180
+               OpStore %specular %183
+               OpStore %attenuation %float_1
+        %186 = OpLoad %v3float %worldPos
+               OpStore %origin %186
+        %190 = OpLoad %v3float %gl_WorldRayDirectionEXT
+        %191 = OpLoad %v3float %worldNrm
+        %192 = OpExtInst %v3float %1 Reflect %190 %191
+               OpStore %rayDir %192
+        %197 = OpAccessChain %_ptr_IncomingRayPayloadNV_v3float %prd %int_2
+        %198 = OpLoad %v3float %197
+        %199 = OpVectorTimesScalar %v3float %198 %float_1
+        %200 = OpAccessChain %_ptr_IncomingRayPayloadNV_v3float %prd %int_2
+               OpStore %200 %199
+        %203 = OpAccessChain %_ptr_IncomingRayPayloadNV_int %prd %int_3
+               OpStore %203 %int_0
+        %205 = OpLoad %v3float %origin
+        %206 = OpAccessChain %_ptr_IncomingRayPayloadNV_v3float %prd %int_4
+               OpStore %206 %205
+        %208 = OpLoad %v3float %rayDir
+        %209 = OpAccessChain %_ptr_IncomingRayPayloadNV_v3float %prd %int_5
+               OpStore %209 %208
+        %210 = OpLoad %float %attenuation
+        %211 = OpLoad %float %lightIntensity
+        %212 = OpFMul %float %210 %211
+        %213 = OpLoad %v3float %diffuse
+        %214 = OpLoad %v3float %specular
+        %215 = OpFAdd %v3float %213 %214
+        %216 = OpVectorTimesScalar %v3float %215 %212
+        %217 = OpCompositeExtract %float %216 0
+        %218 = OpCompositeExtract %float %216 1
+        %219 = OpCompositeExtract %float %216 2
+        %220 = OpCompositeConstruct %v3float %217 %218 %219
+        %221 = OpAccessChain %_ptr_IncomingRayPayloadNV_v3float %prd %int_0
+               OpStore %221 %220
+               OpReturn
+               OpFunctionEnd

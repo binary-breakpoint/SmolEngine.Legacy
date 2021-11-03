@@ -1,0 +1,45 @@
+; SPIR-V
+; Version: 1.4
+; Generator: Google Shaderc over Glslang; 10
+; Bound: 19
+; Schema: 0
+               OpCapability RayTracingProvisionalKHR
+               OpExtension "SPV_KHR_ray_tracing"
+          %1 = OpExtInstImport "GLSL.std.450"
+               OpMemoryModel Logical GLSL450
+               OpEntryPoint MissNV %main "main" %prd
+               OpSource GLSL 460
+               OpSourceExtension "GL_EXT_ray_tracing"
+               OpSourceExtension "GL_EXT_shader_explicit_arithmetic_types_int64"
+               OpSourceExtension "GL_GOOGLE_cpp_style_line_directive"
+               OpSourceExtension "GL_GOOGLE_include_directive"
+               OpName %main "main"
+               OpName %hitPayload "hitPayload"
+               OpMemberName %hitPayload 0 "hitValue"
+               OpMemberName %hitPayload 1 "depth"
+               OpMemberName %hitPayload 2 "attenuation"
+               OpMemberName %hitPayload 3 "done"
+               OpMemberName %hitPayload 4 "rayOrigin"
+               OpMemberName %hitPayload 5 "rayDir"
+               OpName %prd "prd"
+               OpDecorate %prd Location 0
+       %void = OpTypeVoid
+          %3 = OpTypeFunction %void
+      %float = OpTypeFloat 32
+    %v3float = OpTypeVector %float 3
+        %int = OpTypeInt 32 1
+ %hitPayload = OpTypeStruct %v3float %int %v3float %int %v3float %v3float
+%_ptr_IncomingRayPayloadNV_hitPayload = OpTypePointer IncomingRayPayloadNV %hitPayload
+        %prd = OpVariable %_ptr_IncomingRayPayloadNV_hitPayload IncomingRayPayloadNV
+      %int_0 = OpConstant %int 0
+%float_0_200000003 = OpConstant %float 0.200000003
+  %float_0_5 = OpConstant %float 0.5
+%float_0_400000006 = OpConstant %float 0.400000006
+         %16 = OpConstantComposite %v3float %float_0_200000003 %float_0_5 %float_0_400000006
+%_ptr_IncomingRayPayloadNV_v3float = OpTypePointer IncomingRayPayloadNV %v3float
+       %main = OpFunction %void None %3
+          %5 = OpLabel
+         %18 = OpAccessChain %_ptr_IncomingRayPayloadNV_v3float %prd %int_0
+               OpStore %18 %16
+               OpReturn
+               OpFunctionEnd

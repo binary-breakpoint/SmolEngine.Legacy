@@ -31,7 +31,8 @@ namespace SmolEngine
 		virtual bool                   Build(RaytracingPipelineCreateInfo* info) = 0;
 		virtual void                   CreateScene(RaytracingPipelineSceneInfo* info) = 0;
 		virtual void                   UpdateScene(RaytracingPipelineSceneInfo* info) = 0;
-		virtual void                   Dispatch(uint32_t width, uint32_t height, void* cmdStorage = nullptr) = 0;
+		virtual void                   SetCommandBuffer(void* cmdStorage = nullptr) {};
+		virtual void                   Dispatch(uint32_t width, uint32_t height) = 0;
 		virtual void                   SubmitPushConstant(ShaderType stage, size_t size, const void* data) {};
 		static Ref<RaytracingPipeline> Create();
 

@@ -154,7 +154,12 @@ namespace SmolEngine
 
 						}
 
-						assert(found == true);
+						if (found == false)
+						{
+							DebugLog::LogWarn("VulkanDescriptor: buffer at index {} not found", buffer.BindingPoint);
+							continue;
+						}
+
 					}
 				}
 			}
