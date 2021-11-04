@@ -4,7 +4,15 @@
 #include "Common/DebugLog.h"
 #include "Tools/Utils.h"
 
-#include <shaderc/shaderc.hpp>
+VKBP_DISABLE_WARNINGS()
+#include <glslang/include/glslang/Public/ShaderLang.h>
+#include <glslang/include/StandAlone/ResourceLimits.h>
+#include <glslang/include/SPIRV/GlslangToSpv.h>
+#include <glslang/include/SPIRV/GLSL.std.450.h>
+#include <glslang/include/glslang/Include/ShHandle.h>
+#include <glslang/include/glslang/OSDependent/osinclude.h>
+VKBP_ENABLE_WARNINGS()
+
 #include <spirv_cross/spirv_cross.hpp>
 #include <spirv_cross/spirv_glsl.hpp>
 
@@ -16,21 +24,21 @@
 
 namespace SmolEngine
 {
-	shaderc_shader_kind GetShaderType(ShaderType type)
+	EShLanguage GetShaderType(ShaderType type)
 	{
 		switch (type)
 		{
-		case ShaderType::Vertex:      return shaderc_shader_kind::shaderc_vertex_shader;
-		case ShaderType::Fragment:    return shaderc_shader_kind::shaderc_fragment_shader;
-		case ShaderType::Geometry:    return shaderc_shader_kind::shaderc_geometry_shader;
-		case ShaderType::Compute:     return shaderc_shader_kind::shaderc_compute_shader;
-		case ShaderType::RayGen:      return shaderc_shader_kind::shaderc_raygen_shader;
-		case ShaderType::RayAnyHit:   return shaderc_shader_kind::shaderc_anyhit_shader;
-		case ShaderType::RayCloseHit: return shaderc_shader_kind::shaderc_closesthit_shader;
-		case ShaderType::RayMiss:     return shaderc_shader_kind::shaderc_miss_shader;
+		case ShaderType::Vertex:      return EShLangVertex;
+		case ShaderType::Fragment:    return EShLangFragment;
+		case ShaderType::Geometry:    return EShLangGeometry;
+		case ShaderType::Compute:     return EShLangCompute;
+		case ShaderType::RayGen:      return EShLangRayGen;
+		case ShaderType::RayAnyHit:   return EShLangAnyHit;
+		case ShaderType::RayCloseHit: return EShLangClosestHit;
+		case ShaderType::RayMiss:     return EShLangMiss;
 		}
 
-		return shaderc_shader_kind::shaderc_vertex_shader;
+		return EShLangVertex;
 	}
 
 	void LoadSPIRV(const std::string& path, std::vector<uint32_t>& binaries)
@@ -49,17 +57,9 @@ namespace SmolEngine
 
 	void CompileSPIRV(const std::string& str, std::vector<uint32_t>& binaries, ShaderType type, bool isSource)
 	{
-		shaderc::Compiler compiler;
-		shaderc::CompileOptions options;
-		options.SetTargetSpirv(shaderc_spirv_version_1_4);
+		// Initialize glslang library.
+		glslang::InitializeProcess();
 
-#ifdef OPENGL_IMPL
-#else
-		options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
-#endif
-#ifndef SMOLENGINE_DEBUG
-		options.SetOptimizationLevel(shaderc_optimization_level_performance);
-#endif
 		std::string path = str;
 		std::string src = str;
 
@@ -80,35 +80,60 @@ namespace SmolEngine
 
 		// Compile
 		{
-			auto result = compiler.CompileGlslToSpv(src, GetShaderType(type), " ", options);
-			if (result.GetCompilationStatus() != shaderc_compilation_status_success)
+			const char* file_name_list[1] = { "" };
+			const char* shader_source = reinterpret_cast<const char*>(src.data());
+
+			EShMessages messages = static_cast<EShMessages>(EShMsgDefault | EShMsgVulkanRules | EShMsgSpvRules);
+			EShLanguage language = GetShaderType(type);
+
+			glslang::TShader shader(language);
+
+			shader.setEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_5);
+			shader.setStringsWithLengthsAndNames(&shader_source, nullptr, file_name_list, 1);
+			shader.setEntryPoint("main");
+			shader.setSourceEntryPoint("main");
+
+			std::string log = "";
+			if (!shader.parse(&glslang::DefaultTBuiltInResource, 100, false, messages))
 			{
-				DebugLog::LogError(result.GetErrorMessage().c_str());
-				assert(false);
+				log = std::string(shader.getInfoLog()) + "\n" + std::string(shader.getInfoDebugLog());
+				abort(); // temp
 			}
 
-			binaries = std::vector<uint32_t>(result.cbegin(), result.cend());
-		}
+			// Add shader to new program object.
+			glslang::TProgram program;
+			program.addShader(&shader);
 
-		std::string cachedPath = Utils::GetCachedPath(path, CachedPathType::Shader);
-
-#ifdef SMOLENGINE_DEBUG
-		// Assembly
-		{
-			auto result = compiler.CompileGlslToSpvAssembly(src, GetShaderType(type), " ", options);
-			if (result.GetCompilationStatus() == shaderc_compilation_status_success)
+			// Link program.
+			if (!program.link(messages))
 			{
-				std::string assembly = std::string(result.cbegin(), result.cend());
-				std::ofstream myfile;
-				myfile.open(cachedPath + "_assembly.txt");
-				myfile << assembly;
-				myfile.close();
+				DebugLog::LogInfo(std::string(program.getInfoLog()) + "\n" + std::string(program.getInfoDebugLog()));
 			}
+
+			glslang::TIntermediate* intermediate = program.getIntermediate(language);
+			if (!intermediate)
+			{
+				DebugLog::LogError("Failed to get shared intermediate code.\n");
+				abort(); // temp
+			}
+
+			spv::SpvBuildLogger logger;
+			glslang::GlslangToSpv(*intermediate, binaries, &logger);
+			std::string error = logger.getAllMessages();
+			if (!error.empty())
+			{
+				DebugLog::LogError(error);
+				abort(); // temp
+			}
+
+			// Shutdown glslang library.
+			glslang::FinalizeProcess();
 		}
-#endif
+
 		// Save
 		if (!isSource)
 		{
+			std::string cachedPath = Utils::GetCachedPath(path, CachedPathType::Shader);
 			std::ofstream out(cachedPath, std::ios::out | std::ios::binary);
 			if (out.is_open())
 			{

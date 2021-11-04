@@ -67,8 +67,9 @@ project "SmolEngine.Graphics"
 	includedirs
 	{
 		"vendor/",
+		"vendor/glslang/include",
 		"vendor/icon_font_cpp_headers",
-		
+
 		"include/",
 		"include/External",
 		"include/External/implot/",
@@ -130,16 +131,17 @@ project "SmolEngine.Graphics"
 		links 
 		{ 
 			"vendor/vulkan/libs/VkLayer_utils.lib",
-			"vendor/vulkan/libs/shaderc_d.lib",
-			"vendor/vulkan/libs/shaderc_util_d.lib",
-			"vendor/vulkan/libs/glslang_d.lib",
-			"vendor/vulkan/libs/SPIRV_d.lib",
 			"vendor/vulkan/libs/SPIRV-Tools_d.lib",
 			"vendor/vulkan/libs/SPIRV-Tools-opt_d.lib",
-			"vendor/vulkan/libs/machineIndependent_d.lib",
-			"vendor/vulkan/libs/genericCodeGen_d.lib",
 			"vendor/vulkan/libs/OGLCompiler_d.lib",
 			"vendor/vulkan/libs/OSDependent_d.lib",
+
+			"vendor/glslang/glslang-default-resource-limitsd.lib",
+			"vendor/glslang/glslangd.lib",
+			"vendor/glslang/GenericCodeGend.lib",
+			"vendor/glslang/MachineIndependentd.lib",
+			"vendor/glslang/SPVRemapperd.lib",
+			"vendor/glslang/SPIRVd.lib",
 
 			"vendor/ozz-animation/libs/ozz_animation_d.lib",
 			"vendor/ozz-animation/libs/ozz_animation_offline_d.lib",
@@ -167,16 +169,18 @@ project "SmolEngine.Graphics"
 
 		links 
 		{ 
-			"vendor/vulkan/libs/shaderc.lib",
-			"vendor/vulkan/libs/shaderc_util.lib",
-			"vendor/vulkan/libs/glslang.lib",
-			"vendor/vulkan/libs/SPIRV.lib",
+
 			"vendor/vulkan/libs/SPIRV-Tools.lib",
 			"vendor/vulkan/libs/SPIRV-Tools-opt.lib",
-			"vendor/vulkan/libs/machineIndependent.lib",
-			"vendor/vulkan/libs/genericCodeGen.lib",
 			"vendor/vulkan/libs/OGLCompiler.lib",
 			"vendor/vulkan/libs/OSDependent.lib",
+
+			"vendor/glslang/glslang-default-resource-limits.lib",
+			"vendor/glslang/glslang.lib",
+			"vendor/glslang/GenericCodeGen.lib",
+			"vendor/glslang/MachineIndependent.lib",
+			"vendor/glslang/SPVRemapper.lib",
+			"vendor/glslang/SPIRV.lib",
 
 			"vendor/ozz-animation/libs/ozz_animation_r.lib",
 			"vendor/ozz-animation/libs/ozz_animation_offline_r.lib",

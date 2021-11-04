@@ -44,9 +44,9 @@ int main(int argc, char** argv)
 	};
 
 	RaytracingPipelineCreateInfo rtCreateInfo{};
-	rtCreateInfo.ShaderCI.Stages[ShaderType::RayCloseHit] = info.ResourcesFolder + "Shaders/Raytracing/reflections.rchit";
-	rtCreateInfo.ShaderCI.Stages[ShaderType::RayGen] = info.ResourcesFolder + "Shaders/Raytracing/reflections.rgen";
-	rtCreateInfo.ShaderCI.Stages[ShaderType::RayMiss] = info.ResourcesFolder + "Shaders/Raytracing/reflections.rmiss";
+	rtCreateInfo.ShaderCI.Stages[ShaderType::RayCloseHit] = info.ResourcesFolder + "Shaders/Reflections.rchit";
+	rtCreateInfo.ShaderCI.Stages[ShaderType::RayGen] = info.ResourcesFolder + "Shaders/Reflections.rgen";
+	rtCreateInfo.ShaderCI.Stages[ShaderType::RayMiss] = info.ResourcesFolder + "Shaders/Reflections.rmiss";
 
 	rtCreateInfo.ShaderCI.Buffers[2].bGlobal = false;
 	rtCreateInfo.ShaderCI.Buffers[666].bGlobal = false;

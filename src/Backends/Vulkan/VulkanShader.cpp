@@ -5,7 +5,6 @@
 #include "Backends/Vulkan/VulkanUtils.h"
 
 #include "Tools/Utils.h"
-#include <shaderc/shaderc.hpp>
 
 namespace SmolEngine
 {
