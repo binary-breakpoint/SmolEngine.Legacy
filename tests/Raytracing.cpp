@@ -33,25 +33,16 @@ int main(int argc, char** argv)
          camera->OnEvent(e);
      });
 
-	BufferLayout mainLayout =
-	{
-		{ DataTypes::Float3, "aPos" },
-		{ DataTypes::Float3, "aNormal" },
-		{ DataTypes::Float3, "aTangent" },
-		{ DataTypes::Float2, "aUV" },
-		{ DataTypes::Int4,   "aBoneIDs"},
-		{ DataTypes::Float4, "aWeight"}
-	};
-
 	RaytracingPipelineCreateInfo rtCreateInfo{};
-	rtCreateInfo.ShaderCI.Stages[ShaderType::RayCloseHit] = info.ResourcesFolder + "Shaders/Reflections.rchit";
-	rtCreateInfo.ShaderCI.Stages[ShaderType::RayGen] = info.ResourcesFolder + "Shaders/Reflections.rgen";
-	rtCreateInfo.ShaderCI.Stages[ShaderType::RayMiss] = info.ResourcesFolder + "Shaders/Reflections.rmiss";
+	rtCreateInfo.ShaderRayGenPath = info.ResourcesFolder + "Shaders/Reflections.rgen";
+	rtCreateInfo.ShaderCloseHitPath = info.ResourcesFolder + "Shaders/Reflections.rchit";
+	rtCreateInfo.ShaderMissPath = info.ResourcesFolder + "Shaders/Reflections.rmiss";
 
-	rtCreateInfo.ShaderCI.Buffers[2].bGlobal = false;
-	rtCreateInfo.ShaderCI.Buffers[666].bGlobal = false;
-	rtCreateInfo.ShaderCI.Buffers[666].Size = sizeof(VulkanRaytracingPipeline::ObjDesc) * 1000;
-	rtCreateInfo.VertexInput = VertexInputInfo(sizeof(PBRVertex), mainLayout);
+	rtCreateInfo.Buffers[2].bGlobal = false;
+	rtCreateInfo.Buffers[666].bGlobal = false;
+	rtCreateInfo.Buffers[666].Size = sizeof(VulkanRaytracingPipeline::ObjDesc) * 1000;
+	rtCreateInfo.VertexStride = sizeof(PBRVertex);
+	rtCreateInfo.MaxRayRecursionDepth = 2;
 
 	Ref<RaytracingPipeline> rtPipeline = RaytracingPipeline::Create();
 	rtPipeline->Build(&rtCreateInfo);
@@ -98,22 +89,12 @@ int main(int argc, char** argv)
 				glm::mat4 projInverse;
 			} camData;
 
-			struct PC
-			{
-				glm::vec4  clearColor = glm::vec4(1);
-				glm::vec3  lightPosition = glm::vec3(105.0f, 53.0f, 102.0f);
-				float lightIntensity = 1;
-				int   lightType = 1;
-				int   maxDepth = 4;
-			} static pc{};
-
 			camData.viewProj = camera->GetProjection() * camera->GetViewMatrix();
 			camData.projInverse = glm::inverse(camera->GetProjection());
 			camData.viewInverse = glm::inverse(camera->GetViewMatrix());
-
 			rtPipeline->UpdateBuffer(2, sizeof(CameraProperties), &camData);
+
 			rtPipeline->SetCommandBuffer(); // default
-			rtPipeline->SubmitPushConstant(ShaderType::RayCloseHit, sizeof(PC), &pc);
 			rtPipeline->Dispatch(720, 480);
 
 			VkImageSubresourceRange subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };

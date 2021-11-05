@@ -145,7 +145,7 @@ namespace SmolEngine
 			rayTracingPipelineCI.pStages = vkShader->m_VkPipelineShaderStages.data();
 			rayTracingPipelineCI.groupCount = static_cast<uint32_t>(vkShader->m_ShaderGroupsRT.size());
 			rayTracingPipelineCI.pGroups = vkShader->m_ShaderGroupsRT.data();
-			rayTracingPipelineCI.maxPipelineRayRecursionDepth = 1;
+			rayTracingPipelineCI.maxPipelineRayRecursionDepth = info->MaxRayRecursionDepth;
 			rayTracingPipelineCI.layout = m_PipelineLayout;
 
 			VK_CHECK_RESULT(device.vkCreateRayTracingPipelinesKHR(device.GetLogicalDevice(), VK_NULL_HANDLE,
@@ -174,15 +174,18 @@ namespace SmolEngine
 				auto vb = mesh->GetVertexBuffer()->Cast<VulkanVertexBuffer>();
 				auto ib = mesh->GetIndexBuffer()->Cast<VulkanIndexBuffer>();
 
-				ObjDesc objDesc{};
-				objDesc.materialUUID = 0;
-				objDesc.vertexAddress = VulkanUtils::GetBufferDeviceAddress(vb->GetBuffer());
-				objDesc.indexAddress = VulkanUtils::GetBufferDeviceAddress(ib->GetBuffer());;
-
 				auto ac = std::make_shared<VulkanACStructure>();
-				ac->BuildAsBottomLevel(m_Info.VertexInput.Stride, &m_TransformBuffer, mesh);
+				ac->BuildAsBottomLevel(m_Info.VertexStride, &m_TransformBuffer, mesh);
 
-				m_ObjDescriptions.emplace_back(std::move(objDesc));
+				for (uint32_t i = 0; i < instances; ++i)
+				{
+					ObjDesc objDesc{};
+					objDesc.vertexAddress = VulkanUtils::GetBufferDeviceAddress(vb->GetBuffer());
+					objDesc.indexAddress = VulkanUtils::GetBufferDeviceAddress(ib->GetBuffer());
+
+					m_ObjDescriptions.emplace_back(std::move(objDesc));
+				}
+
 				root->Nodes.push_back(ac);
 			}
 

@@ -21,6 +21,13 @@ namespace SmolEngine
 	{
 		m_Shader = Shader::Create();
 		m_Info = *info;
-		return m_Shader->Build(&info->ShaderCI);
+
+		ShaderCreateInfo shaderCI{};
+		shaderCI.Buffers = info->Buffers;
+		shaderCI.Stages[ShaderType::RayGen] = info->ShaderRayGenPath;
+		shaderCI.Stages[ShaderType::RayMiss] = info->ShaderMissPath;
+		shaderCI.Stages[ShaderType::RayCloseHit] = info->ShaderCloseHitPath;
+
+		return m_Shader->Build(&shaderCI);
 	}
 }

@@ -25,9 +25,6 @@ namespace SmolEngine
 	class VulkanDevice
 	{
 	public:
-		VulkanDevice();
-		~VulkanDevice();
-
 		bool                                             Init(const VulkanInstance* instance);
 		// Getters										 
 		uint32_t                                         GetMemoryTypeIndex(uint32_t typeBits, VkMemoryPropertyFlags memFlags) const;

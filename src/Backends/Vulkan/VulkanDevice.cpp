@@ -7,19 +7,6 @@
 
 namespace SmolEngine
 {
-	VulkanDevice::VulkanDevice()
-	{
-
-	}
-
-	VulkanDevice::~VulkanDevice()
-	{
-		if (m_VkLogicalDevice != VK_NULL_HANDLE)
-		{
-			//vkDestroyDevice(m_VkLogicalDevice, nullptr);
-		}
-	}
-
 	bool VulkanDevice::Init(const VulkanInstance* instance)
 	{
 		if (SetupPhysicalDevice(instance))
@@ -48,7 +35,14 @@ namespace SmolEngine
 	{
 		const VkInstance& instance = _instance->GetInstance();
 		m_ExtensionsList = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+
+#ifdef  SMOLENGINE_DEBUG
+		m_ExtensionsList.push_back(VK_NV_DEVICE_DIAGNOSTIC_CHECKPOINTS_EXTENSION_NAME);
+		m_ExtensionsList.push_back(VK_NV_DEVICE_DIAGNOSTICS_CONFIG_EXTENSION_NAME);
+
+#endif
 		std::vector<const char*> rayTracingEX = m_ExtensionsList;
+
 		// Ray tracing related extensions
 		rayTracingEX.push_back(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME);
 		rayTracingEX.push_back(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME);
@@ -83,7 +77,6 @@ namespace SmolEngine
 				SelectDevice(current_device);
 		}
 
-		assert(m_VkPhysicalDevice != VK_NULL_HANDLE);
 		return m_VkPhysicalDevice != VK_NULL_HANDLE;
 	}
 
@@ -140,6 +133,13 @@ namespace SmolEngine
 		enabledAccelerationStructureFeatures.accelerationStructure = VK_TRUE;
 		enabledAccelerationStructureFeatures.pNext = &enabledRayTracingPipelineFeatures;
 
+		VkDeviceDiagnosticsConfigCreateInfoNV diagnosticsConfigCreateInfoNV{};
+		diagnosticsConfigCreateInfoNV.sType = VK_STRUCTURE_TYPE_DEVICE_DIAGNOSTICS_CONFIG_CREATE_INFO_NV;
+		diagnosticsConfigCreateInfoNV.flags = VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_SHADER_DEBUG_INFO_BIT_NV | VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_RESOURCE_TRACKING_BIT_NV
+			| VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_AUTOMATIC_CHECKPOINTS_BIT_NV;
+		diagnosticsConfigCreateInfoNV.pNext = m_RayTracingEnabled ? &enabledAccelerationStructureFeatures : nullptr;
+
+
 		VkDeviceCreateInfo deviceInfo = {};
 		{
 			deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -149,10 +149,14 @@ namespace SmolEngine
 			deviceInfo.enabledExtensionCount = static_cast<uint32_t>(m_ExtensionsList.size());
 			deviceInfo.pEnabledFeatures = &m_VkDeviceFeatures;
 
+#ifdef  SMOLENGINE_DEBUG
+			deviceInfo.pNext = &diagnosticsConfigCreateInfoNV;
+#else
 			if (m_RayTracingEnabled)
 			{
 				deviceInfo.pNext = &enabledAccelerationStructureFeatures;
 			}
+#endif
 		}
 
 		VkResult result = vkCreateDevice(m_VkPhysicalDevice, &deviceInfo, nullptr, &m_VkLogicalDevice);

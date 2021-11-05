@@ -27,7 +27,7 @@ namespace SmolEngine
 
 		const auto& present_ref = m_Semaphore.GetPresentCompleteSemaphore();
 		const auto& render_ref = m_Semaphore.GetRenderCompleteSemaphore();
-		constexpr uint64_t DEFAULT_FENCE_TIME_OUT = 100000000000;
+
 		// Use a fence to wait until the command buffer has finished execution before using it again
 		VK_CHECK_RESULT(vkWaitForFences(m_Device.GetLogicalDevice(), 1, &m_Semaphore.GetVkFences()[m_Swapchain.GetCurrentBufferIndex()], VK_TRUE, UINT64_MAX));
 		VK_CHECK_RESULT(vkResetFences(m_Device.GetLogicalDevice(), 1, &m_Semaphore.GetVkFences()[m_Swapchain.GetCurrentBufferIndex()]));
@@ -57,24 +57,38 @@ namespace SmolEngine
 		// Present the current buffer to the swap chain
 		// Pass the semaphore signaled by the command buffer submission from the submit info as the wait semaphore for swap chain presentation
 		// This ensures that the image is not presented to the windowing system until all commands have been submitted
-		VkResult present = m_Swapchain.QueuePresent(m_Device.GetQueue(QueueFamilyFlags::Graphics), render_ref);
-		if (!((present == VK_SUCCESS) || (present == VK_SUBOPTIMAL_KHR))) {
+		{
+			VkResult present = m_Swapchain.QueuePresent(m_Device.GetQueue(QueueFamilyFlags::Graphics), render_ref);
+			if (!((present == VK_SUCCESS) || (present == VK_SUBOPTIMAL_KHR))) {
 
-			if (present == VK_ERROR_OUT_OF_DATE_KHR)
-			{
-				uint32_t w = m_Swapchain.GetWidth();
-				uint32_t h = m_Swapchain.GetHeight();
+				if (present == VK_ERROR_OUT_OF_DATE_KHR)
+				{
+					uint32_t w = m_Swapchain.GetWidth();
+					uint32_t h = m_Swapchain.GetHeight();
 
-				m_Swapchain.OnResize(&w, &h, &m_CommandBuffer);
-				return;
-			}
-			else
-			{
-				VK_CHECK_RESULT(present);
+					m_Swapchain.OnResize(&w, &h, &m_CommandBuffer);
+					return;
+				}
+				else
+				{
+					VK_CHECK_RESULT(present);
+				}
 			}
 		}
 
-		VK_CHECK_RESULT(vkWaitForFences(m_Device.GetLogicalDevice(), 1, &m_Semaphore.GetVkFences()[m_Swapchain.GetCurrentBufferIndex()], VK_TRUE, DEFAULT_FENCE_TIME_OUT));
+		{
+			VkResult result = vkWaitForFences(m_Device.GetLogicalDevice(), 1, &m_Semaphore.GetVkFences()[m_Swapchain.GetCurrentBufferIndex()], VK_TRUE, UINT64_MAX);
+#ifdef  SMOLENGINE_DEBUG
+			if (VK_ERROR_DEVICE_LOST == result)
+			{
+				/* Device lost notification is asynchronous to the NVIDIA display
+                   driver's GPU crash handling. Give the Nsight Aftermath GPU crash dump
+                   thread some time to do its work before terminating the process. */
+				std::this_thread::sleep_for(std::chrono::microseconds(3000));
+			}
+#endif
+			VK_CHECK_RESULT(result);
+		}
 	}
 
 	void VulkanContext::BeginFrameEX(float time)
@@ -124,6 +138,11 @@ namespace SmolEngine
 		bool swapchain_initialized = false;
 		{
 			m_Instance.Init();
+#ifdef  SMOLENGINE_DEBUG
+			// Enable Nsight Aftermath GPU crash dump creation.
+            // This needs to be done before the Vulkan device is created.
+			m_CrachTracker.Initialize();
+#endif
 			m_Device.Init(&m_Instance);
 
 			m_Allocator = new VulkanAllocator();

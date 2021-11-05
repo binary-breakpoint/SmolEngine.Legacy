@@ -10,9 +10,13 @@ namespace SmolEngine
 {
 	struct RaytracingPipelineCreateInfo
 	{
-		ShaderCreateInfo ShaderCI{};
-		VertexInputInfo  VertexInput{};
-		int32_t          NumDescriptorSets = 1;
+		int32_t NumDescriptorSets = 1;
+		uint32_t VertexStride = 0;
+		uint32_t MaxRayRecursionDepth = 1;
+		std::string ShaderRayGenPath = "";
+		std::string ShaderCloseHitPath = "";
+		std::string ShaderMissPath = "";
+		std::map<uint32_t, ShaderBufferInfo> Buffers;
 	};
 
 	struct RaytracingPipelineSceneInfo

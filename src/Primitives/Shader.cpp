@@ -55,28 +55,22 @@ namespace SmolEngine
 		}
 	}
 
-	void CompileSPIRV(const std::string& str, std::vector<uint32_t>& binaries, ShaderType type, bool isSource)
+	void CompileSPIRV(const std::string& path, std::vector<uint32_t>& binaries, ShaderType type)
 	{
 		// Initialize glslang library.
 		glslang::InitializeProcess();
 
-		std::string path = str;
-		std::string src = str;
-
-		if (!isSource)
+		std::ifstream file(path);
+		std::stringstream buffer;
+		if (!file)
 		{
-			std::ifstream file(path);
-			std::stringstream buffer;
-			if (!file)
-			{
-				throw std::runtime_error("Could not load file " + path);
-				abort();
-			}
-
-			buffer << file.rdbuf();
-			src = buffer.str();
-			file.close();
+			throw std::runtime_error("Could not load file " + path);
+			abort();
 		}
+
+		buffer << file.rdbuf();
+		std::string src = buffer.str();
+		file.close();
 
 		// Compile
 		{
@@ -130,17 +124,13 @@ namespace SmolEngine
 			glslang::FinalizeProcess();
 		}
 
-		// Save
-		if (!isSource)
+		std::string cachedPath = Utils::GetCachedPath(path, CachedPathType::Shader);
+		std::ofstream out(cachedPath, std::ios::out | std::ios::binary);
+		if (out.is_open())
 		{
-			std::string cachedPath = Utils::GetCachedPath(path, CachedPathType::Shader);
-			std::ofstream out(cachedPath, std::ios::out | std::ios::binary);
-			if (out.is_open())
-			{
-				out.write((char*)binaries.data(), binaries.size() * sizeof(uint32_t));
-				out.flush();
-				out.close();
-			}
+			out.write((char*)binaries.data(), binaries.size() * sizeof(uint32_t));
+			out.flush();
+			out.close();
 		}
 	}
 
@@ -174,32 +164,27 @@ namespace SmolEngine
 		m_ReflectData.Clean();
 		m_Binary.clear();
 
-		const auto loadFn = [this](ShaderType type, const std::string& str, bool isSource)
+		const auto loadFn = [this](ShaderType type, const std::string& str)
 		{
 			if (str.empty()){ return; }
 			if (type == ShaderType::RayGen) { m_RTPipeline = true; }
 
 			auto& binaries = m_Binary[type];
-
-			if (!isSource)
+			std::string cachedPath = Utils::GetCachedPath(str, CachedPathType::Shader);
+			if (Utils::IsPathValid(cachedPath))
 			{
-				std::string cachedPath = Utils::GetCachedPath(str, CachedPathType::Shader);
-				if (Utils::IsPathValid(cachedPath))
-				{
-					LoadSPIRV(cachedPath, binaries);
-					Reflect(binaries, type); // TODO:: serialize
-
-					return;
-				}
+				LoadSPIRV(cachedPath, binaries);
+				Reflect(binaries, type); // TODO:: serialize
+				return;
 			}
 
-			CompileSPIRV(str, m_Binary[type], type, isSource);
+			CompileSPIRV(str, m_Binary[type], type);
 			Reflect(binaries, type);
 		};
 
 		for (auto& [type, str] : info->Stages)
 		{
-			loadFn(type, str, info->IsSource);
+			loadFn(type, str);
 		}
 
 		m_CreateInfo = *info;

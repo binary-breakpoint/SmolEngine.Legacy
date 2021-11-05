@@ -12,6 +12,10 @@
 #include "Backends/Vulkan/GUI/ImGuiVulkanImpl.h"
 #include "Backends/Vulkan/GUI/NuklearVulkanImpl.h"
 
+#ifdef SMOLENGINE_DEBUG
+#include "Backends/Vulkan/Aftermath/GpuCrashTracker.h"
+#endif
+
 struct GLFWwindow;
 
 namespace SmolEngine
@@ -41,6 +45,10 @@ namespace SmolEngine
 		inline static VkCommandBuffer       GetCurrentVkCmdBuffer() { return m_CurrentVkCmdBuffer; }
 		inline static uint64_t              GetBufferDeviceAddress(VkBuffer buffer);
 
+#ifdef  SMOLENGINE_DEBUG
+		inline static GpuCrashTracker&      GetCrashTracker() { return m_CrachTracker; }
+#endif
+
 	private:
 		Ref<NuklearVulkanImpl>              m_NuklearContext = nullptr;
 		Ref<ImGuiVulkanImpl>                m_ImGuiContext = nullptr;
@@ -51,6 +59,9 @@ namespace SmolEngine
 		inline static VulkanSemaphore       m_Semaphore = {};
 		inline static VulkanInstance        m_Instance = {};
 		inline static VulkanDevice          m_Device = {};
+#ifdef  SMOLENGINE_DEBUG
+		inline static GpuCrashTracker      m_CrachTracker{};
+#endif
 
 	private:
 

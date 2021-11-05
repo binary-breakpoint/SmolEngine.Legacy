@@ -88,7 +88,6 @@ namespace SmolEngine
 	{
 		std::map<ShaderType, std::string> Stages;
 		std::map<uint32_t, ShaderBufferInfo> Buffers;
-		bool IsSource = false;
 	};
 
 	class Shader: public PrimitiveBase

@@ -68,6 +68,7 @@ project "SmolEngine.Graphics"
 	{
 		"vendor/",
 		"vendor/glslang/include",
+		"vendor/nvidia_aftermath/include",
 		"vendor/icon_font_cpp_headers",
 
 		"include/",
@@ -142,6 +143,9 @@ project "SmolEngine.Graphics"
 			"vendor/glslang/MachineIndependentd.lib",
 			"vendor/glslang/SPVRemapperd.lib",
 			"vendor/glslang/SPIRVd.lib",
+
+			"vendor/nvidia_aftermath/lib/GFSDK_Aftermath_Lib.x64.lib",
+			"vendor/nvidia_aftermath/lib/GFSDK_Aftermath_Lib_UWP.x64.lib",
 
 			"vendor/ozz-animation/libs/ozz_animation_d.lib",
 			"vendor/ozz-animation/libs/ozz_animation_offline_d.lib",

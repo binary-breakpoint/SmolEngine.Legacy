@@ -18,9 +18,10 @@ namespace SmolEngine
 	public:
 		struct ObjDesc
 		{
-			uint32_t materialUUID;
-			uint64_t vertexAddress;
-			uint64_t indexAddress;
+			VkDeviceAddress vertexAddress = 0;
+			VkDeviceAddress indexAddress = 0;
+			VkDeviceAddress materialUIID = 0;
+			VkDeviceAddress materialIndices = 0;
 		};
 
 		virtual void       SetCommandBuffer(void* cmdStorage = nullptr) override;
