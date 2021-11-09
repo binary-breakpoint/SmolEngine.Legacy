@@ -200,7 +200,7 @@ namespace SmolEngine
 				primitive.AABB.MaxPoint(posMax);
 				primitive.AABB.Transform(model);
 
-				out_data->Primitives.push_back(primitive);
+				out_data->Primitives.push_back(std::move(primitive));
 			}
 		}
 	}

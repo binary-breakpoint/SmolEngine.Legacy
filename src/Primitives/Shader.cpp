@@ -112,7 +112,17 @@ namespace SmolEngine
 			}
 
 			spv::SpvBuildLogger logger;
-			glslang::GlslangToSpv(*intermediate, binaries, &logger);
+			glslang::SpvOptions options;
+
+#ifdef SMOLENGINE_DEBUG
+			options.disableOptimizer = true;
+			options.generateDebugInfo = true;
+#else
+			options.disableOptimizer = false;
+			options.generateDebugInfo = false;
+#endif // SMOLENGINE_DEBUG
+
+			glslang::GlslangToSpv(*intermediate, binaries, &logger, &options);
 			std::string error = logger.getAllMessages();
 			if (!error.empty())
 			{

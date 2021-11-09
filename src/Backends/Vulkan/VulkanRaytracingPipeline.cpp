@@ -89,23 +89,31 @@ namespace SmolEngine
 				VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR);
 		}
 
+		// Base
+		VulkanPipeline::BuildDescriptors(m_Shader, info->NumDescriptorSets, m_Descriptors, m_DescriptorPool);
+
 		// Dummy Scene 
 		RaytracingPipelineSceneInfo sceneCI{};
 		{
 			glm::mat4 model;
-			Utils::ComposeTransform(glm::vec3(0), glm::vec3(0), glm::vec3(1), model);
-			sceneCI.Transforms = { model, };
 
 			auto [cube, view] = MeshPool::GetCube();
-			sceneCI.Scene.push_back({ cube, 1});
+			auto [cube2, view2] = MeshPool::GetSphere();
+			auto [cube3, view3] = MeshPool::GetTorus();
+
+			//Utils::ComposeTransform(glm::vec3(0, -5, 0), glm::vec3(0), glm::vec3(10, 0.2, 10), model);
+			//sceneCI.Scene.push_back({ cube, { model} });
+			//
+			//Utils::ComposeTransform(glm::vec3(1), glm::vec3(0), glm::vec3(1), model);
+			//sceneCI.Scene.push_back({ cube2, { model} });
+
+			static Ref<Mesh> sponza = Mesh::Create();
+            sponza->LoadFromFile("Assets/sponza_small.gltf");
+
+			Utils::ComposeTransform(glm::vec3(0), glm::vec3(0), glm::vec3(1), model);
+			sceneCI.Scene.push_back({ sponza, { model} });
 
 			CreateScene(&sceneCI);
-		}
-		
-		// Descriptors
-		{
-			// Base
-			VulkanPipeline::BuildDescriptors(m_Shader, info->NumDescriptorSets, m_Descriptors, m_DescriptorPool);
 
 			// RT only
 			for (auto& descriptor : m_Descriptors)
@@ -163,11 +171,15 @@ namespace SmolEngine
 		m_BottomLevelAS.clear();
 		m_InstanceBuffer.Destroy();
 
-		// Buttom Level
-		for (auto& [topNode, instances] : info->Scene)
+		std::vector<VkAccelerationStructureInstanceKHR> instances;
+
+		std::vector<glm::vec4> colors;
+
+		// Bottom Level
+		for (auto& [topNode, models] : info->Scene)
 		{
 			auto root = std::make_shared<BLAS>();
-			root->IntanceCount = instances;
+			root->IntanceCount = static_cast<uint32_t>(models.size());
 
 			for (auto& mesh : topNode->GetScene())
 			{
@@ -177,13 +189,26 @@ namespace SmolEngine
 				auto ac = std::make_shared<VulkanACStructure>();
 				ac->BuildAsBottomLevel(m_Info.VertexStride, &m_TransformBuffer, mesh);
 
-				for (uint32_t i = 0; i < instances; ++i)
-				{
-					ObjDesc objDesc{};
-					objDesc.vertexAddress = VulkanUtils::GetBufferDeviceAddress(vb->GetBuffer());
-					objDesc.indexAddress = VulkanUtils::GetBufferDeviceAddress(ib->GetBuffer());
+				ObjDesc objDesc{};
+				objDesc.vertexAddress = VulkanUtils::GetBufferDeviceAddress(vb->GetBuffer());
+				objDesc.indexAddress = VulkanUtils::GetBufferDeviceAddress(ib->GetBuffer());
 
-					m_ObjDescriptions.emplace_back(std::move(objDesc));
+				for (uint32_t i = 0; i < root->IntanceCount; ++i)
+				{
+					glm::mat3x4 transform = glm::mat3x4(glm::transpose(models[i]));
+
+					VkAccelerationStructureInstanceKHR acceleration_structure_instance{};
+					memcpy(&acceleration_structure_instance.transform, &transform, sizeof(VkTransformMatrixKHR));
+
+					acceleration_structure_instance.mask = 0xFF;
+					acceleration_structure_instance.instanceShaderBindingTableRecordOffset = 0;
+					acceleration_structure_instance.flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR;
+					acceleration_structure_instance.instanceCustomIndex = static_cast<uint32_t>(m_ObjDescriptions.size());
+					acceleration_structure_instance.accelerationStructureReference = ac->GetDeviceAddress();
+
+					colors.push_back(m_ObjDescriptions.size() == 0? glm::vec4(1) : glm::vec4(static_cast <float> (rand()) / static_cast <float> (RAND_MAX)));
+					m_ObjDescriptions.emplace_back(objDesc);
+					instances.emplace_back(acceleration_structure_instance);
 				}
 
 				root->Nodes.push_back(ac);
@@ -194,13 +219,17 @@ namespace SmolEngine
 
 		// Top Level
 		bool updateDescriptors = false;
-		m_TopLevelAS.BuildAsTopLevel(&m_InstanceBuffer, info, m_BottomLevelAS, updateDescriptors);
-
-		for (auto& descriptor : m_Descriptors)
 		{
-			descriptor.UpdateBuffer(666, sizeof(VulkanRaytracingPipeline::ObjDesc) * m_ObjDescriptions.size(), m_ObjDescriptions.data());
-			m_ObjDescriptions.clear();
+			m_InstanceBuffer.CreateBuffer(instances.data(), sizeof(VkAccelerationStructureInstanceKHR) * instances.size(),
+				VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
+
+			m_TopLevelAS.BuildAsTopLevel(&m_InstanceBuffer, static_cast<uint32_t>(instances.size()), updateDescriptors);
 		}
+
+		// temp
+		m_Descriptors[0].UpdateBuffer(666, sizeof(VulkanRaytracingPipeline::ObjDesc) * m_ObjDescriptions.size(), m_ObjDescriptions.data());
+		m_Descriptors[0].UpdateBuffer(667, sizeof(glm::vec4) * colors.size(), colors.data());
+		m_ObjDescriptions.clear();
 
 		// Update Descriptors if needed (runtime)
 		if (updateDescriptors)

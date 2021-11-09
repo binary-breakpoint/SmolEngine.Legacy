@@ -21,8 +21,7 @@ namespace SmolEngine
 
 	struct RaytracingPipelineSceneInfo
 	{
-		std::vector<glm::mat4> Transforms;
-		std::vector<std::pair<Ref<Mesh>, uint32_t>> Scene;
+		std::vector<std::pair<Ref<Mesh>, std::vector<glm::mat4>>> Scene;
 	};
 
 	class RaytracingPipeline: public PrimitiveBase, public PipelineBase

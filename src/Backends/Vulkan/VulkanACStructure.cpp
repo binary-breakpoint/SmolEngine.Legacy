@@ -134,41 +134,9 @@ namespace SmolEngine
 		return m_DeviceAddress;
 	}
 
-	void VulkanACStructure::BuildAsTopLevel(VulkanBuffer* instancesBuffer, RaytracingPipelineSceneInfo* scene, 
-		const std::map<Ref<Mesh>, Ref<BLAS>>& bottomLevels, bool& out_update_descriptor)
+	void VulkanACStructure::BuildAsTopLevel(VulkanBuffer* instancesBuffer, uint32_t primitiveCount, bool& out_update_descriptor)
 	{
 		out_update_descriptor = false;
-		std::vector<VkAccelerationStructureInstanceKHR> instances;
-		uint32_t instanceIndex = 0;
-
-		for (auto& [mesh, blas] : bottomLevels)
-		{
-			for (uint32_t i = 0; i < blas->IntanceCount; ++i)
-			{
-				VkAccelerationStructureInstanceKHR acceleration_structure_instance{};
-
-				glm::mat3x4 transform = glm::mat3x4(glm::transpose(scene->Transforms[instanceIndex]));
-				memcpy(&acceleration_structure_instance.transform, &transform, sizeof(VkTransformMatrixKHR));
-
-				acceleration_structure_instance.mask = 0xFF;
-				acceleration_structure_instance.instanceShaderBindingTableRecordOffset = 0;
-				acceleration_structure_instance.flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR;
-
-				for (uint32_t j = 0; j < static_cast<uint32_t>(blas->Nodes.size()); ++j)
-				{
-					acceleration_structure_instance.instanceCustomIndex = instanceIndex + j;
-					acceleration_structure_instance.accelerationStructureReference = blas->Nodes[j]->GetDeviceAddress();
-					instances.emplace_back(acceleration_structure_instance);
-				}
-
-				instanceIndex++;
-			}
-		}
-
-		{
-			const size_t instancesDataSize = sizeof(VkAccelerationStructureInstanceKHR) * instances.size();
-			instancesBuffer->CreateBuffer(instances.data(), instancesDataSize, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
-		}
 
 		VkDeviceOrHostAddressConstKHR instance_data_device_address{};
 		instance_data_device_address.deviceAddress = VulkanUtils::GetBufferDeviceAddress(instancesBuffer->GetBuffer());
@@ -191,7 +159,6 @@ namespace SmolEngine
 		acceleration_structure_build_geometry_info.geometryCount = 1;
 		acceleration_structure_build_geometry_info.pGeometries = &acceleration_structure_geometry;
 
-		const uint32_t primitive_count =static_cast<uint32_t>(instances.size());
 		auto& device = VulkanContext::GetDevice();
 
 		VkAccelerationStructureBuildSizesInfoKHR acceleration_structure_build_sizes_info{};
@@ -199,7 +166,7 @@ namespace SmolEngine
 		device.vkGetAccelerationStructureBuildSizesKHR(
 			device.GetLogicalDevice(), VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
 			&acceleration_structure_build_geometry_info,
-			&primitive_count,
+			&primitiveCount,
 			&acceleration_structure_build_sizes_info);
 
 
@@ -248,7 +215,7 @@ namespace SmolEngine
 		acceleration_build_geometry_info.scratchData.deviceAddress = scratchBuffer.GetDeviceAddress();
 
 		VkAccelerationStructureBuildRangeInfoKHR acceleration_structure_build_range_info;
-		acceleration_structure_build_range_info.primitiveCount = primitive_count;
+		acceleration_structure_build_range_info.primitiveCount = primitiveCount;
 		acceleration_structure_build_range_info.primitiveOffset = 0;
 		acceleration_structure_build_range_info.firstVertex = 0;
 		acceleration_structure_build_range_info.transformOffset = 0;

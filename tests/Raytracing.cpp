@@ -40,25 +40,30 @@ int main(int argc, char** argv)
 
 	rtCreateInfo.Buffers[2].bGlobal = false;
 	rtCreateInfo.Buffers[666].bGlobal = false;
-	rtCreateInfo.Buffers[666].Size = sizeof(VulkanRaytracingPipeline::ObjDesc) * 1000;
+	//rtCreateInfo.Buffers[666].Size = sizeof(VulkanRaytracingPipeline::ObjDesc) * 1000;
+	//rtCreateInfo.Buffers[667].Size = sizeof(glm::vec4) * 1000;
+	rtCreateInfo.Buffers[667].bGlobal = false;
 	rtCreateInfo.VertexStride = sizeof(PBRVertex);
 	rtCreateInfo.MaxRayRecursionDepth = 2;
 
 	Ref<RaytracingPipeline> rtPipeline = RaytracingPipeline::Create();
 	rtPipeline->Build(&rtCreateInfo);
 
-	glm::mat4 model;
+	glm::mat4 model, model2, model3;
 	Utils::ComposeTransform(glm::vec3(0), glm::vec3(0), glm::vec3(1), model);
+	Utils::ComposeTransform(glm::vec3(2, 0, 0), glm::vec3(0), glm::vec3(1), model3);
+	Utils::ComposeTransform(glm::vec3(-2), glm::vec3(0), glm::vec3(10, 0.2, 10), model2);
 
-	Ref<Mesh> sponza = Mesh::Create();
-	sponza->LoadFromFile("Assets/sponza_small.gltf");
-
-	RaytracingPipelineSceneInfo sceneCI{};
-	sceneCI.Transforms = { model };
-	//                         mesh, instance count
-	sceneCI.Scene.push_back({ sponza , 1 });
-
-	rtPipeline->CreateScene(&sceneCI);
+	//Ref<Mesh> sponza = Mesh::Create();
+	//sponza->LoadFromFile("Assets/sponza_small.gltf");
+	//
+	//auto& [mesh, view2] = MeshPool::GetCube();
+	//auto& [mesh2, view] = MeshPool::GetSphere();
+	//
+	//RaytracingPipelineSceneInfo sceneCI{};
+	//sceneCI.Scene.push_back({ sponza , {model } });
+	//
+	//rtPipeline->CreateScene(&sceneCI);
 
 	Ref<Texture> storageTex = Texture::Create();
 	{

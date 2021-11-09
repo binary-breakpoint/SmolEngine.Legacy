@@ -22,6 +22,7 @@ namespace SmolEngine
     // Initialize the GPU Crash Dump Tracker
     void GpuCrashTracker::Initialize()
     {
+#if  0
         // Enable GPU crash dumps and set up the callbacks for crash dump notifications,
         // shader debug information notifications, and providing additional crash
         // dump description data.Only the crash dump callback is mandatory. The other two
@@ -41,6 +42,7 @@ namespace SmolEngine
             this));                                                           // Set the GpuCrashTracker object as user data for the above callbacks.
 
         m_initialized = true;
+#endif //  0
     }
 
     // Handler for GPU crash dump callbacks from Nsight Aftermath

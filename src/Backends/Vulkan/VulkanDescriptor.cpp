@@ -134,6 +134,10 @@ namespace SmolEngine
 
 			VkDescriptorType type = buffer.Type == BufferType::Uniform ?  VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER : VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 			VkBufferUsageFlags usage = buffer.Type == BufferType::Uniform ?  VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT : VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+
+			if (VulkanContext::GetSingleton()->GetDevice().GetRaytracingSupport())
+				usage |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+
 			size_t size = buffer.Size;
 
 			const auto& it = shader->GetCreateInfo().Buffers.find(buffer.BindingPoint);

@@ -17,8 +17,7 @@ namespace SmolEngine
 
 		void                       Free();
 		void                       BuildAsBottomLevel(uint32_t vertexStride, VulkanBuffer* transformBuffer, const Ref<Mesh>& mesh);
-		void                       BuildAsTopLevel(VulkanBuffer* instancesBuffer, RaytracingPipelineSceneInfo* scene, const std::map<Ref<Mesh>, 
-			                       Ref<BLAS>>& bottomLevels, bool& out_update_descriptor);
+		void                       BuildAsTopLevel(VulkanBuffer* instancesBuffer, uint32_t primitiveCount, bool& out_update_descriptor);
 
 		VkAccelerationStructureKHR GetHandle();
 		VulkanBuffer               GetBuffer() const;

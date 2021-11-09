@@ -6,15 +6,6 @@
 #extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
 #extension GL_EXT_buffer_reference2 : require
 
-struct hitPayload
-{
-	vec3 radiance;
-	vec3 attenuation;
-	int  done;
-	vec3 rayOrigin;
-	vec3 rayDir;
-};
-
 struct Vertex
 {
 	vec3  Pos;
@@ -33,17 +24,25 @@ struct ObjBuffer
 	uint64_t materialIndices;
 };
 
-layout(location = 0) rayPayloadInEXT hitPayload prd;
-hitAttributeEXT vec3 attribs;
+struct RayPayload {
+	vec3 color;
+	float distance;
+	vec3 normal;
+	float reflector;
+};
+
+layout(location = 0) rayPayloadInEXT RayPayload rayPayload;
+hitAttributeEXT vec2 attribs;
 
 // clang-format off
 
-layout(buffer_reference, scalar) buffer Vertices {Vertex v_[]; }; // Positions of an object
-layout(buffer_reference, scalar) buffer Indices {ivec3 i_[]; }; // Triangle indices
-
-layout(binding = 666) buffer IntsBuffer { ObjBuffer objects[]; };
+layout(buffer_reference, scalar) readonly buffer Vertices {Vertex v_[]; }; // Positions of an object
+layout(buffer_reference, scalar) readonly buffer Indices {uvec3 i_[]; }; // Triangle indices
 
 // clang-format on
+
+layout(binding = 666) uniform IntsBuffer { ObjBuffer objects[100]; };
+layout(binding = 667) uniform ColorsBuffer { vec4 colors[100]; };
 
 const float specular = 0.5;
 const float shiness = 1.0;
@@ -77,31 +76,21 @@ void main()
 	Vertex v1 = vertices.v_[ind.y];
 	Vertex v2 = vertices.v_[ind.z];
 
-	// Barycentric coordinates of the triangle
-	const vec3 barycentrics = vec3(1.0f - attribs.x - attribs.y, attribs.x, attribs.y);
+	// Interpolate normal
+	const vec3 barycentricCoords = vec3(1.0f - attribs.x - attribs.y, attribs.x, attribs.y);
+	vec3 N = v0.Normals * barycentricCoords.x + v1.Normals * barycentricCoords.y + v2.Normals * barycentricCoords.z;
+	vec3 normal = normalize(vec3(N.xyz * gl_WorldToObjectEXT));
 
-	// Computing the normal at hit position
-	vec3 N = v0.Normals * barycentrics.x + v1.Normals * barycentrics.y + v2.Normals * barycentrics.z;
-	N      = normalize(vec3(N.xyz * gl_WorldToObjectEXT));        // Transforming the normal to world space
+	vec4 lightPos = vec4(105.0f, 53.0f, 102.0f, 1);
+	vec4 color = colors[gl_InstanceCustomIndexEXT];
 
-	// Computing the coordinates of the hit position
-	vec3 P = v0.Pos * barycentrics.x + v1.Pos * barycentrics.y + v2.Pos * barycentrics.z;
-	P      = vec3(gl_ObjectToWorldEXT * vec4(P, 1.0));        // Transforming the position to world space
+	// Basic lighting
+	vec3 lightVector = normalize(lightPos.xyz);
+	float dot_product = max(dot(lightVector, normal), 0.6);
+	rayPayload.color = color.rgb * vec3(dot_product);
+	rayPayload.distance = gl_RayTmaxEXT;
+	rayPayload.normal = normal;
 
-	// Hardocded (to) light direction
-	vec3 L = normalize(vec3(1, 1, 1));
-
-	float NdotL = dot(N, L);
-
-	// Fake Lambertian to avoid black
-	vec3 diffuse  = vec3(0.7f, 0.7f, 0.7f) * max(NdotL, 0.3);
-	vec3 specular = computeSpecular(gl_WorldRayDirectionEXT, L, N);;
-
-  prd.radiance = (diffuse + specular) * (1 - shiness) * prd.attenuation;
-
-  // Reflect
-	vec3 rayDir = reflect(gl_WorldRayDirectionEXT, N);
-	prd.attenuation *= vec3(0.5);
-	prd.rayOrigin = P;
-	prd.rayDir    = rayDir;
+	// Objects with full white vertex color are treated as reflectors
+	rayPayload.reflector = ((color.r == 1.0f) && (color.g == 1.0f) && (color.b == 1.0f)) ? 1.0f : 0.0f; ; 
 }
