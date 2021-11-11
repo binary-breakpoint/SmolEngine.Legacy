@@ -58,6 +58,7 @@ includedirs
 	"include/External/",
 
 	"include/Core/",
+	"include/"
 }
 
 filter "configurations:Debug_Vulkan"
@@ -89,8 +90,10 @@ project "SmolEngine.Graphics"
 	{
 		"src/Graphics/**.cpp",
 		"src/Graphics/**.h",
+
 		"include/Graphics/**.h",
 		"include/GraphicsCore.h",
+
 		"include/External/glm/glm/**.hpp",
 		"include/External/glm/glm/**.inl",
 

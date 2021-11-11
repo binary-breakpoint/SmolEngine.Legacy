@@ -44,7 +44,6 @@ bld/
 Generated\ Files/
 
 vendor/vulkan/libs/
-vendor/assimp/libs/
 vendor/libs/
 vendor/mono
 
