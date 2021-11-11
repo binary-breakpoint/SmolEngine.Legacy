@@ -134,7 +134,7 @@ int main(int argc, char** argv)
 
 		context->BeginFrame(deltaTime);
 		{
-			ImGui::Begin("Panel");
+			ImGui::Begin("Light Panel");
 			if (ImGui::Checkbox("Enable", &dirLight.IsActive))
 			{
 				RendererDrawList::SubmitDirLight(&dirLight);

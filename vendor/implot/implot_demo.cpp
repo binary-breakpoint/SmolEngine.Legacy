@@ -23,6 +23,7 @@
 // ImPlot v0.9 WIP
 
 #include "stdafx.h"
+
 #include "implot.h"
 #include <math.h>
 #include <stdio.h>

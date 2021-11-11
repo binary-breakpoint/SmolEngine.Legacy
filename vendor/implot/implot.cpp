@@ -69,6 +69,7 @@ You can read releases logs https://github.com/epezent/implot/releases for more d
 */
 
 #include "stdafx.h"
+
 #include "implot.h"
 #include "implot_internal.h"
 
