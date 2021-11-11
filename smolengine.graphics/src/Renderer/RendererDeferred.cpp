@@ -519,15 +519,24 @@ namespace SmolEngine
 						{
 							if (mesh->IsRootNode())
 							{
-								object.AnimController->Update();
-								object.AnimController->CopyJoints(s_Instance->m_AnimationJoints, s_Instance->m_LastAnimationOffset);
-								s_Instance->m_RootOffsets[mesh] = anim_offset;
+								if (s_Instance->m_RootOffsets.find(mesh) == s_Instance->m_RootOffsets.end())
+								{
+									object.AnimController->Update();
+									object.AnimController->CopyJoints(s_Instance->m_AnimationJoints, s_Instance->m_LastAnimationOffset);
+									s_Instance->m_RootOffsets[mesh] = anim_offset;
+								}
 							}
 							else
 							{
 								auto& it = s_Instance->m_RootOffsets.find(mesh->m_Root);
 								if (it != s_Instance->m_RootOffsets.end())
 									anim_offset = it->second;
+								else
+								{
+									object.AnimController->Update();
+									object.AnimController->CopyJoints(s_Instance->m_AnimationJoints, s_Instance->m_LastAnimationOffset);
+									s_Instance->m_RootOffsets[mesh] = anim_offset;
+								}
 							}
 						}
 

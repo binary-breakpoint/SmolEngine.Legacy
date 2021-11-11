@@ -29,6 +29,11 @@ project "PBR"
 		"../bin/" ..outputdir .. "/SmolEngine.Graphics/SmolEngine.Graphics.lib"
 	}
 
+	postbuildcommands
+	{
+		"{COPY} ../vendor/nvidia_aftermath/lib/copy ../bin/" .. outputdir .. "/%{prj.name}",
+	}
+
 	filter "system:windows"
 		systemversion "latest"
 
@@ -80,6 +85,11 @@ project "2D"
 	links
 	{
 		"../bin/" ..outputdir .. "/SmolEngine.Graphics/SmolEngine.Graphics.lib"
+	}
+
+	postbuildcommands
+	{
+		"{COPY} ../vendor/nvidia_aftermath/lib/copy ../bin/" .. outputdir .. "/%{prj.name}",
 	}
 
 	filter "system:windows"
@@ -134,6 +144,11 @@ project "2D"
 		"../bin/" ..outputdir .. "/SmolEngine.Graphics/SmolEngine.Graphics.lib"
 	}
 
+	postbuildcommands
+	{
+		"{COPY} ../vendor/nvidia_aftermath/lib/copy ../bin/" .. outputdir .. "/%{prj.name}",
+	}
+
 	filter "system:windows"
 		systemversion "latest"
 
@@ -183,6 +198,11 @@ project "2D"
 	links
 	{
 		"../bin/" ..outputdir .. "/SmolEngine.Graphics/SmolEngine.Graphics.lib"
+	}
+
+	postbuildcommands
+	{
+		"{COPY} ../vendor/nvidia_aftermath/lib/copy ../bin/" .. outputdir .. "/%{prj.name}",
 	}
 
 	filter "system:windows"
@@ -235,6 +255,11 @@ project "2D"
 	links
 	{
 		"../bin/" ..outputdir .. "/SmolEngine.Graphics/SmolEngine.Graphics.lib"
+	}
+
+	postbuildcommands
+	{
+		"{COPY} ../vendor/nvidia_aftermath/lib/copy ../bin/" .. outputdir .. "/%{prj.name}",
 	}
 
 	filter "system:windows"

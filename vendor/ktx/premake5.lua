@@ -19,8 +19,9 @@ project "KTX-Tools"
 	{
 		"include/",
 		"other_include/",
-		"../../include/External/vulkan/include/",
-		"lib/"
+		"lib/",
+
+		"../../smolengine.external/vulkan/include/"
 	}
 
 	filter "system:windows"

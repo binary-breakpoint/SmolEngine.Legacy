@@ -2,9 +2,9 @@
 
 #include <GraphicsCore.h>
 
-#include "Graphics/Backends/Vulkan/VulkanTexture.h"
-#include "Graphics/Backends/Vulkan/VulkanContext.h"
-#include "Graphics/Backends/Vulkan/VulkanRaytracingPipeline.h"
+#include "Backends/Vulkan/VulkanTexture.h"
+#include "Backends/Vulkan/VulkanContext.h"
+#include "Backends/Vulkan/VulkanRaytracingPipeline.h"
 
 using namespace SmolEngine;
 int main(int argc, char** argv)

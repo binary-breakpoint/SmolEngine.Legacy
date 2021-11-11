@@ -14,7 +14,7 @@ project "ImGizmo"
 
 	includedirs
 	{
-		"../../include/External/",
+		"../../smolengine.external/",
 		"src/"
 	}
     

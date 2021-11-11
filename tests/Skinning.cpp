@@ -4,32 +4,25 @@
 
 using namespace SmolEngine;
 
-GraphicsContext*    context = nullptr;
-RendererStorage*    storage = nullptr;
-RendererDrawList*   drawList = nullptr;
-EditorCamera*       camera = nullptr;
+Ref<GraphicsContext>  context = nullptr;
+EditorCamera*         camera = nullptr;
 
-uint32_t            stoneMaterialID = 0;
-uint32_t            metalMaterialID = 0;
+std::pair<Ref<Mesh>, Ref<MeshView>>  jetMesh;
+std::pair<Ref<Mesh>, Ref<MeshView>>  characterMesh;
 
-Mesh                jetMesh;
-Mesh                characterMesh;
-Mesh*               cubeMesh = nullptr;
-
-AnimationController* jet_animController = nullptr;
-AnimationController* character_animController = nullptr;
+Ref<AnimationController> jet_animController = nullptr;
+Ref<AnimationController> character_animController = nullptr;
 
 void LoadMeshes()
 {
-	cubeMesh = context->GetDefaultMeshes()->Cube.get();
-	Mesh::Create("Assets/plane.gltf", &jetMesh);
-	Mesh::Create("Assets/CesiumMan.gltf", &characterMesh);
+	jetMesh = MeshPool::ConstructFromFile("Assets/plane.gltf");
+	characterMesh = MeshPool::ConstructFromFile("Assets/CesiumMan.gltf");
 }
 
 void LoadAnimations()
 {
-	jet_animController = new AnimationController();
-	character_animController = new AnimationController();
+	jet_animController = std::make_shared<AnimationController>();
+	character_animController = std::make_shared<AnimationController>();
 
 	/* generates animation.ozz and skeleton.ozz files from gltf model*/
 	//OzzImporter::ImportGltf("Assets/CesiumMan.gltf");
@@ -41,72 +34,20 @@ void LoadAnimations()
 	animInfo.ClipInfo.Speed = 1.2f;
 
 	character_animController->AddClip(animInfo, "run", true);
+	characterMesh.second->SetAnimationController(character_animController);
 
 	animInfo.AnimationPath = "Assets/JetAnim.ozz";
 	animInfo.SkeletonPath = "Assets/Jet_Skeleton.ozz";
 	animInfo.ModelPath = "Assets/plane.gltf";
 
 	jet_animController->AddClip(animInfo, "fly", true);
-}
-
-void LoadMaterials()
-{
-	JobsSystemInstance::BeginSubmition();
-	{
-		JobsSystemInstance::Schedule([]()
-		{
-			MaterialCreateInfo materialCI{};
-			TextureCreateInfo textureCI{};
-
-			textureCI.FilePath = "Assets/materials/bricks/Bricks061_2K_Color.png";
-			materialCI.SetTexture(MaterialTexture::Albedo, &textureCI);
-
-			textureCI.FilePath = "Assets/materials/bricks/Bricks061_2K_Normal.png";
-			materialCI.SetTexture(MaterialTexture::Normal, &textureCI);
-
-			textureCI.FilePath = "Assets/materials/bricks/Bricks061_2K_Roughness.png";
-			materialCI.SetTexture(MaterialTexture::Roughness, &textureCI);
-
-			textureCI.FilePath = "Assets/materials/bricks/Bricks061_2K_AmbientOcclusion.png";
-			materialCI.SetTexture(MaterialTexture::AO, &textureCI);
-
-			materialCI.SetMetalness(1.0f);
-			materialCI.SetEmissionStrength(4.0f);
-
-			stoneMaterialID = storage->GetMaterialLibrary().Add(&materialCI, "stone");
-		});
-
-		JobsSystemInstance::Schedule([]()
-		{
-			MaterialCreateInfo materialCI{};
-			TextureCreateInfo textureCI{};
-
-			textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Color.png";
-			materialCI.SetTexture(MaterialTexture::Albedo, &textureCI);
-
-			textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Normal.png";
-			materialCI.SetTexture(MaterialTexture::Normal, &textureCI);
-
-			textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Roughness.png";
-			materialCI.SetTexture(MaterialTexture::Roughness, &textureCI);
-
-			textureCI.FilePath = "Assets/materials/metal_2/Metal012_1K_Metalness.png";
-			materialCI.SetTexture(MaterialTexture::Metallic, &textureCI);
-
-			materialCI.SetMetalness(0.5f);
-			materialCI.SetRoughness(0.9f);
-
-			metalMaterialID = storage->GetMaterialLibrary().Add(&materialCI, "metal");
-		});
-	}
-	JobsSystemInstance::EndSubmition();
-	storage->OnUpdateMaterials();
+	jetMesh.second->SetAnimationController(jet_animController);
 }
 
 void GenerateSkyBox()
 {
 	DynamicSkyProperties sky;
-	storage->SetDynamicSkybox(sky, camera->GetProjection(), true);
+	RendererStorage::SetDynamicSkybox(sky, camera->GetProjection(), true);
 }
 
 int main(int argc, char** argv)
@@ -117,46 +58,37 @@ int main(int argc, char** argv)
 		windoInfo.bVSync = false;
 		windoInfo.Height = 480;
 		windoInfo.Width = 720;
-		windoInfo.Title = "Frostium Example";
+		windoInfo.Title = "Skinning";
 	}
 
-	{
-		EditorCameraCreateInfo cameraCI = {};
-		camera = new EditorCamera(&cameraCI);
-	}
+	EditorCameraCreateInfo cameraCI = {};
+	camera = new EditorCamera(&cameraCI);
 
-	GraphicsContextInitInfo info = {};
+	GraphicsContextCreateInfo info = {};
 	{
-		info.ResourcesFolderPath = "../resources/";
+		info.eMSAASamples = MSAASamples::SAMPLE_COUNT_1;
+		info.ResourcesFolder = "../resources/";
 		info.pWindowCI = &windoInfo;
-		info.eMSAASamples = MSAASamples::SAMPLE_COUNT_4;
-		info.bVsync = true;
 	}
 
-	bool process = true;
 	ClearInfo clearInfo = {};
-	SceneViewProjection viewProj = {};
+	context = GraphicsContext::Create(&info);
+	context->SetEventCallback([&](Event& e)
+		{
+			camera->OnEvent(e);
+		});
 
-	DirectionalLight dirLight = {};
-	dirLight.IsActive = true;
-	dirLight.IsCastShadows = false;
-
-	DebugLog* log = new DebugLog([&](const std::string&& msg, LogLevel level) { std::cout << msg << "\n"; });
-	storage = new RendererStorage();
-	drawList = new RendererDrawList();
-	context = new GraphicsContext(&info);
-	context->SetEventCallback([&](Event& e) { if (e.IsType(EventType::WINDOW_CLOSE)) process = false; camera->OnEvent(e); });
-
-	storage->Initilize();
-	storage->GetState().bDrawGrid = false;
-	context->PushStorage(storage);
-
-	LoadMaterials();
 	LoadMeshes();
 	LoadAnimations();
 	GenerateSkyBox();
 
-	while (process)
+	DirectionalLight dirLight = {};
+	dirLight.IsActive = true;
+	dirLight.IsCastShadows = true;
+	dirLight.Direction = glm::vec4(105.0f, 53.0f, 102.0f, 0);
+	RendererDrawList::SubmitDirLight(&dirLight);
+
+	while (context->IsOpen())
 	{
 		context->ProcessEvents();
 		float deltaTime = context->CalculateDeltaTime();
@@ -164,23 +96,16 @@ int main(int argc, char** argv)
 		if (context->IsWindowMinimized())
 			continue;
 
+		/*
+			Calculates physics, update scripts, etc.
+		*/
+
+		camera->OnUpdate(deltaTime);
+
 		context->BeginFrame(deltaTime);
 		{
 			ImGui::Begin("Skinning Sample");
 			{
-				ImGui::Checkbox("Light", &dirLight.IsActive);
-				ImGui::DragFloat4("Light Dir", glm::value_ptr(dirLight.Direction));
-				ImGui::ColorEdit4("Light Color", glm::value_ptr(dirLight.Color));
-				ImGui::InputFloat("Light Intensity", &dirLight.Intensity);
-
-				ImGui::Checkbox("Bloom", &storage->GetState().Bloom.Enabled);
-				ImGui::InputFloat("Threshold", &storage->GetState().Bloom.Threshold);
-				ImGui::InputFloat("Knee", &storage->GetState().Bloom.Knee);
-				ImGui::InputFloat("SkyboxMo", &storage->GetState().Bloom.SkyboxMod);
-
-				ImGui::Checkbox("Fxaa", &storage->GetState().FXAA.Enabled);
-				ImGui::Checkbox("IBL", &storage->GetState().IBL.Enabled);
-
 				ImGui::Checkbox("Play", &character_animController->GetActiveClip()->GetProperties().bPlay);
 				ImGui::Checkbox("Loop", &character_animController->GetActiveClip()->GetProperties().bLoop);
 				ImGui::InputFloat("Speed", &character_animController->GetActiveClip()->GetProperties().Speed);
@@ -191,20 +116,15 @@ int main(int argc, char** argv)
 			}
 			ImGui::End();
 
-			camera->OnUpdate(deltaTime);
-			viewProj.Update(camera);
-
-			drawList->BeginSubmit(&viewProj);
+			RendererDrawList::BeginSubmit(camera->GetSceneViewProjection());
 			{
-				drawList->SubmitDirLight(&dirLight);
-				drawList->SubmitMesh({ 0, 3.9f, -3 }, glm::radians(glm::vec3(-90.0f, 0.0f, 0.0f)), { 1, 1, 1, }, &jetMesh, metalMaterialID, true, jet_animController);
-				drawList->SubmitMesh({ 3, 2, 0 }, { 0, 0, 0 }, { 5, 5, 5, }, &characterMesh, metalMaterialID, true, character_animController);
-
-				drawList->SubmitMesh({ -5, 0, 0 }, { 0, 0, 0 }, { 2, 2, 2, }, cubeMesh);
+				RendererDrawList::SubmitDirLight(&dirLight);
+				RendererDrawList::SubmitMesh({ 0, 3.9f, -3 }, glm::radians(glm::vec3(-90.0f, 0.0f, 0.0f)), { 1, 1, 1, }, jetMesh.first, jetMesh.second);
+				RendererDrawList::SubmitMesh({ 3, 2, 0 }, { 0, 0, 0 }, { 5, 5, 5, }, characterMesh.first, characterMesh.second);
 			}
-			drawList->EndSubmit();
+			RendererDrawList::EndSubmit();
 
-			RendererDeferred::DrawFrame(&clearInfo, storage, drawList);
+			RendererDeferred::DrawFrame(&clearInfo);
 		}
 		context->SwapBuffers();
 	}
