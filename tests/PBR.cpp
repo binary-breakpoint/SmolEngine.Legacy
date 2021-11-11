@@ -158,8 +158,6 @@ int main(int argc, char** argv)
 	}
 
 	ClearInfo clearInfo = {};
-	DebugLog* log = new DebugLog([&](const std::string&& msg, LogLevel level) { std::cout << msg << "\n"; });
-
 	context = GraphicsContext::Create(&info);
 	context->SetEventCallback([&](Event& e) 
 	{ 

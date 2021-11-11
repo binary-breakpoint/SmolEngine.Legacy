@@ -1,5 +1,5 @@
 
-workspace "SmolEngine.Graphics"
+workspace "SmolEngine"
 	architecture "x64"
 	startproject "PBR"
 
@@ -35,6 +35,43 @@ include "vendor/ktx"
 include "vendor/imgizmo"
 group ""
 
+group "Engine"
+
+project "SmolEngine.Core"
+kind "StaticLib"
+language "C++"
+cppdialect "C++17"
+staticruntime "on"
+
+targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+objdir ("vendor/libs/bin-int/" .. outputdir .. "/%{prj.name}")
+
+files
+{
+	"include/Core/**.h",
+	"src/Core/**.cpp",
+}
+
+includedirs
+{
+	"include/External/spdlog/include",
+	"include/External/",
+
+	"include/Core/",
+}
+
+filter "configurations:Debug_Vulkan"
+buildoptions "/MDd"
+buildoptions "/bigobj"
+buildoptions "/Zm500"
+symbols "on"
+
+filter "configurations:Release_Vulkan"
+buildoptions "/MD"
+buildoptions "/bigobj"
+buildoptions "/Zm500"
+optimize "on"
+
 project "SmolEngine.Graphics"
 	kind "StaticLib"
 	language "C++"
@@ -45,23 +82,24 @@ project "SmolEngine.Graphics"
 	objdir ("vendor/libs/bin-int/" .. outputdir .. "/%{prj.name}")
 
 	pchheader "stdafx.h"
-	pchsource "src/stdafx.cpp"
+	pchsource "src/Graphics/stdafx.cpp"
 	linkoptions { "/ignore:4006" }
 
 	files
 	{
-		"include/**.h",
-		"src/**.cpp",
-		"src/**.h",
-
+		"src/Graphics/**.cpp",
+		"src/Graphics/**.h",
+		"include/Graphics/**.h",
+		"include/GraphicsCore.h",
 		"include/External/glm/glm/**.hpp",
 		"include/External/glm/glm/**.inl",
 
 		"include/External/stb_image/**.h",
+		"include/External/vulkan_memory_allocator/vk_mem_alloc.h",
+
 		"vendor/stb_image/**.cpp",
 		"vendor/implot/**.cpp",
 		"vendor/vulkan_memory_allocator/vk_mem_alloc.cpp",
-		"include/External/vulkan_memory_allocator/vk_mem_alloc.h",
 	}
 
 	includedirs
@@ -77,25 +115,25 @@ project "SmolEngine.Graphics"
 		"include/External/spdlog/include",
 
 		"src/",
+		"src/Graphics/",
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.stb}",
-        "%{IncludeDir.entt}",
 		"%{IncludeDir.vulkan}",
 		"%{IncludeDir.imgizmo}",
 		"%{IncludeDir.ktx}",
-		"%{IncludeDir.meta}",
 		"%{IncludeDir.gli}",
 		"%{IncludeDir.tinygltf}",
-		"%{IncludeDir.taskflow}",
 		"%{IncludeDir.cereal}",
 		"%{IncludeDir.ozz}",
 	}
 
 	links 
 	{ 
+		"bin/" ..outputdir .. "/SmolEngine.Core/SmolEngine.Core.lib",
+
 		"vendor/libs/" ..outputdir .. "/Glad/Glad.lib",
 		"vendor/libs/" ..outputdir .. "/GLFW/GLFW.lib",
 		"vendor/libs/" ..outputdir .. "/ImGizmo/ImGizmo.lib",
@@ -159,12 +197,6 @@ project "SmolEngine.Graphics"
 			"SMOLENGINE_DEBUG"
 		}
 
-		postbuildcommands
-		{
-			"{COPY} bin/" ..outputdir .. "/SmolEngine.Graphics/SmolEngine.Graphics.lib ../SmolEngine/vendor/frostium/libs/debug/",
-			"{COPY} include ../SmolEngine/smolengine/include/Libraries/frostium/",
-		}
-
 	filter "configurations:Release_Vulkan"
 	buildoptions "/MD"
 	buildoptions "/bigobj"
@@ -193,13 +225,9 @@ project "SmolEngine.Graphics"
 			"vendor/ozz-animation/libs/ozz_options_r.lib",
 		}
 
-		postbuildcommands
-		{
-			"{COPY} bin/" ..outputdir .. "/SmolEngine.Graphics/SmolEngine.Graphics.lib ../SmolEngine/vendor/frostium/libs/release/",
-			"{COPY} include ../SmolEngine/smolengine/include/Libraries/frostium/",
-		}
-
 --------------------------------------------------------------------------------- PBR
+
+group ""
 
 group "Tests"
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"

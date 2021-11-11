@@ -35,7 +35,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 
-#include "stdafx.h"
+#include "Graphics/stdafx.h"
 #include <time.h>
 #include <imgui/imgui_internal.h>
 
