@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug_Vulkan</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
+    <ProjectGuid>{858D2E8A-F1A3-2C20-3A1B-B841A670FDA7}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SmolEngine</RootNamespace>
+    <AssemblyName>SmolEngine.CSharp</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug_Vulkan|x64' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\bin\Debug_Vulkan-windows-x86_64\SmolEngine.CSharp\</OutputPath>
+    <BaseIntermediateOutputPath>..\vendor\libs\bin-int\Debug_Vulkan-windows-x86_64\SmolEngine.CSharp\</BaseIntermediateOutputPath>
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
+    <DefineConstants></DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release_Vulkan|x64' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\bin\Release_Vulkan-windows-x86_64\SmolEngine.CSharp\</OutputPath>
+    <BaseIntermediateOutputPath>..\vendor\libs\bin-int\Release_Vulkan-windows-x86_64\SmolEngine.CSharp\</BaseIntermediateOutputPath>
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
+    <DefineConstants></DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="src\Main.cs" />
+    <Compile Include="src\SmolEngine\Assets\AudioClip.cs" />
+    <Compile Include="src\SmolEngine\Assets\Material.cs" />
+    <Compile Include="src\SmolEngine\Assets\Mesh.cs" />
+    <Compile Include="src\SmolEngine\Assets\Prefab.cs" />
+    <Compile Include="src\SmolEngine\Assets\Texture.cs" />
+    <Compile Include="src\SmolEngine\Core\AssetManager.cs" />
+    <Compile Include="src\SmolEngine\Core\Input.cs" />
+    <Compile Include="src\SmolEngine\Core\SLog.cs" />
+    <Compile Include="src\SmolEngine\Core\SceneManager.cs" />
+    <Compile Include="src\SmolEngine\ECS\Actor.cs" />
+    <Compile Include="src\SmolEngine\ECS\BehaviourPrimitive.cs" />
+    <Compile Include="src\SmolEngine\ECS\Components\CameraComponent.cs" />
+    <Compile Include="src\SmolEngine\ECS\Components\DirectionalLightComponent.cs" />
+    <Compile Include="src\SmolEngine\ECS\Components\MeshComponent.cs" />
+    <Compile Include="src\SmolEngine\ECS\Components\PointLightComponent.cs" />
+    <Compile Include="src\SmolEngine\ECS\Components\RigidBodyComponent.cs" />
+    <Compile Include="src\SmolEngine\ECS\Components\TransformComponent.cs" />
+    <Compile Include="src\SmolEngine\Utils\Math.cs" />
+    <Compile Include="src\SmolEngine\Utils\Utils.cs" />
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

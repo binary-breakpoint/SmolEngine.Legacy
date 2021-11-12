@@ -45,7 +45,7 @@ Generated\ Files/
 
 vendor/vulkan/libs/
 vendor/libs/
-vendor/mono
+vendor/mono/lib/
 
 # MSTest test Results
 [Tt]est[Rr]esult*/
