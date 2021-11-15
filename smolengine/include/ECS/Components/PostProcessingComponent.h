@@ -2,11 +2,6 @@
 #include "ECS/Components/BaseComponent.h"
 #include "Renderer/RendererShared.h"
 
-namespace cereal
-{
-	class access;
-}
-
 namespace SmolEngine
 {
 	struct PostProcessingComponent: public BaseComponent
@@ -24,8 +19,7 @@ namespace SmolEngine
 		template<typename Archive>
 		void serialize(Archive& archive)
 		{
-			archive(Bloom.DirtIntensity, Bloom.Enabled, Bloom.Exposure, Bloom.Intensity, Bloom.Knee, Bloom.SkyboxMod, Bloom.Threshold, Bloom.UpsampleScale,
-				FXAA.EdgeThresholdMax, FXAA.EdgeThresholdMin, FXAA.Iterations, FXAA.SubPixelQuality, FXAA.Enabled);
+			archive(Bloom, FXAA);
 		}
 	};
 }

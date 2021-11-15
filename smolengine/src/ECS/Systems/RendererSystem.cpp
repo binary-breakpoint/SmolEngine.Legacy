@@ -1,10 +1,12 @@
 #include "stdafx.h"
 #include "ECS/Systems/RendererSystem.h"
+#include "ECS/Components/Include/Components.h"
 #include "ECS/Components/Singletons/WorldAdminStateSComponent.h"
 #include "ECS/Components/Singletons/Bullet3WorldSComponent.h"
 #include "ECS/Components/Singletons/GraphicsEngineSComponent.h"
-#include "ECS/ComponentsCore.h"
 #include "ECS/Systems/UISystem.h"
+
+#include "Materials/PBRFactory.h"
 
 #include <btBulletDynamicsCommon.h>
 
@@ -12,33 +14,32 @@ namespace SmolEngine
 {
 	void RendererSystem::OnUpdate()
 	{
-		// 3D
-		RendererDrawList& drawList = m_State->DrawList;
-		drawList.BeginSubmit(&m_State->ViewProj);
-		{
-			SubmitMeshes();
-			SubmitLights();
-		}
-		drawList.EndSubmit();
+		auto viewProj = &GraphicsEngineSComponent::Get()->ViewProj;
 
-		// 2D
-		RendererDrawList2D& drawList2D = m_State->DrawList2D;
-		drawList2D.BeginSubmit(&m_State->ViewProj);
+		RendererDrawList::BeginSubmit(viewProj);
+		{
+			SubmitLights();
+			SubmitMeshes();
+		}
+		RendererDrawList::EndSubmit();
+
+		RendererDrawList2D::BeginSubmit(viewProj);
 		{
 			SubmitSprites();
 		}
-		drawList2D.EndSubmit();
+		RendererDrawList2D::EndSubmit();
 	}
 
 	void RendererSystem::OnRender()
 	{
 		OnUpdate();
+
 		ClearInfo clear = {};
 		clear.bClear = true;
-		RendererDeferred::DrawFrame(&clear, &m_State->Storage, &m_State->DrawList);
+		RendererDeferred::DrawFrame(&clear);
 
 		clear.bClear = false;
-		Renderer2D::DrawFrame(&clear, &m_State->Storage2D, &m_State->DrawList2D);
+		Renderer2D::DrawFrame(&clear);
 
 		OnDebugDraw();
 	}
@@ -101,9 +102,8 @@ namespace SmolEngine
 					const auto& [transform, mesh_component] = group.get<TransformComponent, MeshComponent>(entity);
 					if (mesh_component.bShow)
 					{
-						Mesh* mesh = mesh_component.RootMesh.get();
-						if (mesh != nullptr)
-							RendererDebug::DrawWireframes(transform.WorldPos, transform.Rotation, transform.Scale, mesh);
+						//if (mesh_component.GetMesh()!= nullptr)
+						//	RendererDebug::DrawWireframes(transform.WorldPos, transform.Rotation, transform.Scale, mesh_component.GetMesh());
 					}
 				}
 				break;
@@ -117,8 +117,6 @@ namespace SmolEngine
 	void RendererSystem::SubmitLights()
 	{
 		entt::registry* reg = m_World->m_CurrentRegistry;
-		GraphicsEngineSComponent* engine = GraphicsEngineSComponent::Get();
-		RendererDrawList& drawList = engine->DrawList;
 
 		const auto& point_Group = reg->view<TransformComponent, PointLightComponent>();
 		for (const auto& entity : point_Group)
@@ -128,7 +126,7 @@ namespace SmolEngine
 			if (comp.IsActive == 1)
 			{
 				comp.Position = glm::vec4(transform.WorldPos, 1.0);
-				drawList.SubmitPointLight(dynamic_cast<PointLight*>(&comp));
+				RendererDrawList::SubmitPointLight(dynamic_cast<PointLight*>(&comp));
 			}
 		}
 
@@ -140,7 +138,7 @@ namespace SmolEngine
 			if (comp.IsActive == 1)
 			{
 				comp.Position = glm::vec4(transform.WorldPos, 1.0);
-				drawList.SubmitSpotLight(dynamic_cast<SpotLight*>(&comp));
+				RendererDrawList::SubmitSpotLight(dynamic_cast<SpotLight*>(&comp));
 			}
 		}
 	}
@@ -148,37 +146,23 @@ namespace SmolEngine
 	void RendererSystem::SubmitMeshes()
 	{
 		entt::registry* reg = m_World->m_CurrentRegistry;
-		GraphicsEngineSComponent* engine = GraphicsEngineSComponent::Get();
 		Scene* scene = WorldAdmin::GetSingleton()->GetActiveScene();
-		RendererDrawList& drawList = engine->DrawList;
 
 		const auto& group = reg->view<TransformComponent, MeshComponent>();
 		for (const auto& entity : group)
 		{
-			const auto& [transform, mesh_component] = group.get<TransformComponent, MeshComponent>(entity);
+			const auto& [transform, mesh] = group.get<TransformComponent, MeshComponent>(entity);
 
-			AnimationControllerComponent* anim_controller = scene->GetComponent< AnimationControllerComponent>(entity);
-			AnimationController* controller = dynamic_cast<AnimationController*>(anim_controller);
-
-			if (controller) { if (controller->GetActiveClip() == nullptr) { controller = nullptr; } }
-			if (mesh_component.bShow == false || mesh_component.RootMesh == nullptr)
+			if (mesh.bShow == false || mesh.GetMesh() == nullptr)
 				continue;
 
-			auto& info = mesh_component.Nodes;
-			uint32_t count = static_cast<uint32_t>(info.size());
-			for (uint32_t i = 0; i < count; i++)
-			{
-				drawList.SubmitMesh(transform.WorldPos, transform.Rotation, transform.Scale,
-					info[i].Mesh, info[i].MaterialID, false, controller);
-			}
+			RendererDrawList::SubmitMesh(transform.WorldPos, transform.Rotation, transform.Scale, mesh.GetMesh(), mesh.GetMeshView());
 		}
 	}
 
 	void RendererSystem::SubmitSprites()
 	{
 		entt::registry* reg = m_World->m_CurrentRegistry;
-		GraphicsEngineSComponent* engine = GraphicsEngineSComponent::Get();
-		RendererDrawList2D& drawList = engine->DrawList2D;
 
 		const auto& group = reg->view<TransformComponent, Texture2DComponent>();
 		for (const auto& entity : group)
@@ -186,10 +170,10 @@ namespace SmolEngine
 			const auto& [transform, texture2D] = group.get<TransformComponent, Texture2DComponent>(entity);
 			texture2D.LayerIndex = GetLayerIndex(texture2D.LayerIndex);
 
-			if (texture2D.Enabled && texture2D.Texture != nullptr)
+			if (texture2D.Enabled && texture2D.GetTexture() != nullptr)
 			{
-				drawList.SubmitSprite(transform.WorldPos,
-					transform.Scale, transform.Rotation, texture2D.LayerIndex, texture2D.Texture.get(), true, texture2D.Color);
+				//RendererDrawList2D::SubmitSprite(transform.WorldPos,
+				//	transform.Scale, transform.Rotation, texture2D.LayerIndex, texture2D.GetTexture(), true, texture2D.Color);
 			}
 		}
 	}

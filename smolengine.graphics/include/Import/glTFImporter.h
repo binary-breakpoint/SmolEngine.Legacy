@@ -1,5 +1,7 @@
 #pragma once
 #include "Common/Vertex.h"
+#include "Common/BoundingBox.h"
+
 #include "Tools/GLM.h"
 
 #include <vector>

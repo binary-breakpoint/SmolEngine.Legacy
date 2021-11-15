@@ -2,7 +2,7 @@
 #include "ECS/Systems/Physics2DSystem.h"
 
 #include "ECS/Actor.h"
-#include "ECS/ComponentsCore.h"
+#include "ECS/Components/Include/Components.h"
 #include "ECS/Components/Singletons/Box2DWorldSComponent.h"
 #include "ECS/Components/Singletons/WorldAdminStateSComponent.h"
 

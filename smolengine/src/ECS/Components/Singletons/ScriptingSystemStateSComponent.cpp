@@ -10,12 +10,14 @@ namespace SmolEngine
 	{
 		m_MetaContext = new MetaContext();
 		m_MonoContext = new MonoContext();
+
 		Instance = this;
 	}
 
 	ScriptingSystemStateSComponent::~ScriptingSystemStateSComponent()
 	{
 		delete m_MetaContext, m_MonoContext;
+
 		Instance = nullptr;
 	}
 

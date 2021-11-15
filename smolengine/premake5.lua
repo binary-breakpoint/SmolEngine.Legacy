@@ -8,7 +8,7 @@ project "SmolEngine"
 	objdir ("../vendor/libs/bin-int/" .. outputdir .. "/%{prj.name}")
 
 	pchheader "stdafx.h"
-	pchsource "smolengine/src/stdafx.cpp"
+	pchsource "src/stdafx.cpp"
 
 	files
 	{

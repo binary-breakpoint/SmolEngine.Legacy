@@ -1,25 +1,23 @@
 #include "stdafx.h"
 #include "ECS/WorldAdmin.h"
 
-#include "ECS/ComponentsCore.h"
+#include "ECS/Components/Include/Components.h"
 #include "ECS/Systems/RendererSystem.h"
 #include "ECS/Systems/Physics2DSystem.h"
 #include "ECS/Systems/PhysicsSystem.h"
 #include "ECS/Systems/AudioSystem.h"
-#include "ECS/Systems/CameraSystem.h"
 #include "ECS/Systems/UISystem.h"
 #include "ECS/Systems/ScriptingSystem.h"
-#include "ECS/Systems/JobsSystem.h"
 
 #include "ECS/Components/Singletons/AudioEngineSComponent.h"
 #include "ECS/Components/Singletons/Box2DWorldSComponent.h"
 #include "ECS/Components/Singletons/ProjectConfigSComponent.h"
-#include "ECS/Components/Singletons/JobsSystemStateSComponent.h"
 #include "ECS/Components/Singletons/ScriptingSystemStateSComponent.h"
 #include "ECS/Components/Singletons/WorldAdminStateSComponent.h"
 #include "ECS/Components/Singletons/Bullet3WorldSComponent.h"
 #include "ECS/Components/Singletons/GraphicsEngineSComponent.h"
 
+#include "Multithreading/JobsSystem.h"
 #include "Scripting/CSharp/MonoContext.h"
 
 namespace SmolEngine
@@ -53,17 +51,15 @@ namespace SmolEngine
 			const auto& [camera, transform] = cameraGroup.get<CameraComponent, TransformComponent>(entity);
 			if (camera.bPrimaryCamera == false || m_State->m_LevelEditorActive) { continue; }
 
-			// Calculating ViewProj
-			CameraSystem::CalculateView(&camera, &transform);
+			camera.CalculateView(&transform);
+			GraphicsEngineSComponent* engine = GraphicsEngineSComponent::Get();
 
-			GraphicsEngineSComponent* frostium = GraphicsEngineSComponent::Get();
-
-			frostium->ViewProj.View = camera.ViewMatrix;
-			frostium->ViewProj.Projection = camera.ProjectionMatrix;
-			frostium->ViewProj.NearClip = camera.zNear;
-			frostium->ViewProj.FarClip = camera.zFar;
-			frostium->ViewProj.CamPos = glm::vec4(transform.WorldPos, 1.0f);
-			frostium->ViewProj.SkyBoxMatrix = glm::mat4(glm::mat3(camera.ViewMatrix));
+			engine->ViewProj.View = camera.ViewMatrix;
+			engine->ViewProj.Projection = camera.ProjectionMatrix;
+			engine->ViewProj.NearClip = camera.zNear;
+			engine->ViewProj.FarClip = camera.zFar;
+			engine->ViewProj.CamPos = glm::vec4(transform.WorldPos, 1.0f);
+			engine->ViewProj.SkyBoxMatrix = glm::mat4(glm::mat3(camera.ViewMatrix));
 
 			AudioSystem::OnUpdate(transform.WorldPos);
 
@@ -114,7 +110,7 @@ namespace SmolEngine
 				const auto& camera = cameraGroup.get<CameraComponent>(entity);
 
 				WindowResizeEvent* resize = e.Cast<WindowResizeEvent>();
-				CameraSystem::OnResize(resize->GetWidth(), resize->GetHeight());
+				CameraComponent::OnResize(resize->GetWidth(), resize->GetHeight());
 			}
 		}
 	}
@@ -126,67 +122,28 @@ namespace SmolEngine
 
 	void WorldAdmin::ReloadMaterials()
 	{
-		GraphicsEngineSComponent* frostium = GraphicsEngineSComponent::Get();
-		MaterialLibrary& matetialLib = frostium->Storage.GetMaterialLibrary();
+		PBRFactory::ClearMaterials();
+		PBRFactory::AddDefaultMaterial();
 
+		// add mesh materials
 		{
-			matetialLib.ClearData();
-			MaterialCreateInfo materialCI{};
-			matetialLib.Add(&materialCI, "Default Material");
+
 		}
 
-		JobsSystem::BeginSubmition();
-		entt::registry& registry = GetActiveScene()->GetRegistry();
-
-		const auto& group = registry.view<MeshComponent>();
-		for (const auto& entity : group)
-		{
-			auto& mesh = group.get<MeshComponent>(entity);
-
-			for (auto& node : mesh.Nodes)
-			{
-				JobsSystem::Schedule([&node, &matetialLib]()
-				{
-					if (!node.MaterialPath.empty())
-					{
-						MaterialCreateInfo materialCI{};
-						if (materialCI.Load(node.MaterialPath))
-						{
-							node.MaterialID = matetialLib.Add(&materialCI, node.MaterialPath);
-							return;
-						}
-					}
-
-					node.MaterialID = 0;
-					node.MaterialPath = "";
-				});
-			}
-		}
-
-		JobsSystem::EndSubmition();
-		frostium->Storage.OnUpdateMaterials();
+		PBRFactory::UpdateMaterials();
 	}
 
 	void WorldAdmin::OnWorldReset()
 	{
-		AssetManager* assetManager = GetAssetManager();
-		assetManager->OnReset();
+		RendererDrawList::SetDefaultState();
+		RendererStorage::SetDefaultState();
 
-		GraphicsEngineSComponent* frostium = GraphicsEngineSComponent::Get();
-		MaterialLibrary& matetialLib  = frostium->Storage.GetMaterialLibrary();
-
-		matetialLib.ClearData();
-		frostium->Storage.SetDefaultState();
-		frostium->DrawList.SetDefaultState();
-
-		MaterialCreateInfo defaultMaterial;
-		defaultMaterial.SetRoughness(1.0f);
-		defaultMaterial.SetMetalness(0.2f);
-
-		matetialLib.Add(&defaultMaterial, "defaultmaterial");
+		PBRFactory::ClearMaterials();
+		PBRFactory::AddDefaultMaterial();
+		PBRFactory::UpdateMaterials();
 
 		DirectionalLight DirLight;
-		frostium->DrawList.SubmitDirLight(&DirLight);
+		RendererDrawList::SubmitDirLight(&DirLight);
 	}
 
 	bool WorldAdmin::LoadScene(const std::string& filePath, bool is_reload)
@@ -205,7 +162,7 @@ namespace SmolEngine
 		if (activeScene->Load(path) == true)
 		{
 			m_State->m_CurrentRegistry = &activeScene->GetRegistry();
-			NATIVE_WARN(is_reload ? "[WorldAdmin]: Scene reloaded successfully" : "[WorldAdmin]: Scene loaded successfully");
+			DebugLog::LogWarn(is_reload ? "[WorldAdmin]: Scene reloaded successfully" : "[WorldAdmin]: Scene loaded successfully");
 			return true;
 		}
 
@@ -271,8 +228,8 @@ namespace SmolEngine
 			props.SunPosition = glm::vec4(1, -11, 0, 0);
 			props.NumCirrusCloudsIterations = 0;
 
-			GraphicsEngineSComponent* frostium = GraphicsEngineSComponent::Get();
-			frostium->Storage.SetDynamicSkybox(props, frostium->ViewProj.View, true);
+			GraphicsEngineSComponent* engine = GraphicsEngineSComponent::Get();
+			RendererStorage::SetDynamicSkybox(props, engine->ViewProj.View, true);
 		}
 
 		Scene* scene = &m_State->m_Scenes[0];
@@ -288,11 +245,6 @@ namespace SmolEngine
 		return m_State->m_ActiveScene;
 	}
 
-	AssetManager* WorldAdmin::GetAssetManager()
-	{
-		return &m_State->m_AssetManager;
-	}
-
 	bool WorldAdmin::LoadStaticComponents()
 	{
 		m_GlobalEntity = m_GlobalRegistry.create();
@@ -302,7 +254,6 @@ namespace SmolEngine
 		m_GlobalRegistry.emplace<Bullet3WorldSComponent>(m_GlobalEntity);
 		m_GlobalRegistry.emplace<ScriptingSystemStateSComponent>(m_GlobalEntity);
 		m_GlobalRegistry.emplace<GraphicsEngineSComponent>(m_GlobalEntity);
-		m_GlobalRegistry.emplace<JobsSystemStateSComponent>(m_GlobalEntity);
 		m_GlobalRegistry.emplace<ProjectConfigSComponent>(m_GlobalEntity);
 		m_GlobalRegistry.emplace<WorldAdminStateSComponent>(m_GlobalEntity);
 
@@ -310,7 +261,6 @@ namespace SmolEngine
 		Physics2DSystem::m_State = &m_GlobalRegistry.get<Box2DWorldSComponent>(m_GlobalEntity);
 		PhysicsSystem::m_State = &m_GlobalRegistry.get<Bullet3WorldSComponent>(m_GlobalEntity);
 		ScriptingSystem::m_State = &m_GlobalRegistry.get<ScriptingSystemStateSComponent>(m_GlobalEntity);
-		JobsSystem::m_State = &m_GlobalRegistry.get<JobsSystemStateSComponent>(m_GlobalEntity);
 		RendererSystem::m_State = &m_GlobalRegistry.get<GraphicsEngineSComponent>(m_GlobalEntity);
 		m_State = &m_GlobalRegistry.get<WorldAdminStateSComponent>(m_GlobalEntity);
 
@@ -321,7 +271,6 @@ namespace SmolEngine
 		Physics2DSystem::m_World = m_State;
 
 		m_State->m_ActiveScene = &m_State->m_Scenes[0];
-
 		return true;
 	}
 

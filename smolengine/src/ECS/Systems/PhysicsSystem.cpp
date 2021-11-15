@@ -1,73 +1,14 @@
 #include "stdafx.h"
 #include "ECS/Systems/PhysicsSystem.h"
-#include "ECS/WorldAdmin.h"
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/RigidbodyComponent.h"
-
 #include "ECS/Components/Singletons/WorldAdminStateSComponent.h"
 #include "ECS/Components/Singletons/Bullet3WorldSComponent.h"
-#include "ECS/Systems/JobsSystem.h"
 
 #include <btBulletDynamicsCommon.h>
 
-
 namespace SmolEngine
 {
-	void PhysicsSystem::SetLinearVelocity(RigidbodyComponent* component, const glm::vec3& dir)
-	{
-		btRigidBody* rb = component->m_Body;
-		rb->activate(true);
-		rb->setLinearVelocity(btVector3(dir.x, dir.y, dir.z));
-	}
-
-	void PhysicsSystem::SetAngularFactor(RigidbodyComponent* component, const glm::vec3& axis)
-	{
-		btRigidBody* rb = component->m_Body;
-		rb->activate(true);
-		rb->setAngularFactor(btVector3(axis.x, axis.y, axis.z));
-	}
-
-	void PhysicsSystem::SetGravity(RigidbodyComponent* component, const glm::vec3& gravity)
-	{
-		btRigidBody* rb = component->m_Body;
-		rb->activate(true);
-		rb->setGravity(btVector3(gravity.x, gravity.y, gravity.z));
-	}
-
-	void PhysicsSystem::AddRotation(RigidbodyComponent* component, const glm::vec3& eulerAngles)
-	{
-		btRigidBody* rb = component->m_Body;
-		rb->activate(true);
-
-		auto& transform = rb->getWorldTransform();
-		btQuaternion rotation{};
-		rotation.setEuler(eulerAngles.y, eulerAngles.x, eulerAngles.z);
-		rotation *= transform.getRotation();
-
-		transform.setRotation(rotation);
-	}
-
-	void PhysicsSystem::AddForce(RigidbodyComponent* component, const glm::vec3& dir)
-	{
-		btRigidBody* rb = component->m_Body;
-		rb->activate(true);
-		rb->applyCentralForce(btVector3(dir.x, dir.y, dir.z));
-	}
-
-	void PhysicsSystem::AddImpulse(RigidbodyComponent* component, const glm::vec3& dir)
-	{
-		btRigidBody* rb = component->m_Body;
-		rb->activate(true);
-		rb->applyCentralImpulse(btVector3(dir.x, dir.y, dir.z));
-	}
-
-	void PhysicsSystem::AddTorque(RigidbodyComponent* component, const glm::vec3& torque)
-	{
-		btRigidBody* rb = component->m_Body;
-		rb->activate(true);
-		rb->applyTorque(btVector3(torque.x, torque.y, torque.z));
-	}
-
 	void PhysicsSystem::OnBeginWorld()
 	{
 		entt::registry* reg = m_World->m_CurrentRegistry;
@@ -76,6 +17,7 @@ namespace SmolEngine
 		for (const auto& entity : dynamic_group)
 		{
 			const auto& [transform, rigidbodyComponent] = dynamic_group.get<TransformComponent, RigidbodyComponent>(entity);
+
 			rigidbodyComponent.Create(&rigidbodyComponent.CreateInfo, transform.WorldPos, transform.Rotation);
 
 			AttachBodyToActiveScene(dynamic_cast<RigidActor*>(&rigidbodyComponent));

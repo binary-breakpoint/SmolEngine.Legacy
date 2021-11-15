@@ -6,6 +6,11 @@
 
 #include <glm/glm.hpp>
 
+namespace cereal
+{
+	class access;
+}
+
 namespace SmolEngine
 {
 	struct DynamicSkyProperties
@@ -34,6 +39,18 @@ namespace SmolEngine
 		float pad1 = 1.0f;
 		float pad2 = 1.0f;
 		float pad3 = 1.0f;
+
+		friend class cereal::access;
+
+		template<typename Archive>
+		void serialize(Archive& archive)
+		{
+			archive(RayOrigin.x, RayOrigin.y, RayOrigin.z, RayOrigin.w,
+				     SunPosition.x, SunPosition.y, SunPosition.z, SunPosition.w,
+				     RayleighScatteringCoeff.x, RayleighScatteringCoeff.y, RayleighScatteringCoeff.z, RayleighScatteringCoeff.w,
+				     SunIntensity, PlanetRadius, AtmosphereRadius, MieScatteringCoeff, RayleighScale, MieScale, MieScatteringDirection,
+				     NumCirrusCloudsIterations, NumCumulusCloudsIterations);
+		}
 	};
 
 	class EnvironmentMap: public PrimitiveBase

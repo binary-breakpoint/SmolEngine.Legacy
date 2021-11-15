@@ -12,32 +12,51 @@ namespace cereal
 
 namespace SmolEngine
 {
+	struct AudioEngineSComponent;
+
+	struct ClipInstance
+	{
+		Ref<AudioHandle>      m_Handle = nullptr;
+		Ref<AudioClip>        m_Clip = nullptr;
+		AudioClipCreateInfo   m_CreateInfo{};
+
+	private:
+		friend class cereal::access;
+
+		template<typename Archive>
+		void serialize(Archive& archive)
+		{
+			archive(m_CreateInfo);
+		}
+	};
+
 	struct AudioSourceComponent: public BaseComponent, public AudioSource
 	{
-		AudioSourceComponent() = default;
-		AudioSourceComponent(uint32_t id)
-			: BaseComponent(id) {}
+		AudioSourceComponent();
+		AudioSourceComponent(uint32_t id);
 
-		struct ClipInstance
-		{
-			Ref<AudioHandle>      m_Handle = nullptr;
-			Ref<AudioClip>        m_Clip = nullptr;
-			AudioClipCreateInfo   m_CreateInfo{};
-
-		private:
-			friend class cereal::access;
-
-			template<typename Archive>
-			void serialize(Archive& archive)
-			{
-				archive(m_CreateInfo);
-			}
-		};
-
-		std::vector<ClipInstance> Clips;
+		bool          PlayClip(Ref<AudioClip>& sound, Ref<AudioHandle>& out_handle, bool add_to_mixer = true);
+		bool          StopClip(const Ref<AudioHandle>& handle);
+		bool          PauseClip(const Ref<AudioHandle>& handle, bool pause);
+		bool          SetLooping(const Ref<AudioHandle>& handle, bool value, float timePoint);
+		bool          SetSpeed(const Ref<AudioHandle>& handle, float value);
+		void          SetVolume(float value);
+		void          SetSpeed(float value);
+		bool          SetSampleRate(const Ref<AudioHandle>& handle, ClipSampleRate rate);
+		bool          SetPosition(const Ref<AudioHandle>& handle, const glm::vec3& postion);
+		void          LoadCip(const std::string& path);
+		void          AddFilter(AudioFilterFlags filter);
+		void          RemoveFilter(AudioFilterFlags filter);
+		bool          RemoveClipAtIndex(uint32_t index);
+		ClipInstance* GetClipByIndex(uint32_t index);
+		void          CreateFiltersEX();
+		void          ClearFiltersEX();
+		void          StopAll();
+		void          PlayAll();
 
 	public:
-		ClipInstance* GetClipByIndex(uint32_t index) { return &Clips[index]; }
+		std::vector<ClipInstance> Clips;
+		AudioEngineSComponent*    EnginePtr = nullptr;
 
 	private:
 		friend class cereal::access;

@@ -10,9 +10,18 @@
 
 #include <memory>
 #include <functional>
+#include <glm/glm.hpp>
 
 namespace SmolEngine
 {
+	struct WorldAdminStateSComponent;
+	struct GraphicsContextCreateInfo;
+
+	class WorldAdmin;
+	class Scene;
+	class ScriptingSystem;
+	class GraphicsContext;
+
 	struct PhysicsModuleCreateInfo
 	{
 		glm::vec3 Gravity = glm::vec3(0.0f, -9.81f, 0.0f);
@@ -22,13 +31,6 @@ namespace SmolEngine
 	{
 		std::string AssetsFolder = "../samples/";
 	};
-
-	struct WorldAdminStateSComponent;
-	struct GraphicsContextInitInfo;
-	class WorldAdmin;
-	class Scene;
-	class ScriptingSystem;
-	class GraphicsContext;
 
 	class Engine
 	{

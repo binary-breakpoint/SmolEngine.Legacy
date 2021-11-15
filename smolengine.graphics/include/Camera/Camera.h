@@ -27,6 +27,12 @@ namespace SmolEngine
 		friend struct RendererDrawList;
 	};
 
+	enum class CameraType : uint32_t
+	{
+		Perspective,
+		Ortho
+	};
+
 	class Camera
 	{
 	public:

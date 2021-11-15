@@ -12,6 +12,11 @@
 #include "Camera/Frustum.h"
 #include "Camera/Camera.h"
 
+namespace cereal
+{
+	class access;
+}
+
 namespace SmolEngine
 {
 	struct PBRHandle;
@@ -117,6 +122,14 @@ namespace SmolEngine
 		bool           Enabled = true;
 	private:
 		GLSL_BOOLPAD   Pad1;
+
+		friend class cereal::access;
+
+		template<typename Archive>
+		void serialize(Archive& archive)
+		{
+			archive(AmbientColor.r, AmbientColor.g, AmbientColor.b, IBLStrength, Enabled);
+		}
 	};
 
 	struct BloomProperties
@@ -131,6 +144,14 @@ namespace SmolEngine
 		bool           Enabled = false;
 	private:
 		GLSL_BOOLPAD   Pad1;
+
+		friend class cereal::access;
+
+		template<typename Archive>
+		void serialize(Archive& archive)
+		{
+			archive(Threshold, Knee, UpsampleScale, Intensity, DirtIntensity, Exposure, SkyboxMod, Enabled);
+		}
 	};
 
 	struct FXAAProperties
@@ -145,6 +166,14 @@ namespace SmolEngine
 	private:
 		GLSL_BOOLPAD   Pad1;
 		float          Pad2;
+
+		friend class cereal::access;
+
+		template<typename Archive>
+		void serialize(Archive& archive)
+		{
+			archive(EdgeThresholdMin, EdgeThresholdMax, Iterations, SubPixelQuality, InverseScreenSize.x, InverseScreenSize.y, Enabled);
+		}
 	};
 
 #pragma endregion

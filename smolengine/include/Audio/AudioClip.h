@@ -78,5 +78,6 @@ namespace SmolEngine
 		AudioClipCreateInfo   m_CreateInfo{};
 
 		friend class AudioSystem;
+		friend struct AudioSourceComponent;
 	};
 }

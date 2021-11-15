@@ -2,7 +2,6 @@
 #include "Scripting/CSharp/MonoContext.h"
 #include "Scripting/CSharp/CSharpAPI.h"
 #include "ECS/Components/ScriptComponent.h"
-#include "ECS/AssetManager.h"
 
 #include <mono/metadata/assembly.h>
 #include <mono/jit/jit.h>
@@ -104,7 +103,7 @@ namespace SmolEngine
 			auto time = std::filesystem::last_write_time(p);
 			if (time != m_LastWriteTime)
 			{
-				NATIVE_WARN("[C# module]: Reloading...");
+				DebugLog::LogWarn("[C# module]: Reloading...");
 				Shutdown();
 				Create();
 
@@ -112,7 +111,7 @@ namespace SmolEngine
 					m_Callback();
 
 				OnRecompilation();
-				NATIVE_WARN("[C# module]: Reloading complete!");
+				DebugLog::LogWarn("[C# module]: Reloading complete!");
 			}
 		}
 	}
@@ -152,7 +151,7 @@ namespace SmolEngine
 
 		if (status != MONO_IMAGE_OK)
 		{
-			RUNTIME_ERROR("Failed to create mono context");
+			DebugLog::LogError("Failed to create mono context"); abort();
 		}
 
 		// debug symbols
@@ -241,22 +240,22 @@ namespace SmolEngine
 				std::string* str = (std::string*)field.ptr;
 				if (std::filesystem::exists(*str))
 				{
-					Ref<Prefab> prefab = nullptr;
-					size_t id = WorldAdmin::GetSingleton()->GetAssetManager()->AddPrefab(*str, prefab);
-					if (prefab)
-					{
-						MonoClass* prefab_class = m_InternalClasses[InternalClassType::Prefab];
-						MonoObject* prefab_instance = mono_object_new(m_Domain, prefab_class);
-
-						MonoMethodDesc* desc = mono_method_desc_new(":.ctor (ulong)", FALSE);
-						MonoMethod* ctor = mono_method_desc_search_in_class(desc, prefab_class);
-						mono_method_desc_free(desc);
-
-						void* args[1];
-						args[0] = &id;
-						mono_runtime_invoke(ctor, prefab_instance, args, NULL);
-						mono_field_set_value(instance, id_field, prefab_instance);
-					}
+					//Ref<Prefab> prefab = nullptr;
+					//size_t id = WorldAdmin::GetSingleton()->GetAssetManager()->AddPrefab(*str, prefab);
+					//if (prefab)
+					//{
+					//	MonoClass* prefab_class = m_InternalClasses[InternalClassType::Prefab];
+					//	MonoObject* prefab_instance = mono_object_new(m_Domain, prefab_class);
+					//
+					//	MonoMethodDesc* desc = mono_method_desc_new(":.ctor (ulong)", FALSE);
+					//	MonoMethod* ctor = mono_method_desc_search_in_class(desc, prefab_class);
+					//	mono_method_desc_free(desc);
+					//
+					//	void* args[1];
+					//	args[0] = &id;
+					//	mono_runtime_invoke(ctor, prefab_instance, args, NULL);
+					//	mono_field_set_value(instance, id_field, prefab_instance);
+					//}
 				}
 			}
 
@@ -353,7 +352,7 @@ namespace SmolEngine
 			}
 			else
 			{
-				NATIVE_WARN("[MonoContext]: C# Script {} not found!", script.Name);
+				DebugLog::LogWarn("[MonoContext]: C# Script {} not found!", script.Name);
 				script.Name = "";
 			}
 		}

@@ -4,20 +4,13 @@
 #include "Scripting/CSharp/CSharpDefs.h"
 #include "Scripting/CSharp/MonoContext.h"
 
-#include "ECS/AssetManager.h"
-#include "ECS/ComponentsCore.h"
-#include "ECS/Systems/ComponentHandler.h"
+#include "ECS/Components/Include/Components.h"
 #include "ECS/Systems/PhysicsSystem.h"
 #include "ECS/Components/Singletons/GraphicsEngineSComponent.h"
+#include "Window/Events.h"
+#include "Window/Input.h"
 
 #include <mono/jit/jit.h>
-
-
-#ifndef FROSTIUM_SMOLENGINE_IMPL
-#define FROSTIUM_SMOLENGINE_IMPL
-#endif
-#include <frostium/Window/Input.h>
-
 
 namespace SmolEngine
 {
@@ -89,7 +82,7 @@ namespace SmolEngine
 		if (get)
 		{
 			c_comp->IsVisible = native_comp->bShow;
-			c_comp->IsActive = native_comp->RootMesh != nullptr;
+			c_comp->IsActive = native_comp->GetMesh() != nullptr;
 			return;
 		}
 
@@ -151,8 +144,7 @@ namespace SmolEngine
 		native_comp->IsCastShadows = native_comp->eShadowType == ShadowType::Hard || native_comp->eShadowType == ShadowType::Soft;
 		native_comp->IsActive = c_comp->IsActive;
 
-		GraphicsEngineSComponent* frostium = GraphicsEngineSComponent::Get();
-		frostium->DrawList.SubmitDirLight(dynamic_cast<DirectionalLight*>(native_comp));
+		RendererDrawList::SubmitDirLight(dynamic_cast<DirectionalLight*>(native_comp));
 	}
 
 	bool ModifyComponent(void* ptr, uint32_t entity_id, uint16_t component_type, bool get_flag, bool add_flag = false)
@@ -351,7 +343,7 @@ namespace SmolEngine
 		switch (level)
 		{
 		case 0: DebugLog::LogInfo(cpp_str); break;
-		case 1: NATIVE_WARN(cpp_str); break;
+		case 1: DebugLog::LogWarn(cpp_str); break;
 		case 2: DebugLog::LogError(cpp_str); break;
 		}
 
@@ -366,16 +358,17 @@ namespace SmolEngine
 
 	uint32_t CSharpAPi::PrefabInstantiate_CSharpAPI(size_t id, glm::vec3* pos, glm::vec3* scale, glm::vec3* rot)
 	{
-		AssetManager* manager = WorldAdmin::GetSingleton()->GetAssetManager();
-		Ref<Prefab> prefab = manager->GetPrefab(id);
-		if (prefab)
-		{
-			Ref<Actor> actor = WorldAdmin::GetSingleton()->GetActiveScene()->InstantiatePrefab(prefab, *pos, *rot, *scale);
-			if (actor)
-			{
-				return *(uint32_t*)actor.get();
-			}
-		}
+		//AssetManager* manager = WorldAdmin::GetSingleton()->GetAssetManager();
+		//Ref<Prefab> prefab = manager->GetPrefab(id);
+		//if (prefab)
+		//{
+		//	Ref<Actor> actor = WorldAdmin::GetSingleton()->GetActiveScene()->InstantiatePrefab(prefab, *pos, *rot, *scale);
+		//	if (actor)
+		//	{
+		//		return *(uint32_t*)actor.get();
+		//	}
+		//}
+		//
 
 		return 0;
 	}
@@ -388,41 +381,41 @@ namespace SmolEngine
 
 		if (std::filesystem::exists(filepath))
 		{
-			AssetManager* manager = WorldAdmin::GetSingleton()->GetAssetManager();
-
-			switch (asset_type)
-			{
-			case AssetType::Prefab:
-			{
-				Ref<Prefab> prefab = nullptr;
-				id = manager->AddPrefab(filepath, prefab);
-				break;
-			}
-			case AssetType::Mesh:
-			{
-				Ref<Mesh> mesh = nullptr;
-				id = manager->AddMesh(filepath, mesh);
-				break;
-			}
-			case AssetType::Texture:
-			{
-				Ref<Texture> texture = nullptr;
-				id = manager->AddTexture(filepath, texture);
-				break;
-			}
-			case AssetType::Material:
-			{
-				MaterialCreateInfo info;
-				if (info.Load(filepath))
-				{
-					GraphicsEngineSComponent* frostium = GraphicsEngineSComponent::Get();
-
-					auto& lib = frostium->Storage.GetMaterialLibrary();
-					id = static_cast<size_t>(lib.Add(&info, filepath));
-					break;
-				}
-			}
-			}
+			//AssetManager* manager = WorldAdmin::GetSingleton()->GetAssetManager();
+			//
+			//switch (asset_type)
+			//{
+			//case AssetType::Prefab:
+			//{
+			//	Ref<Prefab> prefab = nullptr;
+			//	id = manager->AddPrefab(filepath, prefab);
+			//	break;
+			//}
+			//case AssetType::Mesh:
+			//{
+			//	Ref<Mesh> mesh = nullptr;
+			//	id = manager->AddMesh(filepath, mesh);
+			//	break;
+			//}
+			//case AssetType::Texture:
+			//{
+			//	Ref<Texture> texture = nullptr;
+			//	id = manager->AddTexture(filepath, texture);
+			//	break;
+			//}
+			//case AssetType::Material:
+			//{
+			//	MaterialCreateInfo info;
+			//	if (info.Load(filepath))
+			//	{
+			//		GraphicsEngineSComponent* frostium = GraphicsEngineSComponent::Get();
+			//
+			//		auto& lib = frostium->Storage.GetMaterialLibrary();
+			//		id = static_cast<size_t>(lib.Add(&info, filepath));
+			//		break;
+			//	}
+			//}
+			//}
 		}
 
 		mono_free(filepath);
@@ -431,65 +424,65 @@ namespace SmolEngine
 
 	bool CSharpAPi::MeshSetMaterial_CSharpAPI(uint32_t mesh_index, uint32_t material_id, uint32_t entity_id)
 	{
-		Scene* scene = WorldAdmin::GetSingleton()->GetActiveScene();
-		MeshComponent* comp = scene->GetComponent<MeshComponent>((entt::entity)entity_id);
-
-		if (comp && mesh_index < static_cast<uint32_t>(comp->Nodes.size()))
-		{
-			comp->Nodes[mesh_index].MaterialID = material_id;
-			return true;
-		}
-
+		//Scene* scene = WorldAdmin::GetSingleton()->GetActiveScene();
+		//MeshComponent* comp = scene->GetComponent<MeshComponent>((entt::entity)entity_id);
+		//
+		//if (comp && mesh_index < static_cast<uint32_t>(comp->Nodes.size()))
+		//{
+		//	comp->Nodes[mesh_index].MaterialID = material_id;
+		//	return true;
+		//}
+		//
 		return false;
 	}
 
 	uint32_t CSharpAPi::MeshGetChildsCount_CSharpAPI(size_t assetID)
 	{
-		AssetManager* manager = WorldAdmin::GetSingleton()->GetAssetManager();
-		Ref<Mesh> mesh = manager->GetMesh(assetID);
-		if (mesh)
-		{
-			return mesh->GetChildCount();
-		}
-
+		//AssetManager* manager = WorldAdmin::GetSingleton()->GetAssetManager();
+		//Ref<Mesh> mesh = manager->GetMesh(assetID);
+		//if (mesh)
+		//{
+		//	return mesh->GetChildCount();
+		//}
+		//
 		return 0;
 	}
 
 	bool CSharpAPi::SetMesh_CSharpAPI(size_t assetID, uint32_t entity_id)
 	{
-		Scene* scene = WorldAdmin::GetSingleton()->GetActiveScene();
-		MeshComponent* comp = scene->GetComponent<MeshComponent>((entt::entity)entity_id);
-		if (comp)
-		{
-			AssetManager* manager = WorldAdmin::GetSingleton()->GetAssetManager();
-			std::string path = "";
-			if (manager->GetPath(assetID, path))
-			{
-				Ref<Mesh> mesh = manager->GetMesh(assetID);
-				if (mesh)
-				{
-					comp->Nodes.clear();
-					if (mesh->IsReady())
-					{
-						auto& gltf_scene = mesh->GetScene();
-						uint32_t count = static_cast<uint32_t>(gltf_scene.size());
-
-						comp->Nodes.resize(count);
-						comp->RootMesh = mesh;
-						comp->FilePath = path;
-						comp->eType = MeshTypeEX::Custom;
-
-						for (uint32_t i = 0; i < count; ++i)
-						{
-							comp->Nodes[i].Mesh = gltf_scene[i];
-						}
-
-						return true;
-					}
-
-				}
-			}
-		}
+		//Scene* scene = WorldAdmin::GetSingleton()->GetActiveScene();
+		//MeshComponent* comp = scene->GetComponent<MeshComponent>((entt::entity)entity_id);
+		//if (comp)
+		//{
+		//	AssetManager* manager = WorldAdmin::GetSingleton()->GetAssetManager();
+		//	std::string path = "";
+		//	if (manager->GetPath(assetID, path))
+		//	{
+		//		Ref<Mesh> mesh = manager->GetMesh(assetID);
+		//		if (mesh)
+		//		{
+		//			comp->Nodes.clear();
+		//			if (mesh->IsReady())
+		//			{
+		//				auto& gltf_scene = mesh->GetScene();
+		//				uint32_t count = static_cast<uint32_t>(gltf_scene.size());
+		//
+		//				comp->Nodes.resize(count);
+		//				comp->RootMesh = mesh;
+		//				comp->FilePath = path;
+		//				comp->eType = MeshTypeEX::Custom;
+		//
+		//				for (uint32_t i = 0; i < count; ++i)
+		//				{
+		//					comp->Nodes[i].Mesh = gltf_scene[i];
+		//				}
+		//
+		//				return true;
+		//			}
+		//
+		//		}
+		//	}
+		//}
 
 		return false;
 	}
@@ -518,7 +511,7 @@ namespace SmolEngine
 		info.SpinningFriction = ptr->SpinningFriction;
 
 		component->CreateInfo = info;
-		ComponentHandler::ValidateRigidBodyComponent(component, actor);
+		component->Validate(actor);
 	}
 
 	void CSharpAPi::RigidBodySetImpact_CSharpAPI(glm::vec3* value, uint32_t entity_id, uint16_t flags)
@@ -530,11 +523,11 @@ namespace SmolEngine
 		{
 			switch (flag_)
 			{
-			case ImpactFlags::Force: PhysicsSystem::AddForce(rb, *value); break;
-			case ImpactFlags::Impulse: PhysicsSystem::AddImpulse(rb, *value); break;
-			case ImpactFlags::Torque: PhysicsSystem::AddTorque(rb, *value); break;
-			case ImpactFlags::Rotation: PhysicsSystem::AddRotation(rb, *value); break;
-			case ImpactFlags::Gravity: PhysicsSystem::SetGravity(rb, *value); break;
+			case ImpactFlags::Force: rb->AddForce(*value); break;
+			case ImpactFlags::Impulse: rb->AddImpulse(*value); break;
+			case ImpactFlags::Torque: rb->AddTorque(*value); break;
+			case ImpactFlags::Rotation: rb->AddRotation(*value); break;
+			case ImpactFlags::Gravity: rb->SetGravity(*value); break;
 			}
 		}
 	}

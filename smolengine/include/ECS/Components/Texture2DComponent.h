@@ -18,10 +18,16 @@ namespace SmolEngine
 		Texture2DComponent(uint32_t id)
 			:BaseComponent(id) {}
 
-		Ref<Texture>            Texture = nullptr;
+		void                    Load(const std::string& path);
+		const Ref<Texture>&     GetTexture() const;
+
+	public:
 		bool                    Enabled = true;
 		int                     LayerIndex = 0;
 		glm::vec4               Color = glm::vec4(1.0f);
+
+	private:
+		Ref<Texture>            Texture = nullptr;
 		std::string             TexturePath = "";
 
 	private:

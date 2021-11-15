@@ -74,8 +74,7 @@ namespace SmolEngine
 		static void              GLMToBulletTransform(const glm::vec3& pos, const glm::vec3& rot, btTransform* transform);
 		static void              BulletToGLMTransform(const btTransform* transform, glm::vec3& pos, glm::vec3& rot);
 
-	private:
-
+	protected:
 		void                     InitBase(BodyCreateInfo* info);
 		virtual void             Create(BodyCreateInfo* info, const glm::vec3& pos, const glm::vec3& rot) = 0;
 		void                     CreateCapsule(BodyCreateInfo* info);
@@ -84,16 +83,12 @@ namespace SmolEngine
 		void                     CreateConvex(BodyCreateInfo* info);
 		void                     SetActive(bool value);
 
-	private:
-
+	protected:
+		bool                     m_Active = false;
 		btCollisionShape*        m_Shape = nullptr;
 		btRigidBody*             m_Body = nullptr;
-		bool                     m_Active = false;
-
-	private:
 
 		friend class StaticBody;
-		friend class RigidBody;
 		friend class PhysicsSystem;
 	};
 }

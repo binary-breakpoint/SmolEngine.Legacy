@@ -1,7 +1,7 @@
 
 workspace "SmolEngine"
 	architecture "x64"
-	startproject "PBR"
+	startproject "SmolEngine-Editor"
 
 	configurations
 	{
@@ -28,6 +28,10 @@ include "smolengine"
 include "smolengine.core"
 include "smolengine.graphics"
 include "smolengine.csharp"
+group ""
+
+group "Tools"
+include "smolengine.editor"
 group ""
 
 group "Tests"

@@ -32,30 +32,7 @@ namespace SmolEngine
 		template<typename Archive>
 		void serialize(Archive& archive)
 		{
-			archive(CubeMapPath, bGeneratePBRMaps,
-
-				SkyProperties.AtmosphereRadius,
-				SkyProperties.MieScale,
-				SkyProperties.MieScatteringCoeff,
-				SkyProperties.MieScatteringDirection,
-				SkyProperties.PlanetRadius,
-				SkyProperties.RayleighScale,
-				SkyProperties.RayleighScatteringCoeff.x,
-				SkyProperties.RayleighScatteringCoeff.y,
-				SkyProperties.RayleighScatteringCoeff.z,
-				SkyProperties.RayOrigin.x,
-				SkyProperties.RayOrigin.y,
-				SkyProperties.RayOrigin.z,
-				SkyProperties.SunIntensity,
-				SkyProperties.SunPosition.x,
-				SkyProperties.SunPosition.y,
-				SkyProperties.SunPosition.z,
-				SkyProperties.NumCirrusCloudsIterations,
-				SkyProperties.NumCumulusCloudsIterations,
-				
-				IBLProperties.AmbientColor.r, IBLProperties.AmbientColor.g, IBLProperties.AmbientColor.b,
-				IBLProperties.IBLStrength,
-				IBLProperties.Enabled);
+			archive(CubeMapPath, bGeneratePBRMaps, SkyProperties, IBLProperties);
 		}
 	};
 }

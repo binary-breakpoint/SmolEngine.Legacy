@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "ECS/Prefab.h"
 #include "ECS/Scene.h"
-#include "ECS/ComponentsCore.h"
+#include "ECS/Components/Include/Components.h"
 #include "ECS/Components/Singletons/ScriptingSystemStateSComponent.h"
 #include "Scripting/CPP/MetaContext.h"
 #include "Scripting/CSharp/MonoContext.h"
@@ -140,7 +140,7 @@ namespace SmolEngine
 					auto rb = info.actor->GetComponent<RigidbodyComponent>();
 					if (rb)
 					{
-						ComponentHandler::ValidateRigidBodyComponent(rb, info.actor);
+						rb->Validate(info.actor);
 					}
 
 					auto script = info.actor->GetComponent<ScriptComponent>();

@@ -115,7 +115,6 @@ namespace SmolEngine
 		void                    OnConstruct_Texture2DComponent(entt::registry& registry, entt::entity entity);
 		void                    OnConstruct_AudioSourceComponent(entt::registry& registry, entt::entity entity);
 		void                    OnConstruct_TransformComponent(entt::registry& registry, entt::entity entity);
-		void                    OnConstruct_AnimationControllerComponent(entt::registry& registry, entt::entity entity);
 		SceneStateComponent*    GetStateComponent();
 
 	private:

@@ -1,27 +1,26 @@
 #pragma once
 #include "Core/Core.h"
 
-#include <glm/glm.hpp>
-
 namespace SmolEngine
 {
+	enum class MeshTypeEX : uint32_t;
+
 	struct DebugDrawState;
 	struct WorldAdminStateSComponent;
 	struct GraphicsEngineSComponent;
+	struct Texture2DComponent;
+	struct MeshComponent;
 
 	class RendererSystem
 	{
-	private:
+		static int  GetLayerIndex(int index);
+
 		static void OnRender();
 		static void OnUpdate();
 		static void OnDebugDraw();
-
 		static void SubmitLights();
 		static void SubmitMeshes();
 		static void SubmitSprites();
-
-		static int  GetLayerIndex(int index);
-
 	private:
 
 		inline static WorldAdminStateSComponent* m_World = nullptr;

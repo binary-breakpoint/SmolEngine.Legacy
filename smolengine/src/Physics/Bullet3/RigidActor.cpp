@@ -7,11 +7,8 @@
 #include <btBulletCollisionCommon.h>
 #include <BulletCollision/CollisionShapes/btShapeHull.h>
 
-#ifndef FROSTIUM_SMOLENGINE_IMPL
-#define FROSTIUM_SMOLENGINE_IMPL
-#endif
-#include <frostium/Tools/Utils.h>
-#include <frostium/Import/glTFImporter.h>
+#include "Tools/Utils.h"
+#include "Import/glTFImporter.h"
 
 
 #define GLM_ENABLE_EXPERIMENTAL

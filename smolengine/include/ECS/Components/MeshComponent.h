@@ -1,5 +1,8 @@
 #pragma once
 #include "ECS/Components/BaseComponent.h"
+#include "Animation/AnimationController.h"
+#include "Materials/Material3D.h"
+#include "Materials/PBRFactory.h"
 #include "Primitives/Mesh.h"
 
 namespace cereal
@@ -24,12 +27,26 @@ namespace SmolEngine
 		MeshComponent(uint32_t id)
 			:BaseComponent(id) {}
 
-		bool           bIsStatic = false;
-		bool           bShow = true;			
-		MeshTypeEX     eType = MeshTypeEX::Custom;
-		Ref<Mesh>      Mesh = nullptr;
-		Ref<MeshView>  View = nullptr;
-		std::string    FilePath = "";			
+		void                     LoadMesh(MeshTypeEX type);
+		void                     LoadMesh(const std::string& path);
+		void                     LoadPBRHandle(const std::string& path, uint32_t nodeIndex = 0);
+		void                     LoadAnimation(const std::string& path);
+		void                     SetMaterial(const Ref<Material3D>& material, uint32_t nodeIndex = 0);
+		void                     SetAnimationController(const Ref<AnimationController>& contoller);
+		const Ref<Mesh>&         GetMesh() const;
+		const Ref<MeshView>&     GetMeshView() const;
+
+	public:
+		bool                     bIsStatic = false;
+		bool                     bShow = true;	
+
+	private:
+		MeshTypeEX               eType = MeshTypeEX::Custom;
+		Ref<AnimationController> AnimContoller = nullptr;
+		Ref<Mesh>                Mesh = nullptr;
+		Ref<MeshView>            View = nullptr;
+		std::string              FilePath = "";		
+		std::vector<std::string> AnimPaths;
 
 	private:
 		friend class cereal::access;

@@ -15,5 +15,6 @@ namespace SmolEngine
 		uint32_t  m_Handle = 0;
 
 		friend class AudioSystem;
+		friend struct AudioSourceComponent;
 	};
 }

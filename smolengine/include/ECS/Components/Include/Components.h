@@ -1,13 +1,11 @@
 #pragma once
 
-#include "ECS/Components/AnimationControllerComponent.h"
 #include "ECS/Components/AudioSourceComponent.h"
 #include "ECS/Components/ScriptComponent.h"
 #include "ECS/Components/Rigidbody2DComponent.h"
 #include "ECS/Components/CameraComponent.h"
 #include "ECS/Components/CanvasComponent.h"
 #include "ECS/Components/HeadComponent.h"
-#include "ECS/Components/Light2DSourceComponent.h"
 #include "ECS/Components/Texture2DComponent.h"
 #include "ECS/Components/TransformComponent.h"
 #include "ECS/Components/MeshComponent.h"
@@ -18,5 +16,3 @@
 #include "ECS/Components/RigidbodyComponent.h"
 #include "ECS/Components/SkyLightComponent.h"
 #include "ECS/Components/DirectionalLightComponent.h"
-
-#include "ECS/Systems/ComponentHandler.h"

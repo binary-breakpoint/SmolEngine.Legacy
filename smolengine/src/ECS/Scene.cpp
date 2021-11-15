@@ -2,19 +2,18 @@
 #include "ECS/Scene.h"
 #include "ECS/Actor.h"
 #include "ECS/Prefab.h"
-#include "ECS/ComponentsCore.h"
-#include "ECS/AssetManager.h"
-
 #include "ECS/Systems/ScriptingSystem.h"
 #include "ECS/Systems/PhysicsSystem.h"
-#include "ECS/Systems/JobsSystem.h"
-
+#include "ECS/Components/Include/Components.h"
 #include "ECS/Components/Singletons/GraphicsEngineSComponent.h"
 #include "ECS/Components/Singletons/WorldAdminStateSComponent.h"
 
-#include <cereal/archives/yaml.hpp>
+#include "Multithreading/JobsSystem.h"
+
+#include <cereal/archives/json.hpp>
 #include <cereal/types/vector.hpp>
 #include <cereal/types/unordered_map.hpp>
+#include <cereal/types/map.hpp>
 #include <cereal/types/memory.hpp>
 
 namespace SmolEngine
@@ -40,7 +39,6 @@ namespace SmolEngine
 		m_Registry.on_construct<Texture2DComponent>().connect<&Scene::OnConstruct_Texture2DComponent>(this);
 		m_Registry.on_construct<AudioSourceComponent>().connect<&Scene::OnConstruct_AudioSourceComponent>(this);
 		m_Registry.on_construct<TransformComponent>().connect<&Scene::OnConstruct_TransformComponent>(this);
-		m_Registry.on_construct<AnimationControllerComponent>().connect<&Scene::OnConstruct_AnimationControllerComponent>(this);
 	}
 
 	void Scene::Free()
@@ -153,14 +151,15 @@ namespace SmolEngine
 
 	Ref<Prefab> Scene::LoadPrefab(const std::string& filePath)
 	{
-		AssetManager* manager  = WorldAdmin::GetSingleton()->GetAssetManager();
-		Ref<Prefab> prefab = nullptr;
-
-		if (std::filesystem::exists(filePath))
-		{
-			manager->AddPrefab(filePath, prefab);
-			return prefab;
-		}
+		//AssetManager* manager  = WorldAdmin::GetSingleton()->GetAssetManager();
+		//Ref<Prefab> prefab = nullptr;
+		//
+		//if (std::filesystem::exists(filePath))
+		//{
+		//	manager->AddPrefab(filePath, prefab);
+		//	return prefab;
+		//}
+		//
 
 		return nullptr;
 	}
@@ -248,8 +247,6 @@ namespace SmolEngine
 			CopyComponent<SkyLightComponent>(registry, new_id, copy_registry, another_entity);
 			CopyComponent<DirectionalLightComponent>(registry, new_id, copy_registry, another_entity);
 			CopyComponent<Texture2DComponent>(registry, new_id, copy_registry, another_entity);
-			CopyComponent<AnimationControllerComponent>(registry, new_id, copy_registry, another_entity);
-			CopyComponent<Light2DSourceComponent>(registry, new_id, copy_registry, another_entity);
 			CopyComponent<AudioSourceComponent>(registry, new_id, copy_registry, another_entity);
 			CopyComponent<TransformComponent>(registry, new_id, copy_registry, another_entity);
 			CopyComponent<CanvasComponent>(registry, new_id, copy_registry, another_entity);
@@ -261,7 +258,7 @@ namespace SmolEngine
 			CopyComponent<RigidbodyComponent>(registry, new_id, copy_registry, another_entity);
 		});
 		JobsSystem::EndSubmition();
-		GraphicsEngineSComponent::Get()->Storage.OnUpdateMaterials();
+		PBRFactory::UpdateMaterials();
 		return true;
 	}
 
@@ -269,12 +266,11 @@ namespace SmolEngine
 	{
 		std::stringstream copyStorage;
 		{
-			cereal::YAMLOutputArchive output{ copyStorage };
+			cereal::JSONOutputArchive output{ copyStorage };
 			entt::snapshot{ another }.entities(output).component<
 				HeadComponent, CameraComponent,
 				ScriptComponent, SkyLightComponent, DirectionalLightComponent,
-				Texture2DComponent, AnimationControllerComponent,
-				Light2DSourceComponent, AudioSourceComponent, TransformComponent,
+				Texture2DComponent, AudioSourceComponent, TransformComponent,
 				CanvasComponent, Rigidbody2DComponent, MeshComponent,
 				PointLightComponent, SpotLightComponent, SceneStateComponent, PostProcessingComponent, RigidbodyComponent>(output);
 		}
@@ -283,13 +279,12 @@ namespace SmolEngine
 
 		JobsSystem::BeginSubmition();
 		{
-			cereal::YAMLInputArchive input{ copyStorage };
+			cereal::JSONInputArchive input{ copyStorage };
 
 			entt::snapshot_loader{ registry }.entities(input).component<
 				HeadComponent, CameraComponent,
 				ScriptComponent, SkyLightComponent, DirectionalLightComponent,
-				Texture2DComponent, AnimationControllerComponent,
-				Light2DSourceComponent, AudioSourceComponent, TransformComponent,
+				Texture2DComponent, AudioSourceComponent, TransformComponent,
 				CanvasComponent, Rigidbody2DComponent, MeshComponent,
 				PointLightComponent, SpotLightComponent, SceneStateComponent, PostProcessingComponent, RigidbodyComponent>(input).orphans();
 		}
@@ -301,12 +296,11 @@ namespace SmolEngine
 	{
 		std::stringstream storageRegistry;
 		{
-			cereal::YAMLOutputArchive output{ storageRegistry };
+			cereal::JSONOutputArchive output{ storageRegistry };
 			entt::snapshot{ registry }.entities(output).component<
 				HeadComponent, CameraComponent,
 				ScriptComponent, SkyLightComponent, DirectionalLightComponent,
-				Texture2DComponent, AnimationControllerComponent,
-				Light2DSourceComponent, AudioSourceComponent, TransformComponent,
+				Texture2DComponent, AudioSourceComponent, TransformComponent,
 				CanvasComponent, Rigidbody2DComponent, MeshComponent,
 				PointLightComponent, SpotLightComponent, SceneStateComponent, PostProcessingComponent, RigidbodyComponent>(output);
 		}
@@ -341,18 +335,17 @@ namespace SmolEngine
 
 		JobsSystem::BeginSubmition();
 		{
-			cereal::YAMLInputArchive regisrtyInput{ buffer };
+			cereal::JSONInputArchive regisrtyInput{ buffer };
 
 			entt::snapshot_loader{ registry }.entities(regisrtyInput).component<
 				HeadComponent, CameraComponent,
 				ScriptComponent, SkyLightComponent, DirectionalLightComponent,
-				Texture2DComponent, AnimationControllerComponent,
-				Light2DSourceComponent, AudioSourceComponent, TransformComponent,
+				Texture2DComponent, AudioSourceComponent, TransformComponent,
 				CanvasComponent, Rigidbody2DComponent, MeshComponent,
 				PointLightComponent, SpotLightComponent, SceneStateComponent, PostProcessingComponent, RigidbodyComponent>(regisrtyInput).orphans();
 		}
 		JobsSystem::EndSubmition();
-		GraphicsEngineSComponent::Get()->Storage.OnUpdateMaterials();
+		PBRFactory::UpdateMaterials();
 
 		if (connect_signals)
 		{
@@ -365,7 +358,7 @@ namespace SmolEngine
 	void Scene::OnConstruct_PostProcessingComponent(entt::registry& registry, entt::entity entity)
 	{
 		PostProcessingComponent* component = &registry.get<PostProcessingComponent>(entity);
-		RendererStateEX& state = GraphicsEngineSComponent::Get()->Storage.GetState();
+		RendererStateEX& state = RendererStorage::GetState();
 
 		state.Bloom = component->Bloom;
 		state.FXAA = component->FXAA;
@@ -375,29 +368,29 @@ namespace SmolEngine
 	{
 		SkyLightComponent* component = &registry.get<SkyLightComponent>(entity);
 		GraphicsEngineSComponent* frostium = GraphicsEngineSComponent::Get();
-		RendererStorage& storage = frostium->Storage;
-		RendererStateEX& state = storage.GetState();
+		RendererStateEX& state = RendererStorage::GetState();
 
 		if (!component->CubeMapPath.empty())
 		{
 			TextureCreateInfo texCI = {};
 			if (texCI.Load(component->CubeMapPath))
 			{
-				component->CubeMap = new CubeMap();
-				CubeMap::Create(&texCI, component->CubeMap);
-				storage.SetStaticSkybox(component->CubeMap);
+				component->CubeMap = Texture::Create();
+				component->CubeMap->LoadAsCubeFromKtx(&texCI);
+
+				RendererStorage::SetStaticSkybox(component->CubeMap);
 				return;
 			}
 		}
 
-		storage.SetDynamicSkybox(component->SkyProperties, frostium->ViewProj.Projection, true);
+		RendererStorage::SetDynamicSkybox(component->SkyProperties, frostium->ViewProj.Projection, true);
 		state.IBL = component->IBLProperties;
 	}
 
 	void Scene::OnConstruct_DirectionalLightComponent(entt::registry& registry, entt::entity entity)
 	{
 		DirectionalLightComponent* component = &registry.get<DirectionalLightComponent>(entity);
-		GraphicsEngineSComponent::Get()->DrawList.SubmitDirLight(dynamic_cast<DirectionalLight*>(component));
+		RendererDrawList::SubmitDirLight(dynamic_cast<DirectionalLight*>(component));
 	}
 
 	void Scene::OnConstruct_ScriptComponent(entt::registry& registry, entt::entity entity)
@@ -413,35 +406,7 @@ namespace SmolEngine
 		// Mesh loading
 		JobsSystem::Schedule([component]()
 		{
-			if (component->FilePath.empty())
-				ComponentHandler::ValidateMeshComponent(component, component->eType);
-			else
-				ComponentHandler::ValidateMeshComponent(component, component->FilePath, true);
 
-			GraphicsEngineSComponent* frostium = GraphicsEngineSComponent::Get();
-			MaterialLibrary& matetialLib = frostium->Storage.GetMaterialLibrary();
-
-			// Materials
-			{
-				MaterialCreateInfo materialCI = {};
-
-				// Loads materials if exist
-				uint32_t count = static_cast<uint32_t>(component->Nodes.size());
-				for (uint32_t i = 0; i < count; ++i)
-				{
-					auto& info = component->Nodes[i];
-					const std::string& path = info.MaterialPath;
-
-					if (!info.MaterialPath.empty() && std::filesystem::exists(path))
-					{
-						if (materialCI.Load(path) == true)
-						{
-							uint32_t matID = matetialLib.Add(&materialCI, path);
-							info.MaterialID = matID;
-						}
-					}
-				}
-			}
 		});
 	}
 
@@ -450,7 +415,7 @@ namespace SmolEngine
 		Texture2DComponent* component = &registry.get<Texture2DComponent>(entity);
 		JobsSystem::Schedule([component]()
 		{
-			ComponentHandler::ValidateTexture2DComponent(component, component->TexturePath);
+			component->Load(component->TexturePath);
 		});
 	}
 
@@ -463,8 +428,8 @@ namespace SmolEngine
 		{
 			for (auto& info : component->Clips)
 			{
-				AssetManager* assetManager = WorldAdmin::GetSingleton()->GetAssetManager();
-				assetManager->AddAudioClip(&info.m_CreateInfo, info.m_Clip);
+				//AssetManager* assetManager = WorldAdmin::GetSingleton()->GetAssetManager();
+				//assetManager->AddAudioClip(&info.m_CreateInfo, info.m_Clip);
 			}
 		});
 	}
@@ -475,14 +440,6 @@ namespace SmolEngine
 
 		component->OnUpdate = {};
 		component->TSender = { component->OnUpdate };
-	}
-
-	void Scene::OnConstruct_AnimationControllerComponent(entt::registry& registry, entt::entity entity)
-	{
-		AnimationControllerComponent* component = &registry.get<AnimationControllerComponent>(entity);
-
-		for (const auto& path : component->Paths)
-			ComponentHandler::AddAnimationControllerClip(component, path);
 	}
 
 	bool Scene::Load(const std::string& filePath)

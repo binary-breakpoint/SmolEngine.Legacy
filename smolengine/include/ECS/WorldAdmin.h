@@ -17,12 +17,12 @@ namespace SmolEngine
 	struct MeshComponent;
 	struct MaterialCreateInfo;
 	struct SceneViewProjection;
+
 	class Scene;
 	class Actor;
 	class AudioEngine;
 	class Mesh;
 	class Texture;
-	class AssetManager;
 
 	class WorldAdmin
 	{
@@ -40,7 +40,6 @@ namespace SmolEngine
 								     
 		inline static WorldAdmin*    GetSingleton() { return s_World; }
 		Scene*                       GetActiveScene();
-		AssetManager*                GetAssetManager();
 
 	private:                  
 		void                         OnEndWorld();

@@ -17,17 +17,17 @@ namespace SmolEngine
 		HeadComponent() = default;
 		HeadComponent(uint32_t id)
 			: BaseComponent(id) {}
-		HeadComponent(const std::string& name, const std::string tag, uint32_t id)
+		HeadComponent(const std::string& name, const std::string& tag, uint32_t id)
 			:Name(name), Tag(tag), ActorID(id) {}
 
 
-		Ref<Actor>              Parent = nullptr;
-		bool                    bEnabled = true;
-		uint32_t                ParentID = 0;
-		uint32_t                ActorID = 0;
-		uint32_t                ComponentsCount = 0;
-		std::string             Name = "";
-		std::string             Tag = "";
+		bool bEnabled = true;
+		std::string Name = "";
+		std::string Tag = "";
+		uint32_t ParentID = 0;
+		uint32_t ActorID = 0;
+		uint32_t ComponentsCount = 0;
+		Ref<Actor> Parent = nullptr;
 		std::vector<Ref<Actor>> Childs;
 
 	private:

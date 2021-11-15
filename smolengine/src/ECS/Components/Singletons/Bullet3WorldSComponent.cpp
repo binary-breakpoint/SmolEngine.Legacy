@@ -1,13 +1,9 @@
 #include "stdafx.h"
 #include "ECS/Components/Singletons/Bullet3WorldSComponent.h"
+#include "Renderer/RendererDebug.h"
 
 #include <btBulletDynamicsCommon.h>
 #include <LinearMath/btIDebugDraw.h>
-
-#ifndef FROSTIUM_SMOLENGINE_IMPL
-#define FROSTIUM_SMOLENGINE_IMPL
-#endif
-#include <frostium/Renderer/RendererDebug.h>
 
 namespace SmolEngine
 {
