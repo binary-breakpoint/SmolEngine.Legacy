@@ -138,7 +138,7 @@ namespace SmolEngine
 		bool swapchain_initialized = false;
 		{
 			m_Instance.Init();
-#ifdef  SMOLENGINE_DEBUG
+#ifdef AFTERMATH
 			// Enable Nsight Aftermath GPU crash dump creation.
             // This needs to be done before the Vulkan device is created.
 			m_CrachTracker.Initialize();

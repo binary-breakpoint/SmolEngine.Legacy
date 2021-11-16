@@ -13,7 +13,7 @@ namespace SmolEngine
     {
         if (!BuildBase(info)) { return false; }
 
-#ifdef  SMOLENGINE_DEBUG
+#ifdef AFTERMATH
         for (auto& [type, path_raw] : info->Stages)
         {
             std::string path = Utils::GetCachedPath(path_raw, CachedPathType::Shader);

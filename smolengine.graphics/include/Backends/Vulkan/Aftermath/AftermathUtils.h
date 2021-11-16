@@ -1,5 +1,5 @@
 #pragma once
-
+#ifdef AFTERMATH
 #include "Debug/DebugLog.h"
 #include "Backends/Vulkan/Vulkan.h"
 
@@ -109,4 +109,5 @@ inline std::string  AftermathErrorMessage(GFSDK_Aftermath_Result result)
             exit(1);                                                                                        \
         }                                                                                                   \
     }()
+#endif
 #endif

@@ -1,4 +1,5 @@
 #pragma once
+#ifdef AFTERMATH
 #include "Backends/Vulkan/Aftermath/AftermathUtils.h"
 
 #include <vector>
@@ -21,3 +22,4 @@ namespace SmolEngine
         std::map<GFSDK_Aftermath_ShaderHash, std::vector<uint8_t>> m_shaderBinaries;
     };
 }
+#endif

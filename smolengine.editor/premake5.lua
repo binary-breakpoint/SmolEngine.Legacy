@@ -35,7 +35,7 @@ project "SmolEngine-Editor"
 
 	links
 	{
-		"../bin/" ..outputdir .. "/SmolEngine/SmolEngine.lib"
+		"SmolEngine"
 	}
 
 	filter "system:windows"

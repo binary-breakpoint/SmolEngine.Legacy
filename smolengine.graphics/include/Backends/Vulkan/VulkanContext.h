@@ -12,7 +12,7 @@
 #include "Backends/Vulkan/GUI/ImGuiVulkanImpl.h"
 #include "Backends/Vulkan/GUI/NuklearVulkanImpl.h"
 
-#ifdef SMOLENGINE_DEBUG
+#ifdef AFTERMATH
 #include "Backends/Vulkan/Aftermath/GpuCrashTracker.h"
 #endif
 
@@ -45,7 +45,7 @@ namespace SmolEngine
 		inline static VkCommandBuffer       GetCurrentVkCmdBuffer() { return m_CurrentVkCmdBuffer; }
 		inline static uint64_t              GetBufferDeviceAddress(VkBuffer buffer);
 
-#ifdef  SMOLENGINE_DEBUG
+#ifdef AFTERMATH
 		inline static GpuCrashTracker&      GetCrashTracker() { return m_CrachTracker; }
 #endif
 
@@ -59,7 +59,7 @@ namespace SmolEngine
 		inline static VulkanSemaphore       m_Semaphore = {};
 		inline static VulkanInstance        m_Instance = {};
 		inline static VulkanDevice          m_Device = {};
-#ifdef  SMOLENGINE_DEBUG
+#ifdef AFTERMATH
 		inline static GpuCrashTracker      m_CrachTracker{};
 #endif
 

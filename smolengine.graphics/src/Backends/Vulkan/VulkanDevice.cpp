@@ -36,10 +36,9 @@ namespace SmolEngine
 		const VkInstance& instance = _instance->GetInstance();
 		m_ExtensionsList = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
-#ifdef  SMOLENGINE_DEBUG
+#ifdef AFTERMATH
 		m_ExtensionsList.push_back(VK_NV_DEVICE_DIAGNOSTIC_CHECKPOINTS_EXTENSION_NAME);
 		m_ExtensionsList.push_back(VK_NV_DEVICE_DIAGNOSTICS_CONFIG_EXTENSION_NAME);
-
 #endif
 		std::vector<const char*> rayTracingEX = m_ExtensionsList;
 
@@ -149,7 +148,7 @@ namespace SmolEngine
 			deviceInfo.enabledExtensionCount = static_cast<uint32_t>(m_ExtensionsList.size());
 			deviceInfo.pEnabledFeatures = &m_VkDeviceFeatures;
 
-#ifdef  SMOLENGINE_DEBUG
+#ifdef AFTERMATH
 			deviceInfo.pNext = &diagnosticsConfigCreateInfoNV;
 #else
 			if (m_RayTracingEnabled)

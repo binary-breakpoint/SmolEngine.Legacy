@@ -20,13 +20,13 @@ namespace SmolEngine
 
 	Engine::~Engine()
 	{
-		DebugLog::LogInfo("[Engine]: State = Shutdown");
+		DebugLog::LogInfo("State = Shutdown");
 		m_Running = false;
 	}
 
 	void Engine::Init()
 	{
-		DebugLog::LogInfo("[Engine]: State = Startup");
+		DebugLog::LogInfo("State = Startup");
 		//---------------------------------------------------------------------///
 
 		CreateGraphicsModule();
@@ -35,7 +35,7 @@ namespace SmolEngine
 
 		OnInitializationComplete(m_World);
 
-		DebugLog::LogInfo("[Engine]: Initialized successfully");
+		DebugLog::LogInfo("Initialized successfully");
 		m_Running = true;
 		Run();
 	}
@@ -44,7 +44,7 @@ namespace SmolEngine
 	{
 		if (m_Running)
 		{
-			DebugLog::LogInfo("[Engine]: State = Shutdown");
+			DebugLog::LogInfo("State = Shutdown");
 
 			m_Running = false;
 			m_GraphicsContext->Shutdown();
@@ -55,7 +55,7 @@ namespace SmolEngine
 
 	void Engine::Run()
 	{
-		DebugLog::LogInfo("[Engine]: State = Runtime");
+		DebugLog::LogInfo("State = Runtime");
 
 		while (m_Running)
 		{

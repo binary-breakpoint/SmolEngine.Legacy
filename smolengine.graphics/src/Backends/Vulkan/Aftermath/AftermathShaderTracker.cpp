@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#ifdef AFTERMATH
 #include "Backends/Vulkan/Aftermath/AftermathShaderTracker.h"
 
 namespace SmolEngine
@@ -56,3 +57,4 @@ namespace SmolEngine
 		return true;
 	}
 }
+#endif

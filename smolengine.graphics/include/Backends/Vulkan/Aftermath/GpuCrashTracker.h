@@ -1,5 +1,5 @@
 #pragma once
-
+#ifdef AFTERMATH
 #include <map>
 #include <mutex>
 
@@ -135,3 +135,4 @@ namespace SmolEngine
         std::map<GFSDK_Aftermath_ShaderDebugInfoIdentifier, std::vector<uint8_t>> m_shaderDebugInfo;
     };
 }
+#endif

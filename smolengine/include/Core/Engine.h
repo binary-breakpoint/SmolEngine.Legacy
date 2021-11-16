@@ -29,7 +29,7 @@ namespace SmolEngine
 
 	struct EngineModuleCreateInfo
 	{
-		std::string AssetsFolder = "../samples/";
+		std::string AssetsFolder = "../tests/";
 	};
 
 	class Engine
