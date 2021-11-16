@@ -1,15 +1,11 @@
 #pragma once
 #include "Core/Core.h"
 #include "TexturesLoader.h"
+#include "Primitives/Framebuffer.h"
 
 #include <imgui/imgui.h>
 #include <glm/glm.hpp>
-
-#ifndef FROSTIUM_SMOLENGINE_IMPL
-#define FROSTIUM_SMOLENGINE_IMPL
-#endif
-#include <frostium/External/imgizmo/src/ImGuizmo.h>
-#include <frostium/Primitives/Framebuffer.h>
+#include <imgizmo/src/ImGuizmo.h>
 
 namespace SmolEngine
 {
@@ -80,6 +76,6 @@ namespace SmolEngine
 		void                  Draw() override;
 		void                  Render() override;
 
-		Framebuffer           m_PreviewFramebuffer = {};
+		Ref<Framebuffer>      m_PreviewFramebuffer = nullptr;
 	};
 }

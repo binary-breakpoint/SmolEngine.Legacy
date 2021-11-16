@@ -27,14 +27,15 @@ namespace SmolEngine
 		MeshComponent(uint32_t id)
 			:BaseComponent(id) {}
 
-		void                     LoadMesh(MeshTypeEX type);
-		void                     LoadMesh(const std::string& path);
-		void                     LoadPBRHandle(const std::string& path, uint32_t nodeIndex = 0);
-		void                     LoadAnimation(const std::string& path);
-		void                     SetMaterial(const Ref<Material3D>& material, uint32_t nodeIndex = 0);
-		void                     SetAnimationController(const Ref<AnimationController>& contoller);
-		const Ref<Mesh>&         GetMesh() const;
-		const Ref<MeshView>&     GetMeshView() const;
+		void                      LoadMesh(MeshTypeEX type);
+		void                      LoadMesh(const std::string& path);
+		void                      LoadPBRHandle(const std::string& path, uint32_t nodeIndex = 0);
+		void                      LoadAnimation(const std::string& path);
+		void                      SetMaterial(const Ref<Material3D>& material, uint32_t nodeIndex = 0);
+		void                      SetAnimationController(const Ref<AnimationController>& contoller);
+		const Ref<Mesh>&          GetMesh() const;
+		const Ref<MeshView>&      GetMeshView() const;
+		Ref<AnimationController>& GetAnimationController();
 
 	public:
 		bool                     bIsStatic = false;

@@ -5,29 +5,26 @@
 #include <imgui/imgui_internal.h>
 #include <imgui_node_editor.h>
 
-#ifndef FROSTIUM_SMOLENGINE_IMPL
-#define FROSTIUM_SMOLENGINE_IMPL
-#endif
-#include <frostium/Animation/AnimationController.h>
+#include "Animation/AnimationController.h"
 
 namespace SmolEngine
 {
 	namespace ed = ax::NodeEditor;
 
-	struct AnimationControllerComponent;
+	struct MeshComponent;
 
 	class AnimationEditor
 	{
 	public:
 		AnimationEditor();
 		~AnimationEditor() = default;
-		void Update(bool& is_open, AnimationControllerComponent* comp);
+		void Update(bool& is_open, MeshComponent* comp);
 		void Reset();
 
 	private:
-		void DrawToolBar(AnimationControllerComponent* comp);
-		void DrawNodeEditor(AnimationControllerComponent* comp);
-		void DrawPopUp(AnimationControllerComponent* comp);
+		void DrawToolBar(MeshComponent* comp);
+		void DrawNodeEditor(MeshComponent* comp);
+		void DrawPopUp(MeshComponent* comp);
 		void ClosePopUp();
 		void CheckAndOpenPopUp();
 

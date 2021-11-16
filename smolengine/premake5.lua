@@ -6,7 +6,7 @@ project "SmolEngine"
 
 	targetdir ("../bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("../vendor/libs/bin-int/" .. outputdir .. "/%{prj.name}")
-
+	linkoptions { "/ignore:4006" }
 	pchheader "stdafx.h"
 	pchsource "src/stdafx.cpp"
 
@@ -63,7 +63,7 @@ project "SmolEngine"
 			"GLFW_INCLUDE_NONE"
 		}
 
-	filter "configurations:Debug"
+		filter "configurations:Debug_Vulkan"
 		buildoptions "/MDd"
 		buildoptions "/bigobj"
 		buildoptions "/Zm500"
@@ -83,7 +83,7 @@ project "SmolEngine"
 		}
 		
 
-	filter "configurations:Release"
+		filter "configurations:Release_Vulkan"
 		buildoptions "/MD"
 		buildoptions "/bigobj"
 		buildoptions "/Zm500"

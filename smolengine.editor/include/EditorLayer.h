@@ -10,15 +10,11 @@
 #include "Panels/AnimationPanel.h"
 #include "Editor-Tools/OzzTool.h"
 #include "Editor/AnimationEditor.h"
+#include "ECS/Components/BaseComponent.h"
 #include "TexturesLoader.h"
 #include "Layer/Layer.h"
-#include "ECS/Components/BaseComponent.h"
-
-#ifndef FROSTIUM_SMOLENGINE_IMPL
-#define FROSTIUM_SMOLENGINE_IMPL
-#endif
-#include <frostium/Camera/EditorCamera.h>
-#include <frostium/Primitives/Texture.h>
+#include "Camera/Camera.h"
+#include "Primitives/Texture.h"
 
 #include <imgui/imgui.h>
 #include <glm/glm/glm.hpp>
@@ -31,9 +27,7 @@ namespace SmolEngine
 	struct Rigidbody2DComponent;
 	struct CameraComponent;
 	struct AudioSourceComponent;
-	struct AnimationControllerComponent;
 	struct CanvasComponent;
-	struct Light2DSourceComponent;
 	struct MeshComponent;
 	struct PointLightComponent;
 	struct SpotLightComponent;
@@ -83,9 +77,7 @@ namespace SmolEngine
 		void DrawRigidBody2D(Rigidbody2DComponent* rb);
 		void DrawCamera(CameraComponent* camera);
 		void DrawAudioSource(AudioSourceComponent* audio);
-		void DrawAnimationController(AnimationControllerComponent* anim);
 		void DrawCanvas(CanvasComponent* canvas);
-		void DrawLight2D(Light2DSourceComponent* light);
 		void DrawInspector();
 		void DrawHierarchy();
 		void DrawMeshComponent(MeshComponent* meshComponent);
@@ -117,7 +109,7 @@ namespace SmolEngine
 
 		void ResetSelection();
 		void DrawScriptComponent(uint32_t index);
-		void DrawMeshPrimitive(uint32_t type, const std::string& title, const std::string& desc, Texture* icon);
+		void DrawMeshPrimitive(uint32_t type, const std::string& title, const std::string& desc, Ref<Texture>& icon);
 		void CheckActor(Ref<Actor>& actor);
 
 		// Callbacks

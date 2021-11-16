@@ -4,23 +4,18 @@
 #include "ImGuiExtension.h"
 #include "Editor-Tools/Tools.h"
 
-#include "ECS/ComponentsCore.h"
 #include "ECS/Components/Singletons/GraphicsEngineSComponent.h"
-#include "ECS/Systems/CameraSystem.h"
+#include "ECS/Components/CameraComponent.h"
 #include "ECS/Systems/AudioSystem.h"
 #include "ECS/Systems/RendererSystem.h"
 #include "ECS/Prefab.h"
 
-#ifndef FROSTIUM_SMOLENGINE_IMPL
-#define FROSTIUM_SMOLENGINE_IMPL
-#endif
-#include <frostium/Tools/Utils.h>
-#include <frostium/Camera/EditorCamera.h>
+#include "Camera/EditorCamera.h"
+#include "Tools/Utils.h"
 
-#define GLM_ENABLE_EXPERIMENTAL
-#include <frostium/External/glm/glm/gtx/quaternion.hpp>
-#include <frostium/External/glm/glm/gtx/matrix_decompose.hpp>
-#include <frostium/External/glm/glm/gtc/type_ptr.hpp>
+#include <glm/glm/gtx/quaternion.hpp>
+#include <glm/glm/gtx/matrix_decompose.hpp>
+#include <glm/glm/gtc/type_ptr.hpp>
 
 namespace SmolEngine
 {
@@ -81,15 +76,15 @@ namespace SmolEngine
 		ImGui::SetCursorPosX(10);
 		ImGui::PushID("SceneView_ToolBar");
 
-		if (ImGui::ImageButton(m_TexturesLoader->m_MoveButton.GetImGuiTexture(), m_ButtonSize)) { m_GizmoOperation = ImGuizmo::OPERATION::TRANSLATE; }
+		if (ImGui::ImageButton(m_TexturesLoader->m_MoveButton->GetImGuiTexture(), m_ButtonSize)) { m_GizmoOperation = ImGuizmo::OPERATION::TRANSLATE; }
 		ImGui::SameLine();
-		if (ImGui::ImageButton(m_TexturesLoader->m_RotateButton.GetImGuiTexture(), m_ButtonSize)) { m_GizmoOperation = ImGuizmo::OPERATION::ROTATE; }
+		if (ImGui::ImageButton(m_TexturesLoader->m_RotateButton->GetImGuiTexture(), m_ButtonSize)) { m_GizmoOperation = ImGuizmo::OPERATION::ROTATE; }
 		ImGui::SameLine();
-		if (ImGui::ImageButton(m_TexturesLoader->m_ScaleButton.GetImGuiTexture(), m_ButtonSize)) { m_GizmoOperation = ImGuizmo::OPERATION::SCALE; }
+		if (ImGui::ImageButton(m_TexturesLoader->m_ScaleButton->GetImGuiTexture(), m_ButtonSize)) { m_GizmoOperation = ImGuizmo::OPERATION::SCALE; }
 
 		ImGui::SameLine();
 		ImGui::SetCursorPosX((ImGui::GetWindowWidth() / 2.0f) - 40);
-		if (ImGui::ImageButton(m_TexturesLoader->m_PlayButton.GetImGuiTexture(), m_ButtonSize))
+		if (ImGui::ImageButton(m_TexturesLoader->m_PlayButton->GetImGuiTexture(), m_ButtonSize))
 		{
 			if (!m_World->IsInPlayMode())
 			{
@@ -98,12 +93,12 @@ namespace SmolEngine
 			}
 			else
 			{
-				NATIVE_WARN("The scene is already in play mode!");
+				DebugLog::LogWarn("The scene is already in play mode!");
 			}
 		}
 
 		ImGui::SameLine();
-		if (ImGui::ImageButton(m_TexturesLoader->m_StopButton.GetImGuiTexture(), m_ButtonSize))
+		if (ImGui::ImageButton(m_TexturesLoader->m_StopButton->GetImGuiTexture(), m_ButtonSize))
 		{
 			if (m_World->IsInPlayMode())
 			{
@@ -120,7 +115,7 @@ namespace SmolEngine
 			}
 			else
 			{
-				NATIVE_WARN("The scene is not in play mode!");
+				DebugLog::LogWarn("The scene is not in play mode!");
 			}
 		}
 
@@ -137,7 +132,7 @@ namespace SmolEngine
 
 			if (ImGui::Combo("##Draw Mode", &m_DrawModeComboIndex, "Default\0Albedo\0Position\0Normals\0Materials\0Emission\0ShadowMap\0ShadowMapCood\0AO\0"))
 			{
-				m_GraphicsEngine->Storage.GetState().eDebugView = (DebugViewFlags)m_DrawModeComboIndex;
+				RendererStorage::GetState().eDebugView = (DebugViewFlags)m_DrawModeComboIndex;
 			}
 
 			ImGui::SameLine();
@@ -154,7 +149,7 @@ namespace SmolEngine
 		ImGui::SameLine();
 		ImGui::Checkbox("Gizmos", &m_GizmosEnabled);
 		ImGui::SameLine();
-		ImGui::Checkbox("Grid", &m_GraphicsEngine->Storage.GetState().bDrawGrid);
+		ImGui::Checkbox("Grid", &RendererStorage::GetState().bDrawGrid);
 
 		ImGui::PopID();
 	}
@@ -164,7 +159,7 @@ namespace SmolEngine
 		if (ImGui::IsWindowHovered()) { m_Focused = true; }
 		else { m_Focused = false; }
 
-		Framebuffer* fb = GraphicsContext::GetSingleton()->GetFramebuffer();
+		Ref<Framebuffer>& fb = GraphicsContext::GetSingleton()->GetMainFramebuffer();
 		ImVec2 regionAvail = ImGui::GetContentRegionAvail();
 		glm::ivec2 viewPortSize = { static_cast<uint32_t>(regionAvail.x), static_cast<uint32_t>(regionAvail.y) };
 
@@ -187,7 +182,7 @@ namespace SmolEngine
 				m_Editor->m_SelectionFlags = SelectionFlags::Inspector;
 				auto actor = m_World->GetActiveScene()->CreateActor();
 				MeshComponent* component = actor->AddComponent<MeshComponent>();
-				ComponentHandler::ValidateMeshComponent(component, (MeshTypeEX) * (uint32_t*)payload->Data);
+				component->LoadMesh((MeshTypeEX) *(uint32_t*)payload->Data);
 
 				m_Editor->m_SelectedActor = actor;
 			}
@@ -232,7 +227,7 @@ namespace SmolEngine
 
 					if (mesh)
 					{
-						ComponentHandler::ValidateMeshComponent(mesh, path);
+						mesh->LoadMesh(path);
 						selectedActor = actor;
 					}
 					else
@@ -305,7 +300,7 @@ namespace SmolEngine
 	GameView::GameView()
 	{
 		FramebufferSpecification framebufferCI = {};
-		const WindowData* windowData = GraphicsContext::GetSingleton()->GetWindowData();
+		const WindowData* windowData = GraphicsContext::GetSingleton()->GetWindow()->GetWindowData();
 
 		framebufferCI.Width = windowData->Width;
 		framebufferCI.Height = windowData->Width;
@@ -316,7 +311,8 @@ namespace SmolEngine
 		framebufferCI.bUsedByImGui = true;
 		framebufferCI.Attachments = { FramebufferAttachment(AttachmentFormat::Color) };
 
-		Framebuffer::Create(framebufferCI, &m_PreviewFramebuffer);
+		m_PreviewFramebuffer = Framebuffer::Create();
+		m_PreviewFramebuffer->Build(&framebufferCI);
 	}
 
 	void GameView::Draw()
@@ -328,14 +324,14 @@ namespace SmolEngine
 				if (ImGui::IsWindowHovered()) { m_Focused = true; }
 				else { m_Focused = false; }
 
-				Framebuffer* fb = &m_PreviewFramebuffer;
+				Ref<Framebuffer>& fb = m_PreviewFramebuffer;
 				ImVec2 regionAvail = ImGui::GetContentRegionAvail();
 				glm::ivec2 viewPortSize = { static_cast<uint32_t>(regionAvail.x), static_cast<uint32_t>(regionAvail.y) };
 
 				if (viewPortSize.x != m_ViewPortSize.x || viewPortSize.y != m_ViewPortSize.y)
 				{
 					m_ViewPortSize = viewPortSize;
-					m_PreviewFramebuffer.OnResize(static_cast<uint32_t>(m_ViewPortSize.x), static_cast<uint32_t>(m_ViewPortSize.y));
+					m_PreviewFramebuffer->OnResize(static_cast<uint32_t>(m_ViewPortSize.x), static_cast<uint32_t>(m_ViewPortSize.y));
 				}
 
 				ImGui::Image(fb->GetImGuiTextureID(), regionAvail);
@@ -358,7 +354,7 @@ namespace SmolEngine
 			if (camera.bPrimaryCamera == false) { continue; }
 
 			// Calculating ViewProj
-			CameraSystem::CalculateView(&camera, &transform);
+			camera.CalculateView(&transform);
 
 			GraphicsEngineSComponent* engine = GraphicsEngineSComponent::Get();
 
@@ -373,18 +369,17 @@ namespace SmolEngine
 
 			AudioSystem::OnUpdate(transform.WorldPos);
 
-			GraphicsEngineSComponent* frostium = GraphicsEngineSComponent::Get();
-			frostium->DrawList.CalculateFrustum(&engine->ViewProj);
-			frostium->Storage.SetRenderTarget(&m_PreviewFramebuffer);
+			RendererDrawList::CalculateFrustum(&engine->ViewProj);
+			RendererStorage::SetRenderTarget(m_PreviewFramebuffer);
 			
+			const bool batch_cmd = false;
 			ClearInfo clearInfo;
 			RendererSystem::OnUpdate();
-			RendererDeferred::DrawFrame(&clearInfo, &frostium->Storage, &frostium->DrawList, false);
+			RendererDeferred::DrawFrame(&clearInfo, batch_cmd);
 
-			frostium->Storage.SetRenderTarget(GraphicsContext::GetSingleton()->GetFramebuffer());
 			engine->ViewProj = sceneInfo;
-			frostium->DrawList.CalculateFrustum(&sceneInfo);
-
+			RendererStorage::SetRenderTarget(GraphicsContext::GetSingleton()->GetMainFramebuffer());
+			RendererDrawList::CalculateFrustum(&sceneInfo);
 			break;
 		}
 	}

@@ -1,10 +1,7 @@
 #include "stdafx.h"
 #include "Editor-Tools/OzzTool.h"
 #include "ImGuiExtension.h"
-#ifndef FROSTIUM_SMOLENGINE_IMPL
-#define FROSTIUM_SMOLENGINE_IMPL
-#endif
-#include <frostium/Import/OzzImported.h>
+#include "Import/OzzImported.h"
 
 namespace SmolEngine
 {

@@ -2,7 +2,6 @@
 #include "stdafx.h"
 
 #include <imgui/misc/cpp/imgui_stdlib.h>
-
 #include <glm/gtc/type_ptr.hpp>
 
 namespace ImGui

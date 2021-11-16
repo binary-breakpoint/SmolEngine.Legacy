@@ -34,14 +34,12 @@ project "Soloud"
 			"_CRT_SECURE_NO_WARNINGS"
 		}
 
-	filter "configurations:Debug"
-	buildoptions "/MDd"
-	buildoptions "/bigobj"
-	symbols "on"
-
-	filter "configurations:Release"
-	buildoptions "/MD"
-	buildoptions "/bigobj"
-	optimize "on"
+		filter "configurations:Debug_Vulkan"
+		buildoptions "/MDd"
+		symbols "on"
+	
+		filter "configurations:Release_Vulkan"
+		buildoptions "/MD"
+		optimize "full"
 
 

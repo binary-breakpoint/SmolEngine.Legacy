@@ -95,7 +95,7 @@ namespace SmolEngine
 		friend struct RendererStorageBase;
 		friend class GraphicsPipeline;
 		friend class DebugRenderer;
-		friend class ImGuiContext;
+		friend struct ImGuiContext;
 		friend class VulkanPBR;
 		friend class VulkanDescriptor;
 		friend class Window;

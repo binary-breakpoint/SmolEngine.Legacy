@@ -1,17 +1,12 @@
 #include "stdafx.h"
 #include "Panels/FileExplorer.h"
 #include "Panels/MaterialPanel.h"
-
-#include <ECS/Systems/JobsSystem.h>
-#include <ECS/Prefab.h>
-#include <Audio/AudioClip.h>
-
-#ifndef FROSTIUM_SMOLENGINE_IMPL
-#define FROSTIUM_SMOLENGINE_IMPL
-#endif
-#include <frostium/Tools/MaterialLibrary.h>
-#include <frostium/Primitives/Texture.h>
-#include <frostium/Primitives/Framebuffer.h>
+#include "Multithreading/JobsSystem.h"
+#include "Materials/PBRFactory.h"
+#include "Primitives/Texture.h"
+#include "Primitives/Framebuffer.h"
+#include "Audio/AudioClip.h"
+#include "ECS/Prefab.h"
 
 #include <imgui/misc/cpp/imgui_stdlib.h>
 
@@ -246,7 +241,7 @@ namespace SmolEngine
 			bool active = std::filesystem::equivalent(m_CurrentDir, m_HomeDir) == false;
 			if (active == false) { ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f); }
 
-			if (ImGui::ImageButton(m_pTextureLoader->m_ReturnIcon.GetImGuiTexture(), { 25, 25 }, ImVec2(0, 1), ImVec2(1, 0)))
+			if (ImGui::ImageButton(m_pTextureLoader->m_ReturnIcon->GetImGuiTexture(), { 25, 25 }, ImVec2(0, 1), ImVec2(1, 0)))
 			{
 				if (active)
 				{
@@ -260,7 +255,7 @@ namespace SmolEngine
 		}
 
 		ImGui::SameLine();
-		if (ImGui::ImageButton(m_pTextureLoader->m_ForwardIcon.GetImGuiTexture(), { 25, 25 }, ImVec2(0, 1), ImVec2(1, 0)))
+		if (ImGui::ImageButton(m_pTextureLoader->m_ForwardIcon->GetImGuiTexture(), { 25, 25 }, ImVec2(0, 1), ImVec2(1, 0)))
 		{
 			if (m_SelectedNode.empty() == false)
 			{
@@ -270,7 +265,7 @@ namespace SmolEngine
 		}
 
 		ImGui::SameLine();
-		if (ImGui::ImageButton(m_pTextureLoader->m_UpdateIcon.GetImGuiTexture(), { 25, 25 }, ImVec2(0, 1), ImVec2(1, 0)))
+		if (ImGui::ImageButton(m_pTextureLoader->m_UpdateIcon->GetImGuiTexture(), { 25, 25 }, ImVec2(0, 1), ImVec2(1, 0)))
 		{
 			Import();
 		}
@@ -429,12 +424,14 @@ namespace SmolEngine
 				auto& it = m_IconsMap.find(path);
 				if (it == m_IconsMap.end())
 				{
-					auto icon = std::make_shared<Texture>();
+					auto icon = Texture::Create();
 					m_IconsMap[path] = icon;
 					JobsSystem::Schedule([this, path, texCI]()
 					{
-						auto tex = m_IconsMap[path];
-						Texture::Create(&texCI, tex.get());
+						TextureCreateInfo info = texCI;
+						auto& tex = m_IconsMap[path];
+						tex = Texture::Create();
+						tex->LoadFromFile(&info);
 					});
 				}
 				else 
@@ -444,70 +441,36 @@ namespace SmolEngine
 			}
 			else
 			{
-				descriptorPtr = m_pTextureLoader->m_DocumentsIcon.GetImGuiTexture();
+				descriptorPtr = m_pTextureLoader->m_DocumentsIcon->GetImGuiTexture();
 			}
 		}
 		else if (ext == ".s_material")
 		{
-			auto& it = m_MaterialPreviews.find(path);
-			if (it == m_MaterialPreviews.end()) // Generates material icon
-			{
-				size_t fileSze = GetNodeSize(path);
-				if (fileSze > 0)
-				{
-					auto fb = std::make_shared<Framebuffer>();
-					{
-						FramebufferSpecification framebufferCI = {};
-						FramebufferAttachment colorAttach = FramebufferAttachment(AttachmentFormat::Color, true);
-						colorAttach.ClearColor = glm::vec4(0.1, 0.1, 0.1, 1);
-
-						framebufferCI.Width = 96;
-						framebufferCI.Height = 96;
-						framebufferCI.bResizable = false;
-						framebufferCI.bUsedByImGui = true;
-						framebufferCI.bAutoSync = false;
-						framebufferCI.Attachments = { colorAttach };
-						framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
-
-						Framebuffer::Create(framebufferCI, fb.get());
-					}
-
-					MaterialCreateInfo materailCI = {};
-					if (materailCI.Load(path) == true)
-					{
-						MaterialPanel::GetSingleton()->RenderMaterialIcon(fb.get(), &materailCI);
-						m_MaterialPreviews[path] = fb;
-					}
-				}
-			}
-			else
-			{
-				descriptorPtr = it->second->GetImGuiTextureID();
-			}
+			descriptorPtr = m_pTextureLoader->m_DocumentsIcon->GetImGuiTexture();
 		}
 		else if (ext == ".s_scene")
 		{
-			descriptorPtr = m_pTextureLoader->m_SceneIcon.GetImGuiTexture();
+			descriptorPtr = m_pTextureLoader->m_SceneIcon->GetImGuiTexture();
 		}
 		else if (ext == ".s_prefab")
 		{
-			descriptorPtr = m_pTextureLoader->m_BlueprintIcon.GetImGuiTexture();
+			descriptorPtr = m_pTextureLoader->m_BlueprintIcon->GetImGuiTexture();
 		}
 		else if (ext == ".s_audio")
 		{
-			descriptorPtr = m_pTextureLoader->m_AudioFileIcon.GetImGuiTexture();
+			descriptorPtr = m_pTextureLoader->m_AudioFileIcon->GetImGuiTexture();
 		}
 		else if (ext == ".s_animation")
 		{
-			descriptorPtr = m_pTextureLoader->m_AnimationIcon.GetImGuiTexture();
+			descriptorPtr = m_pTextureLoader->m_AnimationIcon->GetImGuiTexture();
 		}
 		else if (ext == ".gltf")
 		{
-			descriptorPtr = m_pTextureLoader->m_glTFIcon.GetImGuiTexture();
+			descriptorPtr = m_pTextureLoader->m_glTFIcon->GetImGuiTexture();
 		}
 		else
 		{
-			descriptorPtr = m_pTextureLoader->m_DocumentsIcon.GetImGuiTexture();
+			descriptorPtr = m_pTextureLoader->m_DocumentsIcon->GetImGuiTexture();
 		}
 	}
 
@@ -519,7 +482,6 @@ namespace SmolEngine
 
 	void FileExplorer::Reset()
 	{
-		m_MaterialPreviews.clear();
 		m_IconsMap.clear();
 		m_SelectedNode.clear();
 		m_PopUpBuffer.clear();
@@ -579,7 +541,7 @@ namespace SmolEngine
 	void FileExplorer::DrawSelectable(const std::string& name, const std::string& path, const std::string& ext, bool is_folder)
 	{
 		ImGui::PushID(path.c_str());
-		void* descriptorPtr = m_pTextureLoader->m_FolderButton.GetImGuiTexture();
+		void* descriptorPtr = m_pTextureLoader->m_FolderButton->GetImGuiTexture();
 		if(!is_folder)
 			GetIcon(path, ext, descriptorPtr);
 

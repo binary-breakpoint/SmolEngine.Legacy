@@ -1,4 +1,4 @@
-#version 460 core
+#version 450
 
 layout (location = 0)  in vec3 v_FragPos;
 layout (location = 1)  in vec3 v_Normal;
@@ -10,16 +10,40 @@ layout (binding = 2) uniform samplerCube samplerIrradiance;
 layout (binding = 3) uniform sampler2D samplerBRDFLUT;
 layout (binding = 4) uniform samplerCube prefilteredMap;
 
-layout (binding = 5) uniform sampler2D textures[6];
+layout (binding = 5) uniform sampler2D AlbedoMap;
+layout (binding = 6) uniform sampler2D NormalMap;
+layout (binding = 7) uniform sampler2D RoughnessMap;
+layout (binding = 8) uniform sampler2D MetallicMap;
+layout (binding = 9) uniform sampler2D AOMap;
 
-struct MaterialData
+struct Material
 {
- 
+	vec4  Albedo;
+
+	float Metalness;
+	float Roughness;
+	float EmissionStrength;
+	uint  UseAlbedroTex;
+
+	uint  UseNormalTex;
+	uint  UseMetallicTex;
+	uint  UseRoughnessTex;
+    uint  UseAOTex;
+
+	uint UseEmissiveTex;
+	uint AlbedroTexIndex;
+	uint NormalTexIndex;
+	uint MetallicTexIndex;
+
+	uint RoughnessTexIndex;
+	uint AOTexIndex;
+	uint EmissiveTexIndex;
+	uint ID;
 };
 
 layout (std140, binding = 277) uniform SceneBuffer
 {
-	MaterialData material;
+	Material material;
 };
 
 layout (location = 0) out vec4 outColor;
@@ -127,7 +151,7 @@ vec3 getNormal()
 {
 	if(material.UseNormalTex == 1)
 	{
-		vec3 tangentNormal = texture(textures[material.NormalTexIndex], v_UV).xyz * 2.0 - 1.0;
+		vec3 tangentNormal = texture(NormalMap, v_UV).xyz * 2.0 - 1.0;
 		// TBN matrix
 	    vec3 T = normalize(v_Tangent);
 	    vec3 N = normalize(v_Normal);
@@ -143,10 +167,10 @@ void main()
 {
 	// Getting Values 
 	vec3 N = getNormal();
-	vec3 albedro = material.UseAlbedroTex == 1 ? texture(textures[material.AlbedroTexIndex], v_UV).rgb : material.AlbedroColor.rgb;
-	float metallic = material.UseMetallicTex == 1 ? texture(textures[material.MetallicTexIndex], v_UV).r : material.Metalness;
-	float roughness = material.UseRoughnessTex == 1 ? texture(textures[material.RoughnessTexIndex], v_UV).r: material.Roughness;
-	vec3 ao = material.UseAOTex == 1 ? texture(textures[material.AOTexIndex], v_UV).rrr : vec3(1);
+	vec3 albedro = material.UseAlbedroTex == 1 ? texture(AlbedoMap, v_UV).rgb : material.Albedo.rgb;
+	float metallic = material.UseMetallicTex == 1 ? texture(MetallicMap, v_UV).r : material.Metalness;
+	float roughness = material.UseRoughnessTex == 1 ? texture(RoughnessMap, v_UV).r: material.Roughness;
+	vec3 ao = material.UseAOTex == 1 ? texture(AOMap, v_UV).rrr : vec3(1);
 	albedro = pow(albedro, vec3(2.2));
 	vec3 F0 = mix(vec3(0.04), albedro, metallic); 
 	vec3 V = normalize(v_CamPos - v_FragPos); 

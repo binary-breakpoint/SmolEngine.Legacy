@@ -93,6 +93,7 @@ namespace SmolEngine
 		PBRUniform               m_Uniform{};
 
 		friend class PBRFactory;
+		friend class MaterialPanel;
 	};
 
 	class PBRFactory

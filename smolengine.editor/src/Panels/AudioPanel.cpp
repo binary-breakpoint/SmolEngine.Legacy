@@ -81,16 +81,16 @@ namespace SmolEngine
 			if (ImGui::Button("Play"))
 			{
 				if (m_Handle)
-					AudioSystem::StopClip(m_Source.get(), m_Handle);
+					m_AS.StopClip(m_Handle);
 
 				m_Clip->UpdateInfo(m_CreateInfo);
-				AudioSystem::PlayClip(m_Source.get(), m_Clip, m_Handle);
+				m_AS.PlayClip(m_Clip, m_Handle);
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("Stop"))
 			{
 				if (m_Handle)
-					AudioSystem::StopClip(m_Source.get(), m_Handle);
+					m_AS.StopClip(m_Handle);
 			}
 		}
 	}
@@ -99,7 +99,7 @@ namespace SmolEngine
 	{
 		if (m_Handle)
 		{
-			AudioSystem::StopClip(m_Source.get(), m_Handle);
+			m_AS.StopClip(m_Handle);
 			m_Handle.reset();
 		}
 
@@ -111,7 +111,6 @@ namespace SmolEngine
 	{
 		if (m_CreateInfo.Load(filePath))
 		{
-			m_Source = std::make_unique<AudioSource>();
 			m_Clip = std::make_shared<AudioClip>(m_CreateInfo);
 			m_Path = filePath;
 			m_TypeFlag = (int)m_CreateInfo.eType;

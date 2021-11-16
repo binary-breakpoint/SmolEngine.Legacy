@@ -1,10 +1,7 @@
 #pragma once
 #include <Core/Core.h>
 
-#ifndef FROSTIUM_SMOLENGINE_IMPL
-#define FROSTIUM_SMOLENGINE_IMPL
-#endif
-#include <frostium/Primitives/Texture.h>
+#include "Primitives/Texture.h"
 
 namespace SmolEngine
 {
@@ -16,110 +13,135 @@ namespace SmolEngine
 			texCI.bImGUIHandle = true;
 
 			texCI.FilePath = "assets/buttons/play_button.png";
-			Texture::Create(&texCI, &m_PlayButton);
+			m_PlayButton = Texture::Create();
+			m_PlayButton->LoadFromFile(&texCI);
 
 			texCI.FilePath = "assets/buttons/pause_button.png";
-			Texture::Create(&texCI, &m_StopButton);
+			m_StopButton = Texture::Create();
+			m_StopButton->LoadFromFile(&texCI);
 
 			texCI.FilePath = "assets/buttons/move_button.png";
-			Texture::Create(&texCI, &m_MoveButton);
+			m_MoveButton = Texture::Create();
+			m_MoveButton->LoadFromFile(&texCI);
 
 			texCI.FilePath = "assets/buttons/rotate_button.png";
-			Texture::Create(&texCI, &m_RotateButton);
+			m_RotateButton = Texture::Create();
+			m_RotateButton->LoadFromFile(&texCI);
 
 			texCI.FilePath = "assets/buttons/scale_button.png";
-			Texture::Create(&texCI, &m_ScaleButton);
+			m_ScaleButton = Texture::Create();
+			m_ScaleButton->LoadFromFile(&texCI);
 
 			texCI.FilePath = "assets/buttons/search_button.png";
-			Texture::Create(&texCI, &m_SearchButton);
+			m_SearchButton = Texture::Create();
+			m_SearchButton->LoadFromFile(&texCI);
 
 			texCI.FilePath = "assets/buttons/remove_button.png";
-			Texture::Create(&texCI, &m_RemoveButton);
+			m_RemoveButton = Texture::Create();
+			m_RemoveButton->LoadFromFile(&texCI);
 
 			texCI.FilePath = "assets/buttons/folder_button.png";
-			Texture::Create(&texCI, &m_FolderButton);
+			m_FolderButton = Texture::Create();
+			m_FolderButton->LoadFromFile(&texCI);
 
 			texCI.FilePath = "assets/buttons/documents_button.png";
-			Texture::Create(&texCI, &m_DocumentsIcon);
+			m_DocumentsIcon = Texture::Create();
+			m_DocumentsIcon->LoadFromFile(&texCI);
 
 			texCI.FilePath = "assets/buttons/scene_button.png";
-			Texture::Create(&texCI, &m_SceneIcon);
+			m_SceneIcon = Texture::Create();
+			m_SceneIcon->LoadFromFile(&texCI);
 
 			texCI.FilePath = "assets/buttons/default_background.jpg";
-			Texture::Create(&texCI, &m_BackgroundIcon);
+			m_BackgroundIcon = Texture::Create();
+			m_BackgroundIcon->LoadFromFile(&texCI);
 
 			texCI.FilePath = "assets/buttons/cube_icon.png";
-			Texture::Create(&texCI, &m_CubeIcon);
+			m_CubeIcon = Texture::Create();
+			m_CubeIcon->LoadFromFile(&texCI);
 
 			texCI.FilePath = "assets/buttons/sphere_icon.png";
-			Texture::Create(&texCI, &m_SphereIcon);
+			m_SphereIcon = Texture::Create();
+			m_SphereIcon->LoadFromFile(&texCI);
 
 			texCI.FilePath = "assets/buttons/capsule_icon.png";
-			Texture::Create(&texCI, &m_CapsuleIcon);
+			m_CapsuleIcon = Texture::Create();
+			m_CapsuleIcon->LoadFromFile(&texCI);
 
 			texCI.FilePath = "assets/buttons/torus_icon.png";
-			Texture::Create(&texCI, &m_TorusIcon);
+			m_TorusIcon = Texture::Create();
+			m_TorusIcon->LoadFromFile(&texCI);
 
 			texCI.FilePath = "assets/buttons/return_button.png";
-			Texture::Create(&texCI, &m_ReturnIcon);
+			m_ReturnIcon = Texture::Create();
+			m_ReturnIcon->LoadFromFile(&texCI);
 
 			texCI.FilePath = "assets/buttons/forward_button.png";
-			Texture::Create(&texCI, &m_ForwardIcon);
+			m_ForwardIcon = Texture::Create();
+			m_ForwardIcon->LoadFromFile(&texCI);
 
 			texCI.FilePath = "assets/buttons/update_button.png";
-			Texture::Create(&texCI, &m_UpdateIcon);
+			m_UpdateIcon = Texture::Create();
+			m_UpdateIcon->LoadFromFile(&texCI);
 
 			texCI.FilePath = "assets/buttons/blueprint_icon.png";
-			Texture::Create(&texCI, &m_BlueprintIcon);
+			m_BlueprintIcon = Texture::Create();
+			m_BlueprintIcon->LoadFromFile(&texCI);
 
 			texCI.FilePath = "assets/buttons/audiofile_icon.png";
-			Texture::Create(&texCI, &m_AudioFileIcon);
+			m_AudioFileIcon = Texture::Create();
+			m_AudioFileIcon->LoadFromFile(&texCI);
 
 			texCI.FilePath = "assets/buttons/glTF_button.png";
-			Texture::Create(&texCI, &m_glTFIcon);
+			m_glTFIcon = Texture::Create();
+			m_glTFIcon->LoadFromFile(&texCI);
 
 			texCI.FilePath = "assets/buttons/animation_icon.png";
-			Texture::Create(&texCI, &m_AnimationIcon);
+			m_AnimationIcon = Texture::Create();
+			m_AnimationIcon->LoadFromFile(&texCI);
 
 			texCI.FilePath = "assets/buttons/log_warning_icon.png";
-			Texture::Create(&texCI, &m_WarningIcon);
+			m_WarningIcon = Texture::Create();
+			m_WarningIcon->LoadFromFile(&texCI);
 
 			texCI.FilePath = "assets/buttons/log_error_icon.png";
-			Texture::Create(&texCI, &m_ErrorIcon);
+			m_ErrorIcon = Texture::Create();
+			m_ErrorIcon->LoadFromFile(&texCI);
 
 			texCI.FilePath = "assets/buttons/log_info_icon.png";
-			Texture::Create(&texCI, &m_InfoIcon);
+			m_InfoIcon = Texture::Create();
+			m_InfoIcon->LoadFromFile(&texCI);
 
 			s_Instance = this;
 		}
 
 		static TexturesLoader* Get() { return s_Instance; }
 
-		Texture  m_PlayButton{};
-		Texture  m_StopButton{};
-		Texture  m_MoveButton{};
-		Texture  m_ScaleButton{};
-		Texture  m_RotateButton{};
-		Texture  m_SearchButton{};
-		Texture  m_RemoveButton{};
-		Texture  m_FolderButton{};
-		Texture  m_DocumentsIcon{};
-		Texture  m_SceneIcon{};
-		Texture  m_glTFIcon{};
-		Texture  m_BackgroundIcon{};
-		Texture  m_CubeIcon{};
-		Texture  m_SphereIcon{};
-		Texture  m_CapsuleIcon{};
-		Texture  m_TorusIcon{};
-		Texture  m_ReturnIcon{};
-		Texture  m_ForwardIcon{};
-		Texture  m_UpdateIcon{};
-		Texture  m_BlueprintIcon{};
-		Texture  m_AudioFileIcon{};
-		Texture  m_AnimationIcon{};
-		Texture  m_WarningIcon{};
-		Texture  m_InfoIcon{};
-		Texture  m_ErrorIcon{};
+		Ref<Texture>  m_PlayButton{};
+		Ref<Texture>  m_StopButton{};
+		Ref<Texture>  m_MoveButton{};
+		Ref<Texture>  m_ScaleButton{};
+		Ref<Texture>  m_RotateButton{};
+		Ref<Texture>  m_SearchButton{};
+		Ref<Texture>  m_RemoveButton{};
+		Ref<Texture>  m_FolderButton{};
+		Ref<Texture>  m_DocumentsIcon{};
+		Ref<Texture>  m_SceneIcon{};
+		Ref<Texture>  m_glTFIcon{};
+		Ref<Texture>  m_BackgroundIcon{};
+		Ref<Texture>  m_CubeIcon{};
+		Ref<Texture>  m_SphereIcon{};
+		Ref<Texture>  m_CapsuleIcon{};
+		Ref<Texture>  m_TorusIcon{};
+		Ref<Texture>  m_ReturnIcon{};
+		Ref<Texture>  m_ForwardIcon{};
+		Ref<Texture>  m_UpdateIcon{};
+		Ref<Texture>  m_BlueprintIcon{};
+		Ref<Texture>  m_AudioFileIcon{};
+		Ref<Texture>  m_AnimationIcon{};
+		Ref<Texture>  m_WarningIcon{};
+		Ref<Texture>  m_InfoIcon{};
+		Ref<Texture>  m_ErrorIcon{};
 	private:
 
 		inline static TexturesLoader* s_Instance = nullptr;

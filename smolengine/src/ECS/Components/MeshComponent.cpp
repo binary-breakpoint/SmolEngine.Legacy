@@ -85,6 +85,11 @@ namespace SmolEngine
 		View->SetAnimationController(contoller);
 	}
 
+	Ref<AnimationController>& MeshComponent::GetAnimationController()
+	{
+		return AnimContoller;
+	}
+
 	const Ref<Mesh>& MeshComponent::GetMesh() const
 	{
 		return Mesh;

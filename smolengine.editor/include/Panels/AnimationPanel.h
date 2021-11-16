@@ -1,9 +1,6 @@
 #pragma once
+#include "Animation/AnimationController.h"
 
-#ifndef FROSTIUM_SMOLENGINE_IMPL
-#define FROSTIUM_SMOLENGINE_IMPL
-#endif
-#include <frostium/Animation/AnimationController.h>
 #include <string>
 #include <vector>
 

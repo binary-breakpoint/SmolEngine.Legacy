@@ -6,11 +6,6 @@
 #include <vector>
 #include <ctime>
 #include <sstream>
-
-#ifndef FROSTIUM_SMOLENGINE_IMPL
-#define FROSTIUM_SMOLENGINE_IMPL
-#endif
-#include <frostium/Common/DebugLog.h>
 #include <imgui/imgui.h>
 
 namespace SmolEngine
@@ -75,9 +70,9 @@ namespace SmolEngine
 		{
 			switch (level)
 			{
-			case LogLevel::Info: return TexturesLoader::Get()->m_InfoIcon.GetImGuiTexture();
-			case LogLevel::Warning: return TexturesLoader::Get()->m_WarningIcon.GetImGuiTexture();
-			case LogLevel::Error: return TexturesLoader::Get()->m_ErrorIcon.GetImGuiTexture();
+			case LogLevel::Info: return TexturesLoader::Get()->m_InfoIcon->GetImGuiTexture();
+			case LogLevel::Warning: return TexturesLoader::Get()->m_WarningIcon->GetImGuiTexture();
+			case LogLevel::Error: return TexturesLoader::Get()->m_ErrorIcon->GetImGuiTexture();
 			}
 
 			return nullptr;

@@ -2,9 +2,7 @@
 #include "Editor/AnimationEditor.h"
 #include "ImGuiExtension.h"
 #include "Editor-Tools/Tools.h"
-#include "ECS/Components/AnimationControllerComponent.h"
-#include "ECS/Systems/ComponentHandler.h"
-
+#include "ECS/Components/MeshComponent.h"
 
 namespace SmolEngine
 {
@@ -13,7 +11,7 @@ namespace SmolEngine
 		m_Context = ed::CreateEditor();
 	}
 
-	void AnimationEditor::Update(bool& is_open, AnimationControllerComponent* comp)
+	void AnimationEditor::Update(bool& is_open, MeshComponent* comp)
 	{
 		if (!is_open)
 			return;
@@ -33,14 +31,14 @@ namespace SmolEngine
 		m_Buffer = "";
 	}
 
-	void AnimationEditor::DrawToolBar(AnimationControllerComponent* comp)
+	void AnimationEditor::DrawToolBar(MeshComponent* comp)
 	{
 		ImGui::PushID("AnimationEditorToolBarWindowAddID");
 		ImGui::BeginChild("AnimationEditorToolBarWindow", { ImGui::GetContentRegionAvail().x / 3.0f,  ImGui::GetContentRegionAvail().y}, true);
 		{
 			if (!m_SelectedNode.empty())
 			{
-				auto& node = comp->GetClip(m_SelectedNode);
+				auto& node = comp->GetAnimationController()->GetClip(m_SelectedNode);
 				float time = node->GetTimeRatio();
 
 				ImGui::Extensions::SetItemPos(70.0f);
@@ -58,7 +56,7 @@ namespace SmolEngine
 
 	}
 
-	void AnimationEditor::DrawNodeEditor(AnimationControllerComponent* comp)
+	void AnimationEditor::DrawNodeEditor(MeshComponent* comp)
 	{
 		ImGui::SameLine();
 		ImGui::BeginChild("AnimationEditorWindow");
@@ -68,12 +66,12 @@ namespace SmolEngine
 			{
 				std::string path = "";
 				if (Tools::FileBrowserDragAndDropCheck(".s_animation", path))
-					ComponentHandler::AddAnimationControllerClip(comp, path);
+					comp->LoadAnimation(path);
 			}
 
 			{
 				int uniqueId = 1;
-				const auto& clips = comp->GetClips();
+				const auto& clips = comp->GetAnimationController()->GetClips();
 				for (auto& [name, clip] : clips)
 				{
 					ed::BeginNode(uniqueId);
@@ -108,17 +106,17 @@ namespace SmolEngine
 		ImGui::EndChild();
 	}
 
-	void AnimationEditor::DrawPopUp(AnimationControllerComponent* comp)
+	void AnimationEditor::DrawPopUp(MeshComponent* comp)
 	{
 		CheckAndOpenPopUp();
 		if (ImGui::BeginPopup("AnimationEditor_PopUp_Actions"))
 		{
 			if (ImGui::MenuItem("set active"))
 			{
-				auto& clip = comp->GetClip(m_Buffer);
+				auto& clip = comp->GetAnimationController()->GetClip(m_Buffer);
 				if (clip)
 				{
-					comp->SetActiveClip(m_Buffer);
+					comp->GetAnimationController()->SetActiveClip(m_Buffer);
 					m_SelectedNode = m_Buffer;
 				}
 
@@ -127,10 +125,10 @@ namespace SmolEngine
 
 			if (ImGui::MenuItem("play"))
 			{
-				auto& clip = comp->GetClip(m_Buffer);
+				auto& clip = comp->GetAnimationController()->GetClip(m_Buffer);
 				if (clip)
 				{
-					comp->SetActiveClip(m_Buffer);
+					comp->GetAnimationController()->SetActiveClip(m_Buffer);
 					m_SelectedNode = m_Buffer;
 					clip->GetProperties().bPlay = true;
 				}
@@ -140,10 +138,10 @@ namespace SmolEngine
 
 			if (ImGui::MenuItem("stop"))
 			{
-				auto& clip = comp->GetClip(m_Buffer);
+				auto& clip = comp->GetAnimationController()->GetClip(m_Buffer);
 				if (clip)
 				{
-					comp->SetActiveClip(m_Buffer);
+					comp->GetAnimationController()->SetActiveClip(m_Buffer);
 					m_SelectedNode = m_Buffer;
 					clip->GetProperties().bPlay = false;
 				}
@@ -153,7 +151,7 @@ namespace SmolEngine
 
 			if (ImGui::MenuItem("remove"))
 			{
-				comp->RemoveClip(m_Buffer);
+				comp->GetAnimationController()->RemoveClip(m_Buffer);
 				m_SelectedNode = "";
 
 				ClosePopUp();

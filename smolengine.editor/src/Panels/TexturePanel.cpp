@@ -12,14 +12,16 @@ namespace SmolEngine
 		{
 			m_Info.Save(m_FilePath);
 
-			delete m_Preview;
 			m_Preview = nullptr;
 			m_Reload = false;
 
-			m_Preview = new Texture();
-			TextureCreateInfo infoCopy = m_Info;
-			infoCopy.bImGUIHandle = true;
-			Texture::Create(&infoCopy, m_Preview);
+			m_Preview = Texture::Create();
+			{
+				TextureCreateInfo infoCopy = m_Info;
+				infoCopy.bImGUIHandle = true;
+
+				m_Preview->LoadFromFile(&infoCopy);
+			}
 		}
 
 		ImGui::NewLine();
@@ -99,7 +101,6 @@ namespace SmolEngine
 
 		if (m_Preview != nullptr)
 		{
-			delete m_Preview;
 			m_Preview = nullptr;
 		}
 	}
@@ -109,10 +110,13 @@ namespace SmolEngine
 		Reset();
 		m_Info.Load(filePath);
 
-		m_Preview = new Texture();
-		TextureCreateInfo infoCopy = m_Info;
-		infoCopy.bImGUIHandle = true;
-		Texture::Create(&infoCopy, m_Preview);
+		m_Preview = Texture::Create();
+		{
+			TextureCreateInfo infoCopy = m_Info;
+			infoCopy.bImGUIHandle = true;
+
+			m_Preview->LoadFromFile(&infoCopy);
+		}
 
 		m_FilePath = filePath;
 		std::filesystem::path p(m_FilePath);

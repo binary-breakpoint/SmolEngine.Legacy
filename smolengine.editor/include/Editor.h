@@ -14,7 +14,7 @@ namespace SmolEngine
 
 		void OnEngineModuleCreation(EngineModuleCreateInfo* info) override;
 		void OnLayerModuleCreation(LayerManager* layerManager) override;
-		void OnGraphicsModuleCreation(GraphicsContextInitInfo* info) override;
+		void OnGraphicsModuleCreation(GraphicsContextCreateInfo* info) override;
 		void OnPhysicsModuleCreation(PhysicsModuleCreateInfo* info) override;
 		void OnScriptModuleCreation(ScriptingSystem* scriptingSytem) override;
 

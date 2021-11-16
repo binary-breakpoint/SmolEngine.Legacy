@@ -31,11 +31,11 @@ namespace SmolEngine
 		layerManager->AddLayer(editorLayer);
 	}
 
-	void Editor::OnGraphicsModuleCreation(GraphicsContextInitInfo* info)
+	void Editor::OnGraphicsModuleCreation(GraphicsContextCreateInfo* info)
 	{
 		info->pWindowCI->Height = 1080;
 		info->pWindowCI->Width = 1920;
-		info->eFeaturesFlags = FeaturesFlags::Imgui | FeaturesFlags::RendererDebug;
+		info->eFeaturesFlags = FeaturesFlags::Imgui | FeaturesFlags::RendererDebug | FeaturesFlags::RendererDeferred | FeaturesFlags::Renderer2D;
 
 #ifdef EDITOR_DEBUG
 		info->pWindowCI->Title = "SmolEngine Editor - Debug (Vulkan x64)";
@@ -53,7 +53,6 @@ namespace SmolEngine
 
 	void Editor::OnScriptModuleCreation(ScriptingSystem* scriptingSytem)
 	{
-		scriptingSytem->AddNativeClass<BasePlayerScript>("Base Player Script");
-		scriptingSytem->AddNativeClass<BallSpawner>("Ball Spawner");
+
 	}
 }

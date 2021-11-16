@@ -5,31 +5,22 @@
 
 #include "ECS/WorldAdmin.h"
 #include "ECS/Actor.h"
-#include "ECS/ComponentsCore.h"
+#include "ECS/Components/Include/Components.h"
 #include "ECS/Systems/RendererSystem.h"
 #include "ECS/Systems/Physics2DSystem.h"
 #include "ECS/Systems/AudioSystem.h"
-#include "ECS/Systems/CameraSystem.h"
 #include "ECS/Systems/UISystem.h"
 #include "ECS/Systems/ScriptingSystem.h"
-#include "ECS/Systems/ComponentHandler.h"
-
 #include "ECS/Components/Singletons/Box2DWorldSComponent.h"
 #include "ECS/Components/Singletons/ProjectConfigSComponent.h"
-#include "ECS/Components/Singletons/JobsSystemStateSComponent.h"
 #include "ECS/Components/Singletons/GraphicsEngineSComponent.h"
-
 #include "ECS/Scene.h"
 #include "ECS/Prefab.h"
 
+#include "Tools/GLM.h"
+#include "Tools/Utils.h"
 #include "Scripting/CSharp/MonoContext.h"
 #include "Scripting/CPP/MetaContext.h"
-
-#ifndef FROSTIUM_SMOLENGINE_IMPL
-#define FROSTIUM_SMOLENGINE_IMPL
-#endif
-#include <frostium/Tools/GLM.h>
-#include <frostium/Tools/Utils.h>
 
 namespace SmolEngine
 {
@@ -114,7 +105,7 @@ namespace SmolEngine
 			colors[ImGuiCol_DockingPreview] = ImVec4(0.85f, 0.85f, 0.85f, 0.28f);
 		}
 
-		Log::s_Instance->SetCallback([&](const std::string&& msg, LogLevel type)
+		DebugLog::SetCallback([&](const std::string&& msg, LogLevel type)
 		{
 			switch (type)
 			{
@@ -322,7 +313,7 @@ namespace SmolEngine
 					{
 						if (!m_World->SaveCurrentScene())
 						{
-							NATIVE_ERROR("Couldn't save current scene!");
+							DebugLog::LogError("Couldn't save current scene!");
 						}
 					}
 
@@ -395,10 +386,10 @@ namespace SmolEngine
 				ImGui::TableSetupColumn("Description", ImGuiTableColumnFlags_NoHide);
 				ImGui::TableHeadersRow();
 
-				DrawMeshPrimitive((uint32_t)MeshTypeEX::Cube, "Cube", "Creates a new entity and attaches a cube mesh to it.", &m_TexturesLoader->m_CubeIcon);
-				DrawMeshPrimitive((uint32_t)MeshTypeEX::Sphere, "Sphere", "Creates a new entity and attaches a sphere mesh to it.", &m_TexturesLoader->m_SphereIcon);
-				DrawMeshPrimitive((uint32_t)MeshTypeEX::Capsule, "Capsule", "Creates a new entity and attaches a capsule mesh to it.", &m_TexturesLoader->m_CapsuleIcon);
-				DrawMeshPrimitive((uint32_t)MeshTypeEX::Torus, "Torus", "Creates a new entity and attaches a torus mesh to it.", &m_TexturesLoader->m_TorusIcon);
+				DrawMeshPrimitive((uint32_t)MeshTypeEX::Cube, "Cube", "Creates a new entity and attaches a cube mesh to it.", m_TexturesLoader->m_CubeIcon);
+				DrawMeshPrimitive((uint32_t)MeshTypeEX::Sphere, "Sphere", "Creates a new entity and attaches a sphere mesh to it.", m_TexturesLoader->m_SphereIcon);
+				DrawMeshPrimitive((uint32_t)MeshTypeEX::Capsule, "Capsule", "Creates a new entity and attaches a capsule mesh to it.", m_TexturesLoader->m_CapsuleIcon);
+				DrawMeshPrimitive((uint32_t)MeshTypeEX::Torus, "Torus", "Creates a new entity and attaches a torus mesh to it.", m_TexturesLoader->m_TorusIcon);
 
 				ImGui::EndTable();
 			}
@@ -439,7 +430,7 @@ namespace SmolEngine
 		{
 			const auto& result = Utils::OpenFile("png (*png)\0*.png\0jpg (*jpg)\0*.jpg\0");
 			if (result.has_value())
-				ComponentHandler::ValidateTexture2DComponent(texture, result.value());
+				texture->Load(result.value());
 		}
 
 		if (ImGui::BeginDragDropTarget())
@@ -449,7 +440,7 @@ namespace SmolEngine
 				std::string& path = *(std::string*)payload->Data;
 				if (Tools::FileExtensionCheck(path, ".png") || Tools::FileExtensionCheck(path, ".jpg"))
 				{
-					ComponentHandler::ValidateTexture2DComponent(texture, path);
+					texture->Load(path);
 				}
 			}
 			ImGui::EndDragDropTarget();
@@ -502,7 +493,7 @@ namespace SmolEngine
 	void EditorLayer::DrawCamera(CameraComponent* camera)
 	{
 		if (ImGui::Extensions::Combo("Type", "Perspective\0Ortho\0", camera->ImGuiType))
-			camera->eType = (CameraComponentType)camera->ImGuiType;
+			camera->eType = (CameraType)camera->ImGuiType;
 
 		ImGui::Extensions::InputFloat("Zoom", camera->ZoomLevel);
 		ImGui::Extensions::InputFloat("FOV", camera->FOV);
@@ -535,16 +526,16 @@ namespace SmolEngine
 
 				ImGui::NewLine();
 				ImGui::SetCursorPosX(6.0f);
-				if (ImGui::ImageButton(m_TexturesLoader->m_PlayButton.GetImGuiTexture(), ImVec2(15, 15)))
+				if (ImGui::ImageButton(m_TexturesLoader->m_PlayButton->GetImGuiTexture(), ImVec2(15, 15)))
 				{
-					AudioSystem::AudioSourceStopAll(audio);
-					AudioSystem::AudioSourcePlayAll(audio);
+					audio->StopAll();
+					audio->PlayAll();
 				}
 
 				ImGui::SameLine();
-				if (ImGui::ImageButton(m_TexturesLoader->m_StopButton.GetImGuiTexture(), ImVec2(15, 15)))
+				if (ImGui::ImageButton(m_TexturesLoader->m_StopButton->GetImGuiTexture(), ImVec2(15, 15)))
 				{
-					AudioSystem::AudioSourceStopAll(audio);
+					audio->StopAll();
 				}
 
 				float* ftt = audio->GetFFT();
@@ -555,11 +546,11 @@ namespace SmolEngine
 
 				if (ImGui::Extensions::Slider("Mixer Volume", audio->Volume, 0.0f, 10.0f))
 				{
-					AudioSystem::SetAudioSourceVolume(audio, audio->Volume);
+					audio->SetVolume(audio->Volume);
 				}
 				if (ImGui::Extensions::Slider("Mixer Speed", audio->Speed, 0.0f, 10.0f))
 				{
-					AudioSystem::SetAudioSourceSpeed(audio, audio->Speed);
+					audio->SetSpeed(audio->Speed);
 				}
 
 				ImGui::PopID();
@@ -591,34 +582,34 @@ namespace SmolEngine
 							ImGui::TextWrapped(info.m_CreateInfo.FileName.c_str());
 							ImGui::TableNextColumn();
 
-							if (ImGui::ImageButton(m_TexturesLoader->m_PlayButton.GetImGuiTexture(), ImVec2(15, 15)))
+							if (ImGui::ImageButton(m_TexturesLoader->m_PlayButton->GetImGuiTexture(), ImVec2(15, 15)))
 							{
 								if (info.m_Handle)
 								{
-									AudioSystem::StopClip(audio, info.m_Handle);
+									audio->StopClip(info.m_Handle);
 								}
 
-								AudioSystem::PlayClip(audio, info.m_Clip, info.m_Handle);
+								audio->PlayClip(info.m_Clip, info.m_Handle);
 							}
 
 							ImGui::SameLine();
-							if (ImGui::ImageButton(m_TexturesLoader->m_StopButton.GetImGuiTexture(), ImVec2(15, 15)))
+							if (ImGui::ImageButton(m_TexturesLoader->m_StopButton->GetImGuiTexture(), ImVec2(15, 15)))
 							{
 								if (info.m_Handle)
 								{
-									AudioSystem::StopClip(audio, info.m_Handle);
+									audio->StopClip(info.m_Handle);
 								}
 							}
 
 							ImGui::SameLine();
-							if (ImGui::ImageButton(m_TexturesLoader->m_RemoveButton.GetImGuiTexture(), ImVec2(15, 15)))
+							if (ImGui::ImageButton(m_TexturesLoader->m_RemoveButton->GetImGuiTexture(), ImVec2(15, 15)))
 							{
 								if (info.m_Handle)
 								{
-									AudioSystem::StopClip(audio, info.m_Handle);
+									audio->StopClip(info.m_Handle);
 								}
 
-								AudioSystem::RemoveClipAtIndex(audio, i);
+								audio->RemoveClipAtIndex(i);
 							}
 
 							ImGui::TableNextColumn();
@@ -639,7 +630,7 @@ namespace SmolEngine
 							std::string& path = *(std::string*)payload->Data;
 							if (Tools::FileExtensionCheck(path, ".s_audio"))
 							{
-								ComponentHandler::ValidateAudioSourceComponent(audio, path);
+								audio->LoadCip(path);
 							}
 						}
 						ImGui::EndDragDropTarget();
@@ -661,9 +652,9 @@ namespace SmolEngine
 				if (ImGui::Extensions::CheckBox("Active", active))
 				{
 					if (active)
-						AudioSystem::AudioSourceAddFilter(audio, AudioFilterFlags::Lofi);
+						audio->AddFilter(AudioFilterFlags::Lofi);
 					else
-						AudioSystem::AudioSourceRemoveFilter(audio, AudioFilterFlags::Lofi);
+						audio->RemoveFilter(AudioFilterFlags::Lofi);
 				}
 
 				ImGui::Extensions::InputFloat("SampleRate", filter.LofiCI.SampleRate);
@@ -682,9 +673,9 @@ namespace SmolEngine
 				if (ImGui::Extensions::CheckBox("Active", active))
 				{
 					if (active)
-						AudioSystem::AudioSourceAddFilter(audio, AudioFilterFlags::Freeverb);
+						audio->AddFilter(AudioFilterFlags::Freeverb);
 					else
-						AudioSystem::AudioSourceRemoveFilter(audio, AudioFilterFlags::Freeverb);
+						audio->RemoveFilter(AudioFilterFlags::Freeverb);
 				}
 
 				ImGui::Extensions::InputFloat("Damp", filter.FreeverbCI.Damp);
@@ -704,9 +695,9 @@ namespace SmolEngine
 				if (ImGui::Extensions::CheckBox("Active", active))
 				{
 					if (active)
-						AudioSystem::AudioSourceAddFilter(audio, AudioFilterFlags::Echo);
+						audio->AddFilter(AudioFilterFlags::Echo);
 					else
-						AudioSystem::AudioSourceRemoveFilter(audio, AudioFilterFlags::Echo);
+						audio->RemoveFilter(AudioFilterFlags::Echo);
 				}
 
 				ImGui::Extensions::InputFloat("Decay", filter.EchoCI.Decay);
@@ -726,9 +717,9 @@ namespace SmolEngine
 				if (ImGui::Extensions::CheckBox("Active", active))
 				{
 					if (active)
-						AudioSystem::AudioSourceAddFilter(audio, AudioFilterFlags::Bassboost);
+						audio->AddFilter(AudioFilterFlags::Bassboost);
 					else
-						AudioSystem::AudioSourceRemoveFilter(audio, AudioFilterFlags::Bassboost);
+						audio->RemoveFilter(AudioFilterFlags::Bassboost);
 				}
 				ImGui::Extensions::InputFloat("Boost", filter.BassboostCI.Boost);
 
@@ -743,34 +734,9 @@ namespace SmolEngine
 
 	}
 
-	void EditorLayer::DrawAnimationController(AnimationControllerComponent* anim)
-	{
-		ImGui::SetCursorPosX(6.0f);
-		if (ImGui::Button("Open Editor", {ImGui::GetWindowWidth() - 20.0f, 30.0f}))
-		{
-			anim->bShowEditorUI = anim->bShowEditorUI ? false: true;
-			m_AnimationEditor->Reset();
-		}
-
-		m_AnimationEditor->Update(anim->bShowEditorUI, anim);
-		ImGui::NewLine();
-	}
-
 	void EditorLayer::DrawCanvas(CanvasComponent* canvas)
 	{
 		
-	}
-
-	void EditorLayer::DrawLight2D(Light2DSourceComponent* light)
-	{
-		ImGui::Extensions::InputFloat2("Offset", light->Offset);
-		ImGui::Extensions::InputFloat("Intensity", light->Intensity);
-		ImGui::Extensions::InputFloat("Radius", light->Radius);
-		ImGui::Extensions::ColorInput4("Color", light->Color);
-
-		ImGui::NewLine();
-
-		ImGui::Extensions::CheckBox("Enabled", light->IsEnabled);
 	}
 
 	void EditorLayer::DrawInspector()
@@ -843,7 +809,7 @@ namespace SmolEngine
 		ImGui::Begin("Hierarchy", nullptr, ImGuiWindowFlags_NoCollapse);
 		{
 			ImGui::SetWindowFontScale(0.8f);
-			ImGui::Image(m_TexturesLoader->m_SearchButton.GetImGuiTexture(), { 25, 25 }, ImVec2(0, 1), ImVec2(1, 0));
+			ImGui::Image(m_TexturesLoader->m_SearchButton->GetImGuiTexture(), { 25, 25 }, ImVec2(0, 1), ImVec2(1, 0));
 			ImGui::SameLine();
 
 			float pos = ImGui::GetCursorPosY();
@@ -984,7 +950,7 @@ namespace SmolEngine
 
 	void EditorLayer::DrawMeshComponent(MeshComponent* comp)
 	{
-		if (comp->RootMesh)
+		if (comp->GetMesh() != nullptr)
 		{
 			ImGui::Extensions::CheckBox("Show", comp->bShow);
 			ImGui::Extensions::CheckBox("Static", comp->bIsStatic);
@@ -999,19 +965,17 @@ namespace SmolEngine
 				ImGui::TableSetupColumn("Material", ImGuiTableColumnFlags_NoHide);
 				ImGui::TableHeadersRow();
 
-				for (uint32_t i = 0; i < static_cast<uint32_t>(comp->Nodes.size()); ++i)
+				auto& scene = comp->GetMesh()->GetScene();
+				for (uint32_t i = 0; i < static_cast<uint32_t>(scene.size()); ++i)
 				{
-					auto& info = comp->Nodes[i];
+					auto& node = scene[i];
 					std::string addID = "MeshID###" + std::to_string(i);
 					ImGui::PushID(addID.c_str());
 
 					ImGui::TableNextRow();
 					ImGui::TableNextColumn();
 
-					ImGui::TextWrapped(std::to_string(info.MaterialID).c_str());
-					ImGui::TableNextColumn();
-
-					ImGui::TextWrapped(info.Mesh->GetName().c_str());
+					ImGui::TextWrapped(node->GetName().c_str());
 					ImGui::TableNextColumn();
 
 					ImGui::Button("+", ImVec2(20, 20));
@@ -1022,7 +986,13 @@ namespace SmolEngine
 							std::string& path = *(std::string*)payload->Data;
 							if (Tools::FileExtensionCheck(path, ".s_material"))
 							{
-								ComponentHandler::SetMeshMaterial(comp, i, path);
+
+								PBRCreateInfo pbrMat{};
+								if (pbrMat.Load(path))
+								{
+									auto id = PBRFactory::AddMaterial(&pbrMat, path);
+									comp->GetMeshView()->SetPBRHandle(id, i);
+								}
 							}
 						}
 						ImGui::EndDragDropTarget();
@@ -1031,8 +1001,7 @@ namespace SmolEngine
 					ImGui::SameLine();
 					if (ImGui::Button("-", ImVec2(20, 20)))
 					{
-						comp->Nodes[i].MaterialID = 0;
-						comp->Nodes[i].MaterialPath = "";
+						comp->GetMeshView()->SetPBRHandle(nullptr, i);
 					}
 
 					ImGui::TableNextColumn();
@@ -1051,7 +1020,7 @@ namespace SmolEngine
 			const auto& result = Utils::OpenFile("glTF 2.0 (*gltf)\0*.gltf\0");
 			if (result.has_value())
 			{
-				ComponentHandler::ValidateMeshComponent(comp, result.value());
+				comp->LoadAnimation(result.value());
 			}
 		}
 		ImGui::PopID();
@@ -1063,7 +1032,7 @@ namespace SmolEngine
 				std::string& path = *(std::string*)payload->Data;
 				if (Tools::FileExtensionCheck(path, ".gltf"))
 				{
-					ComponentHandler::ValidateMeshComponent(comp, path);
+					comp->LoadAnimation(path);
 				}
 
 			}
@@ -1192,25 +1161,24 @@ namespace SmolEngine
 			if (ImGui::BeginTabItem("Bloom"))
 			{
 				auto& bloom = component->Bloom;
-				auto& storage = GraphicsEngineSComponent::Get()->Storage;
 
 				ImGui::NewLine();
 				ImGui::PushID("EnvironmentTabBloomID");
 
 				if (ImGui::Extensions::CheckBox("Enabled", component->Bloom.Enabled))
-					storage.GetState().Bloom = component->Bloom;
+					RendererStorage::GetState().Bloom = component->Bloom;
 
 				if (ImGui::Extensions::DragFloat("Threshold", bloom.Threshold))
-					storage.GetState().Bloom = component->Bloom;
+					RendererStorage::GetState().Bloom = component->Bloom;
 
 				if (ImGui::Extensions::DragFloat("Exposure", bloom.Exposure))
-					storage.GetState().Bloom = component->Bloom;
+					RendererStorage::GetState().Bloom = component->Bloom;
 
 				if (ImGui::Extensions::DragFloat("Knee", bloom.Knee))
-					storage.GetState().Bloom = component->Bloom;
+					RendererStorage::GetState().Bloom = component->Bloom;
 
 				if (ImGui::Extensions::DragFloat("SkyboxMod", bloom.SkyboxMod))
-					storage.GetState().Bloom = component->Bloom;
+					RendererStorage::GetState().Bloom = component->Bloom;
 
 
 				ImGui::PopID();
@@ -1220,25 +1188,24 @@ namespace SmolEngine
 			if (ImGui::BeginTabItem("FXAA"))
 			{
 				auto& fxaa = component->FXAA;
-				auto& storage = GraphicsEngineSComponent::Get()->Storage;
 
 				ImGui::NewLine();
 				ImGui::PushID("EnvironmentTabFXAAD");
 
 				if (ImGui::Extensions::CheckBox("Enabled", component->FXAA.Enabled))
-					storage.GetState().FXAA = component->FXAA;
+					RendererStorage::GetState().FXAA = component->FXAA;
 
 				if (ImGui::Extensions::InputFloat("Threshold Max", fxaa.EdgeThresholdMax))
-					storage.GetState().FXAA = component->FXAA;
+					RendererStorage::GetState().FXAA = component->FXAA;
 
 				if (ImGui::Extensions::InputFloat("Threshold Min", fxaa.EdgeThresholdMin))
-					storage.GetState().FXAA = component->FXAA;
+					RendererStorage::GetState().FXAA = component->FXAA;
 
 				if (ImGui::Extensions::InputFloat("Iterations", fxaa.Iterations))
-					storage.GetState().FXAA = component->FXAA;
+					RendererStorage::GetState().FXAA = component->FXAA;
 
 				if (ImGui::Extensions::InputFloat("SubPixelQuality", fxaa.SubPixelQuality))
-					storage.GetState().FXAA = component->FXAA;
+					RendererStorage::GetState().FXAA = component->FXAA;
 
 				ImGui::PopID();
 				ImGui::EndTabItem();
@@ -1299,8 +1266,8 @@ namespace SmolEngine
 					if (ImGui::Button("Update"))
 					{
 						auto frostium = GraphicsEngineSComponent::Get();
-						auto& storage = frostium->Storage;
-						storage.SetDynamicSkybox(component->SkyProperties, 
+
+						RendererStorage::SetDynamicSkybox(component->SkyProperties,
 							frostium->ViewProj.Projection, component->bGeneratePBRMaps);
 					}
 
@@ -1309,8 +1276,8 @@ namespace SmolEngine
 					{
 						component->SkyProperties = {};
 						auto frostium = GraphicsEngineSComponent::Get();
-						auto& storage = frostium->Storage;
-						storage.SetDynamicSkybox(component->SkyProperties,
+
+						RendererStorage::SetDynamicSkybox(component->SkyProperties,
 							frostium->ViewProj.Projection, component->bGeneratePBRMaps);
 					}
 				}
@@ -1319,7 +1286,7 @@ namespace SmolEngine
 					ImGui::Separator();
 					ImGui::NewLine();
 
-					ImGui::Image(TexturesLoader::Get()->m_BackgroundIcon.GetImGuiTexture(), ImVec2{ 60, 60 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+					ImGui::Image(TexturesLoader::Get()->m_BackgroundIcon->GetImGuiTexture(), ImVec2{ 60, 60 }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 					if (ImGui::BeginDragDropTarget())
 					{
 						if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("FileBrowser"))
@@ -1330,11 +1297,10 @@ namespace SmolEngine
 								TextureCreateInfo texCI = {};
 								if (texCI.Load(path) == true)
 								{
-									component->CubeMap = new CubeMap();
-									CubeMap::Create(&texCI, component->CubeMap);
+									component->CubeMap = Texture::Create();
+									component->CubeMap->LoadAsCubeFromKtx(&texCI);
 
-									auto& storage = GraphicsEngineSComponent::Get()->Storage;
-									storage.SetStaticSkybox(component->CubeMap);
+									RendererStorage::SetStaticSkybox(component->CubeMap);
 								}
 							}
 						}
@@ -1363,20 +1329,17 @@ namespace SmolEngine
 
 				if (ImGui::Extensions::CheckBox("Enable", component->IBLProperties.Enabled))
 				{
-					auto& storage = GraphicsEngineSComponent::Get()->Storage;
-					storage.GetState().IBL = component->IBLProperties;
+					RendererStorage::GetState().IBL = component->IBLProperties;
 				}
 
 				if (ImGui::Extensions::DragFloat("Strength", component->IBLProperties.IBLStrength))
 				{
-					auto& storage = GraphicsEngineSComponent::Get()->Storage;
-					storage.GetState().IBL = component->IBLProperties;
+					RendererStorage::GetState().IBL = component->IBLProperties;
 				}
 
 				if (ImGui::Extensions::ColorInput4("Color", component->IBLProperties.AmbientColor))
 				{
-					auto& storage = GraphicsEngineSComponent::Get()->Storage;
-					storage.GetState().IBL = component->IBLProperties;
+					RendererStorage::GetState().IBL = component->IBLProperties;
 				}
 
 				ImGui::PopID();
@@ -1396,8 +1359,7 @@ namespace SmolEngine
 
 		if (ImGui::Extensions::CheckBox("Enable", *is_active))
 		{
-			auto& drawList = GraphicsEngineSComponent::Get()->DrawList;
-			drawList.SubmitDirLight(dynamic_cast<DirectionalLight*>(component));
+			RendererDrawList::SubmitDirLight(dynamic_cast<DirectionalLight*>(component));
 		}
 
 		if (ImGui::Extensions::Combo("Shadows", "None\0Hard\0Soft\0", component->ShadowsFlags))
@@ -1410,26 +1372,22 @@ namespace SmolEngine
 			case ShadowType::Soft: component->IsCastShadows = true; component->IsUseSoftShadows = true; break;
 			}
 
-			auto& drawList = GraphicsEngineSComponent::Get()->DrawList;
-			drawList.SubmitDirLight(dynamic_cast<DirectionalLight*>(component));
+			RendererDrawList::SubmitDirLight(dynamic_cast<DirectionalLight*>(component));
 		}
 
 		if (ImGui::Extensions::DragFloat("Intensity", component->Intensity))
 		{
-			auto& drawList = GraphicsEngineSComponent::Get()->DrawList;
-			drawList.SubmitDirLight(dynamic_cast<DirectionalLight*>(component));
+			RendererDrawList::SubmitDirLight(dynamic_cast<DirectionalLight*>(component));
 		}
 
 		if (ImGui::Extensions::DragFloat3("Direction", *dir))
 		{
-			auto& drawList = GraphicsEngineSComponent::Get()->DrawList;
-			drawList.SubmitDirLight(dynamic_cast<DirectionalLight*>(component));
+			RendererDrawList::SubmitDirLight(dynamic_cast<DirectionalLight*>(component));
 		}
 
 		if (ImGui::Extensions::ColorInput4("Color", component->Color))
 		{
-			auto& drawList = GraphicsEngineSComponent::Get()->DrawList;
-			drawList.SubmitDirLight(dynamic_cast<DirectionalLight*>(component));
+			RendererDrawList::SubmitDirLight(dynamic_cast<DirectionalLight*>(component));
 		}
 	}
 
@@ -1471,16 +1429,6 @@ namespace SmolEngine
 				}
 			}
 
-			if (IsCurrentComponent<AnimationControllerComponent>(i))
-			{
-				if (ImGui::CollapsingHeader("Animation Controller"))
-				{
-					ImGui::NewLine();
-					auto component = m_World->GetActiveScene()->GetComponent<AnimationControllerComponent>(m_SelectedActor);
-					DrawAnimationController(component);
-				}
-			}
-
 			if (IsCurrentComponent<AudioSourceComponent>(i))
 			{
 				if (ImGui::CollapsingHeader("Audio Source"))
@@ -1488,16 +1436,6 @@ namespace SmolEngine
 					ImGui::NewLine();
 					auto component = m_World->GetActiveScene()->GetComponent<AudioSourceComponent>(m_SelectedActor);
 					DrawAudioSource(component);
-				}
-			}
-
-			if (IsCurrentComponent<Light2DSourceComponent>(i))
-			{
-				if (ImGui::CollapsingHeader("Light 2D"))
-				{
-					ImGui::NewLine();
-					auto component = m_World->GetActiveScene()->GetComponent<Light2DSourceComponent>(m_SelectedActor);
-					DrawLight2D(component);
 				}
 			}
 
@@ -1619,12 +1557,6 @@ namespace SmolEngine
 					m_World->GetActiveScene()->AddComponent<CanvasComponent>(m_SelectedActor);
 					ImGui::CloseCurrentPopup();
 				}
-
-				if (ImGui::MenuItem("Animation Controller"))
-				{
-					m_World->GetActiveScene()->AddComponent<AnimationControllerComponent>(m_SelectedActor);
-					ImGui::CloseCurrentPopup();
-				}
 			}
 
 			ImGui::MenuItem("#Audio", NULL, false, false);
@@ -1651,12 +1583,6 @@ namespace SmolEngine
 			ImGui::MenuItem("#Lighting", NULL, false, false);
 			{
 				ImGui::Separator();
-
-				if (ImGui::MenuItem("2D Light"))
-				{
-					m_World->GetActiveScene()->AddComponent<Light2DSourceComponent>(m_SelectedActor);
-					ImGui::CloseCurrentPopup();
-				}
 
 				if (ImGui::MenuItem("Spot Light"))
 				{
@@ -1690,14 +1616,15 @@ namespace SmolEngine
 				if (ImGui::MenuItem("RigidBody"))
 				{
 					auto comp = m_World->GetActiveScene()->AddComponent<RigidbodyComponent>(m_SelectedActor);
-					ComponentHandler::ValidateRigidBodyComponent(comp, m_SelectedActor);
+					comp->Validate(m_SelectedActor);
 					ImGui::CloseCurrentPopup();
 				}
 
 				if (ImGui::MenuItem("2D RigidBody"))
 				{
-					auto comp = m_World->GetActiveScene()->AddComponent<Rigidbody2DComponent>(m_SelectedActor);
-					ComponentHandler::ValidateBody2DComponent(comp, m_SelectedActor);
+					//auto comp = m_World->GetActiveScene()->AddComponent<Rigidbody2DComponent>(m_SelectedActor);
+					//ComponentHandler::ValidateBody2DComponent(comp, m_SelectedActor);
+
 					ImGui::CloseCurrentPopup();
 				}
 			}
@@ -1873,7 +1800,7 @@ namespace SmolEngine
 		}
 	}
 
-	void EditorLayer::DrawMeshPrimitive(uint32_t type, const std::string& title, const std::string& desc, Texture* icon)
+	void EditorLayer::DrawMeshPrimitive(uint32_t type, const std::string& title, const std::string& desc, Ref<Texture>& icon)
 	{
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn();

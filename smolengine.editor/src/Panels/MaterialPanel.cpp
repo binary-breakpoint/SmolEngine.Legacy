@@ -2,18 +2,10 @@
 #include "Panels/MaterialPanel.h"
 #include "ImGuiExtension.h"
 #include "Editor-Tools/Tools.h"
-
-#include "ECS/Systems/JobsSystem.h"
-
-#ifndef FROSTIUM_SMOLENGINE_IMPL
-#define FROSTIUM_SMOLENGINE_IMPL
-#endif
-#include <frostium/Common/Common.h>
-#include <frostium/Tools/Utils.h>
-#include <frostium/Primitives/GraphicsPipeline.h>
-#include <frostium/Primitives/Shader.h>
-#include <frostium/GraphicsContext.h>
-#include <frostium/Backends/Vulkan/VulkanPBR.h>
+#include "Primitives/GraphicsPipeline.h"
+#include "Renderer/PBRLoader.h"
+#include "GraphicsCore.h"
+#include "Tools/Utils.h"
 
 #include <imgui/imgui.h>
 
@@ -22,7 +14,7 @@ namespace SmolEngine
 	MaterialPanel::MaterialPanel()
 	{
 		m_TexturesLoader = TexturesLoader::Get();
-		m_MaterialCI = new MaterialCreateInfo();
+		m_MaterialCI = new PBRCreateInfo();
 		m_Data = new PreviewRenderingData();
 		s_Instance = this;
 		InitPreviewRenderer();
@@ -33,27 +25,12 @@ namespace SmolEngine
 
 	}
 
-	void MaterialPanel::RenderMaterialIcon(Framebuffer* fb, MaterialCreateInfo* material)
-	{
-		ResetMaterial();
-		*m_MaterialCI = *material;
-
-		m_Data->Pipeline->SetFramebuffers({ fb });
-		{
-			m_Data->Camera->OnResize(96, 96);
-			RenderImage();
-			m_Data->Camera->OnResize(1920, 1080);
-		}
-		m_Data->Pipeline->SetFramebuffers({ m_Data->Framebuffer.get() });
-	}
-
 	void MaterialPanel::OpenExisting(const std::string& path)
 	{
 		std::filesystem::path p(path);
 		m_CurrentName = p.filename().stem().u8string();
 		m_CurrentFilePath = path;
 
-		ResetMaterial();
 		m_MaterialCI->Load(path);
 		RenderImage();
 	}
@@ -63,7 +40,7 @@ namespace SmolEngine
 		std::filesystem::path p(path);
 		m_CurrentName = p.filename().stem().u8string();
 		m_CurrentFilePath = path;
-		ResetMaterial();
+
 		RenderImage();
 		Save();
 	}
@@ -106,22 +83,22 @@ namespace SmolEngine
 		{
 			ImGui::NewLine();
 
-			if (DrawTextureInfo(m_MaterialCI->AlbedroTex, "Albedro"))
+			if (DrawTextureInfo(m_MaterialCI->AlbedroTex, "Albedro", PBRTexture::Albedo))
 				ApplyChanges();
 
-			if (DrawTextureInfo(m_MaterialCI->NormalTex, "Normal"))
+			if (DrawTextureInfo(m_MaterialCI->NormalTex, "Normal", PBRTexture::Normal))
 				ApplyChanges();
 
-			if (DrawTextureInfo(m_MaterialCI->MetallnessTex, "Metalness"))
+			if (DrawTextureInfo(m_MaterialCI->MetallnessTex, "Metalness", PBRTexture::Metallic))
 				ApplyChanges();
 
-			if (DrawTextureInfo(m_MaterialCI->RoughnessTex, "Roughness"))
+			if (DrawTextureInfo(m_MaterialCI->RoughnessTex, "Roughness", PBRTexture::Roughness))
 				ApplyChanges();
 
-			if (DrawTextureInfo(m_MaterialCI->AOTex, "AO"))
+			if (DrawTextureInfo(m_MaterialCI->AOTex, "AO", PBRTexture::AO))
 				ApplyChanges();
 
-			if (DrawTextureInfo(m_MaterialCI->EmissiveTex, "Emissive"))
+			if (DrawTextureInfo(m_MaterialCI->EmissiveTex, "Emissive", PBRTexture::Emissive))
 				ApplyChanges();
 
 			ImGui::NewLine();
@@ -136,7 +113,7 @@ namespace SmolEngine
 				ApplyChanges();
 			if (ImGui::Extensions::InputFloat("Emission Strength", m_MaterialCI->EmissionStrength))
 				ApplyChanges();
-			if (ImGui::Extensions::ColorInput3("Albedro", m_MaterialCI->AlbedroColor))
+			if (ImGui::Extensions::ColorInput3("Albedro", m_MaterialCI->Albedo))
 				ApplyChanges();
 
 			ImGui::NewLine();
@@ -164,23 +141,6 @@ namespace SmolEngine
 		return s_Instance;
 	}
 
-	void MaterialPanel::ResetMaterial()
-	{
-		m_Textures.clear();
-
-		*m_MaterialCI = {};
-		m_Material.Roughness = 1.0f;
-		m_Material.Metalness = 0.12f;
-		m_Material.Albedro = glm::vec4(1.0f);
-
-		m_Material.UseAlbedroTex = 0;
-		m_Material.UseNormalTex = 0;
-		m_Material.UseMetallicTex = 0;
-		m_Material.UseRoughnessTex = 0;
-		m_Material.UseEmissiveTex = 0;
-		m_Material.UseAOTex = 0;
-	}
-
 	void MaterialPanel::ApplyChanges()
 	{
 		RenderImage();
@@ -189,43 +149,41 @@ namespace SmolEngine
 
 	void MaterialPanel::RenderImage()
 	{
-		Texture* whiteTex = GraphicsContext::GetSingleton()->GetWhiteTexture();
-		m_Data->Pipeline->UpdateSamplers({ whiteTex }, 5);
-		m_Data->Pipeline->UpdateVulkanImageDescriptor(2, VulkanPBR::GetSingleton()->GetIrradianceImageInfo());
-		m_Data->Pipeline->UpdateVulkanImageDescriptor(3, VulkanPBR::GetSingleton()->GetBRDFLUTImageInfo());
-		m_Data->Pipeline->UpdateVulkanImageDescriptor(4, VulkanPBR::GetSingleton()->GetPrefilteredCubeImageInfo());
 
-		std::unordered_map<MaterialTexture, TextureCreateInfo*> texture_infos;
-		std::vector<Texture*> textures;
+		Ref<Texture>& whiteTex = TexturePool::GetWhiteTexture();
+		Ref<PBRLoader> pbrLoader = RendererStorage::GetPBRLoader();
+		m_Data->Pipeline->UpdateTexture(whiteTex, 5);
 
-		m_Material.Metalness = m_MaterialCI->Metallness;
-		m_Material.Roughness = m_MaterialCI->Roughness;
-		m_Material.EmissionStrength = m_MaterialCI->EmissionStrength;
-		m_Material.Albedro = glm::vec4(m_MaterialCI->AlbedroColor, 1.0f);
-		m_Material.UseAlbedroTex = false;
-		m_Material.UseNormalTex = false;
-		m_Material.UseMetallicTex = false;
-		m_Material.UseRoughnessTex = false;
-		m_Material.UseEmissiveTex = false;
-		m_Material.UseAOTex = false;
+		m_Data->Pipeline->UpdateVkDescriptor(2, pbrLoader->GetIrradianceDesriptor());
+		m_Data->Pipeline->UpdateVkDescriptor(3, pbrLoader->GetBRDFLUTDesriptor());
+		m_Data->Pipeline->UpdateVkDescriptor(4, pbrLoader->GetPrefilteredCubeDesriptor());
 
-		m_MaterialCI->GetTextures(texture_infos);
-		for (const auto& [type, info] : texture_infos)
-		{
-			LoadTexture(info, type, textures);
-		}
 
-		m_Data->Pipeline->UpdateSamplers(textures, 5);
-		m_Data->Pipeline->SubmitBuffer(m_BindingPoint, sizeof(PBRMaterial), &m_Material);
+		m_Data->Pipeline->UpdateTexture(m_PBRHandle->m_Albedo != nullptr ? m_PBRHandle->m_Albedo 
+			: TexturePool::GetWhiteTexture(), 5);
+
+		m_Data->Pipeline->UpdateTexture(m_PBRHandle->m_Normal != nullptr ? m_PBRHandle->m_Normal
+			: TexturePool::GetWhiteTexture(), 6);
+
+		m_Data->Pipeline->UpdateTexture(m_PBRHandle->m_Roughness != nullptr ? m_PBRHandle->m_Roughness
+			: TexturePool::GetWhiteTexture(), 7);
+
+		m_Data->Pipeline->UpdateTexture(m_PBRHandle->m_Metallness != nullptr ? m_PBRHandle->m_Metallness
+			: TexturePool::GetWhiteTexture(), 8);
+
+		m_Data->Pipeline->UpdateTexture(m_PBRHandle->m_AO != nullptr ? m_PBRHandle->m_AO
+			: TexturePool::GetWhiteTexture(), 9);
+
+		m_Data->Pipeline->UpdateBuffer(m_BindingPoint, sizeof(PBRUniform), &m_PBRHandle->m_Uniform);
 		m_Data->Pipeline->BeginCommandBuffer();
 		m_Data->Pipeline->BeginRenderPass();
 		{
 			Ref<Mesh> mesh = nullptr;
 			switch (m_GeometryType)
 			{
-			case 0: mesh = GraphicsContext::GetSingleton()->GetDefaultMeshes()->Cube; break; 
-			case 1: mesh = GraphicsContext::GetSingleton()->GetDefaultMeshes()->Sphere; break;
-			case 2: mesh = GraphicsContext::GetSingleton()->GetDefaultMeshes()->Torus; break;
+			case 0: mesh = MeshPool::GetCube().first; break; 
+			case 1: mesh = MeshPool::GetSphere().first; break;
+			case 2: mesh = MeshPool::GetTorus().first; break;
 			}
 
 			struct pc
@@ -238,7 +196,7 @@ namespace SmolEngine
 			puch_constant.camPos = m_Data->Camera->GetPosition();
 
 			m_Data->Pipeline->SubmitPushConstant(ShaderType::Vertex, sizeof(pc), &puch_constant);
-			m_Data->Pipeline->DrawMeshIndexed(mesh.get());
+			m_Data->Pipeline->DrawMeshIndexed(mesh);
 		}
 		m_Data->Pipeline->EndRenderPass();
 		m_Data->Pipeline->EndCommandBuffer();
@@ -256,7 +214,7 @@ namespace SmolEngine
 
 		// Framebuffer
 		{
-			Ref<Framebuffer> fb = std::make_shared<Framebuffer>();
+			Ref<Framebuffer> fb = Framebuffer::Create();
 
 			FramebufferSpecification framebufferCI = {};
 			framebufferCI.Width = 1024;
@@ -267,13 +225,14 @@ namespace SmolEngine
 			framebufferCI.Attachments = { FramebufferAttachment(AttachmentFormat::Color, true) };
 			framebufferCI.eMSAASampels = MSAASamples::SAMPLE_COUNT_1;
 
-			Framebuffer::Create(framebufferCI, fb.get());
+			fb->Build(&framebufferCI);
+
 			m_Data->Framebuffer = fb;
 		}
 
 		// Pipeline
 		{
-			Ref<GraphicsPipeline> pipeline = std::make_shared<GraphicsPipeline>();
+			Ref<GraphicsPipeline> pipeline = GraphicsPipeline::Create();
 
 			BufferLayout mainLayout =
 			{
@@ -289,8 +248,8 @@ namespace SmolEngine
 
 			ShaderCreateInfo shaderCI = {};
 			{
-				shaderCI.FilePaths[ShaderType::Vertex] = "assets/shaders/PBR_Preview.vert";
-				shaderCI.FilePaths[ShaderType::Fragment] = "assets/shaders/PBR_Preview.frag";
+				shaderCI.Stages[ShaderType::Vertex] = "assets/shaders/PBR_Preview.vert";
+				shaderCI.Stages[ShaderType::Fragment] = "assets/shaders/PBR_Preview.frag";
 			};
 
 			GraphicsPipelineCreateInfo DynamicPipelineCI = {};
@@ -298,105 +257,16 @@ namespace SmolEngine
 				DynamicPipelineCI.VertexInputInfos = { vertexMain };
 				DynamicPipelineCI.PipelineName = "PBR_Preview";
 				DynamicPipelineCI.ShaderCreateInfo = shaderCI;
-				DynamicPipelineCI.TargetFramebuffers = { m_Data->Framebuffer.get() };
+				DynamicPipelineCI.TargetFramebuffers = { m_Data->Framebuffer };
 			}
 
-			auto result = pipeline->Create(&DynamicPipelineCI);
-			assert(result == PipelineCreateResult::SUCCESS);
+			pipeline->Build(&DynamicPipelineCI);
+
 			m_Data->Pipeline = pipeline;
 		}
 	}
 
-	void MaterialPanel::LoadTexture(TextureCreateInfo* info, MaterialTexture type, std::vector<Texture*>& textures)
-	{
-		uint32_t index = static_cast<uint32_t>(textures.size());
-		std::string filePath = info->FilePath;
-		Texture* tex = nullptr;
-
-		auto& it = m_Textures.find(filePath);
-		if (it == m_Textures.end())
-		{
-			
-			Ref<Texture> tex_ = std::make_shared<Texture>();
-			info->bImGUIHandle = true;
-			Texture::Create(info, tex_.get());
-			m_Textures[filePath] = tex_;
-			tex = tex_.get();
-		}
-		else { tex = it->second.get(); }
-
-		switch (type)
-		{
-		case MaterialTexture::Albedo: 
-		{
-			if (!filePath.empty())
-			{
-				m_Material.UseAlbedroTex = true;
-				m_Material.AlbedroTexIndex = index;
-				textures.push_back(tex);
-			}
-
-			break;
-		}
-		case MaterialTexture::Normal:
-		{
-			if (!filePath.empty())
-			{
-				m_Material.UseNormalTex = true;
-				m_Material.NormalTexIndex = index;
-				textures.emplace_back(tex);
-			}
-
-			break;
-		}
-		case MaterialTexture::Metallic:
-		{
-			if (!filePath.empty())
-			{
-				m_Material.UseMetallicTex = true;
-				m_Material.MetallicTexIndex= index;
-				textures.emplace_back(tex);
-			}
-
-			break;
-		}
-		case MaterialTexture::Roughness:
-		{
-			if (!filePath.empty())
-			{
-				m_Material.UseRoughnessTex = true;
-				m_Material.RoughnessTexIndex = index;
-				textures.emplace_back(tex);
-			}
-
-			break;
-		}
-		case MaterialTexture::AO:
-		{
-			if (!filePath.empty())
-			{
-				m_Material.UseAOTex = true;
-				m_Material.AOTexIndex = index;
-				textures.emplace_back(tex);
-			}
-
-			break;
-		}
-		case MaterialTexture::Emissive:
-		{
-			if (!filePath.empty())
-			{
-				m_Material.UseEmissiveTex = true;
-				m_Material.EmissiveTexIndex= index;
-				textures.emplace_back(tex);
-			}
-
-			break;
-		}
-		}
-	}
-
-	bool MaterialPanel::DrawTextureInfo(TextureCreateInfo& texInfo, const std::string& title)
+	bool MaterialPanel::DrawTextureInfo(TextureCreateInfo& texInfo, const std::string& title, PBRTexture type)
 	{
 		bool used = false;
 		std::string id = title + std::string("draw_info");
@@ -405,15 +275,20 @@ namespace SmolEngine
 		float posX = 12.0f;
 		ImGui::SetCursorPosX(posX);
 
-		Texture* icon = nullptr;
-		auto& it = m_Textures.find(texInfo.FilePath);
-		if (it != m_Textures.end())
-			icon = it->second.get();
-		else { icon = &m_TexturesLoader->m_BackgroundIcon; }
-
-		ImGui::Image(icon->GetImGuiTexture(), { 60, 60 });
-		if (it != m_Textures.end())
+		Ref<Texture> icon = nullptr;
+		switch (type)
 		{
+		case PBRTexture::Albedo: icon = m_PBRHandle->m_Albedo; break;
+		case PBRTexture::Normal: icon = m_PBRHandle->m_Normal; break;
+		case PBRTexture::Roughness: icon = m_PBRHandle->m_Roughness; break;
+		case PBRTexture::Metallic: icon = m_PBRHandle->m_Metallness; break;
+		case PBRTexture::Emissive: icon = m_PBRHandle->m_Emissive; break;
+		case PBRTexture::AO: icon = m_PBRHandle->m_AO; break;
+		}
+
+		if (icon != nullptr)
+		{
+			ImGui::Image(icon->GetImGuiTexture(), { 60, 60 });
 			if (ImGui::IsItemHovered())
 			{
 				float my_tex_h = 60;
@@ -431,6 +306,8 @@ namespace SmolEngine
 				ImGui::EndTooltip();
 			}
 		}
+	
+
 		if (ImGui::BeginDragDropTarget())
 		{
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("FileBrowser"))
@@ -439,15 +316,51 @@ namespace SmolEngine
 				if (Tools::FileExtensionCheck(path, ".s_image"))
 				{
 					texInfo.Load(path);
-					auto& it = m_Textures.find(path);
-					if (it == m_Textures.end())
+
+					if (icon == nullptr)
 					{
 						used = true;
 						texInfo.bImGUIHandle = true;
 
-						Ref<Texture> tex = std::make_shared<Texture>();
-						Texture::Create(&texInfo, tex.get());
-						m_Textures[path] = tex;
+						switch (type)
+						{
+						case PBRTexture::Albedo: 
+						{
+							m_PBRHandle->m_Albedo = Texture::Create();
+							m_PBRHandle->m_Albedo->LoadFromFile(&texInfo);
+							break;
+						};
+						case PBRTexture::Normal: 
+						{
+							m_PBRHandle->m_Normal = Texture::Create();
+							m_PBRHandle->m_Normal->LoadFromFile(&texInfo);
+							break;
+						};
+						case PBRTexture::Roughness: 
+						{
+							m_PBRHandle->m_Roughness = Texture::Create();
+							m_PBRHandle->m_Roughness->LoadFromFile(&texInfo);
+							break;
+						}
+						case PBRTexture::Metallic: 
+						{
+							m_PBRHandle->m_Metallness = Texture::Create();
+							m_PBRHandle->m_Metallness->LoadFromFile(&texInfo);
+							break;
+						}
+						case PBRTexture::Emissive: 
+						{
+							m_PBRHandle->m_Emissive = Texture::Create();
+							m_PBRHandle->m_Emissive->LoadFromFile(&texInfo);
+							break;
+						}
+						case PBRTexture::AO: 
+						{
+							m_PBRHandle->m_AO = Texture::Create();
+							m_PBRHandle->m_AO->LoadFromFile(&texInfo);
+							break;
+						}
+						}
 					}
 				}
 			}
@@ -459,7 +372,17 @@ namespace SmolEngine
 		if (ImGui::Button("Reset"))
 		{
 			texInfo = {};
-			m_Textures.erase(texInfo.FilePath);
+
+			switch (type)
+			{
+			case PBRTexture::Albedo:    m_PBRHandle->m_Albedo = nullptr; break;
+			case PBRTexture::Normal:    m_PBRHandle->m_Normal = nullptr; break;
+			case PBRTexture::Roughness: m_PBRHandle->m_Roughness = nullptr; break;
+			case PBRTexture::Metallic:  m_PBRHandle->m_Metallness = nullptr; break;
+			case PBRTexture::Emissive:  m_PBRHandle->m_Emissive = nullptr; break;
+			case PBRTexture::AO:        m_PBRHandle->m_AO = nullptr; break;
+			}
+
 			used = true; 
 		}
 

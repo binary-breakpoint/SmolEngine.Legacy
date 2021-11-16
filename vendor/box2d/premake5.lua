@@ -32,14 +32,17 @@ project "Box2D"
 			"_CRT_SECURE_NO_WARNINGS"
 		}
 
-	filter "configurations:Debug"
+	filter "configurations:Debug_Vulkan"
 	buildoptions "/MDd"
 	buildoptions "/bigobj"
+	buildoptions "/Zm500"
 	symbols "on"
 
-	filter "configurations:Release"
+
+	filter "configurations:Release_Vulkan"
 	buildoptions "/MD"
 	buildoptions "/bigobj"
+	buildoptions "/Zm500"
 	optimize "full"
 
 

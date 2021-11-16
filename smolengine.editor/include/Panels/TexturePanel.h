@@ -1,10 +1,6 @@
 #pragma once
 #include "Core/Core.h"
-
-#ifndef FROSTIUM_SMOLENGINE_IMPL
-#define FROSTIUM_SMOLENGINE_IMPL
-#endif
-#include <frostium/Primitives/Texture.h>
+#include "Primitives/Texture.h"
 
 namespace SmolEngine
 {
@@ -16,7 +12,7 @@ namespace SmolEngine
 		void               Open(const std::string& filePath);
 
 	private:
-		Texture*           m_Preview = nullptr;
+		Ref<Texture>       m_Preview = nullptr;
 		bool               m_Reload = false;
 		int                m_BorderColorFlag = 4;
 		int                m_AddressModeFlag = 0;

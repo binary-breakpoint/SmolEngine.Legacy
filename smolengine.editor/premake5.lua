@@ -6,6 +6,7 @@ project "SmolEngine-Editor"
 
 	targetdir ("../bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("../vendor/libs/bin-int/" .. outputdir .. "/%{prj.name}")
+	linkoptions { "/ignore:4099" }
 
 	files
 	{
