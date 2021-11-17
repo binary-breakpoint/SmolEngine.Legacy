@@ -2,6 +2,7 @@
 #include "Memory.h"
 
 #include "Common/BoundingBox.h"
+#include "Asset/Asset.h"
 #include "Primitives/VertexBuffer.h"
 #include "Primitives/IndexBuffer.h"
 #include "Primitives/PrimitiveBase.h"
@@ -66,7 +67,7 @@ namespace SmolEngine
 
 	};
 
-	class Mesh: public PrimitiveBase
+	class Mesh: public PrimitiveBase, public Asset
 	{
 	public:	
 		void                     Free() override;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/Core.h"
+#include "Asset/Asset.h"
 
 #include <string>
 #include <vector>
@@ -11,7 +12,7 @@ namespace SmolEngine
 {
 	class Actor;
 
-	class Prefab
+	class Prefab: public Asset
 	{
 	public:
 		Ref<Actor> Instantiate(Scene* scene, const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& scale);

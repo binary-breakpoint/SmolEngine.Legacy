@@ -7,22 +7,21 @@
 #include "ECS/Components/Include/Components.h"
 #include "ECS/Systems/PhysicsSystem.h"
 #include "ECS/Components/Singletons/GraphicsEngineSComponent.h"
+
+#include "Asset/AssetManager.h"
+#include "Materials/PBRFactory.h"
 #include "Window/Events.h"
 #include "Window/Input.h"
+
+#include "Pools/AudioPool.h"
+#include "Pools/MeshPool.h"
+#include "Pools/TexturePool.h"
+#include "Pools/PrefabPool.h"
 
 #include <mono/jit/jit.h>
 
 namespace SmolEngine
 {
-	enum class AssetType : uint16_t
-	{
-		Prefab,
-		Mesh,
-		AudioClip,
-		Material,
-		Texture
-	};
-
 	enum class ComponentTypeEX : uint16_t
 	{
 		Transform,
@@ -358,17 +357,15 @@ namespace SmolEngine
 
 	uint32_t CSharpAPi::PrefabInstantiate_CSharpAPI(size_t id, glm::vec3* pos, glm::vec3* scale, glm::vec3* rot)
 	{
-		//AssetManager* manager = WorldAdmin::GetSingleton()->GetAssetManager();
-		//Ref<Prefab> prefab = manager->GetPrefab(id);
-		//if (prefab)
-		//{
-		//	Ref<Actor> actor = WorldAdmin::GetSingleton()->GetActiveScene()->InstantiatePrefab(prefab, *pos, *rot, *scale);
-		//	if (actor)
-		//	{
-		//		return *(uint32_t*)actor.get();
-		//	}
-		//}
-		//
+		Ref<Prefab> prefab = AssetManager::GetAssetByID<Prefab>(id);
+		if (prefab)
+		{
+			Ref<Actor> actor = WorldAdmin::GetSingleton()->GetActiveScene()->InstantiatePrefab(prefab, *pos, *rot, *scale);
+			if (actor)
+			{
+				return *(uint32_t*)actor.get();
+			}
+		}
 
 		return 0;
 	}
@@ -381,109 +378,66 @@ namespace SmolEngine
 
 		if (std::filesystem::exists(filepath))
 		{
-			//AssetManager* manager = WorldAdmin::GetSingleton()->GetAssetManager();
-			//
-			//switch (asset_type)
-			//{
-			//case AssetType::Prefab:
-			//{
-			//	Ref<Prefab> prefab = nullptr;
-			//	id = manager->AddPrefab(filepath, prefab);
-			//	break;
-			//}
-			//case AssetType::Mesh:
-			//{
-			//	Ref<Mesh> mesh = nullptr;
-			//	id = manager->AddMesh(filepath, mesh);
-			//	break;
-			//}
-			//case AssetType::Texture:
-			//{
-			//	Ref<Texture> texture = nullptr;
-			//	id = manager->AddTexture(filepath, texture);
-			//	break;
-			//}
-			//case AssetType::Material:
-			//{
-			//	MaterialCreateInfo info;
-			//	if (info.Load(filepath))
-			//	{
-			//		GraphicsEngineSComponent* frostium = GraphicsEngineSComponent::Get();
-			//
-			//		auto& lib = frostium->Storage.GetMaterialLibrary();
-			//		id = static_cast<size_t>(lib.Add(&info, filepath));
-			//		break;
-			//	}
-			//}
-			//}
+			switch (asset_type)
+			{
+			case AssetType::Prefab:
+			{
+				Ref<Prefab> prefab = PrefabPool::ConstructFromPath(filepath);
+				id = prefab->GetUUID();
+				break;
+			}
+			case AssetType::Mesh:
+			{
+				auto& [mesh, view] = MeshPool::ConstructFromFile(filepath);
+				id = mesh->GetUUID();
+				break;
+			}
+			case AssetType::Texture:
+			{
+				TextureCreateInfo texCI{};
+				if (texCI.Load(filepath))
+				{
+					Ref<Texture> texture = TexturePool::ConstructFromFile(&texCI);
+					id = texture->GetUUID();
+				}
+				break;
+			}
+			case AssetType::Material: // FIX
+			{
+				PBRCreateInfo info;
+				if (info.Load(filepath))
+				{
+					PBRFactory::AddMaterial(&info, filepath);
+					id = 0;
+				}
+
+				break;
+			}
+			}
 		}
 
 		mono_free(filepath);
 		return id;
 	}
 
-	bool CSharpAPi::MeshSetMaterial_CSharpAPI(uint32_t mesh_index, uint32_t material_id, uint32_t entity_id)
+	bool CSharpAPi::MeshSetMaterial_CSharpAPI(uint32_t mesh_index, uint32_t material_id, uint32_t entity_id) // rework
 	{
-		//Scene* scene = WorldAdmin::GetSingleton()->GetActiveScene();
-		//MeshComponent* comp = scene->GetComponent<MeshComponent>((entt::entity)entity_id);
-		//
-		//if (comp && mesh_index < static_cast<uint32_t>(comp->Nodes.size()))
-		//{
-		//	comp->Nodes[mesh_index].MaterialID = material_id;
-		//	return true;
-		//}
-		//
+		Scene* scene = WorldAdmin::GetSingleton()->GetActiveScene();
+		MeshComponent* comp = scene->GetComponent<MeshComponent>((entt::entity)entity_id);
 		return false;
 	}
 
 	uint32_t CSharpAPi::MeshGetChildsCount_CSharpAPI(size_t assetID)
 	{
-		//AssetManager* manager = WorldAdmin::GetSingleton()->GetAssetManager();
-		//Ref<Mesh> mesh = manager->GetMesh(assetID);
-		//if (mesh)
-		//{
-		//	return mesh->GetChildCount();
-		//}
-		//
+		Ref<Mesh> mesh = AssetManager::GetAssetByID<Mesh>(assetID);
+		if (mesh)
+			return mesh->GetChildCount();
+		
 		return 0;
 	}
 
-	bool CSharpAPi::SetMesh_CSharpAPI(size_t assetID, uint32_t entity_id)
+	bool CSharpAPi::SetMesh_CSharpAPI(size_t assetID, uint32_t entity_id) // remove
 	{
-		//Scene* scene = WorldAdmin::GetSingleton()->GetActiveScene();
-		//MeshComponent* comp = scene->GetComponent<MeshComponent>((entt::entity)entity_id);
-		//if (comp)
-		//{
-		//	AssetManager* manager = WorldAdmin::GetSingleton()->GetAssetManager();
-		//	std::string path = "";
-		//	if (manager->GetPath(assetID, path))
-		//	{
-		//		Ref<Mesh> mesh = manager->GetMesh(assetID);
-		//		if (mesh)
-		//		{
-		//			comp->Nodes.clear();
-		//			if (mesh->IsReady())
-		//			{
-		//				auto& gltf_scene = mesh->GetScene();
-		//				uint32_t count = static_cast<uint32_t>(gltf_scene.size());
-		//
-		//				comp->Nodes.resize(count);
-		//				comp->RootMesh = mesh;
-		//				comp->FilePath = path;
-		//				comp->eType = MeshTypeEX::Custom;
-		//
-		//				for (uint32_t i = 0; i < count; ++i)
-		//				{
-		//					comp->Nodes[i].Mesh = gltf_scene[i];
-		//				}
-		//
-		//				return true;
-		//			}
-		//
-		//		}
-		//	}
-		//}
-
 		return false;
 	}
 

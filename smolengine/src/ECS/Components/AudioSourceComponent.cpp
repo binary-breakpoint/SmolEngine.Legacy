@@ -2,6 +2,7 @@
 #include "ECS/Components/AudioSourceComponent.h"
 #include "ECS/Components/Singletons/AudioEngineSComponent.h"
 #include "ECS/Systems/AudioSystem.h"
+#include "Pools/AudioPool.h"
 
 #include <soloud.h>
 #include <soloud_speech.h>
@@ -254,21 +255,25 @@ namespace SmolEngine
 		}
 	}
 
-	void AudioSourceComponent::LoadCip(const std::string& path)
+	void AudioSourceComponent::LoadClip(const std::string& path)
 	{
 		AudioClipCreateInfo info{};
 		if (info.Load(path))
 		{
-			Clips.emplace_back(ClipInstance());
-			auto& clip = Clips.back();
-			clip.m_CreateInfo = std::move(info);
+			LoadClip(&info);
+		}
+	}
 
-			//AssetManager* assetManager = WorldAdmin::GetSingleton()->GetAssetManager();
-			//assetManager->AddAudioClip(&clip.m_CreateInfo, clip.m_Clip);
-			//if (clip.m_CreateInfo.bPlayOnAwake && WorldAdmin::GetSingleton()->IsInPlayMode())
-			//{
-			//	return AudioSystem::PlayClip(comp, clip.m_Clip, clip.m_Handle);
-			//}
+	void AudioSourceComponent::LoadClip(AudioClipCreateInfo* info)
+	{
+		Clips.emplace_back(ClipInstance());
+		auto& clip = Clips.back();
+		clip.m_CreateInfo = *info;
+
+		clip.m_Clip = AudioPool::ConstructFromFile(&clip.m_CreateInfo);
+		if (clip.m_CreateInfo.bPlayOnAwake && WorldAdmin::GetSingleton()->IsInPlayMode())
+		{
+			PlayClip(clip.m_Clip, clip.m_Handle);
 		}
 	}
 

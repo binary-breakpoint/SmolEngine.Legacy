@@ -9,6 +9,7 @@
 #include "ECS/Components/Singletons/WorldAdminStateSComponent.h"
 
 #include "Multithreading/JobsSystem.h"
+#include "Pools/PrefabPool.h"
 
 #include <cereal/archives/json.hpp>
 #include <cereal/types/vector.hpp>
@@ -151,17 +152,7 @@ namespace SmolEngine
 
 	Ref<Prefab> Scene::LoadPrefab(const std::string& filePath)
 	{
-		//AssetManager* manager  = WorldAdmin::GetSingleton()->GetAssetManager();
-		//Ref<Prefab> prefab = nullptr;
-		//
-		//if (std::filesystem::exists(filePath))
-		//{
-		//	manager->AddPrefab(filePath, prefab);
-		//	return prefab;
-		//}
-		//
-
-		return nullptr;
+		return PrefabPool::ConstructFromPath(filePath);
 	}
 
 	Ref<Actor> Scene::InstantiatePrefab(const Ref<Prefab>& ref, const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& scale)
@@ -428,8 +419,7 @@ namespace SmolEngine
 		{
 			for (auto& info : component->Clips)
 			{
-				//AssetManager* assetManager = WorldAdmin::GetSingleton()->GetAssetManager();
-				//assetManager->AddAudioClip(&info.m_CreateInfo, info.m_Clip);
+				component->LoadClip(&info.m_CreateInfo);
 			}
 		});
 	}

@@ -44,7 +44,8 @@ namespace SmolEngine
 		void          SetSpeed(float value);
 		bool          SetSampleRate(const Ref<AudioHandle>& handle, ClipSampleRate rate);
 		bool          SetPosition(const Ref<AudioHandle>& handle, const glm::vec3& postion);
-		void          LoadCip(const std::string& path);
+		void          LoadClip(const std::string& path);
+		void          LoadClip(AudioClipCreateInfo* info);
 		void          AddFilter(AudioFilterFlags filter);
 		void          RemoveFilter(AudioFilterFlags filter);
 		bool          RemoveClipAtIndex(uint32_t index);

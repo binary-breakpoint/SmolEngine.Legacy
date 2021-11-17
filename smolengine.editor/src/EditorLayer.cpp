@@ -630,7 +630,7 @@ namespace SmolEngine
 							std::string& path = *(std::string*)payload->Data;
 							if (Tools::FileExtensionCheck(path, ".s_audio"))
 							{
-								audio->LoadCip(path);
+								audio->LoadClip(path);
 							}
 						}
 						ImGui::EndDragDropTarget();

@@ -15,10 +15,10 @@
 #include "Primitives/RaytracingPipeline.h"
 #include "Primitives/EnvironmentMap.h"
 
+#include "Asset/AssetManager.h"
 #include "Pools/MaterialPool.h"
 #include "Pools/MeshPool.h"
 #include "Pools/TexturePool.h"
-#include "Pools/PipelinePool.h"
 
 #include "GUI/UICanvas.h"
 #include "GUI/UIButton.h"

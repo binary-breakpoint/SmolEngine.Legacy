@@ -1,5 +1,6 @@
 #pragma once
 #include "Memory.h"
+#include "Asset/Asset.h"
 #include "Primitives/PrimitiveBase.h"
 
 #include <glm/glm.hpp>
@@ -102,7 +103,7 @@ namespace SmolEngine
 		MAX_ENUM   = 32,
 	};
 
-	class Texture: public PrimitiveBase
+	class Texture: public PrimitiveBase, public Asset
 	{
 	public:
 		virtual ~Texture() = default;
@@ -118,7 +119,6 @@ namespace SmolEngine
 
 		virtual uint32_t                      GetMips() const { return 0; };
 		virtual std::pair<uint32_t, uint32_t> GetMipSize(uint32_t mip) const { return { 0, 0 }; };
-		size_t                                GetID() const { return m_ID; }
 		const TextureInfo&                    GetInfo() const { return m_Info; }
 		void*                                 GetImGuiTexture() const { return m_Info.ImHandle; }
 		bool                                  IsGood() const override { return m_Info.Width > 0; }
@@ -129,6 +129,5 @@ namespace SmolEngine
 	protected:
 		TextureFlags m_eFlags = TextureFlags::SAMPLER_2D;
 		TextureInfo  m_Info{};
-		size_t       m_ID = 0;
 	};
 }

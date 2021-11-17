@@ -49,8 +49,6 @@ namespace SmolEngine
 
 			info->Width = static_cast<uint32_t>(width);
 			info->Height = static_cast<uint32_t>(height);
-			std::hash<std::string_view> hasher{};
-			m_ID = hasher(info->FilePath);
 
 			FindTextureParams(info);
 			LoadEX(info, data);

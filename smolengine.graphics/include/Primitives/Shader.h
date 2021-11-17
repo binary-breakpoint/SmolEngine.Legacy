@@ -2,6 +2,7 @@
 #include "Memory.h"
 
 #include "Common/Flags.h"
+#include "Asset/Asset.h"
 #include "Primitives/PrimitiveBase.h"
 
 #include <unordered_map>
@@ -91,7 +92,7 @@ namespace SmolEngine
 		std::map<uint32_t, ShaderBufferInfo> Buffers;
 	};
 
-	class Shader: public PrimitiveBase
+	class Shader: public PrimitiveBase, public Asset
 	{
 	public:
 		virtual ~Shader() = default;

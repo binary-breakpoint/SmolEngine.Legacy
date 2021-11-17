@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/Core.h"
+#include "Asset/Asset.h"
 
 #include <string>
 #include <glm/glm.hpp>
@@ -62,7 +63,7 @@ namespace SmolEngine
 		}
 	};
 
-	struct AudioClip
+	struct AudioClip: public Asset
 	{
 		AudioClip() = default;
 		AudioClip(AudioClipCreateInfo& createInfo);

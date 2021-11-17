@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Pools/TexturePool.h"
+#include "Asset/AssetManager.h"
 
 namespace SmolEngine
 {
@@ -43,44 +44,20 @@ namespace SmolEngine
 
 	Ref<Texture> TexturePool::GetByPath(const std::string& path)
 	{
-		std::hash<std::string_view> hasher{};
-		size_t id = hasher(path);
-
-		return GetByID(id);
-	}
-
-	Ref<Texture> TexturePool::GetByID(size_t id)
-	{
-		auto& it = s_Instance->m_IDMap.find(id);
-		if (it != s_Instance->m_IDMap.end())
-		{
-			return it->second;
-		}
-
-		return nullptr;
+		return AssetManager::GetAsset<Texture>(path);
 	}
 
 	Ref<Texture> TexturePool::ConstructFromFile(TextureCreateInfo* texCI)
 	{
-		std::hash<std::string_view> hasher{};
-		size_t id = hasher(texCI->FilePath);
+		Ref<Texture> texture = GetByPath(texCI->FilePath);
+		if (texture) { return texture; }
 
-		auto& it = s_Instance->m_IDMap.find(id);
-		if (it != s_Instance->m_IDMap.end())
-		{
-			return it->second;
-		}
-
-		Ref<Texture> texture = Texture::Create();
+		texture = Texture::Create();
 		texture->LoadFromFile(texCI);
 
 		bool is_loaded = texture->IsGood();
 		if (is_loaded)
-		{
-			s_Instance->m_Mutex.lock();
-			s_Instance->m_IDMap[id] = texture;
-			s_Instance->m_Mutex.unlock();
-		}
+			AssetManager::Add(texCI->FilePath, texture, AssetType::Texture);
 
 		return is_loaded ? texture : nullptr;
 	}
@@ -91,15 +68,5 @@ namespace SmolEngine
 		texCI.FilePath = path;
 
 		return ConstructFromFile(&texCI);
-	}
-
-	bool TexturePool::Remove(size_t id)
-	{
-		return s_Instance->m_IDMap.erase(id);
-	}
-
-	void TexturePool::Clear()
-	{
-		s_Instance->m_IDMap.clear();
 	}
 }

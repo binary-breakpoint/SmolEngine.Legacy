@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Pools/MeshPool.h"
+#include "Asset/AssetManager.h"
 
 namespace SmolEngine
 {
@@ -27,56 +28,27 @@ namespace SmolEngine
 
 	std::pair<Ref<Mesh>, Ref<MeshView>> MeshPool::GetByPath(const std::string& path)
 	{
-		std::hash<std::string_view> hasher{};
-		size_t id = hasher(path);
-
-		return GetByID(id);
-	}
-
-	std::pair<Ref<Mesh>, Ref<MeshView>> MeshPool::GetByID(size_t id)
-	{
-		auto& it = s_Instance->m_IDMap.find(id);
-		if (it != s_Instance->m_IDMap.end())
-		{
-			return { it->second, it->second->CreateMeshView() };
-		}
+		Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>(path);
+		if (mesh) { return { mesh, mesh->CreateMeshView() }; }
 
 		return { nullptr, nullptr };
 	}
 
 	std::pair<Ref<Mesh>, Ref<MeshView>> MeshPool::ConstructFromFile(const std::string& path)
 	{
-		size_t id = 0;
-		{
-			std::hash<std::string_view> hasher{};
-			size_t id = hasher(path);
-
-			auto& [mesh, view] = GetByID(id);
-			if (view && mesh) { return { mesh, view }; }
-		}
+		auto& pair = GetByPath(path);
+		if (pair.first && pair.second)
+			return pair;
 
 		Ref<Mesh> mesh = Mesh::Create();
 		bool is_loaded = mesh->LoadFromFile(path);
 		if (is_loaded)
 		{
-			s_Instance->m_Mutex.lock();
-			s_Instance->m_IDMap[id] = mesh;
-			s_Instance->m_Mutex.unlock();
-
+			AssetManager::Add(path, mesh, AssetType::Mesh);
 			return { mesh, mesh->CreateMeshView() };
 		}
 
 		return { nullptr, nullptr };
-	}
-
-	bool MeshPool::Remove(size_t id)
-	{
-		return s_Instance->m_IDMap.erase(id);
-	}
-
-	void MeshPool::Clear()
-	{
-		s_Instance->m_IDMap.clear();
 	}
 
 	std::pair<Ref<Mesh>, Ref<MeshView>> MeshPool::GetCube()
