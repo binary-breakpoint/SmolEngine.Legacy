@@ -25,19 +25,19 @@ namespace SmolEngine
 		if (material != nullptr)
 			return material;
 
-		{
-			std::hash<std::string_view> hasher{};
+		std::hash<std::string_view> hasher{};
+		size_t UUID = hasher(path);
 
-			material = std::make_shared<PBRHandle>();
-			material->m_Uniform.ID = static_cast<uint32_t>(hasher(path));
-			material->m_Path = path;
-			material->Update(infoCI);
-		}
+		material = std::make_shared<PBRHandle>();
+		material->m_Uniform.ID = static_cast<uint32_t>(UUID);
+		material->m_Path = path;
+		material->Update(infoCI);
 
 		s_Instance->m_Mutex.lock();
 		{
+			s_Instance->m_IDs[path] = UUID;
+			s_Instance->m_Handles[UUID] = material;
 			s_Instance->m_Materials.emplace_back(material);
-			s_Instance->m_IDs[path] = material;
 		}
 		s_Instance->m_Mutex.unlock();
 
@@ -48,6 +48,7 @@ namespace SmolEngine
 	{
 		s_Instance->m_Materials.clear();
 		s_Instance->m_IDs.clear();
+		s_Instance->m_Handles.clear();
 
 		std::vector<Ref<Texture>> textures(s_Instance->m_MaxTextures);
 		RendererStorage::GetDefaultMaterial()->UpdateTextures(textures, RendererStorage::GetSingleton()->m_TexturesBinding);
@@ -107,11 +108,12 @@ namespace SmolEngine
 
 	bool PBRFactory::RemoveMaterial(const std::string& name)
 	{
-		auto& it = s_Instance->m_IDs.find(name);
-		if (it != s_Instance->m_IDs.end())
+		Ref<PBRHandle>& handle = GetMaterial(name);
+		if (handle)
 		{
-			auto& pos = std::find(s_Instance->m_Materials.begin(), s_Instance->m_Materials.end(), it->second);
+			auto& pos = std::find(s_Instance->m_Materials.begin(), s_Instance->m_Materials.end(), handle);
 
+			s_Instance->m_Handles.erase(static_cast<size_t>(handle->GetID()));
 			s_Instance->m_Materials.erase(pos);
 			s_Instance->m_IDs.erase(name);
 
@@ -133,8 +135,17 @@ namespace SmolEngine
 
 	Ref<PBRHandle> PBRFactory::GetMaterial(const std::string& name)
 	{
-		auto& it = s_Instance->m_IDs.find(name);
+		const auto& it = s_Instance->m_IDs.find(name);
 		if (it != s_Instance->m_IDs.end())
+			return GetMaterial(it->second);
+
+		return nullptr;
+	}
+
+	Ref<PBRHandle> PBRFactory::GetMaterial(size_t UUID)
+	{
+		const auto& it = s_Instance->m_Handles.find(UUID);
+		if (it != s_Instance->m_Handles.end())
 			return it->second;
 
 		return nullptr;

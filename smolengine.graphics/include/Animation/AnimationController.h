@@ -18,11 +18,11 @@ namespace SmolEngine
 
 		const std::unordered_map<std::string, Ref<AnimationClip>>&    GetClips() const;
 						    
-	private:			    
+	protected:
 		void                                                          Update();
 		void                                                          CopyJoints(std::vector<glm::mat4>& dist, uint32_t& out_index);
 							
-	private:				
+	protected:				
 		Ref<AnimationClip>                                            m_ActiveClip = nullptr;
 		std::unordered_map<std::string, Ref<AnimationClip>>           m_Clips;
 

@@ -457,6 +457,16 @@ namespace SmolEngine
 				}
 
 				// Animations
+				if (component->AnimPaths.size() > 0)
+				{
+					component->AnimContoller = std::make_shared<AnimationController>();
+					for (auto& path : component->AnimPaths)
+					{
+						AnimationClipCreateInfo animCI{};
+						if (animCI.Load(path))
+							component->AnimContoller->AddClip(animCI, animCI.Name);
+					}
+				}
 		});
 	}
 

@@ -18,6 +18,7 @@
 #include "ECS/Components/Singletons/GraphicsEngineSComponent.h"
 
 #include "Multithreading/JobsSystem.h"
+#include "Asset/AssetManager.h"
 #include "Scripting/CSharp/MonoContext.h"
 
 namespace SmolEngine
@@ -117,20 +118,7 @@ namespace SmolEngine
 
 	void WorldAdmin::OnHotReload()
 	{
-
-	}
-
-	void WorldAdmin::ReloadMaterials()
-	{
-		PBRFactory::ClearMaterials();
-		PBRFactory::AddDefaultMaterial();
-
-		// add mesh materials
-		{
-
-		}
-
-		PBRFactory::UpdateMaterials();
+		//temp
 	}
 
 	void WorldAdmin::OnWorldReset()
@@ -138,6 +126,7 @@ namespace SmolEngine
 		RendererDrawList::SetDefaultState();
 		RendererStorage::SetDefaultState();
 
+		AssetManager::Clear();
 		PBRFactory::ClearMaterials();
 		PBRFactory::AddDefaultMaterial();
 		PBRFactory::UpdateMaterials();

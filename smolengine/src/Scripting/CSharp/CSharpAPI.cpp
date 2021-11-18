@@ -402,13 +402,13 @@ namespace SmolEngine
 				}
 				break;
 			}
-			case AssetType::Material: // FIX
+			case AssetType::Material:
 			{
 				PBRCreateInfo info;
 				if (info.Load(filepath))
 				{
-					PBRFactory::AddMaterial(&info, filepath);
-					id = 0;
+					auto handle = PBRFactory::AddMaterial(&info, filepath);
+					id = static_cast<size_t>(handle->GetID());
 				}
 
 				break;
@@ -420,11 +420,15 @@ namespace SmolEngine
 		return id;
 	}
 
-	bool CSharpAPi::MeshSetMaterial_CSharpAPI(uint32_t mesh_index, uint32_t material_id, uint32_t entity_id) // rework
+	bool CSharpAPi::MeshSetMaterial_CSharpAPI(uint32_t mesh_index, uint32_t material_id, uint32_t entity_id)
 	{
 		Scene* scene = WorldAdmin::GetSingleton()->GetActiveScene();
 		MeshComponent* comp = scene->GetComponent<MeshComponent>((entt::entity)entity_id);
-		return false;
+
+		auto handle = PBRFactory::GetMaterial(static_cast<size_t>(material_id));
+		comp->View->SetPBRHandle(handle, mesh_index);
+
+		return handle != nullptr;
 	}
 
 	uint32_t CSharpAPi::MeshGetChildsCount_CSharpAPI(size_t assetID)
@@ -436,8 +440,19 @@ namespace SmolEngine
 		return 0;
 	}
 
-	bool CSharpAPi::SetMesh_CSharpAPI(size_t assetID, uint32_t entity_id) // remove
+	bool CSharpAPi::SetMesh_CSharpAPI(size_t assetID, uint32_t entity_id)
 	{
+		Scene* scene = WorldAdmin::GetSingleton()->GetActiveScene();
+		MeshComponent* comp = scene->GetComponent<MeshComponent>((entt::entity)entity_id);
+
+		Ref<Mesh> mesh = AssetManager::GetAssetByID<Mesh>(assetID);
+		if (mesh)
+		{
+			comp->Mesh = mesh;
+			comp->View = mesh->CreateMeshView();
+			comp->eType = MeshTypeEX::Custom;
+			comp->FilePath = AssetManager::GetPathByID(assetID);
+		}
 		return false;
 	}
 

@@ -50,7 +50,6 @@ namespace SmolEngine
 		void                         OnUpdate(float deltaTime);
 		void                         OnEvent(Event& e);
 		void                         OnHotReload(); 
-		void                         ReloadMaterials();
 		bool                         LoadStaticComponents();
 		bool                         ChangeActorName(Ref<Actor>& actor, const std::string& name);
 

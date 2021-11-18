@@ -362,9 +362,6 @@ namespace SmolEngine
 				if (ImGui::MenuItem("Ozz-Converter"))
 					m_bShowOzzTool = true;
 
-				if (ImGui::MenuItem("Update Materials"))
-					m_World->ReloadMaterials();
-
 				ImGui::EndMenu();
 			}
 

@@ -1,0 +1,75 @@
+{
+    "value0": 2,
+    "value1": 2097151,
+    "value2": 1,
+    "value3": 4293918720,
+    "value4": 1,
+    "value5": 1,
+    "value6": {
+        "value0": 1,
+        "value1": 0,
+        "value2": "Cube",
+        "value3": "Default",
+        "value4": true,
+        "value5": {
+            "ptr_wrapper": {
+                "id": 0
+            }
+        },
+        "value6": [],
+        "value7": 0,
+        "value8": 3
+    },
+    "value7": 0,
+    "value8": 0,
+    "value9": 0,
+    "value10": 0,
+    "value11": 0,
+    "value12": 0,
+    "value13": 1,
+    "value14": 1,
+    "value15": {
+        "value0": 0.0,
+        "value1": -0.0,
+        "value2": 0.0,
+        "value3": 1.0,
+        "value4": 1.0,
+        "value5": 1.0,
+        "value6": 0.0,
+        "value7": 5.82717227935791,
+        "value8": 0.0,
+        "value9": 0.0,
+        "value10": 0.0,
+        "value11": 0.0,
+        "value12": 1
+    },
+    "value16": 0,
+    "value17": 0,
+    "value18": 1,
+    "value19": 1,
+    "value20": {
+        "value0": 1,
+        "value1": false,
+        "value2": true,
+        "value3": "",
+        "value4": {
+            "ptr_wrapper": {
+                "id": 2147483649,
+                "data": {
+                    "value0": [
+                        {
+                            "value0": "../tests/Assets\\test.s_material"
+                        }
+                    ]
+                }
+            }
+        },
+        "value5": [],
+        "value6": 2
+    },
+    "value21": 0,
+    "value22": 0,
+    "value23": 0,
+    "value24": 0,
+    "value25": 0
+}

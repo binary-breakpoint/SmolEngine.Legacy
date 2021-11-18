@@ -51,6 +51,7 @@ namespace SmolEngine
 
 	private:
 		friend class cereal::access;
+		friend class CSharpAPi;
 		friend class Scene;
 
 		template<typename Archive>

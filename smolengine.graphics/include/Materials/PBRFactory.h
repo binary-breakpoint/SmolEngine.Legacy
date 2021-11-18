@@ -114,14 +114,15 @@ namespace SmolEngine
 		static uint32_t                           GetMaterialCount();
 		static Ref<PBRHandle>                     AddMaterial(PBRCreateInfo* infoCI, const std::string& path);
 		static Ref<PBRHandle>                     GetMaterial(const std::string& path);
+		static Ref<PBRHandle>                     GetMaterial(size_t UUID);
 		static const std::vector<Ref<PBRHandle>>& GetMaterials();
 
 	private:
 		inline static PBRFactory*                 s_Instance = nullptr;
 		const uint32_t                            m_MaxTextures = 4096;
-		std::unordered_map<std::string,			  
-			Ref<PBRHandle>>                       m_IDs;				  
 		std::mutex                                m_Mutex{};
+		std::unordered_map<std::string, size_t>   m_IDs;
+		std::unordered_map<size_t,Ref<PBRHandle>> m_Handles;
 		std::vector<Ref<PBRHandle>>               m_Materials;
 	};
 }
