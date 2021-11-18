@@ -11,6 +11,7 @@ namespace SmolEngine
 
 	void JobsSystem::BeginSubmition()
 	{
+		s_Instance->m_IsActive = true;
 		s_Instance->m_Queue.clear();
 	}
 
@@ -25,6 +26,8 @@ namespace SmolEngine
 		{
 			executor.wait_for_all();
 		}
+
+		s_Instance->m_IsActive = false;
 	}
 
 	uint32_t JobsSystem::GetNumWorkers()
@@ -40,5 +43,10 @@ namespace SmolEngine
 	tf::Executor* JobsSystem::GetExecutor()
 	{
 		return &s_Instance->m_Executor;
+	}
+
+	bool JobsSystem::GetActive()
+	{
+		return s_Instance->m_IsActive;
 	}
 }

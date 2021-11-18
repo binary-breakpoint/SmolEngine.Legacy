@@ -75,6 +75,7 @@ namespace SmolEngine
 
 	struct PBRHandle
 	{
+		void                      Update(PBRCreateInfo* info, bool update_textures = true);
 		void                      SetTexture(const Ref<Texture>& tex, PBRTexture type);
 		void                      SetRoughness(float value);
 		void                      SetMetallness(float value);
@@ -90,8 +91,10 @@ namespace SmolEngine
 		Ref<Texture>             m_Roughness = nullptr;
 		Ref<Texture>             m_Emissive = nullptr;
 		Ref<Texture>             m_AO = nullptr;
+		std::string              m_Path = "";
 		PBRUniform               m_Uniform{};
 
+		friend struct MeshView;
 		friend class PBRFactory;
 		friend class MaterialPanel;
 	};
@@ -105,12 +108,12 @@ namespace SmolEngine
 		static void                               ClearMaterials();
 		static void                               UpdateMaterials();
 		static void                               AddDefaultMaterial();
-		static bool                               RemoveMaterial(const std::string& name);
-		static bool                               IsMaterialExist(const std::string& name);
+		static bool                               RemoveMaterial(const std::string& path);
+		static bool                               IsMaterialExist(const std::string& path);
 
 		static uint32_t                           GetMaterialCount();
-		static Ref<PBRHandle>                     AddMaterial(PBRCreateInfo* infoCI, const std::string& name);
-		static Ref<PBRHandle>                     GetMaterial(const std::string& name);
+		static Ref<PBRHandle>                     AddMaterial(PBRCreateInfo* infoCI, const std::string& path);
+		static Ref<PBRHandle>                     GetMaterial(const std::string& path);
 		static const std::vector<Ref<PBRHandle>>& GetMaterials();
 
 	private:

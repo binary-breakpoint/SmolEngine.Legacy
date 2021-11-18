@@ -986,12 +986,13 @@ namespace SmolEngine
 							std::string& path = *(std::string*)payload->Data;
 							if (Tools::FileExtensionCheck(path, ".s_material"))
 							{
-
 								PBRCreateInfo pbrMat{};
 								if (pbrMat.Load(path))
 								{
 									auto id = PBRFactory::AddMaterial(&pbrMat, path);
 									comp->GetMeshView()->SetPBRHandle(id, i);
+
+									PBRFactory::UpdateMaterials();
 								}
 							}
 						}
@@ -1020,7 +1021,7 @@ namespace SmolEngine
 			const auto& result = Utils::OpenFile("glTF 2.0 (*gltf)\0*.gltf\0");
 			if (result.has_value())
 			{
-				comp->LoadAnimation(result.value());
+				comp->LoadMesh(result.value());
 			}
 		}
 		ImGui::PopID();
@@ -1032,7 +1033,7 @@ namespace SmolEngine
 				std::string& path = *(std::string*)payload->Data;
 				if (Tools::FileExtensionCheck(path, ".gltf"))
 				{
-					comp->LoadAnimation(path);
+					comp->LoadMesh(path);
 				}
 
 			}

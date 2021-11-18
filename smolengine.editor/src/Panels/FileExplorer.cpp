@@ -100,7 +100,6 @@ namespace SmolEngine
 				if (m_SelectedNode.empty())
 				{
 					m_SelectedNode = p.path().u8string();
-					break;
 				}
 			}
 		}

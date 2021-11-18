@@ -32,6 +32,7 @@ namespace SmolEngine
 		m_CurrentFilePath = path;
 
 		m_MaterialCI->Load(path);
+		m_PBRHandle = PBRFactory::AddMaterial(m_MaterialCI, path);
 		RenderImage();
 	}
 
@@ -40,6 +41,7 @@ namespace SmolEngine
 		std::filesystem::path p(path);
 		m_CurrentName = p.filename().stem().u8string();
 		m_CurrentFilePath = path;
+		m_PBRHandle = PBRFactory::AddMaterial(m_MaterialCI, path);
 
 		RenderImage();
 		Save();
@@ -143,13 +145,15 @@ namespace SmolEngine
 
 	void MaterialPanel::ApplyChanges()
 	{
+		m_PBRHandle->Update(m_MaterialCI);
+		PBRFactory::UpdateMaterials();
+
 		RenderImage();
 		Save();
 	}
 
 	void MaterialPanel::RenderImage()
 	{
-
 		Ref<Texture>& whiteTex = TexturePool::GetWhiteTexture();
 		Ref<PBRLoader> pbrLoader = RendererStorage::GetPBRLoader();
 		m_Data->Pipeline->UpdateTexture(whiteTex, 5);
@@ -157,7 +161,6 @@ namespace SmolEngine
 		m_Data->Pipeline->UpdateVkDescriptor(2, pbrLoader->GetIrradianceDesriptor());
 		m_Data->Pipeline->UpdateVkDescriptor(3, pbrLoader->GetBRDFLUTDesriptor());
 		m_Data->Pipeline->UpdateVkDescriptor(4, pbrLoader->GetPrefilteredCubeDesriptor());
-
 
 		m_Data->Pipeline->UpdateTexture(m_PBRHandle->m_Albedo != nullptr ? m_PBRHandle->m_Albedo 
 			: TexturePool::GetWhiteTexture(), 5);
@@ -175,7 +178,7 @@ namespace SmolEngine
 			: TexturePool::GetWhiteTexture(), 9);
 
 		m_Data->Pipeline->UpdateBuffer(m_BindingPoint, sizeof(PBRUniform), &m_PBRHandle->m_Uniform);
-		m_Data->Pipeline->BeginCommandBuffer();
+		m_Data->Pipeline->BeginCommandBuffer(false);
 		m_Data->Pipeline->BeginRenderPass();
 		{
 			Ref<Mesh> mesh = nullptr;
@@ -276,127 +279,112 @@ namespace SmolEngine
 		ImGui::SetCursorPosX(posX);
 
 		Ref<Texture> icon = nullptr;
-		switch (type)
-		{
-		case PBRTexture::Albedo: icon = m_PBRHandle->m_Albedo; break;
-		case PBRTexture::Normal: icon = m_PBRHandle->m_Normal; break;
-		case PBRTexture::Roughness: icon = m_PBRHandle->m_Roughness; break;
-		case PBRTexture::Metallic: icon = m_PBRHandle->m_Metallness; break;
-		case PBRTexture::Emissive: icon = m_PBRHandle->m_Emissive; break;
-		case PBRTexture::AO: icon = m_PBRHandle->m_AO; break;
-		}
+		bool defaultTex = false;
 
-		if (icon != nullptr)
 		{
-			ImGui::Image(icon->GetImGuiTexture(), { 60, 60 });
-			if (ImGui::IsItemHovered())
+			switch (type)
 			{
-				float my_tex_h = 60;
-				float my_tex_w = 60;
-				ImVec2 pos = ImGui::GetCursorScreenPos();
-				auto& io = ImGui::GetIO();
-				ImGui::BeginTooltip();
-				float region_sz = 32.0f;
-				float region_x = io.MousePos.x - pos.x - region_sz * 0.5f;
-				float region_y = io.MousePos.y - pos.y - region_sz * 0.5f;
-				float zoom = 5.0f;
-				ImVec2 uv0 = ImVec2((region_x) / my_tex_w, (region_y) / my_tex_h);
-				ImVec2 uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h);
-				ImGui::Image(icon->GetImGuiTexture(), ImVec2(region_sz * zoom, region_sz * zoom), uv0, uv1);
-				ImGui::EndTooltip();
+			case PBRTexture::Albedo: icon = m_PBRHandle->m_Albedo; break;
+			case PBRTexture::Normal: icon = m_PBRHandle->m_Normal; break;
+			case PBRTexture::Roughness: icon = m_PBRHandle->m_Roughness; break;
+			case PBRTexture::Metallic: icon = m_PBRHandle->m_Metallness; break;
+			case PBRTexture::Emissive: icon = m_PBRHandle->m_Emissive; break;
+			case PBRTexture::AO: icon = m_PBRHandle->m_AO; break;
+			}
+
+			if (icon == nullptr)
+			{
+				defaultTex = true;
+				icon = m_TexturesLoader->m_BackgroundIcon;
 			}
 		}
-	
 
-		if (ImGui::BeginDragDropTarget())
+		ImGuiTableFlags flags = ImGuiTableFlags_RowBg;
+		if (ImGui::BeginTable("MaterialView", 4, flags))
 		{
-			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("FileBrowser"))
+			ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 70.0f);
+			ImGui::TableSetupColumn("Path", ImGuiTableColumnFlags_WidthFixed, 170.0f);
+			ImGui::TableSetupColumn("Preview", ImGuiTableColumnFlags_WidthFixed);
+			ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed);
+			ImGui::TableHeadersRow();
+
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+
+			ImGui::TextUnformatted(title.c_str());
+			ImGui::TableNextColumn();
+
 			{
-				std::string& path = *(std::string*)payload->Data;
-				if (Tools::FileExtensionCheck(path, ".s_image"))
+				if (texInfo.FilePath.empty())
 				{
-					texInfo.Load(path);
-
-					if (icon == nullptr)
-					{
-						used = true;
-						texInfo.bImGUIHandle = true;
-
-						switch (type)
-						{
-						case PBRTexture::Albedo: 
-						{
-							m_PBRHandle->m_Albedo = Texture::Create();
-							m_PBRHandle->m_Albedo->LoadFromFile(&texInfo);
-							break;
-						};
-						case PBRTexture::Normal: 
-						{
-							m_PBRHandle->m_Normal = Texture::Create();
-							m_PBRHandle->m_Normal->LoadFromFile(&texInfo);
-							break;
-						};
-						case PBRTexture::Roughness: 
-						{
-							m_PBRHandle->m_Roughness = Texture::Create();
-							m_PBRHandle->m_Roughness->LoadFromFile(&texInfo);
-							break;
-						}
-						case PBRTexture::Metallic: 
-						{
-							m_PBRHandle->m_Metallness = Texture::Create();
-							m_PBRHandle->m_Metallness->LoadFromFile(&texInfo);
-							break;
-						}
-						case PBRTexture::Emissive: 
-						{
-							m_PBRHandle->m_Emissive = Texture::Create();
-							m_PBRHandle->m_Emissive->LoadFromFile(&texInfo);
-							break;
-						}
-						case PBRTexture::AO: 
-						{
-							m_PBRHandle->m_AO = Texture::Create();
-							m_PBRHandle->m_AO->LoadFromFile(&texInfo);
-							break;
-						}
-						}
-					}
+					ImGui::TextWrapped("None");
+				}
+				else
+				{
+					std::filesystem::path p(texInfo.FilePath);
+					ImGui::TextWrapped(p.filename().filename().u8string().c_str());
 				}
 			}
 
-			ImGui::EndDragDropTarget();
-		}
+			ImGui::TableNextColumn();
 
-		ImGui::SameLine();
-		if (ImGui::Button("Reset"))
-		{
-			texInfo = {};
-
-			switch (type)
 			{
-			case PBRTexture::Albedo:    m_PBRHandle->m_Albedo = nullptr; break;
-			case PBRTexture::Normal:    m_PBRHandle->m_Normal = nullptr; break;
-			case PBRTexture::Roughness: m_PBRHandle->m_Roughness = nullptr; break;
-			case PBRTexture::Metallic:  m_PBRHandle->m_Metallness = nullptr; break;
-			case PBRTexture::Emissive:  m_PBRHandle->m_Emissive = nullptr; break;
-			case PBRTexture::AO:        m_PBRHandle->m_AO = nullptr; break;
+				ImGui::Image(icon->GetImGuiTexture(), { 60, 60 });
+				if (!defaultTex)
+				{
+					if (ImGui::IsItemHovered())
+					{
+						float my_tex_h = 60;
+						float my_tex_w = 60;
+						ImVec2 pos = ImGui::GetCursorScreenPos();
+						auto& io = ImGui::GetIO();
+						ImGui::BeginTooltip();
+						float region_sz = 32.0f;
+						float region_x = io.MousePos.x - pos.x - region_sz * 0.5f;
+						float region_y = io.MousePos.y - pos.y - region_sz * 0.5f;
+						float zoom = 5.0f;
+						ImVec2 uv0 = ImVec2((region_x) / my_tex_w, (region_y) / my_tex_h);
+						ImVec2 uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h);
+						ImGui::Image(icon->GetImGuiTexture(), ImVec2(region_sz * zoom, region_sz * zoom), uv0, uv1);
+						ImGui::EndTooltip();
+					}
+				}
+
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("FileBrowser"))
+					{
+						std::string& path = *(std::string*)payload->Data;
+						if (Tools::FileExtensionCheck(path, ".s_image"))
+						{
+							if (texInfo.Load(path))
+							{
+								texInfo.bImGUIHandle = true;
+								used = true;
+
+								m_MaterialCI->SetTexture(type, &texInfo);
+							}
+						}
+					}
+
+					ImGui::EndDragDropTarget();
+				}
 			}
 
-			used = true; 
-		}
+			ImGui::TableNextColumn();
 
-		ImGui::SameLine();
-		if (texInfo.FilePath.empty())
-		{
-			std::string name = title + ": None";
-			ImGui::TextUnformatted(name.c_str());
-		}
-		else
-		{
-			std::filesystem::path p(texInfo.FilePath);
-			std::string name = title + ": " + p.filename().filename().u8string();
-			ImGui::TextUnformatted(name.c_str());
+			{
+				if (ImGui::SmallButton("Reset"))
+				{
+					texInfo = {};
+					m_MaterialCI->SetTexture(type, &texInfo);
+					used = true;
+				}
+			}
+
+			ImGui::TableNextColumn();
+
+			ImGui::EndTable();
 		}
 
 		ImGui::PopID();

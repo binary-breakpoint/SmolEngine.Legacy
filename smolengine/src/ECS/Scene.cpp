@@ -392,17 +392,79 @@ namespace SmolEngine
 
 	void Scene::OnConstruct_MeshComponent(entt::registry& registry, entt::entity entity)
 	{
+		if (!JobsSystem::GetActive())
+			return;
+
 		MeshComponent* component = &registry.get<MeshComponent>(entity);
-
-		// Mesh loading
-		JobsSystem::Schedule([component]()
+		JobsSystem::Schedule([component, this]()
 		{
+				// Mesh 
+				if (component->FilePath.empty())
+				{
+					Ref<Mesh> Mesh = nullptr;
+					Ref<MeshView> View = nullptr;
 
+					switch (component->eType)
+					{
+					case MeshTypeEX::Cube:
+					{
+						auto& [mesh_, view_] = MeshPool::GetCube();
+						Mesh = mesh_;
+						View = view_;
+						break;
+					}
+					case MeshTypeEX::Sphere:
+					{
+						auto& [mesh_, view_] = MeshPool::GetSphere();
+						Mesh = mesh_;
+						View = view_;
+						break;
+					}
+					case MeshTypeEX::Capsule:
+					{
+						auto& [mesh_, view_] = MeshPool::GetCapsule();
+						Mesh = mesh_;
+						View = view_;
+						break;
+					}
+					case MeshTypeEX::Torus:
+					{
+						auto& [mesh_, view_] = MeshPool::GetTorus();
+						Mesh = mesh_;
+						View = view_;
+						break;
+					}
+					}
+
+					component->AnimContoller = nullptr;
+					component->Mesh = Mesh;
+
+					if (!component->View)
+						component->View = View;
+					else
+						component->View->TryLoadMaterials();
+				}
+				else
+				{
+					auto& [mesh, view] = MeshPool::ConstructFromFile(component->FilePath);
+					component->AnimContoller = nullptr;
+					component->Mesh = mesh;
+
+					if (!component->View)
+						component->View = view;
+					else
+						component->View->TryLoadMaterials();
+				}
+
+				// Animations
 		});
 	}
 
 	void Scene::OnConstruct_Texture2DComponent(entt::registry& registry, entt::entity entity)
 	{
+		if (!JobsSystem::GetActive())
+			return;
+
 		Texture2DComponent* component = &registry.get<Texture2DComponent>(entity);
 		JobsSystem::Schedule([component]()
 		{
@@ -412,6 +474,9 @@ namespace SmolEngine
 
 	void Scene::OnConstruct_AudioSourceComponent(entt::registry& registry, entt::entity entity)
 	{
+		if (!JobsSystem::GetActive())
+			return;
+
 		AudioSourceComponent* component = &registry.get<AudioSourceComponent>(entity);
 		component->Initialize();
 

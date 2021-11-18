@@ -51,11 +51,12 @@ namespace SmolEngine
 
 	private:
 		friend class cereal::access;
+		friend class Scene;
 
 		template<typename Archive>
 		void serialize(Archive& archive)
 		{
-			archive(eType, bIsStatic, bShow, FilePath, ComponentID);
+			archive(eType, bIsStatic, bShow, FilePath, View, AnimPaths, ComponentID);
 		}
 	};
 }

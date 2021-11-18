@@ -19,9 +19,9 @@ namespace SmolEngine
 		s_Instance = nullptr;
 	}
 
-	Ref<PBRHandle> PBRFactory::AddMaterial(PBRCreateInfo* infoCI, const std::string& name)
+	Ref<PBRHandle> PBRFactory::AddMaterial(PBRCreateInfo* infoCI, const std::string& path)
 	{
-		Ref<PBRHandle> material = GetMaterial(name);
+		Ref<PBRHandle> material = GetMaterial(path);
 		if (material != nullptr)
 			return material;
 
@@ -29,39 +29,15 @@ namespace SmolEngine
 			std::hash<std::string_view> hasher{};
 
 			material = std::make_shared<PBRHandle>();
-			material->m_Uniform.ID = static_cast<uint32_t>(hasher(name));
-
-			material->m_Uniform.Metalness = infoCI->Metallness;
-			material->m_Uniform.Roughness = infoCI->Roughness;
-			material->m_Uniform.EmissionStrength = infoCI->EmissionStrength;
-			material->m_Uniform.Albedro = glm::vec4(infoCI->Albedo, 1);
-
-			constexpr auto loadFN = [](TextureCreateInfo& ci, Ref<Texture>& out_tetxure, uint32_t& out_state)
-			{
-				if (ci.FilePath.empty())
-				{
-					out_tetxure = nullptr;
-					out_state = 0;
-					return;
-				}
-
-				out_tetxure = Texture::Create();
-				out_tetxure->LoadFromFile(&ci);
-				out_state = 1;
-			};
-
-			loadFN(infoCI->AlbedroTex, material->m_Albedo, material->m_Uniform.UseAlbedroTex);
-			loadFN(infoCI->NormalTex, material->m_Normal, material->m_Uniform.UseNormalTex);
-			loadFN(infoCI->RoughnessTex, material->m_Roughness, material->m_Uniform.UseRoughnessTex);
-			loadFN(infoCI->MetallnessTex, material->m_Metallness, material->m_Uniform.UseMetallicTex);
-			loadFN(infoCI->EmissiveTex, material->m_Emissive, material->m_Uniform.UseEmissiveTex);
-			loadFN(infoCI->AOTex, material->m_AO, material->m_Uniform.UseAOTex);
+			material->m_Uniform.ID = static_cast<uint32_t>(hasher(path));
+			material->m_Path = path;
+			material->Update(infoCI);
 		}
 
 		s_Instance->m_Mutex.lock();
 		{
 			s_Instance->m_Materials.emplace_back(material);
-			s_Instance->m_IDs[name] = material;
+			s_Instance->m_IDs[path] = material;
 		}
 		s_Instance->m_Mutex.unlock();
 
@@ -167,6 +143,37 @@ namespace SmolEngine
 	const std::vector<Ref<PBRHandle>>& PBRFactory::GetMaterials()
 	{
 		return s_Instance->m_Materials;
+	}
+
+	void PBRHandle::Update(PBRCreateInfo* infoCI, bool update_textures)
+	{
+		m_Uniform.Metalness = infoCI->Metallness;
+		m_Uniform.Roughness = infoCI->Roughness;
+		m_Uniform.EmissionStrength = infoCI->EmissionStrength;
+		m_Uniform.Albedro = glm::vec4(infoCI->Albedo, 1);
+
+		constexpr auto loadFN = [](TextureCreateInfo& ci, Ref<Texture>& out_tetxure, uint32_t& out_state)
+		{
+			if (ci.FilePath.empty())
+			{
+				out_tetxure = nullptr;
+				out_state = 0;
+				return;
+			}
+
+			out_tetxure = TexturePool::ConstructFromFile(&ci);
+			out_state = 1;
+		};
+
+		if (update_textures)
+		{
+			loadFN(infoCI->AlbedroTex, m_Albedo, m_Uniform.UseAlbedroTex);
+			loadFN(infoCI->NormalTex, m_Normal, m_Uniform.UseNormalTex);
+			loadFN(infoCI->RoughnessTex, m_Roughness, m_Uniform.UseRoughnessTex);
+			loadFN(infoCI->MetallnessTex, m_Metallness, m_Uniform.UseMetallicTex);
+			loadFN(infoCI->EmissiveTex, m_Emissive, m_Uniform.UseEmissiveTex);
+			loadFN(infoCI->AOTex, m_AO, m_Uniform.UseAOTex);
+		}
 	}
 
 	void PBRHandle::SetTexture(const Ref<Texture>& tex, PBRTexture type)

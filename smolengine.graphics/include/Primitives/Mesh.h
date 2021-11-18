@@ -27,19 +27,20 @@ namespace SmolEngine
 	{
 		struct Element
 		{
-			std::string     m_MaterialPath = "";
+			std::string     m_PBRMatPath = "";
 			Ref<Material3D> m_Material = nullptr;
 			Ref<PBRHandle>  m_PBRHandle = nullptr;
 
 			template<typename Archive>
 			void serialize(Archive& archive)
 			{
-				archive(m_MaterialPath);
+				archive(m_PBRMatPath);
 			}
 		};
 
 		bool                       Serialize(const std::string& path);
 		bool                       Deserialize(const std::string& path);
+		bool                       TryLoadMaterials();
 		void                       SetAnimationController(const Ref<AnimationController>& contoller);
 		void                       SetPBRHandle(const Ref<PBRHandle>& handle, uint32_t nodeIndex = 0);
 		void                       SetMaterial(const Ref<Material3D>& material, uint32_t nodeIndex = 0);
@@ -51,7 +52,6 @@ namespace SmolEngine
 
 	private:
 		glm::mat4                  m_ModelMatrix{};
-		std::string                m_Path = "";
 		std::vector<Element>       m_Elements;
 		Ref<AnimationController>   m_AnimationController = nullptr;
 
@@ -62,7 +62,7 @@ namespace SmolEngine
 		template<typename Archive>
 		void serialize(Archive& archive)
 		{
-			archive(m_Path, m_Elements);
+			archive(m_Elements);
 		}
 
 	};
@@ -73,7 +73,6 @@ namespace SmolEngine
 		void                     Free() override;
 		bool                     IsGood() const override;
 		bool                     LoadFromFile(const std::string& path);
-		bool                     LoadFromSave(Ref<MeshView>& view);
 								 
 		std::vector<Ref<Mesh>>&  GetScene();
 		std::vector<Ref<Mesh>>&  GetChilds();

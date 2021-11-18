@@ -18,10 +18,18 @@ namespace cereal
 
 namespace SmolEngine
 {
+	enum class SceneState
+	{
+		None =  0,
+		Build = 1,
+		Simulation = 2,
+	};
+
 	struct SceneStateComponent
 	{
 		SceneStateComponent() = default;
 
+		SceneState                                     eState = SceneState::None;
 		uint32_t                                       SceneID = 0;
 		uint32_t                                       LastActorID = 1;
 		std::string                                    FilePath = "";

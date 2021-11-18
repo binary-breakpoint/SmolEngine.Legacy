@@ -6,6 +6,7 @@
 
 #include "Tools/Utils.h"
 #include "Import/glTFImporter.h"
+#include "Materials/PBRFactory.h"
 #include "Materials/MaterialPBR.h"
 
 #include <cereal/cereal.hpp>
@@ -80,21 +81,10 @@ namespace SmolEngine
 
             m_DefaultView = std::make_shared<MeshView>();
             m_DefaultView->m_Elements.resize(meshCount);
-            m_DefaultView->m_Path = path;
         }
 
         delete data;
         return is_succeed;
-    }
-
-    bool Mesh::LoadFromSave(Ref<MeshView>& out_view)
-    {
-        if (LoadFromFile(out_view->m_Path))
-        {
-
-        }
-
-        return false;
     }
 
     std::vector<Ref<Mesh>>& Mesh::GetScene()
@@ -231,10 +221,29 @@ namespace SmolEngine
         storage << file.rdbuf();
         {
             cereal::JSONInputArchive input{ storage };
-            input(m_Path, m_Elements);
+            input(m_Elements);
         }
 
         return true;
+    }
+
+    bool MeshView::TryLoadMaterials()
+    {
+        bool any_loaded = false;
+        for (auto& element : m_Elements)
+        {
+            if (!element.m_PBRMatPath.empty())
+            {
+                PBRCreateInfo matCI{};
+                if (matCI.Load(element.m_PBRMatPath))
+                {
+                    element.m_PBRHandle = PBRFactory::AddMaterial(&matCI, element.m_PBRMatPath);
+                    any_loaded = true;
+                }
+            }
+        }
+
+        return any_loaded;
     }
 
     void MeshView::SetAnimationController(const Ref<AnimationController>& contoller)
@@ -244,7 +253,10 @@ namespace SmolEngine
 
     void MeshView::SetPBRHandle(const Ref<PBRHandle>& handle, uint32_t nodeIndex)
     {
-        m_Elements[nodeIndex].m_PBRHandle = handle;
+        auto& element = m_Elements[nodeIndex];
+
+        element.m_PBRMatPath = handle->m_Path;
+        element.m_PBRHandle = handle;
     }
 
     void MeshView::SetMaterial(const Ref<Material3D>& material, uint32_t nodeIndex)
