@@ -2,7 +2,7 @@ project "SmolEngine.Graphics"
 	kind "StaticLib"
 	language "C++"
 	cppdialect "C++17"
-	staticruntime "on"
+	staticruntime "off"
 
 	targetdir ("../bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("../vendor/libs/bin-int/" .. outputdir .. "/%{prj.name}")
@@ -10,6 +10,8 @@ project "SmolEngine.Graphics"
 	pchheader "stdafx.h"
 	pchsource "src/stdafx.cpp"
 	linkoptions { "/ignore:4006" }
+
+	VULKAN_SDK = os.getenv("VULKAN_SDK")
 
 	files
 	{
@@ -37,12 +39,10 @@ project "SmolEngine.Graphics"
 		"../smolengine.external/glm",
 		"../smolengine.external/imgui",
 		"../smolengine.external/imgizmo/src",
-		"../smolengine.external/vulkan/include",
 		"../smolengine.external/stb_image",
 		"../smolengine.core/include/",
 
 		"../vendor/",
-		"../vendor/glslang/include",
 		"../vendor/nvidia_aftermath/include",
 		"../vendor/icon_font_cpp_headers",
 		"../vendor/ozz-animation/include",
@@ -52,20 +52,22 @@ project "SmolEngine.Graphics"
 		"../vendor/ktx/include",
 		"../vendor/tinygltf",
 		"../vendor/gli",
+
+		"%{VULKAN_SDK}/Include",
+		"%{VULKAN_SDK}/Include/glslang/include",
 	}
 
 	links 
 	{ 
-		"../bin/" ..outputdir .. "/SmolEngine.Core/SmolEngine.Core.lib",
+		"Glad",
+		"GLFW",
+		"ImGizmo",
+		"ImGui",
+		"KTX-Tools",
+		"Ozz-Animation",
+		"SmolEngine.Core",
 
-		"../vendor/libs/" ..outputdir .. "/Glad/Glad.lib",
-		"../vendor/libs/" ..outputdir .. "/GLFW/GLFW.lib",
-		"../vendor/libs/" ..outputdir .. "/ImGizmo/ImGizmo.lib",
-		"../vendor/libs/" ..outputdir .. "/ImGui/ImGui.lib",
-		"../vendor/libs/" ..outputdir .. "/KTX-Tools/KTX-Tools.lib",
-		"../vendor/libs/" ..outputdir .. "/SPIRV-Cross/SPIRV-Cross.lib",
-
-		"../vendor/vulkan/libs/vulkan-1.lib",
+		"%{VULKAN_SDK}/Lib/vulkan-1.lib",
 	}
 
 	defines
@@ -75,7 +77,6 @@ project "SmolEngine.Graphics"
 	}
 
 	filter "system:windows"
-		staticruntime "On"
 		systemversion "latest"
 
 		defines
@@ -86,34 +87,29 @@ project "SmolEngine.Graphics"
 		}
 
 	filter "configurations:Debug_Vulkan"
-		buildoptions "/MDd"
-		buildoptions "/bigobj"
-		buildoptions "/Zm500"
 		symbols "on"
 
 		links 
 		{ 
-			"../vendor/vulkan/libs/VkLayer_utils.lib",
-			"../vendor/vulkan/libs/SPIRV-Tools_d.lib",
-			"../vendor/vulkan/libs/SPIRV-Tools-opt_d.lib",
-			"../vendor/vulkan/libs/OGLCompiler_d.lib",
-			"../vendor/vulkan/libs/OSDependent_d.lib",
+			"%{VULKAN_SDK}/Lib/VkLayer_utils.lib",
 
-			"../vendor/glslang/glslang-default-resource-limitsd.lib",
-			"../vendor/glslang/glslangd.lib",
-			"../vendor/glslang/GenericCodeGend.lib",
-			"../vendor/glslang/MachineIndependentd.lib",
-			"../vendor/glslang/SPVRemapperd.lib",
-			"../vendor/glslang/SPIRVd.lib",
+			"%{VULKAN_SDK}/Lib/spirv-cross-glsld.lib",
+			"%{VULKAN_SDK}/Lib/spirv-cross-cored.lib",
+
+			"%{VULKAN_SDK}/Lib/OGLCompilerd.lib",
+			"%{VULKAN_SDK}/Lib/OSDependentd.lib",
+			"%{VULKAN_SDK}/Lib/SPIRV-Toolsd.lib",
+			"%{VULKAN_SDK}/Lib/SPIRV-Tools-optd.lib",
+
+			"%{VULKAN_SDK}/Lib/glslang-default-resource-limitsd.lib",
+			"%{VULKAN_SDK}/Lib/glslangd.lib",
+			"%{VULKAN_SDK}/Lib/GenericCodeGend.lib",
+			"%{VULKAN_SDK}/Lib/MachineIndependentd.lib",
+			"%{VULKAN_SDK}/Lib/SPVRemapperd.lib",
+			"%{VULKAN_SDK}/Lib/SPIRVd.lib",
 
 			"../vendor/nvidia_aftermath/lib/GFSDK_Aftermath_Lib.x64.lib",
 			"../vendor/nvidia_aftermath/lib/GFSDK_Aftermath_Lib_UWP.x64.lib",
-
-			"../vendor/ozz-animation/libs/ozz_animation_d.lib",
-			"../vendor/ozz-animation/libs/ozz_animation_offline_d.lib",
-			"../vendor/ozz-animation/libs/ozz_base_d.lib",
-			"../vendor/ozz-animation/libs/ozz_geometry_d.lib",
-			"../vendor/ozz-animation/libs/ozz_options_d.lib",
 		}
 
 		defines
@@ -122,29 +118,21 @@ project "SmolEngine.Graphics"
 		}
 
 	filter "configurations:Release_Vulkan"
-	buildoptions "/MD"
-	buildoptions "/bigobj"
-	buildoptions "/Zm500"
 	optimize "on"
 
 		links 
 		{ 
+			"%{VULKAN_SDK}/Lib/spirv-cross-glsl.lib",
+			"%{VULKAN_SDK}/Lib/spirv-cross-core.lib",
+			"%{VULKAN_SDK}/Lib/SPIRV-Tools.lib",
+			"%{VULKAN_SDK}/Lib/SPIRV-Tools-opt.lib",
+			"%{VULKAN_SDK}/Lib/OGLCompiler.lib",
+			"%{VULKAN_SDK}/Lib/OSDependent.lib",
 
-			"../vendor/vulkan/libs/SPIRV-Tools.lib",
-			"../vendor/vulkan/libs/SPIRV-Tools-opt.lib",
-			"../vendor/vulkan/libs/OGLCompiler.lib",
-			"../vendor/vulkan/libs/OSDependent.lib",
-
-			"../vendor/glslang/glslang-default-resource-limits.lib",
-			"../vendor/glslang/glslang.lib",
-			"../vendor/glslang/GenericCodeGen.lib",
-			"../vendor/glslang/MachineIndependent.lib",
-			"../vendor/glslang/SPVRemapper.lib",
-			"../vendor/glslang/SPIRV.lib",
-
-			"../vendor/ozz-animation/libs/ozz_animation_r.lib",
-			"../vendor/ozz-animation/libs/ozz_animation_offline_r.lib",
-			"../vendor/ozz-animation/libs/ozz_base_r.lib",
-			"../vendor/ozz-animation/libs/ozz_geometry_r.lib",
-			"../vendor/ozz-animation/libs/ozz_options_r.lib",
+			"%{VULKAN_SDK}/Lib/glslang-default-resource-limits.lib",
+			"%{VULKAN_SDK}/Lib/glslang.lib",
+			"%{VULKAN_SDK}/Lib/GenericCodeGen.lib",
+			"%{VULKAN_SDK}/Lib/MachineIndependent.lib",
+			"%{VULKAN_SDK}/Lib/SPVRemapper.lib",
+			"%{VULKAN_SDK}/Lib/SPIRV.lib"
 		}

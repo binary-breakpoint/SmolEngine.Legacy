@@ -254,9 +254,12 @@ namespace SmolEngine
     void MeshView::SetPBRHandle(const Ref<PBRHandle>& handle, uint32_t nodeIndex)
     {
         auto& element = m_Elements[nodeIndex];
-
-        element.m_PBRMatPath = handle->m_Path;
         element.m_PBRHandle = handle;
+
+        if (handle)
+            element.m_PBRMatPath = handle->m_Path;
+        else
+            element.m_PBRMatPath = "";
     }
 
     void MeshView::SetMaterial(const Ref<Material3D>& material, uint32_t nodeIndex)

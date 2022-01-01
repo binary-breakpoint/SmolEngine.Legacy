@@ -27,7 +27,7 @@ project "Soloud"
 
 	filter "system:windows"
 		systemversion "latest"
-		staticruntime "on"
+		staticruntime "off"
 
 		defines 
 		{ 
@@ -35,11 +35,9 @@ project "Soloud"
 		}
 
 		filter "configurations:Debug_Vulkan"
-		buildoptions "/MDd"
 		symbols "on"
 	
 		filter "configurations:Release_Vulkan"
-		buildoptions "/MD"
 		optimize "full"
 
 

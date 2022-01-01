@@ -2,7 +2,7 @@ project "SmolEngine.Core"
 kind "StaticLib"
 language "C++"
 cppdialect "C++17"
-staticruntime "on"
+staticruntime "off"
 
 targetdir ("../bin/" .. outputdir .. "/%{prj.name}")
 objdir ("../vendor/libs/bin-int/" .. outputdir .. "/%{prj.name}")
@@ -27,13 +27,7 @@ includedirs
 }
 
 filter "configurations:Debug_Vulkan"
-buildoptions "/MDd"
-buildoptions "/bigobj"
-buildoptions "/Zm500"
 symbols "on"
 
 filter "configurations:Release_Vulkan"
-buildoptions "/MD"
-buildoptions "/bigobj"
-buildoptions "/Zm500"
 optimize "on"

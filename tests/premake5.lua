@@ -2,10 +2,12 @@ project "PBR"
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++17"
-	staticruntime "on"
+	staticruntime "off"
 
 	targetdir ("../bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("../vendor/libs/bin-int/" .. outputdir .. "/%{prj.name}")
+
+	VULKAN_SDK = os.getenv("VULKAN_SDK")
 
 	files
 	{
@@ -19,14 +21,15 @@ project "PBR"
 		"../smolengine.graphics/include/",
 
 		"../smolengine.external/",
-		"../smolengine.external/vulkan/include",
 		"../smolengine.external/spdlog/include",
-		"../smolengine.external/glm/"
+		"../smolengine.external/glm/",
+
+		"%{VULKAN_SDK}/Include"
 	}
 
 	links
 	{
-		"../bin/" ..outputdir .. "/SmolEngine.Graphics/SmolEngine.Graphics.lib"
+		"SmolEngine.Graphics"
 	}
 
 	postbuildcommands
@@ -44,13 +47,9 @@ project "PBR"
 		}
 
 		filter "configurations:Debug_Vulkan"
-		buildoptions "/MDd"
-		buildoptions "/bigobj"
 		symbols "on"
 	
 		filter "configurations:Release_Vulkan"
-		buildoptions "/MD"
-		buildoptions "/bigobj"
 		optimize "on"
 
 
@@ -60,7 +59,7 @@ project "2D"
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++17"
-	staticruntime "on"
+	staticruntime "off"
 
 	targetdir ("../bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("../vendor/libs/bin-int/" .. outputdir .. "/%{prj.name}")
@@ -75,16 +74,17 @@ project "2D"
 	{
 		"../smolengine.core/include/",
 		"../smolengine.graphics/include/",
-		
+
 		"../smolengine.external/",
-		"../smolengine.external/vulkan/include",
 		"../smolengine.external/spdlog/include",
-		"../smolengine.external/glm/"
+		"../smolengine.external/glm/",
+
+		"%{VULKAN_SDK}/Include"
 	}
 
 	links
 	{
-		"../bin/" ..outputdir .. "/SmolEngine.Graphics/SmolEngine.Graphics.lib"
+		"SmolEngine.Graphics"
 	}
 
 	postbuildcommands
@@ -102,13 +102,9 @@ project "2D"
 		}
 
 		filter "configurations:Debug_Vulkan"
-		buildoptions "/MDd"
-		buildoptions "/bigobj"
 		symbols "on"
 	
 		filter "configurations:Release_Vulkan"
-		buildoptions "/MD"
-		buildoptions "/bigobj"
 		optimize "on"
 
 	------------------------------------------------- 3D Animations
@@ -117,7 +113,7 @@ project "2D"
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++17"
-	staticruntime "on"
+	staticruntime "off"
 
 	targetdir ("../bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("../vendor/libs/bin-int/" .. outputdir .. "/%{prj.name}")
@@ -132,16 +128,17 @@ project "2D"
 	{
 		"../smolengine.core/include/",
 		"../smolengine.graphics/include/",
-		
+
 		"../smolengine.external/",
-		"../smolengine.external/vulkan/include",
 		"../smolengine.external/spdlog/include",
-		"../smolengine.external/glm/"
+		"../smolengine.external/glm/",
+
+		"%{VULKAN_SDK}/Include"
 	}
 
 	links
 	{
-		"../bin/" ..outputdir .. "/SmolEngine.Graphics/SmolEngine.Graphics.lib"
+		"SmolEngine.Graphics"
 	}
 
 	postbuildcommands
@@ -159,13 +156,9 @@ project "2D"
 		}
 
 		filter "configurations:Debug_Vulkan"
-		buildoptions "/MDd"
-		buildoptions "/bigobj"
 		symbols "on"
 	
 		filter "configurations:Release_Vulkan"
-		buildoptions "/MD"
-		buildoptions "/bigobj"
 		optimize "on"
 
 	------------------------------------------------- MATERIALS
@@ -173,7 +166,7 @@ project "2D"
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++17"
-	staticruntime "on"
+	staticruntime "off"
 
 	targetdir ("../bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("../vendor/libs/bin-int/" .. outputdir .. "/%{prj.name}")
@@ -188,16 +181,17 @@ project "2D"
 	{
 		"../smolengine.core/include/",
 		"../smolengine.graphics/include/",
-		
+
 		"../smolengine.external/",
-		"../smolengine.external/vulkan/include",
 		"../smolengine.external/spdlog/include",
-		"../smolengine.external/glm/"
+		"../smolengine.external/glm/",
+
+		"%{VULKAN_SDK}/Include"
 	}
 
 	links
 	{
-		"../bin/" ..outputdir .. "/SmolEngine.Graphics/SmolEngine.Graphics.lib"
+		"SmolEngine.Graphics"
 	}
 
 	postbuildcommands
@@ -215,13 +209,9 @@ project "2D"
 		}
 
 		filter "configurations:Debug_Vulkan"
-		buildoptions "/MDd"
-		buildoptions "/bigobj"
 		symbols "on"
 	
 		filter "configurations:Release_Vulkan"
-		buildoptions "/MD"
-		buildoptions "/bigobj"
 		optimize "on"
 
 	------------------------------------------------- RAYTRACING
@@ -230,7 +220,7 @@ project "2D"
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++17"
-	staticruntime "on"
+	staticruntime "off"
 
 	targetdir ("../bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("../vendor/libs/bin-int/" .. outputdir .. "/%{prj.name}")
@@ -245,16 +235,17 @@ project "2D"
 	{
 		"../smolengine.core/include/",
 		"../smolengine.graphics/include/",
-		
+
 		"../smolengine.external/",
-		"../smolengine.external/vulkan/include",
 		"../smolengine.external/spdlog/include",
-		"../smolengine.external/glm/"
+		"../smolengine.external/glm/",
+
+		"%{VULKAN_SDK}/Include"
 	}
 
 	links
 	{
-		"../bin/" ..outputdir .. "/SmolEngine.Graphics/SmolEngine.Graphics.lib"
+		"SmolEngine.Graphics"
 	}
 
 	postbuildcommands
@@ -272,12 +263,8 @@ project "2D"
 		}
 
 		filter "configurations:Debug_Vulkan"
-		buildoptions "/MDd"
-		buildoptions "/bigobj"
 		symbols "on"
 	
 		filter "configurations:Release_Vulkan"
-		buildoptions "/MD"
-		buildoptions "/bigobj"
 		optimize "on"
 		

@@ -7,6 +7,8 @@ project "KTX-Tools"
 	targetdir ("../libs/" .. outputdir .. "/%{prj.name}")
 	objdir ("../libs/bin-int/" .. outputdir .. "/%{prj.name}")
 
+	VULKAN_SDK = os.getenv("VULKAN_SDK")
+
 	files
 	{
 		"lib/**.h",
@@ -21,12 +23,12 @@ project "KTX-Tools"
 		"other_include/",
 		"lib/",
 
-		"../../smolengine.external/vulkan/include/"
+		"%{VULKAN_SDK}/Include",
 	}
 
 	filter "system:windows"
 		systemversion "latest"
-		staticruntime "on"
+		staticruntime "off"
 
 		defines 
 		{ 
@@ -34,11 +36,9 @@ project "KTX-Tools"
 		}
 
 		filter "configurations:Debug_Vulkan"
-		buildoptions "/MDd"
 		symbols "on"
 		
 		filter "configurations:Release_Vulkan"
-		buildoptions "/MD"
 		optimize "full"
 	
 

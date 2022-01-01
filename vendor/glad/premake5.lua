@@ -1,7 +1,7 @@
 project "Glad"
     kind "StaticLib"
     language "C"
-    staticruntime "on"
+	staticruntime "off"
     
     targetdir ("../libs/" .. outputdir .. "/%{prj.name}")
     objdir ("../libs/bin-int/" .. outputdir .. "/%{prj.name}")
@@ -22,10 +22,8 @@ project "Glad"
         systemversion "latest"
 
 	filter "configurations:Debug_Vulkan"
-	buildoptions "/MDd"
 	symbols "on"
 
 	filter "configurations:Release_Vulkan"
-	buildoptions "/MD"
 	optimize "full"
 

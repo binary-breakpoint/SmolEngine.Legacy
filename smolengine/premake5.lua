@@ -2,13 +2,15 @@ project "SmolEngine"
 	kind "StaticLib"
 	language "C++"
 	cppdialect "C++17"
-	staticruntime "on"
+	staticruntime "off"
 
 	targetdir ("../bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("../vendor/libs/bin-int/" .. outputdir .. "/%{prj.name}")
 	linkoptions { "/ignore:4006" }
 	pchheader "stdafx.h"
 	pchsource "src/stdafx.cpp"
+
+	VULKAN_SDK = os.getenv("VULKAN_SDK")
 
 	files
 	{
@@ -23,27 +25,27 @@ project "SmolEngine"
 		"../smolengine.core/include/",
 		"../smolengine.graphics/include/",
 
-		"../vendor/mono/include/mono-2.0/",
 		"../vendor/bullet3/include/",
 		"../vendor/soloud/include/",
 		"../vendor/cereal/include/",
+		"../vendor/mono/include/",
 		"../vendor/imgui-node-editor/src/",
 
 		"../smolengine.external/",
 		"../smolengine.external/box_2D/include/",
-		"../smolengine.external/vulkan/include",
 		"../smolengine.external/spdlog/include/",
 		"../smolengine.external/taskflow/",
 		"../smolengine.external/glm/",
+
+		"%{VULKAN_SDK}/Include",
 	}
 
 	links 
 	{ 
-		"../vendor/mono/lib/mono-2.0-sgen.lib",
-		"../vendor/libs/" ..outputdir .. "/Box2D/Box2D.lib",
-		"../vendor/libs/" ..outputdir .. "/Soloud/Soloud.lib",
-		"../vendor/libs/" ..outputdir .. "/Node-Editor/Node-Editor.lib",
-		"../bin/" ..outputdir .. "/SmolEngine.Graphics/SmolEngine.Graphics.lib"
+		"Box2D",
+		"Soloud",
+		"Node-Editor",
+		"SmolEngine.Graphics"
 	}
 
 	defines
@@ -53,7 +55,6 @@ project "SmolEngine"
 	}
 
 	filter "system:windows"
-		staticruntime "On"
 		systemversion "latest"
 
 		defines
@@ -64,13 +65,12 @@ project "SmolEngine"
 		}
 
 		filter "configurations:Debug_Vulkan"
-		buildoptions "/MDd"
-		buildoptions "/bigobj"
-		buildoptions "/Zm500"
 		symbols "on"
 
 		links 
 		{ 
+			"../vendor/mono/lib/Debug/mono-2.0-sgen.lib",
+
 		   "../vendor/bullet3/libs/BulletCollision_Debug.lib",
 		   "../vendor/bullet3/libs/BulletDynamics_Debug.lib",
 		   "../vendor/bullet3/libs/LinearMath_Debug.lib"
@@ -84,13 +84,12 @@ project "SmolEngine"
 		
 
 		filter "configurations:Release_Vulkan"
-		buildoptions "/MD"
-		buildoptions "/bigobj"
-		buildoptions "/Zm500"
 		optimize "on"
 
 		links 
 		{ 
+			"../vendor/mono/lib/Release/mono-2.0-sgen.lib",
+
 		   "../vendor/bullet3/libs/BulletCollision.lib",
 		   "../vendor/bullet3/libs/BulletDynamics.lib",
 		   "../vendor/bullet3/libs/LinearMath.lib"

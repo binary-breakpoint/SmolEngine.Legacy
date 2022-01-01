@@ -1,0 +1,327 @@
+{
+    "value0": 4,
+    "value1": 0,
+    "value2": 1,
+    "value3": 2,
+    "value4": 3,
+    "value5": 4294967295,
+    "value6": 3,
+    "value7": 1,
+    "value8": {
+        "value0": 1,
+        "value1": 0,
+        "value2": "Actor#1",
+        "value3": "Default",
+        "value4": true,
+        "value5": {
+            "ptr_wrapper": {
+                "id": 0
+            }
+        },
+        "value6": [],
+        "value7": 0,
+        "value8": 4
+    },
+    "value9": 2,
+    "value10": {
+        "value0": 2,
+        "value1": 0,
+        "value2": "Actor#2",
+        "value3": "Default",
+        "value4": true,
+        "value5": {
+            "ptr_wrapper": {
+                "id": 0
+            }
+        },
+        "value6": [],
+        "value7": 0,
+        "value8": 3
+    },
+    "value11": 3,
+    "value12": {
+        "value0": 3,
+        "value1": 0,
+        "value2": "Actor#3",
+        "value3": "Default",
+        "value4": true,
+        "value5": {
+            "ptr_wrapper": {
+                "id": 0
+            }
+        },
+        "value6": [],
+        "value7": 0,
+        "value8": 4
+    },
+    "value13": 0,
+    "value14": 0,
+    "value15": 0,
+    "value16": 1,
+    "value17": 2,
+    "value18": {
+        "value0": 0,
+        "value1": 1.0,
+        "value2": 1.0,
+        "value3": 1.0,
+        "value4": 1.0,
+        "value5": 67.0,
+        "value6": 56.0,
+        "value7": 0.0,
+        "value8": 0.0,
+        "value9": 1.0,
+        "value10": 1.0,
+        "value11": 350.0,
+        "value12": 1.0,
+        "value13": 45.0,
+        "value14": true,
+        "value15": true,
+        "value16": true
+    },
+    "value19": 0,
+    "value20": 0,
+    "value21": 3,
+    "value22": 1,
+    "value23": {
+        "value0": 0.0,
+        "value1": -0.0,
+        "value2": 0.0,
+        "value3": 10.0,
+        "value4": 0.5,
+        "value5": 10.0,
+        "value6": 0.0,
+        "value7": 3.7821545600891115,
+        "value8": 0.0,
+        "value9": 0.0,
+        "value10": 0.0,
+        "value11": 0.0,
+        "value12": 1
+    },
+    "value24": 2,
+    "value25": {
+        "value0": 0.0,
+        "value1": 0.0,
+        "value2": 0.0,
+        "value3": 1.0,
+        "value4": 1.0,
+        "value5": 1.0,
+        "value6": 0.0,
+        "value7": 0.0,
+        "value8": 0.0,
+        "value9": 0.0,
+        "value10": 0.0,
+        "value11": 0.0,
+        "value12": 1
+    },
+    "value26": 3,
+    "value27": {
+        "value0": 0.0,
+        "value1": -0.0,
+        "value2": 0.0,
+        "value3": 1.0,
+        "value4": 1.0,
+        "value5": 1.0,
+        "value6": 0.0,
+        "value7": 9.231300354003907,
+        "value8": 0.0,
+        "value9": 0.0,
+        "value10": 0.0,
+        "value11": 0.0,
+        "value12": 1
+    },
+    "value28": 0,
+    "value29": 0,
+    "value30": 2,
+    "value31": 1,
+    "value32": {
+        "value0": 1,
+        "value1": false,
+        "value2": true,
+        "value3": "",
+        "value4": {
+            "ptr_wrapper": {
+                "id": 2147483649,
+                "data": {
+                    "value0": [
+                        {
+                            "value0": ""
+                        }
+                    ]
+                }
+            }
+        },
+        "value5": [],
+        "value6": 2
+    },
+    "value33": 3,
+    "value34": {
+        "value0": 2,
+        "value1": false,
+        "value2": true,
+        "value3": "",
+        "value4": {
+            "ptr_wrapper": {
+                "id": 2147483650,
+                "data": {
+                    "value0": [
+                        {
+                            "value0": ""
+                        }
+                    ]
+                }
+            }
+        },
+        "value5": [],
+        "value6": 2
+    },
+    "value35": 0,
+    "value36": 0,
+    "value37": 1,
+    "value38": 0,
+    "value39": {
+        "value0": 0,
+        "value1": 4,
+        "value2": "../tests/Assets\\test.s_scene",
+        "value3": "test",
+        "value4": [
+            {
+                "key": "Actor#1",
+                "value": {
+                    "ptr_wrapper": {
+                        "id": 2147483651,
+                        "data": {
+                            "value0": 1
+                        }
+                    }
+                }
+            },
+            {
+                "key": "Actor#2",
+                "value": {
+                    "ptr_wrapper": {
+                        "id": 2147483652,
+                        "data": {
+                            "value0": 2
+                        }
+                    }
+                }
+            },
+            {
+                "key": "Actor#3",
+                "value": {
+                    "ptr_wrapper": {
+                        "id": 2147483653,
+                        "data": {
+                            "value0": 3
+                        }
+                    }
+                }
+            }
+        ],
+        "value5": [
+            {
+                "key": 1,
+                "value": {
+                    "ptr_wrapper": {
+                        "id": 3
+                    }
+                }
+            },
+            {
+                "key": 2,
+                "value": {
+                    "ptr_wrapper": {
+                        "id": 4
+                    }
+                }
+            },
+            {
+                "key": 3,
+                "value": {
+                    "ptr_wrapper": {
+                        "id": 5
+                    }
+                }
+            }
+        ],
+        "value6": [
+            {
+                "ptr_wrapper": {
+                    "id": 3
+                }
+            },
+            {
+                "ptr_wrapper": {
+                    "id": 4
+                }
+            },
+            {
+                "ptr_wrapper": {
+                    "id": 5
+                }
+            }
+        ]
+    },
+    "value40": 0,
+    "value41": 2,
+    "value42": 1,
+    "value43": {
+        "value0": {
+            "value0": {
+                "ptr_wrapper": {
+                    "id": 3
+                }
+            },
+            "value1": 0,
+            "value2": 1,
+            "value3": 1,
+            "value4": 0,
+            "value5": 1.0,
+            "value6": 0.5,
+            "value7": 0.0,
+            "value8": 0.6000000238418579,
+            "value9": 0.0,
+            "value10": 0.0,
+            "value11": 0.10000000149011612,
+            "value12": 0.10000000149011612,
+            "value13": 10.0,
+            "value14": 0.5,
+            "value15": 10.0,
+            "value16": "",
+            "value17": 1.0,
+            "value18": 0.0,
+            "value19": 0.0
+        },
+        "value1": 3
+    },
+    "value44": 3,
+    "value45": {
+        "value0": {
+            "value0": {
+                "ptr_wrapper": {
+                    "id": 5
+                }
+            },
+            "value1": 1,
+            "value2": 0,
+            "value3": 0,
+            "value4": 1,
+            "value5": 5.0,
+            "value6": 0.5,
+            "value7": 1.0,
+            "value8": 0.800000011920929,
+            "value9": 0.0,
+            "value10": 0.0,
+            "value11": 0.10000000149011612,
+            "value12": 0.10000000149011612,
+            "value13": 1.0,
+            "value14": 1.0,
+            "value15": 1.0,
+            "value16": "",
+            "value17": 1.0,
+            "value18": 0.0,
+            "value19": 0.0
+        },
+        "value1": 3
+    }
+}

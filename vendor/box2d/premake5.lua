@@ -25,7 +25,7 @@ project "Box2D"
 
 	filter "system:windows"
 		systemversion "latest"
-		staticruntime "on"
+		staticruntime "off"
 
 		defines 
 		{ 
@@ -33,16 +33,10 @@ project "Box2D"
 		}
 
 	filter "configurations:Debug_Vulkan"
-	buildoptions "/MDd"
-	buildoptions "/bigobj"
-	buildoptions "/Zm500"
 	symbols "on"
 
 
 	filter "configurations:Release_Vulkan"
-	buildoptions "/MD"
-	buildoptions "/bigobj"
-	buildoptions "/Zm500"
 	optimize "full"
 
 

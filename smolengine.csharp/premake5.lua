@@ -4,8 +4,8 @@ language "C#"
 namespace "SmolEngine"
 clr "Unsafe"
 
-targetdir ("../bin/" .. outputdir .. "/%{prj.name}")
-objdir ("../vendor/libs/bin-int/" .. outputdir .. "/%{prj.name}")
+targetdir ("../bin/CSharp/%{prj.name}")
+objdir ("../vendor/libs/bin-int/CSharp/%{prj.name}")
 
 files
 {

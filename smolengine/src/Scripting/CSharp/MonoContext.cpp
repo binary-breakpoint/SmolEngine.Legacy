@@ -38,7 +38,7 @@ namespace SmolEngine
 
 	MonoContext::MonoContext()
 	{
-		mono_set_dirs("../vendor/mono/lib", "../vendor/mono/etc");
+		mono_set_assemblies_path("../resources/Mono/lib");
 		mono_debug_init(MONO_DEBUG_FORMAT_MONO);
 		mono_config_parse(NULL);
 		mono_set_signal_chaining(true);

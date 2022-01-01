@@ -2,11 +2,13 @@ project "SmolEngine-Editor"
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++17"
-	staticruntime "on"
+	staticruntime "off"
 
 	targetdir ("../bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("../vendor/libs/bin-int/" .. outputdir .. "/%{prj.name}")
 	linkoptions { "/ignore:4099" }
+
+	VULKAN_SDK = os.getenv("VULKAN_SDK")
 
 	files
 	{
@@ -25,12 +27,13 @@ project "SmolEngine-Editor"
 
 		"../smolengine.external/",
 		"../smolengine.external/box_2D/include/",
-		"../smolengine.external/vulkan/include/",
 		"../smolengine.external/spdlog/include/",
 		"../smolengine.external/taskflow/",
 		"../smolengine.external/glm/",
 
-		"../vendor/imgui-node-editor/src/"
+		"../vendor/imgui-node-editor/src/",
+
+		"%{VULKAN_SDK}/Include"
 	}
 
 	links
@@ -48,11 +51,17 @@ project "SmolEngine-Editor"
 		}
 
 		filter "configurations:Debug_Vulkan"
-		buildoptions "/MDd"
-		buildoptions "/bigobj"
 		symbols "on"
+
+		postbuildcommands 
+		{
+			'{COPY} "../vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"',
+		}
 	
 		filter "configurations:Release_Vulkan"
-		buildoptions "/MD"
-		buildoptions "/bigobj"
 		optimize "on"
+
+		postbuildcommands 
+		{
+			'{COPY} "../vendor/mono/bin/Release/mono-2.0-sgen.dll" "%{cfg.targetdir}"',
+		}
