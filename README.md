@@ -3,7 +3,7 @@
 
 This repository contains an early version of my personal game engine - [SmolEngine](https://github.com/Floritte/SmolEngine-SDK). The purpose of this repository is to be a good reference for the user's own 2D/3D game engine.
 
-## Samples
+## Resources
 - [Entity Component System](https://github.com/Floritte/Game-Engine-Samples/tree/main/smolengine/src/ECS)
 - [C# Scripting](https://github.com/Floritte/Game-Engine-Samples/tree/main/smolengine/src/Scripting/CSharp)
 - [C++ Scripting](https://github.com/Floritte/Game-Engine-Samples/tree/main/smolengine/src/Scripting/CPP)
