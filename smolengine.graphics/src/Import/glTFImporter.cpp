@@ -7,6 +7,7 @@
 #include <stb_image/stb_image.h>
 #include <tinygltf/tiny_gltf.h>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include <gli.hpp>
 
 using namespace tinygltf;
@@ -15,6 +16,15 @@ namespace SmolEngine
 {
 	void LoadNode(const tinygltf::Node& inputNode, const tinygltf::Model& input, uint32_t nodeIndex, ImportedDataGlTF* out_data)
 	{
+		// Load node's children
+		if (inputNode.children.size() > 0)
+		{
+			for (size_t i = 0; i < inputNode.children.size(); i++)
+			{
+				LoadNode(input.nodes[inputNode.children[i]], input, inputNode.children[i], out_data);
+			}
+		}
+
 		glm::vec3 translation = glm::vec3(0);
 		if (inputNode.translation.size() == 3)
 		{
@@ -27,26 +37,17 @@ namespace SmolEngine
 			scale = glm::make_vec3(inputNode.scale.data());
 		}
 
-		glm::quat rotation = glm::mat4(1);
+		glm::quat rotation = glm::mat4(0);
 		if (inputNode.rotation.size() == 4)
 		{
 			rotation = glm::make_quat(inputNode.rotation.data());
 		}
 
-		glm::mat4 matrix = glm::mat4(1);
-		if (inputNode.matrix.size() == 16)
-		{
-			matrix = glm::make_mat4x4(inputNode.matrix.data());
-		}
+		glm::mat4 model = glm::mat4(1.0f);
+		glm::vec3 rot = glm::vec3(0);
 
-		// Load node's children
-		if (inputNode.children.size() > 0)
-		{
-			for (size_t i = 0; i < inputNode.children.size(); i++)
-			{
-				LoadNode(input.nodes[inputNode.children[i]], input, inputNode.children[i], out_data);
-			}
-		}
+		Utils::ComposeTransform(translation, rot, scale, model);
+		model = model * glm::toMat4(rotation);
 
 		// In glTF this is done via accessors and buffer views
 		// If the node contains mesh data, we load vertices and indices from the buffers
@@ -62,12 +63,9 @@ namespace SmolEngine
 				uint32_t                   vertexStart = 0;
 				uint32_t                   indexCount = 0;
 				bool                       hasSkin = false;
-				glm::mat4                  model = glm::mat4(1.0f);
-				glm::vec3                  rot = glm::eulerAngles(rotation);
 				glm::vec3                  posMin{};
 				glm::vec3                  posMax{};
 
-				Utils::ComposeTransform(translation, rot, scale, model);
 				if (out_data->Primitives.size() > 0)
 				{
 					firstIndex = static_cast<uint32_t>(out_data->Primitives.back().IndexBuffer.size());
