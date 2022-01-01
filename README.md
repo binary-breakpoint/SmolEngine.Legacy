@@ -1,7 +1,7 @@
 ## Level Editor
 ![SmolEngine](https://i.imgur.com/PAg7PMr.png)
 
-This repository contains an early version of my personal game engine - [SmolEngine](https://github.com/Floritte/SmolEngine-SDK). The purpose of this repository is to be a good reference for the user's own 2D/3D game engine.
+This repository contains an early version of my personal game engine - [SmolEngine](https://github.com/Floritte/SmolEngine-SDK). Feel free to use it as a reference for your own projects.
 
 ## Resources
 - [Entity Component System](https://github.com/Floritte/Game-Engine-Samples/tree/main/smolengine/src/ECS)
