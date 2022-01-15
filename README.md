@@ -1,5 +1,5 @@
 ## Level Editor
-![SmolEngine](https://i.imgur.com/PAg7PMr.png)
+[![SmolEngine](https://i.imgur.com/PAg7PMr.png)](https://www.youtube.com/watch?v=nW9iOi9fXbQ)
 
 This repository contains an early version of my personal game engine - [SmolEngine](https://github.com/Floritte/SmolEngine-SDK). Feel free to use it as a reference for your own projects.
 
@@ -29,7 +29,7 @@ This repository contains an early version of my personal game engine - [SmolEngi
 ## Building
 ### Windows
 
-1. Clone the repository: ```git clone https://github.com/Floritte/Game-Engine-Samples```
+1. Clone the repository: ```git clone https://github.com/Floritte/SmolEngine-Legacy```
 2. Install [Vulkan SDK 1.2.198.1](https://vulkan.lunarg.com/sdk/home#windows) or higher
 3. Configure the solution with Premake5: run `gen-project-vs2019.bat`
 4. Build the solution with Visual Studio: 
