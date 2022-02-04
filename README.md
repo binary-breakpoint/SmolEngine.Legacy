@@ -3,28 +3,27 @@
 
 This repository contains an early version of my personal game engine - [SmolEngine](https://github.com/Floritte/SmolEngine-SDK). Feel free to use it as a reference for your own projects.
 
-## Resources
-- [Entity Component System](https://github.com/Floritte/Game-Engine-Samples/tree/main/smolengine/src/ECS)
-- [C# Scripting](https://github.com/Floritte/Game-Engine-Samples/tree/main/smolengine/src/Scripting/CSharp)
-- [C++ Scripting](https://github.com/Floritte/Game-Engine-Samples/tree/main/smolengine/src/Scripting/CPP)
-- [Vulkan Backend](https://github.com/Floritte/Game-Engine-Samples/tree/main/smolengine.graphics/src/Backends/Vulkan)
-- [2D Renderer](https://github.com/Floritte/Game-Engine-Samples/blob/main/smolengine.graphics/src/Renderer/Renderer2D.cpp)
-- [3D Renderer](https://github.com/Floritte/Game-Engine-Samples/blob/main/smolengine.graphics/src/Renderer/RendererDeferred.cpp)
-- [Debug Renderer](https://github.com/Floritte/Game-Engine-Samples/blob/main/smolengine.graphics/src/Renderer/RendererDebug.cpp)
-- [2D Physics](https://github.com/Floritte/Game-Engine-Samples/tree/main/smolengine/src/Physics/Box2D)
-- [3D Physics](https://github.com/Floritte/Game-Engine-Samples/tree/main/smolengine/src/Physics/Bullet3)
-- [3D Audio](https://github.com/Floritte/Game-Engine-Samples/tree/main/smolengine/src/Audio)
-- [Shaders](https://github.com/Floritte/Game-Engine-Samples/tree/main/resources/Shaders)
-- [Level-Editor](https://github.com/Floritte/Game-Engine-Samples/tree/main/smolengine.editor/src)
-- [Prefabs](https://github.com/Floritte/Game-Engine-Samples/blob/main/smolengine/src/ECS/Prefab.cpp)
-- [Dear ImGui UI](https://github.com/Floritte/Game-Engine-Samples/blob/main/smolengine.graphics/src/Backends/Vulkan/GUI/ImGuiVulkanImpl.cpp)
-- [Nuklear UI](https://github.com/Floritte/Game-Engine-Samples/blob/main/smolengine.graphics/src/Backends/Vulkan/GUI/NuklearVulkanImpl.cpp)
-- [Window & Events](https://github.com/Floritte/Game-Engine-Samples/tree/main/smolengine.graphics/src/Window)
-- [glTF Importer](https://github.com/Floritte/Game-Engine-Samples/blob/main/smolengine.graphics/src/Import/glTFImporter.cpp)
-- [Animations](https://github.com/Floritte/Game-Engine-Samples/tree/main/smolengine.graphics/src/Animation)
-- [Camera](https://github.com/Floritte/Game-Engine-Samples/tree/main/smolengine.graphics/src/Camera)
-- [In-Game UI](https://github.com/Floritte/Game-Engine-Samples/tree/main/smolengine.graphics/src/GUI)
-- [Materials](https://github.com/Floritte/Game-Engine-Samples/tree/main/smolengine.graphics/src/Materials)
+## Notable Features
+  - C#/C++ Scripting API
+  - Entity Component System
+  - Jobs System
+  - Audio
+  - Powerful Level Editor
+  - Prefabs
+  - Physics: 2D ([Box2D](https://github.com/erincatto/box2d)), 3D ([Bullet3](https://github.com/bulletphysics/bullet3))
+  - Integrated Profilers: [Optick](https://github.com/bombomby/optick), [Nsight Graphics](https://developer.nvidia.com/nsight-graphics/)
+  
+## Notable Features: Rendering
+  - Own abstraction layer on top of OpenGL/Vulkan API
+  - Physically Based Rendering (Metalness-Roughness workflow)
+  - Deferred Rendering
+  - Shadow Mapping
+  - Material System (custom shaders)
+  - Skeleton Animations
+  - In-Game UI (text, buttons, input fields, etc)
+  - ImGUI Integration
+  - Compute Pipelines
+  - Bloom
 
 ## Building
 ### Windows
